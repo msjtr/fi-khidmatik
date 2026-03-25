@@ -1,42 +1,103 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>فاتورة</title>
+<title>فاتورة إلكترونية</title>
+
 <link rel="stylesheet" href="css/style.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+.invoice-box{
+max-width:900px;
+margin:auto;
+background:#fff;
+padding:20px;
+border-radius:10px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.title{
+text-align:center;
+flex:1;
+}
+
+.row{
+display:flex;
+gap:10px;
+margin-top:20px;
+}
+
+.box{
+flex:1;
+border:1px solid #ddd;
+padding:10px;
+border-radius:8px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th{
+background:#1e3a8a;
+color:#fff;
+}
+
+th,td{
+padding:10px;
+border:1px solid #ddd;
+text-align:center;
+}
+
+.total{
+text-align:left;
+margin-top:20px;
+}
+
+@media print{
+button{display:none;}
+body{background:#fff;}
+}
+</style>
+
 </head>
 
 <body>
 
-<div class="invoice" id="inv"></div>
+<div class="invoice-box" id="invoice">
 
-<script>
+<div class="header">
 
-let o = JSON.parse(localStorage.getItem("order"));
+<div>
+<img src="images/logo.svg" width="100">
+</div>
 
-let rows = "";
-let total = 0;
-
-o.cart.forEach(p=>{
-let t = p.price * p.qty;
-total += t;
-
-rows += `<tr>
-<td>${p.name}</td>
-<td>${p.qty}</td>
-<td>${p.price}</td>
-<td>${t}</td>
-</tr>`;
-});
-
-document.getElementById("inv").innerHTML = `
-
+<div class="title">
 <h2>فاتورة إلكترونية</h2>
+<p>منصة في خدمتك</p>
+</div>
+
+<div>
+<p id="orderInfo"></p>
+</div>
+
+</div>
+
+<hr>
 
 <div class="row">
 
 <div class="box">
-<h3>مصدرة من</h3>
+<h4>مصدرة من</h4>
 منصة في خدمتك<br>
 المملكة العربية السعودية<br>
 حائل - حي النقرة - شارع سعد المشاط<br>
@@ -47,28 +108,88 @@ FL-765735204<br>
 312495447600003
 </div>
 
-<div class="box">
-<h3>مصدرة إلى</h3>
+<div class="box" id="toBox"></div>
 
-${o.customer}<br>
+</div>
+
+<table id="table"></table>
+
+<div class="total" id="totals"></div>
+
+</div>
+
+<div style="text-align:center;margin-top:15px;">
+<button onclick="downloadPDF()">تحميل PDF</button>
+<button onclick="window.print()">طباعة</button>
+<button onclick="location.href='index.html'">رجوع</button>
+</div>
+
+<script>
+
+let o = JSON.parse(localStorage.getItem("order"));
+
+/* معلومات الطلب */
+document.getElementById("orderInfo").innerHTML = `
+رقم الطلب: ${o.order_number}<br>
+التاريخ: ${o.date}<br>
+الوقت: ${o.time}
+`;
+
+/* مصدرة إلى */
+document.getElementById("toBox").innerHTML = `
+<h4>مصدرة إلى</h4>
+
+اسم العميل: ${o.customer}<br>
 المملكة العربية السعودية<br><br>
 
 ${o.city} - حي ${o.district} - شارع ${o.street} - رقم المبنى ${o.building} - الرقم الإضافي ${o.extra} - الرمز البريدي ${o.postal}<br><br>
 
 ${o.phone}<br>
 ${o.email}
-</div>
-
-</div>
-
-<table>
-<tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
-${rows}
-</table>
-
-<h3>المجموع: ${total.toFixed(2)} ريال</h3>
-
 `;
+
+/* جدول المنتجات */
+let rows = `
+<tr>
+<th>المنتج</th>
+<th>الكمية</th>
+<th>السعر</th>
+<th>الإجمالي</th>
+</tr>
+`;
+
+let subtotal = 0;
+
+o.cart.forEach(p=>{
+let t = p.price * p.qty;
+subtotal += t;
+
+rows += `
+<tr>
+<td>${p.name}</td>
+<td>${p.qty}</td>
+<td>${p.price}</td>
+<td>${t.toFixed(2)}</td>
+</tr>
+`;
+});
+
+document.getElementById("table").innerHTML = rows;
+
+/* الحساب */
+let tax = subtotal * 0.15;
+let final = subtotal + tax;
+
+document.getElementById("totals").innerHTML = `
+<p>مجموع السلة: ${subtotal.toFixed(2)} ريال</p>
+<p>الضريبة (15%): ${tax.toFixed(2)} ريال</p>
+<h3>الإجمالي: ${final.toFixed(2)} ريال</h3>
+`;
+
+/* تحميل PDF */
+function downloadPDF(){
+html2pdf().from(document.getElementById("invoice")).save("فاتورة.pdf");
+}
 
 </script>
 
