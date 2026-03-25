@@ -5,7 +5,6 @@
 <title>فاتورة</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 <link rel="stylesheet" href="css/style.css">
 
 </head>
@@ -37,8 +36,7 @@ rows += `
 <td>1</td>
 <td>${p.price}</td>
 <td>${total}</td>
-</tr>
-`;
+</tr>`;
 });
 
 let tax = subtotal * 0.15;
@@ -69,44 +67,42 @@ document.getElementById("invoice").innerHTML = `
 
 <div class="row">
 
-<!-- 🔵 مصدرة من -->
+<!-- مصدرة من -->
 <div class="box">
-
 <h4 class="title">مصدرة من</h4>
 
-<p><span class="icon">🏢</span> منصة في خدمتك</p>
+<p>منصة في خدمتك</p>
+<p>المملكة العربية السعودية</p>
 
 <p>
-<span class="icon">📍</span>
-المملكة العربية السعودية<br>
 حائل - حي النقرة - شارع سعد المشاط
 </p>
 
-<p><span class="icon">📞</span> +966597771565</p>
-<p><span class="icon">📧</span> info@fi-khidmatik.com</p>
-<p><span class="icon">🌐</span> www.khidmatik.com</p>
+<p>رقم الهاتف: +966597771565</p>
+<p>البريد: info@fi-khidmatik.com</p>
+<p>الموقع: www.khidmatik.com</p>
 
-<p><span class="icon">🧾</span> رقم شهادة العمل الحر: FL-765735204</p>
-<p><span class="icon">💰</span> الرقم الضريبي: 312495447600003</p>
+<p>شهادة العمل الحر: FL-765735204</p>
+<p>الرقم الضريبي: 312495447600003</p>
 
 </div>
 
-<!-- 🔵 مصدرة إلى -->
+<!-- مصدرة إلى -->
 <div class="box">
 
 <h4 class="title">مصدرة إلى</h4>
 
-<p><span class="icon">👤</span> ${order.customer}</p>
+<p><b>اسم العميل:</b> ${order.customer}</p>
+
+<p>المملكة العربية السعودية</p>
 
 <p>
-<span class="icon">📍</span>
-المملكة العربية السعودية<br>
-${order.address}
+<b>العنوان:</b><br>
+${order.city || "-"} - حي ${order.district || "-"} - شارع ${order.street || "-"} - رقم المبنى ${order.building || "-"} - الرقم الإضافي ${order.extra || "-"} - الرمز البريدي ${order.postal || "-"}
 </p>
 
-<p><span class="icon">📞</span> ${order.phone || "-"}</p>
-
-<p><span class="icon">📧</span> ${order.email || "-"}</p>
+<p><b>رقم الهاتف:</b> ${order.phone || "-"}</p>
+<p><b>البريد الإلكتروني:</b> ${order.email || "-"}</p>
 
 </div>
 
