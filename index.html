@@ -12,51 +12,22 @@
 
 <h2>طلب شراء</h2>
 
-<!-- البيانات الأساسية -->
 <div class="top-section">
-
-<div class="field">
-<label>رقم الطلب</label>
-<input id="order_number" placeholder="يتم توليده تلقائياً" disabled>
-</div>
-
-<div class="field">
-<label>التاريخ</label>
-<input id="order_date" placeholder="11-03-2026">
-</div>
-
-<div class="field">
-<label>الوقت</label>
-<input id="order_time" type="time">
-</div>
-
+<div class="field"><label>رقم الطلب</label><input disabled></div>
+<div class="field"><label>التاريخ</label><input id="order_date" placeholder="11-03-2026"></div>
+<div class="field"><label>الوقت</label><input id="order_time" type="time"></div>
 </div>
 
 <hr>
 
-<!-- بيانات العميل -->
 <div class="top-section">
-
-<div class="field">
-<label>اسم العميل</label>
-<input id="name">
-</div>
-
-<div class="field">
-<label>رقم الجوال</label>
-<input id="phone">
-</div>
-
-<div class="field">
-<label>البريد الإلكتروني</label>
-<input id="email">
-</div>
-
+<div class="field"><label>اسم العميل</label><input id="name"></div>
+<div class="field"><label>رقم الجوال</label><input id="phone"></div>
+<div class="field"><label>البريد الإلكتروني</label><input id="email"></div>
 </div>
 
 <hr>
 
-<!-- العنوان المفصل -->
 <h3>العنوان</h3>
 
 <div class="top-section">
@@ -73,7 +44,6 @@
 
 <hr>
 
-<!-- إضافة منتج -->
 <h3>إضافة منتج</h3>
 
 <input id="product_name" placeholder="اسم المنتج">
@@ -86,7 +56,6 @@
 
 <hr>
 
-<!-- الدفع -->
 <select id="payment">
 <option value="تمارا">تمارا</option>
 <option value="تحويل">تحويل</option>
@@ -104,9 +73,7 @@
 
 <hr>
 
-<!-- 🔥 المعاينة -->
 <h3>معاينة البيانات</h3>
-
 <div class="preview-box" id="preview"></div>
 
 </div>
@@ -130,27 +97,19 @@ let postal = document.getElementById("postal").value;
 
 document.getElementById("preview").innerHTML = `
 <h4>مصدرة إلى</h4>
-
 <p><b>اسم العميل:</b> ${name || "-"}</p>
-
 <p>المملكة العربية السعودية</p>
-
-<p>
-<b>العنوان:</b><br>
-${city} - حي ${district} - شارع ${street} - رقم المبنى ${building} - الرقم الإضافي ${extra} - الرمز البريدي ${postal}
-</p>
-
+<p><b>العنوان:</b><br>
+${city} - حي ${district} - شارع ${street} - رقم المبنى ${building} - الرقم الإضافي ${extra} - الرمز البريدي ${postal}</p>
 <p><b>رقم الهاتف:</b> ${phone || "-"}</p>
 <p><b>البريد الإلكتروني:</b> ${email || "-"}</p>
 `;
 }
 
-// تحديث مباشر
-document.querySelectorAll("input").forEach(input=>{
-input.addEventListener("input", updatePreview);
+document.querySelectorAll("input").forEach(i=>{
+i.addEventListener("input", updatePreview);
 });
 
-// 🔥 تشغيل أولي
 updatePreview();
 </script>
 
