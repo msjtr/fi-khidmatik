@@ -1,3 +1,5 @@
+let cart = [];
+
 function checkout(){
 
 if(cart.length === 0){
@@ -12,7 +14,7 @@ localStorage.setItem("lastOrderNumber", newNum);
 
 let orderNumber = "FK-2026-" + String(newNum).padStart(6,'0');
 
-// الوقت 12 ساعة
+// الوقت
 let timeInput = document.getElementById("order_time").value;
 let formattedTime = "-";
 
@@ -24,6 +26,7 @@ h = h % 12 || 12;
 formattedTime = h + ":" + m + period;
 }
 
+// إنشاء الطلب
 let order = {
 
 order_number: orderNumber,
@@ -32,8 +35,14 @@ time: formattedTime,
 
 customer: document.getElementById("name").value,
 phone: document.getElementById("phone").value,
-address: document.getElementById("address").value,
 email: document.getElementById("email").value,
+
+city: document.getElementById("city").value,
+district: document.getElementById("district").value,
+street: document.getElementById("street").value,
+building: document.getElementById("building").value,
+extra: document.getElementById("extra").value,
+postal: document.getElementById("postal").value,
 
 cart: cart,
 
@@ -47,6 +56,6 @@ shipping: document.getElementById("shipping").value
 
 localStorage.setItem("currentOrder", JSON.stringify(order));
 
+// انتقال
 window.location.href = "invoice.html";
-
 }
