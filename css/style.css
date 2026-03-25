@@ -2,31 +2,95 @@ body {
     font-family: Tahoma;
     background: #f4f6f9;
     padding: 20px;
+    margin: 0;
 }
 
+/* الكونتينر */
 .container, .invoice {
     max-width: 900px;
     margin: auto;
     background: #fff;
-    padding: 20px;
-    border-radius: 10px;
+    padding: 25px;
+    border-radius: 12px;
 }
 
+/* الهيدر */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+}
+
+/* الشعار */
+.logo img {
+    width: 110px;
+}
+
+/* العنوان بالنص */
+.header div:nth-child(2) {
+    text-align: center;
+}
+
+.header h2 {
+    margin: 0;
+    color: #1e3a8a;
+}
+
+/* بيانات اليسار */
+.header div:last-child {
+    text-align: left;
+}
+
+/* تقسيم مصدر من / إلى */
+.row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* البوكس */
+.box {
+    width: 50%;
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+}
+
+/* عناوين */
+.box h4 {
+    margin-top: 0;
+    color: #1e3a8a;
+}
+
+/* الحقول */
 input, select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
 }
 
+/* الأزرار */
 button {
-    padding: 10px;
+    padding: 12px;
     background: #1e3a8a;
     color: #fff;
     border: none;
+    border-radius: 8px;
     margin: 5px;
     cursor: pointer;
 }
 
+button:hover {
+    background: #162d6b;
+}
+
+/* الجدول */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -39,17 +103,46 @@ th {
 }
 
 th, td {
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #ddd;
     text-align: center;
 }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* الإجمالي */
+.total {
+    margin-top: 20px;
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 10px;
 }
 
-.logo img {
-    width: 100px;
+.total p {
+    display: flex;
+    justify-content: space-between;
+}
+
+.total h3 {
+    display: flex;
+    justify-content: space-between;
+    color: #1e3a8a;
+}
+
+/* الفواصل */
+hr {
+    margin: 20px 0;
+}
+
+/* PDF تحسين */
+@media print {
+    body {
+        background: white;
+    }
+
+    button {
+        display: none;
+    }
+
+    .invoice {
+        box-shadow: none;
+    }
 }
