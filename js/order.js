@@ -5,35 +5,25 @@ alert("السلة فارغة");
 return;
 }
 
-// 🔥 رقم طلب متسلسل
-let lastNumber = localStorage.getItem("lastOrderNumber") || 1375;
-let newNumber = parseInt(lastNumber) + 1;
+// رقم الطلب
+let last = localStorage.getItem("lastOrderNumber") || 1375;
+let newNum = parseInt(last) + 1;
+localStorage.setItem("lastOrderNumber", newNum);
 
-let orderNumber = "FK-2026-" + String(newNumber).padStart(6, '0');
+let orderNumber = "FK-2026-" + String(newNum).padStart(6,'0');
 
-localStorage.setItem("lastOrderNumber", newNumber);
-
-// 🔥 تنسيق الوقت 12 ساعة (ص / م)
+// الوقت 12 ساعة
 let timeInput = document.getElementById("order_time").value;
-
 let formattedTime = "-";
 
 if(timeInput){
-
-let [hour, minute] = timeInput.split(":");
-
-let h = parseInt(hour);
-
+let [h,m] = timeInput.split(":");
+h = parseInt(h);
 let period = h >= 12 ? "م" : "ص";
-
-h = h % 12;
-if(h === 0) h = 12;
-
-formattedTime = h + ":" + minute + period;
-
+h = h % 12 || 12;
+formattedTime = h + ":" + m + period;
 }
 
-// 🔥 إنشاء الطلب
 let order = {
 
 order_number: orderNumber,
@@ -43,17 +33,6 @@ time: formattedTime,
 customer: document.getElementById("name").value,
 phone: document.getElementById("phone").value,
 address: document.getElementById("address").value,
-
-// 🔥 العنوان الوطني الكامل
-country: document.getElementById("country").value,
-region: document.getElementById("region").value,
-district: document.getElementById("district").value,
-street: document.getElementById("street").value,
-
-building: document.getElementById("building").value,
-extra: document.getElementById("extra").value,
-postal: document.getElementById("postal").value,
-
 email: document.getElementById("email").value,
 
 cart: cart,
@@ -66,10 +45,8 @@ shipping: document.getElementById("shipping").value
 
 };
 
-// 🔥 حفظ الطلب
 localStorage.setItem("currentOrder", JSON.stringify(order));
 
-// 🔥 الانتقال للفاتورة
 window.location.href = "invoice.html";
 
 }
