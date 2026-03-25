@@ -12,19 +12,68 @@
 
 <h2>طلب شراء</h2>
 
-<input id="order_number" placeholder="يتم توليد رقم الطلب تلقائياً" disabled>
-<input id="order_date" placeholder="التاريخ (11-03-2026)">
+<!-- البيانات الأساسية -->
+<div class="top-section">
+
+<div class="field">
+<label>رقم الطلب</label>
+<input id="order_number" placeholder="يتم توليده تلقائياً" disabled>
+</div>
+
+<div class="field">
+<label>التاريخ</label>
+<input id="order_date" placeholder="11-03-2026">
+</div>
+
+<div class="field">
+<label>الوقت</label>
 <input id="order_time" type="time">
+</div>
+
+</div>
 
 <hr>
 
-<input id="name" placeholder="اسم العميل">
-<input id="address" placeholder="العنوان">
-<input id="phone" placeholder="رقم الجوال">
-<input id="email" placeholder="البريد الإلكتروني">
+<!-- بيانات العميل -->
+<div class="top-section">
+
+<div class="field">
+<label>اسم العميل</label>
+<input id="name">
+</div>
+
+<div class="field">
+<label>رقم الجوال</label>
+<input id="phone">
+</div>
+
+<div class="field">
+<label>البريد الإلكتروني</label>
+<input id="email">
+</div>
+
+</div>
 
 <hr>
 
+<!-- العنوان المفصل -->
+<h3>العنوان</h3>
+
+<div class="top-section">
+<div class="field"><label>المدينة</label><input id="city"></div>
+<div class="field"><label>الحي</label><input id="district"></div>
+<div class="field"><label>الشارع</label><input id="street"></div>
+</div>
+
+<div class="top-section">
+<div class="field"><label>رقم المبنى</label><input id="building"></div>
+<div class="field"><label>الرقم الإضافي</label><input id="extra"></div>
+<div class="field"><label>الرمز البريدي</label><input id="postal"></div>
+</div>
+
+<hr>
+
+<!-- إضافة منتج -->
 <h3>إضافة منتج</h3>
 
 <input id="product_name" placeholder="اسم المنتج">
@@ -37,6 +86,7 @@
 
 <hr>
 
+<!-- الدفع -->
 <select id="payment">
 <option value="تمارا">تمارا</option>
 <option value="تحويل">تحويل</option>
@@ -52,10 +102,54 @@
 
 <button onclick="checkout()">تأكيد الطلب</button>
 
+<hr>
+
+<!-- 🔥 المعاينة -->
+<h3>معاينة البيانات</h3>
+
+<div class="preview-box" id="preview"></div>
+
 </div>
 
 <script src="js/cart.js"></script>
 <script src="js/order.js"></script>
+
+<script>
+function updatePreview(){
+
+let name = document.getElementById("name").value;
+let phone = document.getElementById("phone").value;
+let email = document.getElementById("email").value;
+
+let city = document.getElementById("city").value;
+let district = document.getElementById("district").value;
+let street = document.getElementById("street").value;
+let building = document.getElementById("building").value;
+let extra = document.getElementById("extra").value;
+let postal = document.getElementById("postal").value;
+
+document.getElementById("preview").innerHTML = `
+<h4>مصدرة إلى</h4>
+
+<p><b>اسم العميل:</b> ${name || "-"}</p>
+
+<p>المملكة العربية السعودية</p>
+
+<p>
+<b>العنوان:</b><br>
+${city} - حي ${district} - شارع ${street} - رقم المبنى ${building} - الرقم الإضافي ${extra} - الرمز البريدي ${postal}
+</p>
+
+<p><b>رقم الهاتف:</b> ${phone || "-"}</p>
+<p><b>البريد الإلكتروني:</b> ${email || "-"}</p>
+`;
+}
+
+// تحديث مباشر
+document.querySelectorAll("input").forEach(input=>{
+input.addEventListener("input", updatePreview);
+});
+</script>
 
 </body>
 </html>
