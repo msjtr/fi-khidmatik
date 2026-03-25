@@ -3,11 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <title>فاتورة</title>
+
+<style>
+
+body {
+    font-family: Tahoma;
+    background: #f5f5f5;
+    padding: 20px;
+}
+
+.invoice {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+}
+
+/* العنوان */
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h2 {
+    margin: 5px;
+}
+
+/* صفوف */
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.box {
+    width: 48%;
+}
+
+/* جدول */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th {
+    background: #eee;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+/* المنتج */
+.product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.product img {
+    width: 60px;
+}
+
+/* الإجمالي */
+.total {
+    margin-top: 20px;
+}
+
+.total div {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+}
+
+/* QR */
+.qr {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* الفوتر */
+.footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #777;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<div id="invoice"></div>
+<div class="invoice" id="invoice"></div>
 
 <script>
 
@@ -18,36 +111,117 @@ let order = orders[index];
 let total = 0;
 let rows = "";
 
-order.cart.forEach(p=>{
+order.cart.forEach(p => {
+
 total += parseFloat(p.price);
 
 rows += `
 <tr>
-<td>${p.name}</td>
+<td>
+<div class="product">
+<img src="https://via.placeholder.com/60">
+<div>
+${p.name}<br>
+كود: ${p.code}
+</div>
+</div>
+
+<img src="https://barcode.tec-it.com/barcode.ashx?data=${p.code}&code=Code128">
+</td>
+
+<td>1</td>
+<td>${p.price}</td>
 <td>${p.price}</td>
 </tr>
 `;
+
 });
 
 let tax = total * 0.15;
+let final = total + tax;
 
 document.getElementById("invoice").innerHTML = `
+
+<div class="header">
 <h2>فاتورة</h2>
+<p>في خدمتك</p>
+</div>
 
-<p>العميل: ${order.customer}</p>
-<p>الجوال: ${order.phone}</p>
+<div class="row">
+<div class="box">
+<p><b>رقم الفاتورة:</b> ${order.id}</p>
+<p><b>التاريخ:</b> ${new Date(order.date).toLocaleString()}</p>
+</div>
 
-<p>رمز الموافقة: ${order.tamara_auth || "-"}</p>
-<p>طلب تمارا: ${order.tamara_order || "-"}</p>
+<div class="box">
+<p><b>طريقة الدفع:</b> ${order.payment}</p>
+<p><b>رمز الموافقة:</b> ${order.tamara_auth || "-"}</p>
+<p><b>طلب تمارا:</b> ${order.tamara_order || "-"}</p>
+</div>
+</div>
 
-<table border="1">
-<tr><th>منتج</th><th>سعر</th></tr>
+<hr>
+
+<div class="row">
+
+<div class="box">
+<h4>مصدر من:</h4>
+<p>محمد صالح الشمري</p>
+<p>السعودية - حائل</p>
+</div>
+
+<div class="box">
+<h4>مصدر إلى:</h4>
+<p>${order.customer}</p>
+<p>${order.address}</p>
+<p>${order.phone}</p>
+</div>
+
+</div>
+
+<h4>تفاصيل الشحن:</h4>
+<p>${order.shipping}</p>
+
+<table>
+
+<tr>
+<th>المنتج</th>
+<th>الكمية</th>
+<th>السعر</th>
+<th>المجموع</th>
+</tr>
+
 ${rows}
+
 </table>
 
-<p>الضريبة: ${tax}</p>
-<h3>الإجمالي: ${total + tax}</h3>
+<div class="total">
+<div><span>مجموع السلة</span><span>${total} ريال</span></div>
+<div><span>الشحن</span><span>مجاني</span></div>
+<div><span>الضريبة</span><span>${tax.toFixed(2)}</span></div>
+<h3><span>الإجمالي</span><span>${final.toFixed(2)} ريال</span></h3>
+</div>
+
+<div class="qr">
+<img id="qr">
+</div>
+
+<div class="footer">
+شكراً لثقتك في في خدمتك
+</div>
+
 `;
+
+// QR ضريبي
+let qrData = `
+اسم المنشأة: محمد صالح الشمري
+الرقم الضريبي: 312495447600003
+التاريخ: ${order.date}
+الإجمالي: ${final}
+`;
+
+document.getElementById("qr").src =
+"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(qrData);
 
 </script>
 
