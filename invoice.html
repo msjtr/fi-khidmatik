@@ -31,6 +31,7 @@ throw new Error("No data");
 let subtotal = 0;
 let rows = "";
 
+// المنتجات
 order.cart.forEach(p=>{
 let price = parseFloat(p.price) || 0;
 let total = price;
@@ -50,6 +51,7 @@ rows += `
 let tax = subtotal * 0.15;
 let final = subtotal + tax;
 
+// بناء الفاتورة
 document.getElementById("invoice").innerHTML = `
 
 <div class="header">
@@ -64,9 +66,9 @@ document.getElementById("invoice").innerHTML = `
 </div>
 
 <div style="text-align:left;">
-<p>رقم الطلب: ${order.order_number}</p>
-<p>التاريخ: ${order.date}</p>
-<p>الوقت: ${order.time}</p>
+<p>رقم الطلب: ${order.order_number || "-"}</p>
+<p>التاريخ: ${order.date || "-"}</p>
+<p>الوقت: ${order.time || "-"}</p>
 </div>
 
 </div>
@@ -75,7 +77,7 @@ document.getElementById("invoice").innerHTML = `
 
 <div class="row">
 
-<!-- مصدرة من -->
+<!-- 🔵 مصدرة من -->
 <div class="box">
 <h4>مصدرة من</h4>
 
@@ -83,7 +85,10 @@ document.getElementById("invoice").innerHTML = `
 <p>المملكة العربية السعودية</p>
 
 <p>
-المنطقة: حائل - الحي: النقرة - الشارع: سعد المشاط<br>
+المنطقة: حائل - الحي: النقرة - الشارع: سعد المشاط
+</p>
+
+<p>
 رقم المبنى: 3085 - الرقم الفرعي: 7718<br>
 الرمز البريدي: 55431
 </p>
@@ -94,17 +99,21 @@ document.getElementById("invoice").innerHTML = `
 
 <p>رقم شهادة العمل الحر: FL-765735204</p>
 <p>الرقم الضريبي: 312495447600003</p>
+
 </div>
 
-<!-- مصدرة إلى -->
+<!-- 🔵 مصدرة إلى (نفس التنسيق) -->
 <div class="box">
 <h4>مصدرة إلى</h4>
 
 <p>اسم العميل: ${order.customer || "-"}</p>
 <p>الدولة: ${order.country || "-"}</p>
-<p>المنطقة: ${order.region || "-"}</p>
-<p>الحي: ${order.district || "-"}</p>
-<p>الشارع: ${order.street || "-"}</p>
+
+<p>
+المنطقة: ${order.region || "-"} - 
+الحي: ${order.district || "-"} - 
+الشارع: ${order.street || "-"}
+</p>
 
 <p>
 رقم المبنى: ${order.building || "-"} - 
@@ -121,11 +130,11 @@ document.getElementById("invoice").innerHTML = `
 
 <hr>
 
-<p>طريقة الدفع: ${order.payment}</p>
+<p>طريقة الدفع: ${order.payment || "-"}</p>
 <p>رمز تمارا: ${order.tamara_auth || "-"}</p>
 <p>طلب تمارا: ${order.tamara_order || "-"}</p>
 
-<p>تفاصيل الشحن: ${order.shipping}</p>
+<p>تفاصيل الشحن: ${order.shipping || "-"}</p>
 
 <table>
 <tr>
@@ -141,9 +150,9 @@ ${rows}
 </table>
 
 <div class="total">
-<p>مجموع السلة: ${subtotal}</p>
-<p>الضريبة: ${tax.toFixed(2)}</p>
-<h3>الإجمالي: ${final.toFixed(2)} ريال</h3>
+<p>مجموع السلة: ${subtotal.toFixed(2)}</p>
+<p>ضريبة القيمة المضافة: ${tax.toFixed(2)}</p>
+<h3>الإجمالي النهائي: ${final.toFixed(2)} ريال</h3>
 </div>
 
 `;
