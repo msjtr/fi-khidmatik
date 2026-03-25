@@ -56,3 +56,37 @@ th, td {
 .logo img {
     width: 100px;
 }
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* الشعار يمين */
+.logo {
+    width: 30%;
+    text-align: right;
+}
+
+.logo img {
+    width: 100px;
+}
+
+/* العنوان بالنص */
+.center-title {
+    width: 40%;
+    text-align: center;
+}
+
+.center-title h2 {
+    margin: 0;
+    color: #1e3a8a;
+}
+
+/* البيانات يسار */
+.order-info {
+    width: 30%;
+    text-align: left;
+}
