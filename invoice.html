@@ -1,150 +1,74 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl">
 <head>
 <meta charset="UTF-8">
 <title>فاتورة</title>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
-
 </head>
 
 <body>
 
 <div class="invoice" id="invoice"></div>
 
-<div style="text-align:center;">
 <button onclick="downloadPDF()">تحميل PDF</button>
-<button onclick="goHome()">العودة للرئيسية</button>
-</div>
+<button onclick="location.href='index.html'">رجوع</button>
 
 <script>
 
 let order = JSON.parse(localStorage.getItem("currentOrder"));
 
-let subtotal = 0;
-let rows = "";
+let rows="", sub=0;
 
 order.cart.forEach(p=>{
-let total = parseFloat(p.price);
-subtotal += total;
+let t=p.price*p.qty;
+sub+=t;
 
-rows += `
-<tr>
+rows+=`<tr>
 <td>${p.name}</td>
-<td>${p.desc || "-"}</td>
-<td>1</td>
+<td>${p.qty}</td>
 <td>${p.price}</td>
-<td>${total}</td>
+<td>${t.toFixed(2)}</td>
 </tr>`;
 });
 
-let tax = subtotal * 0.15;
-let final = subtotal + tax;
+let tax=sub*0.15;
 
-document.getElementById("invoice").innerHTML = `
+document.getElementById("invoice").innerHTML=`
 
-<div class="header">
-
-<div class="logo">
-<img src="images/logo.svg">
-</div>
-
-<div style="text-align:center;">
 <h2>فاتورة إلكترونية</h2>
-<p>منصة في خدمتك</p>
-</div>
-
-<div style="text-align:left;">
-<p>رقم الطلب: ${order.order_number}</p>
-<p>التاريخ: ${order.date}</p>
-<p>الوقت: ${order.time}</p>
-</div>
-
-</div>
-
-<hr>
 
 <div class="row">
 
-<!-- مصدرة من -->
 <div class="box">
-<h4 class="title">مصدرة من</h4>
-
+<h4>مصدرة من</h4>
 <p>منصة في خدمتك</p>
 <p>المملكة العربية السعودية</p>
-
-<p>
-حائل - حي النقرة - شارع سعد المشاط
-</p>
-
-<p>رقم الهاتف: +966597771565</p>
-<p>البريد: info@fi-khidmatik.com</p>
-<p>الموقع: www.khidmatik.com</p>
-
-<p>شهادة العمل الحر: FL-765735204</p>
-<p>الرقم الضريبي: 312495447600003</p>
-
+<p>حائل - حي النقرة - شارع سعد المشاط</p>
 </div>
 
-<!-- مصدرة إلى -->
 <div class="box">
-
-<h4 class="title">مصدرة إلى</h4>
-
-<p><b>اسم العميل:</b> ${order.customer}</p>
-
+<h4>مصدرة إلى</h4>
+<p>${order.customer}</p>
 <p>المملكة العربية السعودية</p>
-
-<p>
-<b>العنوان:</b><br>
-${order.city || "-"} - حي ${order.district || "-"} - شارع ${order.street || "-"} - رقم المبنى ${order.building || "-"} - الرقم الإضافي ${order.extra || "-"} - الرمز البريدي ${order.postal || "-"}
-</p>
-
-<p><b>رقم الهاتف:</b> ${order.phone || "-"}</p>
-<p><b>البريد الإلكتروني:</b> ${order.email || "-"}</p>
-
+<p>${order.city} - حي ${order.district} - شارع ${order.street} - رقم المبنى ${order.building} - الرقم الإضافي ${order.extra} - الرمز البريدي ${order.postal}</p>
 </div>
 
 </div>
-
-<hr>
-
-<p><b>طريقة الدفع:</b> ${order.payment}</p>
-<p><b>رمز تمارا:</b> ${order.tamara_auth || "-"}</p>
-<p><b>رقم طلب تمارا:</b> ${order.tamara_order || "-"}</p>
-
-<p><b>تفاصيل الشحن:</b> ${order.shipping}</p>
 
 <table>
-<tr>
-<th>المنتج</th>
-<th>الوصف</th>
-<th>الكمية</th>
-<th>السعر</th>
-<th>الإجمالي</th>
-</tr>
-
+<tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
 ${rows}
-
 </table>
 
-<div class="total">
-<p>مجموع السلة: ${subtotal}</p>
-<p>الضريبة: ${tax.toFixed(2)}</p>
-<h3>الإجمالي: ${final.toFixed(2)} ريال</h3>
-</div>
-
+<h3>المجموع: ${sub}</h3>
+<h3>الضريبة: ${tax.toFixed(2)}</h3>
+<h2>الإجمالي: ${(sub+tax).toFixed(2)}</h2>
 `;
 
 function downloadPDF(){
-html2pdf().from(document.querySelector(".invoice")).save("فاتورة.pdf");
+html2pdf().from(invoice).save();
 }
-
-function goHome(){
-window.location.href = "index.html";
-}
-
 </script>
 
 </body>
