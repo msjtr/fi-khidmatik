@@ -1,1 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>في خدمتك</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
 
+<body>
+
+<h2>طلب شراء</h2>
+
+<input id="name" placeholder="اسم العميل">
+<input id="address" placeholder="العنوان">
+<input id="phone" placeholder="الجوال">
+
+<hr>
+
+<h3>إضافة منتج</h3>
+
+<input id="product_name" placeholder="اسم المنتج">
+<input id="product_price" placeholder="السعر">
+<input id="product_id" placeholder="رقم المنتج">
+<input id="product_code" placeholder="كود المنتج">
+
+<button onclick="addToCart()">إضافة للسلة</button>
+
+<div id="cart"></div>
+
+<hr>
+
+<select id="payment">
+<option>تمارا</option>
+<option>تحويل</option>
+</select>
+
+<input id="tamara_auth" placeholder="رمز الموافقة">
+<input id="tamara_order" placeholder="رقم طلب تمارا">
+
+<select id="shipping">
+<option>لا يحتاج شحن</option>
+<option>يحتاج شحن</option>
+</select>
+
+<button onclick="checkout()">تأكيد الطلب</button>
+
+<script src="js/cart.js"></script>
+<script src="js/order.js"></script>
+
+</body>
+</html>
