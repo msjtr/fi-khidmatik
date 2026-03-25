@@ -2,107 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>فاتورة ضريبية</title>
+<title>فاتورة</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<style>
-
-/* 🔥 مهم للطباعة */
-@page {
-    size: A4;
-    margin: 10mm;
-}
-
-body {
-    font-family: Tahoma;
-    background: #fff;
-    margin: 0;
-}
-
-/* حجم الفاتورة */
-.invoice {
-    width: 800px;
-    margin: auto;
-    padding: 20px;
-}
-
-/* الهيدر */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo img {
-    width: 110px;
-}
-
-.title {
-    text-align: left;
-}
-
-/* تقسيم */
-.row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-}
-
-.box {
-    width: 48%;
-}
-
-/* جدول */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-th {
-    background: #1e3a8a;
-    color: #fff;
-}
-
-th, td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: center;
-}
-
-/* الإجمالي */
-.total {
-    margin-top: 20px;
-}
-
-.total div {
-    display: flex;
-    justify-content: space-between;
-}
-
-/* QR */
-.qr {
-    text-align: center;
-    margin-top: 20px;
-}
-
-/* إخفاء الزر عند الطباعة */
-@media print {
-    button {
-        display: none;
-    }
-}
-
-button {
-    margin-top: 20px;
-    padding: 10px;
-    background: #1e3a8a;
-    color: #fff;
-    border: none;
-}
-
-</style>
+<link rel="stylesheet" href="css/style.css">
 
 </head>
 
@@ -110,7 +14,10 @@ button {
 
 <div class="invoice" id="invoice"></div>
 
+<div style="text-align:center;">
 <button onclick="downloadPDF()">تحميل PDF</button>
+<button onclick="goHome()">العودة للرئيسية</button>
+</div>
 
 <script>
 
@@ -118,22 +25,20 @@ let orders = JSON.parse(localStorage.getItem("orders"));
 let index = localStorage.getItem("currentOrder");
 let order = orders[index];
 
-// الحساب
 let subtotal = 0;
 let rows = "";
 
-order.cart.forEach(p => {
+order.cart.forEach(p=>{
 
-let qty = 1;
-let total = parseFloat(p.price) * qty;
+let total = parseFloat(p.price);
 
 subtotal += total;
 
 rows += `
 <tr>
 <td>${p.name}</td>
-<td>${p.description || "-"}</td>
-<td>${qty}</td>
+<td>${p.desc}</td>
+<td>1</td>
 <td>${p.price}</td>
 <td>${total}</td>
 </tr>
@@ -141,12 +46,9 @@ rows += `
 
 });
 
-let shipping = 0;
-let discount = 0;
 let tax = subtotal * 0.15;
-let final = subtotal + tax + shipping - discount;
+let final = subtotal + tax;
 
-// عرض الفاتورة
 document.getElementById("invoice").innerHTML = `
 
 <div class="header">
@@ -155,31 +57,9 @@ document.getElementById("invoice").innerHTML = `
 <img src="images/logo.svg">
 </div>
 
-<div class="title">
+<div>
 <h2>فاتورة إلكترونية</h2>
 <p>منصة في خدمتك</p>
-</div>
-
-</div>
-
-<hr>
-
-<div class="row">
-
-<div class="box">
-<h4>مصدره من</h4>
-<p>منصة في خدمتك</p>
-<p>المملكة العربية السعودية</p>
-<p>حائل - حي النقرة - شارع سعد المشاط</p>
-<p>الرقم الضريبي: 312495447600003</p>
-<p>شهادة العمل الحر: XXXXX</p>
-</div>
-
-<div class="box">
-<h4>مصدره إلى</h4>
-<p>${order.customer}</p>
-<p>${order.address}</p>
-<p>${order.phone}</p>
 </div>
 
 </div>
@@ -189,14 +69,23 @@ document.getElementById("invoice").innerHTML = `
 <p>رقم الطلب: ${order.order_number}</p>
 <p>التاريخ: ${order.date}</p>
 <p>الوقت: ${order.time}</p>
+
+<hr>
+
+<p>اسم العميل: ${order.customer}</p>
+<p>العنوان: ${order.address}</p>
+<p>الجوال: ${order.phone}</p>
+
+<hr>
+
 <p>تفاصيل الشحن: ${order.shipping}</p>
 
 <table>
 <tr>
-<th>اسم المنتج</th>
+<th>المنتج</th>
 <th>الوصف</th>
 <th>الكمية</th>
-<th>السعر الفردي</th>
+<th>السعر</th>
 <th>الإجمالي</th>
 </tr>
 
@@ -205,52 +94,19 @@ ${rows}
 </table>
 
 <div class="total">
-
-<div><span>مجموع السلة</span><span>${subtotal}</span></div>
-<div><span>الشحن</span><span>${shipping}</span></div>
-<div><span>الخصم</span><span>${discount}</span></div>
-<div><span>الضريبة</span><span>${tax.toFixed(2)}</span></div>
-
-<h3>
-<span>الإجمالي النهائي</span>
-<span>${final.toFixed(2)} ريال</span>
-</h3>
-
-</div>
-
-<div class="qr">
-<img id="qr">
+<p>المجموع: ${subtotal}</p>
+<p>الضريبة: ${tax.toFixed(2)}</p>
+<h3>الإجمالي: ${final.toFixed(2)} ريال</h3>
 </div>
 
 `;
 
-// QR
-let qrData = `
-اسم المنشأة: منصة في خدمتك
-الرقم الضريبي: 312495447600003
-التاريخ: ${order.date} ${order.time}
-الإجمالي: ${final}
-`;
-
-document.getElementById("qr").src =
-"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(qrData);
-
-
-// PDF مضبوط
 function downloadPDF(){
+html2pdf().from(document.querySelector(".invoice")).save("فاتورة.pdf");
+}
 
-let element = document.querySelector(".invoice");
-
-let opt = {
-  margin: 5,
-  filename: 'فاتورة.pdf',
-  image: { type: 'jpeg', quality: 1 },
-  html2canvas: { scale: 2 },
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-};
-
-html2pdf().set(opt).from(element).save();
-
+function goHome(){
+window.location.href = "index.html";
 }
 
 </script>
