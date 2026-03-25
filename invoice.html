@@ -8,18 +8,23 @@
 
 <style>
 
-body {
-    font-family: Tahoma;
-    background: #f4f6f9;
-    padding: 20px;
+/* 🔥 مهم للطباعة */
+@page {
+    size: A4;
+    margin: 10mm;
 }
 
-.invoice {
+body {
+    font-family: Tahoma;
     background: #fff;
-    max-width: 950px;
+    margin: 0;
+}
+
+/* حجم الفاتورة */
+.invoice {
+    width: 800px;
     margin: auto;
-    padding: 30px;
-    border-radius: 10px;
+    padding: 20px;
 }
 
 /* الهيدر */
@@ -37,15 +42,11 @@ body {
     text-align: left;
 }
 
-/* أقسام */
-.section {
-    margin-top: 20px;
-}
-
+/* تقسيم */
 .row {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    margin-top: 15px;
 }
 
 .box {
@@ -60,7 +61,8 @@ table {
 }
 
 th {
-    background: #eee;
+    background: #1e3a8a;
+    color: #fff;
 }
 
 th, td {
@@ -77,11 +79,6 @@ th, td {
 .total div {
     display: flex;
     justify-content: space-between;
-    margin: 5px 0;
-}
-
-h3 {
-    color: #1e3a8a;
 }
 
 /* QR */
@@ -90,13 +87,19 @@ h3 {
     margin-top: 20px;
 }
 
+/* إخفاء الزر عند الطباعة */
+@media print {
+    button {
+        display: none;
+    }
+}
+
 button {
     margin-top: 20px;
     padding: 10px;
     background: #1e3a8a;
-    color: white;
+    color: #fff;
     border: none;
-    cursor: pointer;
 }
 
 </style>
@@ -111,7 +114,6 @@ button {
 
 <script>
 
-// جلب الطلب
 let orders = JSON.parse(localStorage.getItem("orders"));
 let index = localStorage.getItem("currentOrder");
 let order = orders[index];
@@ -147,11 +149,10 @@ let final = subtotal + tax + shipping - discount;
 // عرض الفاتورة
 document.getElementById("invoice").innerHTML = `
 
-<!-- الهيدر -->
 <div class="header">
 
 <div class="logo">
-<img src="images/logo.png">
+<img src="images/logo.svg">
 </div>
 
 <div class="title">
@@ -163,7 +164,6 @@ document.getElementById("invoice").innerHTML = `
 
 <hr>
 
-<!-- بيانات البائع والعميل -->
 <div class="row">
 
 <div class="box">
@@ -172,50 +172,44 @@ document.getElementById("invoice").innerHTML = `
 <p>المملكة العربية السعودية</p>
 <p>حائل - حي النقرة - شارع سعد المشاط</p>
 <p>الرقم الضريبي: 312495447600003</p>
-<p>رقم شهادة العمل الحر: XXXXX</p>
+<p>شهادة العمل الحر: XXXXX</p>
 </div>
 
 <div class="box">
 <h4>مصدره إلى</h4>
-<p>اسم العميل: ${order.customer}</p>
-<p>العنوان: ${order.address}</p>
-<p>رقم الجوال: ${order.phone}</p>
+<p>${order.customer}</p>
+<p>${order.address}</p>
+<p>${order.phone}</p>
 </div>
 
 </div>
 
 <hr>
 
-<!-- بيانات الطلب -->
-<div class="section">
 <p>رقم الطلب: ${order.order_number}</p>
 <p>التاريخ: ${order.date}</p>
 <p>الوقت: ${order.time}</p>
 <p>تفاصيل الشحن: ${order.shipping}</p>
-</div>
 
-<!-- جدول المنتجات -->
 <table>
-
 <tr>
 <th>اسم المنتج</th>
-<th>وصف المنتج</th>
+<th>الوصف</th>
 <th>الكمية</th>
 <th>السعر الفردي</th>
-<th>السعر الإجمالي</th>
+<th>الإجمالي</th>
 </tr>
 
 ${rows}
 
 </table>
 
-<!-- الحساب -->
 <div class="total">
 
 <div><span>مجموع السلة</span><span>${subtotal}</span></div>
 <div><span>الشحن</span><span>${shipping}</span></div>
 <div><span>الخصم</span><span>${discount}</span></div>
-<div><span>رسوم الضريبة</span><span>${tax.toFixed(2)}</span></div>
+<div><span>الضريبة</span><span>${tax.toFixed(2)}</span></div>
 
 <h3>
 <span>الإجمالي النهائي</span>
@@ -224,29 +218,39 @@ ${rows}
 
 </div>
 
-<!-- QR -->
 <div class="qr">
 <img id="qr">
 </div>
 
 `;
 
-// QR ضريبي (ZATCA)
+// QR
 let qrData = `
 اسم المنشأة: منصة في خدمتك
 الرقم الضريبي: 312495447600003
 التاريخ: ${order.date} ${order.time}
 الإجمالي: ${final}
-الضريبة: ${tax}
 `;
 
 document.getElementById("qr").src =
 "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(qrData);
 
 
-// PDF
+// PDF مضبوط
 function downloadPDF(){
-html2pdf().from(document.querySelector(".invoice")).save("فاتورة ضريبية.pdf");
+
+let element = document.querySelector(".invoice");
+
+let opt = {
+  margin: 5,
+  filename: 'فاتورة.pdf',
+  image: { type: 'jpeg', quality: 1 },
+  html2canvas: { scale: 2 },
+  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+};
+
+html2pdf().set(opt).from(element).save();
+
 }
 
 </script>
