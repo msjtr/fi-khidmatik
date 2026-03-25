@@ -1,1 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>فاتورة</title>
+</head>
 
+<body>
+
+<div id="invoice"></div>
+
+<script>
+
+let orders = JSON.parse(localStorage.getItem("orders"));
+let index = localStorage.getItem("currentOrder");
+let order = orders[index];
+
+let total = 0;
+let rows = "";
+
+order.cart.forEach(p=>{
+total += parseFloat(p.price);
+
+rows += `
+<tr>
+<td>${p.name}</td>
+<td>${p.price}</td>
+</tr>
+`;
+});
+
+let tax = total * 0.15;
+
+document.getElementById("invoice").innerHTML = `
+<h2>فاتورة</h2>
+
+<p>العميل: ${order.customer}</p>
+<p>الجوال: ${order.phone}</p>
+
+<p>رمز الموافقة: ${order.tamara_auth || "-"}</p>
+<p>طلب تمارا: ${order.tamara_order || "-"}</p>
+
+<table border="1">
+<tr><th>منتج</th><th>سعر</th></tr>
+${rows}
+</table>
+
+<p>الضريبة: ${tax}</p>
+<h3>الإجمالي: ${total + tax}</h3>
+`;
+
+</script>
+
+</body>
+</html>
