@@ -63,63 +63,10 @@
 
 <button onclick="checkout()">تأكيد الطلب</button>
 
-<hr>
-
-<h3>معاينة البيانات</h3>
-<div class="preview-box" id="preview"></div>
-
 </div>
 
 <script src="js/cart.js"></script>
 <script src="js/order.js"></script>
-
-<script>
-function updatePreview(){
-
-let name = nameInput.value || "-";
-let phone = phoneInput.value || "-";
-let email = emailInput.value || "-";
-
-let city = cityInput.value;
-let district = districtInput.value;
-let street = streetInput.value;
-let building = buildingInput.value;
-let extra = extraInput.value;
-let postal = postalInput.value;
-
-preview.innerHTML = `
-<b>مصدرة إلى</b><br><br>
-
-اسم العميل: ${name}<br>
-المملكة العربية السعودية<br><br>
-
-${city} - حي ${district} - شارع ${street} - رقم المبنى ${building} - الرقم الإضافي ${extra} - الرمز البريدي ${postal}<br><br>
-
-رقم الهاتف: ${phone}<br>
-البريد الإلكتروني: ${email}
-`;
-}
-
-// تعريف المتغيرات
-let nameInput = document.getElementById("name");
-let phoneInput = document.getElementById("phone");
-let emailInput = document.getElementById("email");
-
-let cityInput = document.getElementById("city");
-let districtInput = document.getElementById("district");
-let streetInput = document.getElementById("street");
-let buildingInput = document.getElementById("building");
-let extraInput = document.getElementById("extra");
-let postalInput = document.getElementById("postal");
-
-let preview = document.getElementById("preview");
-
-document.querySelectorAll("input").forEach(i=>{
-i.addEventListener("input", updatePreview);
-});
-
-updatePreview();
-</script>
 
 </body>
 </html>
