@@ -70,9 +70,54 @@ document.getElementById("invoice").innerHTML = `
 
 <hr>
 
+<!-- 🔥 مصدرة من / إلى -->
+<div class="row">
+
+<!-- مصدرة من -->
+<div class="box">
+
+<h4 style="color:#1e3a8a;">مصدرة من</h4>
+
+<p>منصة في خدمتك</p>
+<p>المملكة العربية السعودية</p>
+
+<p>
+المنطقة: حائل - الحي: النقرة - الشارع: سعد المشاط<br>
+رقم المبنى: 3085 - الرقم الفرعي: 7718<br>
+الرمز البريدي: 55431
+</p>
+
+<p>رقم الهاتف: +966597771565</p>
+<p>البريد الإلكتروني: info@fi-khidmatik.com</p>
+<p>الموقع الإلكتروني: www.khidmatik.com</p>
+
+<p>رقم شهادة العمل الحر: FL-765735204</p>
+<p>الرقم الضريبي: 312495447600003</p>
+
+</div>
+
+<!-- مصدرة إلى -->
+<div class="box">
+
+<h4 style="color:#1e3a8a;">مصدرة إلى</h4>
+
 <p><b>اسم العميل:</b> ${order.customer}</p>
-<p><b>العنوان:</b> ${order.address}</p>
-<p><b>الجوال:</b> ${order.phone}</p>
+
+<p><b>الدولة:</b> ${order.country || "-"}</p>
+<p><b>المنطقة:</b> ${order.region || "-"}</p>
+<p><b>الحي:</b> ${order.district || "-"}</p>
+<p><b>الشارع:</b> ${order.street || "-"}</p>
+
+<p><b>رقم المبنى:</b> ${order.building || "-"}</p>
+<p><b>الرقم الإضافي:</b> ${order.extra || "-"}</p>
+<p><b>الرمز البريدي:</b> ${order.postal || "-"}</p>
+
+<p><b>رقم الهاتف:</b> ${order.phone}</p>
+<p><b>البريد الإلكتروني:</b> ${order.email || "-"}</p>
+
+</div>
+
+</div>
 
 <hr>
 
