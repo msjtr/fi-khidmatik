@@ -13,41 +13,33 @@
 <h2>طلب شراء</h2>
 
 <div class="top-section">
-<div class="field"><label>رقم الطلب</label><input disabled></div>
-<div class="field"><label>التاريخ</label><input id="order_date" placeholder="11-03-2026"></div>
-<div class="field"><label>الوقت</label><input id="order_time" type="time"></div>
+<input id="order_date" placeholder="التاريخ 11-03-2026">
+<input id="order_time" type="time">
 </div>
 
 <hr>
 
-<div class="top-section">
-<div class="field"><label>اسم العميل</label><input id="name"></div>
-<div class="field"><label>رقم الجوال</label><input id="phone"></div>
-<div class="field"><label>البريد الإلكتروني</label><input id="email"></div>
-</div>
+<input id="name" placeholder="اسم العميل">
+<input id="phone" placeholder="رقم الجوال">
+<input id="email" placeholder="البريد الإلكتروني">
 
 <hr>
 
 <h3>العنوان</h3>
 
-<div class="top-section">
-<div class="field"><label>المدينة</label><input id="city"></div>
-<div class="field"><label>الحي</label><input id="district"></div>
-<div class="field"><label>الشارع</label><input id="street"></div>
-</div>
-
-<div class="top-section">
-<div class="field"><label>رقم المبنى</label><input id="building"></div>
-<div class="field"><label>الرقم الإضافي</label><input id="extra"></div>
-<div class="field"><label>الرمز البريدي</label><input id="postal"></div>
-</div>
+<input id="city" placeholder="المدينة">
+<input id="district" placeholder="الحي">
+<input id="street" placeholder="الشارع">
+<input id="building" placeholder="رقم المبنى">
+<input id="extra" placeholder="الرقم الإضافي">
+<input id="postal" placeholder="الرمز البريدي">
 
 <hr>
 
 <h3>إضافة منتج</h3>
 
 <input id="product_name" placeholder="اسم المنتج">
-<input id="product_desc" placeholder="وصف المنتج">
+<input id="product_desc" placeholder="الوصف">
 <input id="product_price" placeholder="السعر">
 
 <button onclick="addToCart()">إضافة للسلة</button>
@@ -84,27 +76,43 @@
 <script>
 function updatePreview(){
 
-let name = document.getElementById("name").value;
-let phone = document.getElementById("phone").value;
-let email = document.getElementById("email").value;
+let name = nameInput.value || "-";
+let phone = phoneInput.value || "-";
+let email = emailInput.value || "-";
 
-let city = document.getElementById("city").value;
-let district = document.getElementById("district").value;
-let street = document.getElementById("street").value;
-let building = document.getElementById("building").value;
-let extra = document.getElementById("extra").value;
-let postal = document.getElementById("postal").value;
+let city = cityInput.value;
+let district = districtInput.value;
+let street = streetInput.value;
+let building = buildingInput.value;
+let extra = extraInput.value;
+let postal = postalInput.value;
 
-document.getElementById("preview").innerHTML = `
-<h4>مصدرة إلى</h4>
-<p><b>اسم العميل:</b> ${name || "-"}</p>
-<p>المملكة العربية السعودية</p>
-<p><b>العنوان:</b><br>
-${city} - حي ${district} - شارع ${street} - رقم المبنى ${building} - الرقم الإضافي ${extra} - الرمز البريدي ${postal}</p>
-<p><b>رقم الهاتف:</b> ${phone || "-"}</p>
-<p><b>البريد الإلكتروني:</b> ${email || "-"}</p>
+preview.innerHTML = `
+<b>مصدرة إلى</b><br><br>
+
+اسم العميل: ${name}<br>
+المملكة العربية السعودية<br><br>
+
+${city} - حي ${district} - شارع ${street} - رقم المبنى ${building} - الرقم الإضافي ${extra} - الرمز البريدي ${postal}<br><br>
+
+رقم الهاتف: ${phone}<br>
+البريد الإلكتروني: ${email}
 `;
 }
+
+// تعريف المتغيرات
+let nameInput = document.getElementById("name");
+let phoneInput = document.getElementById("phone");
+let emailInput = document.getElementById("email");
+
+let cityInput = document.getElementById("city");
+let districtInput = document.getElementById("district");
+let streetInput = document.getElementById("street");
+let buildingInput = document.getElementById("building");
+let extraInput = document.getElementById("extra");
+let postalInput = document.getElementById("postal");
+
+let preview = document.getElementById("preview");
 
 document.querySelectorAll("input").forEach(i=>{
 i.addEventListener("input", updatePreview);
