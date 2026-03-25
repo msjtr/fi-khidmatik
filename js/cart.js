@@ -2,14 +2,28 @@ let cart = [];
 
 function addToCart(){
 
+let name = document.getElementById("product_name").value;
+let desc = document.getElementById("product_desc").value;
+let price = document.getElementById("product_price").value;
+
+if(name === "" || price === ""){
+alert("أدخل اسم المنتج والسعر");
+return;
+}
+
 let product = {
-name: document.getElementById("product_name").value,
-desc: document.getElementById("product_desc").value,
-price: document.getElementById("product_price").value
+name: name,
+desc: desc,
+price: price
 };
 
 cart.push(product);
+
 renderCart();
+
+document.getElementById("product_name").value = "";
+document.getElementById("product_desc").value = "";
+document.getElementById("product_price").value = "";
 
 }
 
