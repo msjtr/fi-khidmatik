@@ -1,17 +1,15 @@
 function checkout(){
 
-if(!cart || cart.length === 0){
+if(!window.cart || window.cart.length === 0){
 alert("السلة فارغة");
 return;
 }
 
-let last = localStorage.getItem("lastOrderNumber") || 1375;
-let num = parseInt(last)+1;
-localStorage.setItem("lastOrderNumber", num);
+let last = localStorage.getItem("num") || 1375;
+let n = parseInt(last) + 1;
+localStorage.setItem("num", n);
 
-let orderNumber = "FK-2026-" + String(num).padStart(6,'0');
-
-let t = order_time.value;
+let t = document.getElementById("order_time").value;
 let time = "-";
 
 if(t){
@@ -21,29 +19,34 @@ time=(h%12||12)+":"+m+(h>=12?"م":"ص");
 }
 
 let order = {
-order_number: orderNumber,
-date: order_date.value,
+
+order_number: "FK-2026-" + String(n).padStart(6,'0'),
+
+date: document.getElementById("order_date").value,
 time: time,
 
-customer: name.value,
-phone: phone.value,
-email: email.value,
+customer: document.getElementById("name").value,
+phone: document.getElementById("phone").value,
+email: document.getElementById("email").value,
 
-city: city.value,
-district: district.value,
-street: street.value,
-building: building.value,
-extra: extra.value,
-postal: postal.value,
+city: document.getElementById("city").value,
+district: document.getElementById("district").value,
+street: document.getElementById("street").value,
+building: document.getElementById("building").value,
+extra: document.getElementById("extra").value,
+postal: document.getElementById("postal").value,
 
-cart: cart,
+cart: window.cart,
 
-payment: payment.value,
-tamara_auth: tamara_auth.value,
-tamara_order: tamara_order.value,
-shipping: shipping.value
+payment: document.getElementById("payment").value,
+tamara_auth: document.getElementById("tamara_auth").value,
+tamara_order: document.getElementById("tamara_order").value,
+
+shipping: document.getElementById("shipping").value
+
 };
 
-localStorage.setItem("currentOrder", JSON.stringify(order));
-location.href="invoice.html";
+localStorage.setItem("order", JSON.stringify(order));
+
+window.location.href = "invoice.html";
 }
