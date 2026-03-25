@@ -1,21 +1,29 @@
-.row {
+.top-section {
     display: flex;
-    justify-content: space-between;
     gap: 10px;
+    margin-bottom: 10px;
 }
 
-.box {
-    width: 48%;
+.field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.field input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.preview-box {
     background: #f9fafb;
-    padding: 12px;
+    padding: 15px;
     border-radius: 8px;
-}
-
-.box p {
-    margin: 6px 0;
-    line-height: 1.6;
-}
-
-.title {
-    color: #1e3a8a;
+    line-height: 1.7;
 }
