@@ -21,23 +21,19 @@
 
 <script>
 
-// 🔥 حماية لو ما فيه بيانات
 let order = JSON.parse(localStorage.getItem("currentOrder"));
 
 if(!order){
-document.getElementById("invoice").innerHTML = "<h3>لا توجد بيانات طلب</h3>";
-throw new Error("No order data");
+document.getElementById("invoice").innerHTML = "<h3>لا يوجد طلب</h3>";
+throw new Error("No data");
 }
 
 let subtotal = 0;
 let rows = "";
 
-// 🔥 بناء المنتجات
 order.cart.forEach(p=>{
-
 let price = parseFloat(p.price) || 0;
 let total = price;
-
 subtotal += total;
 
 rows += `
@@ -49,40 +45,37 @@ rows += `
 <td>${total}</td>
 </tr>
 `;
-
 });
 
 let tax = subtotal * 0.15;
 let final = subtotal + tax;
 
-// 🔥 بناء الفاتورة
 document.getElementById("invoice").innerHTML = `
 
-<!-- الهيدر -->
 <div class="header">
 
 <div class="logo">
 <img src="images/logo.svg">
 </div>
 
-<div class="center-title">
+<div style="text-align:center;">
 <h2>فاتورة إلكترونية</h2>
 <p>منصة في خدمتك</p>
 </div>
 
-<div class="order-info">
-<p><b>رقم الطلب:</b> ${order.order_number || "-"}</p>
-<p><b>التاريخ:</b> ${order.date || "-"}</p>
-<p><b>الوقت:</b> ${order.time || "-"}</p>
+<div style="text-align:left;">
+<p>رقم الطلب: ${order.order_number}</p>
+<p>التاريخ: ${order.date}</p>
+<p>الوقت: ${order.time}</p>
 </div>
 
 </div>
 
 <hr>
 
-<!-- 🔥 مصدرة من / إلى -->
 <div class="row">
 
+<!-- مصدرة من -->
 <div class="box">
 <h4>مصدرة من</h4>
 
@@ -101,25 +94,26 @@ document.getElementById("invoice").innerHTML = `
 
 <p>رقم شهادة العمل الحر: FL-765735204</p>
 <p>الرقم الضريبي: 312495447600003</p>
-
 </div>
 
+<!-- مصدرة إلى -->
 <div class="box">
 <h4>مصدرة إلى</h4>
 
-<p><b>اسم العميل:</b> ${order.customer || "-"}</p>
+<p>اسم العميل: ${order.customer || "-"}</p>
+<p>الدولة: ${order.country || "-"}</p>
+<p>المنطقة: ${order.region || "-"}</p>
+<p>الحي: ${order.district || "-"}</p>
+<p>الشارع: ${order.street || "-"}</p>
 
-<p><b>الدولة:</b> ${order.country || "-"}</p>
-<p><b>المنطقة:</b> ${order.region || "-"}</p>
-<p><b>الحي:</b> ${order.district || "-"}</p>
-<p><b>الشارع:</b> ${order.street || "-"}</p>
+<p>
+رقم المبنى: ${order.building || "-"} - 
+الرقم الإضافي: ${order.extra || "-"}<br>
+الرمز البريدي: ${order.postal || "-"}
+</p>
 
-<p><b>رقم المبنى:</b> ${order.building || "-"}</p>
-<p><b>الرقم الإضافي:</b> ${order.extra || "-"}</p>
-<p><b>الرمز البريدي:</b> ${order.postal || "-"}</p>
-
-<p><b>رقم الهاتف:</b> ${order.phone || "-"}</p>
-<p><b>البريد الإلكتروني:</b> ${order.email || "-"}</p>
+<p>رقم الهاتف: ${order.phone || "-"}</p>
+<p>البريد الإلكتروني: ${order.email || "-"}</p>
 
 </div>
 
@@ -127,21 +121,18 @@ document.getElementById("invoice").innerHTML = `
 
 <hr>
 
-<!-- الدفع -->
-<div class="section">
-<p><b>طريقة الدفع:</b> ${order.payment || "-"}</p>
-<p><b>رمز تمارا:</b> ${order.tamara_auth || "-"}</p>
-<p><b>طلب تمارا:</b> ${order.tamara_order || "-"}</p>
-<p><b>تفاصيل الشحن:</b> ${order.shipping || "-"}</p>
-</div>
+<p>طريقة الدفع: ${order.payment}</p>
+<p>رمز تمارا: ${order.tamara_auth || "-"}</p>
+<p>طلب تمارا: ${order.tamara_order || "-"}</p>
 
-<!-- الجدول -->
+<p>تفاصيل الشحن: ${order.shipping}</p>
+
 <table>
 <tr>
-<th>اسم المنتج</th>
+<th>المنتج</th>
 <th>الوصف</th>
 <th>الكمية</th>
-<th>السعر الفردي</th>
+<th>السعر</th>
 <th>الإجمالي</th>
 </tr>
 
@@ -149,39 +140,16 @@ ${rows}
 
 </table>
 
-<!-- الإجمالي -->
 <div class="total">
-<p><span>مجموع السلة</span><span>${subtotal.toFixed(2)}</span></p>
-<p><span>ضريبة القيمة المضافة (15%)</span><span>${tax.toFixed(2)}</span></p>
-
-<h3>
-<span>الإجمالي النهائي</span>
-<span>${final.toFixed(2)} ريال</span>
-</h3>
-</div>
-
-<!-- الفوتر -->
-<div class="footer">
-<p>شكراً لتعاملك مع منصة في خدمتك</p>
+<p>مجموع السلة: ${subtotal}</p>
+<p>الضريبة: ${tax.toFixed(2)}</p>
+<h3>الإجمالي: ${final.toFixed(2)} ريال</h3>
 </div>
 
 `;
 
-// 🔥 PDF احترافي
 function downloadPDF(){
-
-let element = document.querySelector(".invoice");
-
-let opt = {
-  margin: 5,
-  filename: 'فاتورة.pdf',
-  image: { type: 'jpeg', quality: 1 },
-  html2canvas: { scale: 2 },
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-};
-
-html2pdf().set(opt).from(element).save();
-
+html2pdf().from(document.querySelector(".invoice")).save("فاتورة.pdf");
 }
 
 function goHome(){
