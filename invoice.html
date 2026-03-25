@@ -5,6 +5,7 @@
 <title>فاتورة</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <link rel="stylesheet" href="css/style.css">
 
 </head>
@@ -29,13 +30,15 @@ order.cart.forEach(p=>{
 let total = parseFloat(p.price);
 subtotal += total;
 
-rows += `<tr>
+rows += `
+<tr>
 <td>${p.name}</td>
-<td>${p.desc}</td>
+<td>${p.desc || "-"}</td>
 <td>1</td>
 <td>${p.price}</td>
 <td>${total}</td>
-</tr>`;
+</tr>
+`;
 });
 
 let tax = subtotal * 0.15;
@@ -66,34 +69,56 @@ document.getElementById("invoice").innerHTML = `
 
 <div class="row">
 
+<!-- 🔵 مصدرة من -->
 <div class="box">
-<h4>مصدرة من</h4>
-<p>منصة في خدمتك</p>
-<p>المملكة العربية السعودية</p>
-<p>حائل - حي النقرة - شارع سعد المشاط</p>
-<p>رقم الهاتف: +966597771565</p>
-<p>البريد: info@fi-khidmatik.com</p>
-<p>الموقع: www.khidmatik.com</p>
-<p>شهادة العمل الحر: FL-765735204</p>
-<p>الرقم الضريبي: 312495447600003</p>
+
+<h4 class="title">مصدرة من</h4>
+
+<p><span class="icon">🏢</span> منصة في خدمتك</p>
+
+<p>
+<span class="icon">📍</span>
+المملكة العربية السعودية<br>
+حائل - حي النقرة - شارع سعد المشاط
+</p>
+
+<p><span class="icon">📞</span> +966597771565</p>
+<p><span class="icon">📧</span> info@fi-khidmatik.com</p>
+<p><span class="icon">🌐</span> www.khidmatik.com</p>
+
+<p><span class="icon">🧾</span> رقم شهادة العمل الحر: FL-765735204</p>
+<p><span class="icon">💰</span> الرقم الضريبي: 312495447600003</p>
+
 </div>
 
+<!-- 🔵 مصدرة إلى -->
 <div class="box">
-<h4>مصدرة إلى</h4>
-<p>${order.customer}</p>
-<p>${order.address}</p>
-<p>${order.phone}</p>
-<p>${order.email}</p>
+
+<h4 class="title">مصدرة إلى</h4>
+
+<p><span class="icon">👤</span> ${order.customer}</p>
+
+<p>
+<span class="icon">📍</span>
+المملكة العربية السعودية<br>
+${order.address}
+</p>
+
+<p><span class="icon">📞</span> ${order.phone || "-"}</p>
+
+<p><span class="icon">📧</span> ${order.email || "-"}</p>
+
 </div>
 
 </div>
 
 <hr>
 
-<p>طريقة الدفع: ${order.payment}</p>
-<p>رمز تمارا: ${order.tamara_auth}</p>
-<p>طلب تمارا: ${order.tamara_order}</p>
-<p>تفاصيل الشحن: ${order.shipping}</p>
+<p><b>طريقة الدفع:</b> ${order.payment}</p>
+<p><b>رمز تمارا:</b> ${order.tamara_auth || "-"}</p>
+<p><b>رقم طلب تمارا:</b> ${order.tamara_order || "-"}</p>
+
+<p><b>تفاصيل الشحن:</b> ${order.shipping}</p>
 
 <table>
 <tr>
@@ -103,7 +128,9 @@ document.getElementById("invoice").innerHTML = `
 <th>السعر</th>
 <th>الإجمالي</th>
 </tr>
+
 ${rows}
+
 </table>
 
 <div class="total">
