@@ -301,3 +301,19 @@ button:hover {
         padding: 5px;
     }
 }
+
+
+.invoice {
+    page-break-inside: avoid;
+}
+
+table, tr, td, th {
+    page-break-inside: avoid !important;
+}
+
+.invoice-parties,
+.payment-shipping,
+.totals-wrapper,
+.contact-bar {
+    page-break-inside: avoid;
+}
