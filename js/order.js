@@ -1,3 +1,62 @@
+// order.js - معالجة الطلب والفاتورة
+
+function checkout() {
+    if (!Array.isArray(window.cart) || window.cart.length === 0) {
+        alert('❌ السلة فارغة! أضف منتجات أولاً.');
+        return;
+    }
+
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    if (!name || !phone) {
+        alert('❌ يرجى إدخال اسم العميل ورقم الجوال');
+        return;
+    }
+
+    let lastNum = localStorage.getItem('lastOrderNumber');
+    let orderNumber = 1001;
+    if (lastNum) orderNumber = parseInt(lastNum) + 1;
+    localStorage.setItem('lastOrderNumber', orderNumber);
+
+    let timeVal = document.getElementById('order_time').value;
+    let formattedTime = '-';
+    if (timeVal) {
+        let [h, m] = timeVal.split(':');
+        let period = h >= 12 ? 'م' : 'ص';
+        h = h % 12 || 12;
+        formattedTime = `${h}:${m} ${period}`;
+    }
+
+    function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+    }
+
+    const order = {
+        orderNumber: `INV-${orderNumber.toString().padStart(6, '0')}`,
+        date: getVal('order_date') || new Date().toISOString().split('T')[0],
+        time: formattedTime,
+        customer: name,
+        phone: phone,
+        email: getVal('email'),
+        city: getVal('city'),
+        district: getVal('district'),
+        street: getVal('street'),
+        building: getVal('building'),
+        extra: getVal('extra'),
+        postal: getVal('postal'),
+        cart: window.cart.map(item => ({ ...item })),
+        payment: getVal('payment'),
+        tamaraAuth: getVal('tamara_auth'),
+        tamaraOrder: getVal('tamara_order'),
+        shipping: getVal('shipping'),
+        createdAt: new Date().toISOString()
+    };
+
+    localStorage.setItem('currentOrder', JSON.stringify(order));
+    window.location.href = 'invoice.html';
+}
+
 function loadInvoice() {
     const orderJSON = localStorage.getItem('currentOrder');
     if (!orderJSON) {
@@ -25,17 +84,15 @@ function loadInvoice() {
     const tax = subtotal * 0.15;
     const grandTotal = subtotal + tax;
 
-    // تنسيق التاريخ المعروض (من yyyy-mm-dd إلى dd-mm-yyyy)
+    // تنسيق التاريخ
     let displayDate = order.date;
     if (order.date && order.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const [year, month, day] = order.date.split('-');
         displayDate = `${day}-${month}-${year}`;
     }
 
-    // بناء الفاتورة بالشكل الجديد
     const invoiceHTML = `
         <div class="invoice" id="invoiceToPrint">
-            <!-- رأس الفاتورة -->
             <div style="text-align: center; margin-bottom: 20px;">
                 <img src="images/logo.svg" alt="شعار المنصة" style="max-width: 100px;" onerror="this.style.display='none'">
                 <h1>فاتورة إلكترونية</h1>
@@ -45,7 +102,6 @@ function loadInvoice() {
 
             <hr>
 
-            <!-- قسم: مصدرة من -->
             <div style="margin-bottom: 20px;">
                 <h3>📌 مصدرة من:</h3>
                 <p>
@@ -64,7 +120,6 @@ function loadInvoice() {
 
             <hr>
 
-            <!-- قسم: مصدرة إلى -->
             <div style="margin-bottom: 20px;">
                 <h3>📌 مصدرة إلى:</h3>
                 <p>
@@ -78,13 +133,12 @@ function loadInvoice() {
 
             <hr>
 
-            <!-- طريقة الدفع والشحن في سطر واحد أعلى الجدول -->
+            <!-- طريقة الدفع والشحن في سطر واحد -->
             <div style="display: flex; justify-content: space-between; margin: 20px 0; background: #f9fafb; padding: 12px; border-radius: 8px;">
                 <span><strong>💳 طريقة الدفع:</strong> ${order.payment}</span>
                 <span><strong>🚚 خدمة الشحن:</strong> ${order.shipping}</span>
             </div>
 
-            <!-- جدول المنتجات -->
             <h3>📦 تفاصيل الطلب</h3>
             <table border="1" width="100%" cellpadding="8" cellspacing="0">
                 <thead>
@@ -99,7 +153,6 @@ function loadInvoice() {
                 <h2 style="color: #1e3a8a;">الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
             </div>
 
-            <!-- معلومات إضافية إن وجدت -->
             ${order.tamaraAuth ? `<p><strong>رمز موافقة تمارا:</strong> ${order.tamaraAuth}</p>` : ''}
             ${order.tamaraOrder ? `<p><strong>رقم طلب تمارا:</strong> ${order.tamaraOrder}</p>` : ''}
 
@@ -108,4 +161,41 @@ function loadInvoice() {
     `;
 
     document.getElementById('invoiceContent').innerHTML = invoiceHTML;
+}
+
+function downloadPDF() {
+    const element = document.getElementById('invoiceToPrint');
+    if (!element) {
+        alert('لا يوجد فاتورة للتحميل');
+        return;
+    }
+    html2pdf()
+        .from(element)
+        .set({
+            margin: [10, 10, 10, 10],
+            filename: `فاتورة_${new Date().toLocaleDateString('ar-SA')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .save();
+}
+
+function newOrder() {
+    localStorage.removeItem('currentOrder');
+    window.location.href = 'index.html';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+if (window.location.pathname.includes('invoice.html')) {
+    document.addEventListener('DOMContentLoaded', loadInvoice);
 }
