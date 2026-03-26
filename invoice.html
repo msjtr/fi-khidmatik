@@ -1,109 +1,123 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الفاتورة</title>
+let cartRows = '';
+let subtotal = 0;
+let totalDiscount = 0;
 
-<style>
-body {
-    font-family: Arial;
-    background: #2a5298;
-    padding: 20px;
-}
-.invoice-box {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-}
-button {
-    margin: 5px;
-    padding: 10px;
-}
-</style>
+// 🔥 استخدام items بدل cart
+order.items.forEach(function(item) {
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-</head>
+    let name = item.name || '-';
+    let desc = item.desc || '-';
+    let code = item.code || '-';
+    let qty = item.qty || 1;
+    let price = item.price || 0;
+    let discount = item.discount || 0;
 
-<body>
+    let itemSubtotal = price * qty;
+    let itemTotal = itemSubtotal - discount;
 
-<div id="invoiceWrapper">
-    <div id="invoiceContent"></div>
-</div>
+    subtotal += itemSubtotal;
+    totalDiscount += discount;
 
-<br>
-
-<button onclick="downloadPDF()">📥 PDF</button>
-<button onclick="printInvoice()">🖨️ طباعة</button>
-<button onclick="newOrder()">🔄 طلب جديد</button>
-
-<script>
-function loadInvoice() {
-
-    let orderJSON = localStorage.getItem('currentOrder');
-
-    if (!orderJSON) {
-        document.getElementById('invoiceContent').innerHTML = "❌ لا يوجد طلب";
-        return;
-    }
-
-    let order = JSON.parse(orderJSON);
-
-    if (!order.items || order.items.length === 0) {
-        document.getElementById('invoiceContent').innerHTML = "❌ لا توجد منتجات";
-        return;
-    }
-
-    let html = `
-        <div class="invoice-box">
-        <h2>📄 الفاتورة</h2>
-
-        <p>👤 ${order.customer}</p>
-        <p>📱 ${order.phone}</p>
-        <p>📅 ${order.date}</p>
-        <hr>
+    cartRows += `
+        <tr>
+            <td>${escapeHtml(code)}</td>
+            <td>${escapeHtml(name)}</td>
+            <td>${escapeHtml(desc)}</td>
+            <td>${qty}</td>
+            <td>${price.toFixed(2)}</td>
+            <td>${discount.toFixed(2)}</td>
+            <td>${itemTotal.toFixed(2)}</td>
+        </tr>
     `;
+});
 
-    let total = 0;
+// الحسابات
+let taxableAmount = subtotal - totalDiscount;
+let tax = taxableAmount * 0.15;
+let grandTotal = taxableAmount + tax;
 
-    order.items.forEach(item => {
-        let itemTotal = (item.price * item.qty) - item.discount;
-        total += itemTotal;
+// التاريخ
+let displayDate = order.date || '';
+if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    let parts = displayDate.split('-');
+    displayDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+}
 
-        html += `
-        <div>
-        ${item.name} (${item.qty}) = ${itemTotal.toFixed(2)} ريال
+// 🔥 نفس تصميمك بدون تغيير
+let html = `<div class="invoice" id="invoiceToPrint" style="direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
+    <div class="top-margin">
+        <div>رقم شهادة العمل الحر: FL-765735204</div>
+        <div>الرقم الضريبي: 312495447600003</div>
+    </div>
+
+    <div class="logo-center">
+        <img src="images/logo.svg" onerror="this.style.display='none'" alt="شعار المنصة">
+    </div>
+
+    <div class="invoice-header">
+        <p><strong>رقم الفاتورة:</strong> ${order.orderNumber || 'FK-0000'}</p>
+        <p><strong>التاريخ:</strong> ${displayDate}</p>
+    </div>
+
+    <div class="invoice-parties">
+        <div class="invoice-from">
+            <h3>📌 مصدرة من:</h3>
+            <p><strong>منصة في خدمتك</strong><br>
+            المملكة العربية السعودية<br>
+            حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>
+            الرقم الإضافي: 7718 - الرمز البريدي: 55431</p>
         </div>
-        `;
-    });
 
-    html += `
-        <hr>
-        <h3>💰 الإجمالي: ${total.toFixed(2)} ريال</h3>
+        <div class="invoice-to">
+            <h3>📌 مصدرة إلى:</h3>
+            <p>
+            <strong>${escapeHtml(order.customer) || '-'}</strong><br>
+            ${order.city || ''} ${order.district || ''} ${order.street || ''}<br>
+            هاتف: ${order.phone || '-'}<br>
+            بريد: ${order.email || '-'}
+            </p>
         </div>
-    `;
+    </div>
 
-    document.getElementById('invoiceContent').innerHTML = html;
-}
+    <div class="payment-shipping">
+        <span>💳 طريقة الدفع: ${order.payment || '-'}</span>
+        ${order.payment === 'تمارا' && order.tamaraAuth ? `<span>🔑 رمز الموافقة: ${order.tamaraAuth}</span>` : ''}
+        <span>🚚 الشحن: ${order.shipping || '-'}</span>
+    </div>
 
-// طباعة
-function printInvoice() {
-    window.print();
-}
+    <h3>📦 تفاصيل الطلب</h3>
 
-// PDF
-function downloadPDF() {
-    html2pdf().from(document.getElementById('invoiceWrapper')).save();
-}
+    <table class="products-table">
+        <thead>
+            <tr>
+                <th>كود المنتج</th>
+                <th>اسم المنتج</th>
+                <th>الوصف</th>
+                <th>الكمية</th>
+                <th>السعر</th>
+                <th>الخصم</th>
+                <th>الإجمالي</th>
+            </tr>
+        </thead>
+        <tbody>${cartRows}</tbody>
+    </table>
 
-// طلب جديد
-function newOrder() {
-    localStorage.removeItem('currentOrder');
-    window.location.href = 'index.html';
-}
+    <div class="totals-wrapper">
+        <p>المجموع: ${subtotal.toFixed(2)} ريال</p>
+        <p>الخصم: ${totalDiscount.toFixed(2)} ريال</p>
+        <p>الضريبة: ${tax.toFixed(2)} ريال</p>
 
-window.onload = loadInvoice;
-</script>
+        <h2>الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
+    </div>
 
-</body>
-</html>
+    <div class="contact-bar">
+        <span>📞 +966597771565</span>
+        <span>✉️ info@fi-khidmatik.com</span>
+        <span>🌐 www.khidmatik.com</span>
+    </div>
+
+    <p class="thanks">شكراً لتسوقكم معنا</p>
+</div>`;
+
+// عرض
+document.getElementById('invoiceContent').innerHTML = html;
