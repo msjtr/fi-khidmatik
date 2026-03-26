@@ -1,19 +1,18 @@
 // order.js
-
 function checkout() {
     if (!window.cart || window.cart.length === 0) {
         alert('❌ السلة فارغة');
         return;
     }
 
-    let name = document.getElementById('name').value;
-    let phone = document.getElementById('phone').value;
+    let name = document.getElementById('name').value.trim();
+    let phone = document.getElementById('phone').value.trim();
     if (!name || !phone) {
         alert('❌ يرجى إدخال اسم العميل ورقم الجوال');
         return;
     }
 
-    let orderNumber = document.getElementById('order_number_manual').value;
+    let orderNumber = document.getElementById('order_number_manual').value.trim();
     if (!orderNumber) orderNumber = 'FK-0000';
 
     let timeVal = document.getElementById('order_time').value;
@@ -29,10 +28,10 @@ function checkout() {
 
     function getVal(id) {
         let el = document.getElementById(id);
-        return el ? el.value : '';
+        return el ? el.value.trim() : '';
     }
 
-    // إنشاء نسخة آمنة من السلة مع التأكد من وجود كل الخصائص
+    // إنشاء نسخة آمنة من السلة (بدون صورة)
     let safeCart = [];
     for (let i = 0; i < window.cart.length; i++) {
         let item = window.cart[i];
@@ -42,8 +41,7 @@ function checkout() {
             desc: item.desc || '',
             price: parseFloat(item.price) || 0,
             qty: parseInt(item.qty) || 1,
-            discount: parseFloat(item.discount) || 0,
-            image: item.image || 'https://via.placeholder.com/50?text=Product'
+            discount: parseFloat(item.discount) || 0
         });
     }
 
@@ -85,7 +83,6 @@ function loadInvoice() {
         return;
     }
 
-    // التحقق من وجود السلة
     if (!order.cart || !Array.isArray(order.cart) || order.cart.length === 0) {
         document.getElementById('invoiceContent').innerHTML = '<div class="container"><div class="empty-cart">⚠️ السلة فارغة أو لا توجد منتجات.</div></div>';
         return;
@@ -95,16 +92,13 @@ function loadInvoice() {
     let subtotal = 0;
     let totalDiscount = 0;
 
-    // استخدام forEach مع التأكد من كل عنصر
-    order.cart.forEach(function(item, index) {
-        // التأكد من وجود كل خاصية
-        let code = (item.code && typeof item.code === 'string') ? item.code : '-';
-        let name = (item.name && typeof item.name === 'string') ? item.name : 'منتج غير معروف';
-        let desc = (item.desc && typeof item.desc === 'string') ? item.desc : '-';
+    order.cart.forEach(function(item) {
+        let code = item.code || '-';
+        let name = item.name || 'منتج غير معروف';
+        let desc = item.desc || '-';
         let qty = (typeof item.qty === 'number' && !isNaN(item.qty)) ? item.qty : 1;
         let price = (typeof item.price === 'number' && !isNaN(item.price)) ? item.price : 0;
         let discount = (typeof item.discount === 'number' && !isNaN(item.discount)) ? item.discount : 0;
-        let image = (item.image && typeof item.image === 'string') ? item.image : 'https://via.placeholder.com/50?text=Product';
 
         let itemSubtotal = price * qty;
         let itemTotal = itemSubtotal - discount;
@@ -113,7 +107,6 @@ function loadInvoice() {
 
         cartRows += `
             <tr>
-                <td><img src="${image}" width="50" height="50" style="object-fit:cover;" onerror="this.src='https://via.placeholder.com/50?text=No+Image'"></td>
                 <td>${escapeHtml(code)}</td>
                 <td>${escapeHtml(name)}</td>
                 <td>${escapeHtml(desc)}</td>
@@ -121,7 +114,7 @@ function loadInvoice() {
                 <td>${price.toFixed(2)}</td>
                 <td>${discount.toFixed(2)}</td>
                 <td>${itemTotal.toFixed(2)}</td>
-            </tr>
+             </tr>
         `;
     });
 
@@ -129,7 +122,6 @@ function loadInvoice() {
     let tax = taxableAmount * 0.15;
     let grandTotal = taxableAmount + tax;
 
-    // تنسيق التاريخ
     let displayDate = order.date || '';
     if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
         let parts = displayDate.split('-');
@@ -168,7 +160,6 @@ function loadInvoice() {
         <table class="products-table">
             <thead>
                 <tr>
-                    <th>صورة</th>
                     <th>كود المنتج</th>
                     <th>اسم المنتج</th>
                     <th>الوصف</th>
@@ -176,7 +167,7 @@ function loadInvoice() {
                     <th>السعر</th>
                     <th>الخصم</th>
                     <th>الإجمالي</th>
-                </tr>
+                 </tr>
             </thead>
             <tbody>${cartRows}</tbody>
         </table>
