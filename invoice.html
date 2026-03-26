@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الفاتورة | منصة في خدمتك</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الفاتورة | منصة في خدمتك</title>
 
-<link rel="stylesheet" href="css/style.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -17,16 +19,85 @@
 </div>
 
 <div class="action-buttons">
-    <button onclick="downloadPDF()">📥 تحميل PDF</button>
-    <button onclick="printInvoice()">🖨️ طباعة</button>
-    <button onclick="newOrder()">🔄 طلب جديد</button>
+    <button class="btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
+    <button class="btn-print" onclick="printInvoice()">🖨️ طباعة</button>
+    <button class="btn-new" onclick="newOrder()">🔄 طلب جديد</button>
 </div>
 
-<!-- Firebase -->
+<!-- 🔥 Firebase (نسخة صحيحة v8) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<!-- 🔥 ملف الربط -->
 <script src="js/firebase.js"></script>
+
+<!-- 🔥 ملف الأوامر -->
 <script src="js/order.js"></script>
+
+<!-- 🔥 كود الفاتورة -->
+<script>
+function loadInvoice() {
+    let orderJSON = localStorage.getItem('currentOrder');
+
+    if (!orderJSON) {
+        document.getElementById('invoiceContent').innerHTML = "❌ لا توجد بيانات طلب";
+        return;
+    }
+
+    let order = JSON.parse(orderJSON);
+
+    let html = `
+        <div class="invoice-box">
+            <h2>📄 الفاتورة</h2>
+
+            <p><strong>👤 الاسم:</strong> ${order.name}</p>
+            <p><strong>📱 الجوال:</strong> ${order.phone}</p>
+
+            <hr>
+    `;
+
+    let total = 0;
+
+    order.items.forEach(item => {
+        let itemTotal = (item.price * item.qty) - item.discount;
+        total += itemTotal;
+
+        html += `
+            <div>
+                ${item.name} (${item.qty}) = ${itemTotal.toFixed(2)} ريال
+            </div>
+        `;
+    });
+
+    html += `
+        <hr>
+        <h3>💰 الإجمالي: ${total.toFixed(2)} ريال</h3>
+        </div>
+    `;
+
+    document.getElementById('invoiceContent').innerHTML = html;
+}
+
+// 🖨️ طباعة
+function printInvoice() {
+    window.print();
+}
+
+// 🔄 طلب جديد
+function newOrder() {
+    localStorage.removeItem('currentOrder');
+    window.location.href = 'index.html';
+}
+
+// 📥 PDF
+function downloadPDF() {
+    const element = document.getElementById('invoiceWrapper');
+    html2pdf().from(element).save("invoice.pdf");
+}
+
+// تشغيل تلقائي
+window.onload = loadInvoice;
+</script>
 
 </body>
 </html>
