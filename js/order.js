@@ -1,5 +1,4 @@
-// order.js - معالجة الطلب والفاتورة
-
+// order.js
 function checkout() {
     if (!Array.isArray(window.cart) || window.cart.length === 0) {
         alert('❌ السلة فارغة! أضف منتجات أولاً.');
@@ -32,6 +31,7 @@ function checkout() {
         return el ? el.value.trim() : '';
     }
 
+    // جمع بيانات الطلب
     const order = {
         orderNumber: `INV-${orderNumber.toString().padStart(6, '0')}`,
         date: getVal('order_date') || new Date().toISOString().split('T')[0],
@@ -47,8 +47,7 @@ function checkout() {
         postal: getVal('postal'),
         cart: window.cart.map(item => ({ ...item })),
         payment: getVal('payment'),
-        tamaraAuth: getVal('tamara_auth'),
-        tamaraOrder: getVal('tamara_order'),
+        tamaraAuth: getVal('payment') === 'تمارا' ? getVal('tamara_auth') : '',
         shipping: getVal('shipping'),
         createdAt: new Date().toISOString()
     };
@@ -67,22 +66,31 @@ function loadInvoice() {
     const order = JSON.parse(orderJSON);
     let cartRows = '';
     let subtotal = 0;
+    let totalDiscount = 0;
 
     order.cart.forEach(item => {
-        const total = item.price * item.qty;
-        subtotal += total;
+        const itemSubtotal = item.price * item.qty;
+        const itemDiscount = item.discount || 0;
+        const itemTotal = itemSubtotal - itemDiscount;
+        subtotal += itemSubtotal;
+        totalDiscount += itemDiscount;
+
         cartRows += `
             <tr>
+                <td><img src="${item.image}" width="50" height="50" style="object-fit:cover;"></td>
+                <td>${escapeHtml(item.number)}</td>
+                <td>${escapeHtml(item.code)}</td>
                 <td>${escapeHtml(item.name)}${item.desc ? '<br><small>' + escapeHtml(item.desc) + '</small>' : ''}</td>
                 <td>${item.qty}</td>
                 <td>${item.price.toFixed(2)}</td>
-                <td>${total.toFixed(2)}</td>
+                <td>${itemDiscount.toFixed(2)}</td>
+                <td>${itemTotal.toFixed(2)}</td>
             </tr>
         `;
     });
 
-    const tax = subtotal * 0.15;
-    const grandTotal = subtotal + tax;
+    const tax = (subtotal - totalDiscount) * 0.15;
+    const grandTotal = subtotal - totalDiscount + tax;
 
     // تنسيق التاريخ
     let displayDate = order.date;
@@ -91,72 +99,89 @@ function loadInvoice() {
         displayDate = `${day}-${month}-${year}`;
     }
 
+    // تحديد عرض حقل تمارا
+    const tamaraHtml = order.payment === 'تمارا' && order.tamaraAuth ?
+        `<p><strong>رمز الموافقة على الطلب في تمارا:</strong> ${order.tamaraAuth}</p>` : '';
+
     const invoiceHTML = `
         <div class="invoice" id="invoiceToPrint">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="images/logo.svg" alt="شعار المنصة" style="max-width: 100px;" onerror="this.style.display='none'">
-                <h1>فاتورة إلكترونية</h1>
-                <p><strong>رقم الفاتورة:</strong> ${order.orderNumber}</p>
-                <p><strong>التاريخ:</strong> ${displayDate} ${order.time !== '-' ? ' - ' + order.time : ''}</p>
+            <!-- الرأس: رقم الفاتورة والتاريخ والوقت (يسار) -->
+            <div class="invoice-header">
+                <div class="invoice-left">
+                    <p><strong>رقم الفاتورة:</strong> ${order.orderNumber}</p>
+                    <p><strong>التاريخ:</strong> ${displayDate} ${order.time !== '-' ? ' - ' + order.time : ''}</p>
+                </div>
             </div>
 
-            <hr>
-
-            <div style="margin-bottom: 20px;">
-                <h3>📌 مصدرة من:</h3>
-                <p>
-                    <strong>منصة في خدمتك</strong><br>
-                    المملكة العربية السعودية<br>
-                    المنطقة: حائل<br>
-                    الحي: النقرة - الشارع: سعد المشاط - رقم المبنى: 3085<br>
-                    الرقم الإضافي: 7718 - الرمز البريدي: 55431<br>
-                    رقم الهاتف: +966597771565<br>
-                    البريد الإلكتروني: info@fi-khidmatik.com<br>
-                    الموقع الإلكتروني: www.khidmatik.com<br>
-                    رقم شهادة العمل الحر: FL-765735204<br>
-                    الرقم الضريبي: 312495447600003
-                </p>
+            <!-- قسم المصدر (يمين) والمستلم (يسار) مع خلفية -->
+            <div class="invoice-parties">
+                <div class="invoice-from">
+                    <h3>📌 مصدرة من:</h3>
+                    <p>
+                        <strong>منصة في خدمتك</strong><br>
+                        المملكة العربية السعودية<br>
+                        المنطقة: حائل<br>
+                        الحي: النقرة - الشارع: سعد المشاط - رقم المبنى: 3085<br>
+                        الرقم الإضافي: 7718 - الرمز البريدي: 55431<br>
+                        هاتف: +966597771565<br>
+                        بريد: info@fi-khidmatik.com<br>
+                        موقع: www.khidmatik.com<br>
+                        رقم العمل الحر: FL-765735204<br>
+                        الرقم الضريبي: 312495447600003
+                    </p>
+                </div>
+                <div class="invoice-to">
+                    <h3>📌 مصدرة إلى:</h3>
+                    <p>
+                        <strong>${escapeHtml(order.customer)}</strong><br>
+                        المملكة العربية السعودية<br>
+                        ${order.city} - حي ${order.district || ''} - شارع ${order.street || ''} - مبنى ${order.building || ''} - ${order.extra || ''} - ${order.postal || ''}<br>
+                        هاتف: ${order.phone}<br>
+                        بريد: ${order.email || 'غير مدخل'}
+                    </p>
+                </div>
             </div>
-
-            <hr>
-
-            <div style="margin-bottom: 20px;">
-                <h3>📌 مصدرة إلى:</h3>
-                <p>
-                    <strong>${escapeHtml(order.customer)}</strong><br>
-                    المملكة العربية السعودية<br>
-                    ${order.city} - حي ${order.district || ''} - شارع ${order.street || ''} - مبنى ${order.building || ''} - ${order.extra || ''} - ${order.postal || ''}<br>
-                    هاتف: ${order.phone}<br>
-                    بريد: ${order.email || 'غير مدخل'}
-                </p>
-            </div>
-
-            <hr>
 
             <!-- طريقة الدفع والشحن في سطر واحد -->
-            <div style="display: flex; justify-content: space-between; margin: 20px 0; background: #f9fafb; padding: 12px; border-radius: 8px;">
+            <div class="payment-shipping">
                 <span><strong>💳 طريقة الدفع:</strong> ${order.payment}</span>
                 <span><strong>🚚 خدمة الشحن:</strong> ${order.shipping}</span>
+                ${order.payment === 'تمارا' && order.tamaraAuth ? `<span><strong>🔑 رمز الموافقة:</strong> ${order.tamaraAuth}</span>` : ''}
             </div>
 
+            <!-- جدول المنتجات -->
             <h3>📦 تفاصيل الطلب</h3>
-            <table border="1" width="100%" cellpadding="8" cellspacing="0">
+            <table class="products-table">
                 <thead>
-                    <tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                    <tr>
+                        <th>صورة</th>
+                        <th>رقم المنتج</th>
+                        <th>كود المنتج</th>
+                        <th>المنتج</th>
+                        <th>الكمية</th>
+                        <th>السعر</th>
+                        <th>الخصم</th>
+                        <th>الإجمالي</th>
+                    </tr>
                 </thead>
                 <tbody>${cartRows}</tbody>
             </table>
 
-            <div style="text-align: left; margin-top: 20px;">
-                <p><strong>المجموع الفرعي:</strong> ${subtotal.toFixed(2)} ريال</p>
-                <p><strong>الضريبة (15%):</strong> ${tax.toFixed(2)} ريال</p>
-                <h2 style="color: #1e3a8a;">الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
+            <!-- نتائج المجموع والضريبة (يسار) والمعلومات (يمين) لكن هنا نضع النتائج يساراً -->
+            <div class="totals-section">
+                <div class="totals-left">
+                    <p><strong>المجموع الفرعي:</strong> ${subtotal.toFixed(2)} ريال</p>
+                    <p><strong>الخصم الكلي:</strong> ${totalDiscount.toFixed(2)} ريال</p>
+                    <p><strong>الضريبة (15%):</strong> ${tax.toFixed(2)} ريال</p>
+                    <h2>الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
+                </div>
+                <div class="totals-right">
+                    <!-- هنا يمكن وضع معلومات إضافية إذا أردت، مثل الشكر -->
+                </div>
             </div>
 
-            ${order.tamaraAuth ? `<p><strong>رمز موافقة تمارا:</strong> ${order.tamaraAuth}</p>` : ''}
-            ${order.tamaraOrder ? `<p><strong>رقم طلب تمارا:</strong> ${order.tamaraOrder}</p>` : ''}
-
-            <p style="text-align: center; margin-top: 30px;">شكراً لتسوقكم معنا</p>
+            ${tamaraHtml}
+            <p class="thanks">شكراً لتسوقكم معنا</p>
         </div>
     `;
 
