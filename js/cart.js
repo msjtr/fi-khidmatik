@@ -11,48 +11,42 @@ alert("أدخل اسم المنتج والسعر");
 return;
 }
 
-if(isNaN(price)){
-alert("السعر لازم يكون رقم");
-return;
-}
-
 price = parseFloat(price);
 
 window.cart.push({
-name,
-desc,
-price,
+name:name,
+desc:desc,
+price:price,
 qty:1
 });
 
 renderCart();
+
+document.getElementById("product_name").value="";
+document.getElementById("product_desc").value="";
+document.getElementById("product_price").value="";
 }
 
 function renderCart(){
 
-let html = "";
-let total = 0;
-
-if(window.cart.length === 0){
-html = "السلة فارغة";
-} else {
+let html="";
+let total=0;
 
 window.cart.forEach((p,i)=>{
 
-let t = p.price * p.qty;
-total += t;
+let t=p.price*p.qty;
+total+=t;
 
-html += `
+html+=`
 <div>
 ${p.name} - ${p.price} ريال
 <button onclick="removeItem(${i})">حذف</button>
 </div>`;
 });
 
-html += `<h3>المجموع: ${total.toFixed(2)} ريال</h3>`;
-}
+html+=`<h3>المجموع: ${total.toFixed(2)} ريال</h3>`;
 
-document.getElementById("cart").innerHTML = html;
+document.getElementById("cart").innerHTML=html;
 }
 
 function removeItem(i){
