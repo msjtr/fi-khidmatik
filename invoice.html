@@ -1,160 +1,76 @@
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>]/g, m => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;'
-    }[m]));
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الفاتورة</title>
+
+<style>
+body {
+    background: #f5f7fb;
+    margin: 0;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Arial;
 }
 
-function loadInvoice() {
+.invoice {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 900px;
+    margin: auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
 
-    let orderJSON = localStorage.getItem('currentOrder');
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
 
-    if (!orderJSON) {
-        document.getElementById('invoiceContent').innerHTML = '❌ لا يوجد طلب';
-        return;
-    }
+.products-table th, .products-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
 
-    let order = JSON.parse(orderJSON);
+.products-table th {
+    background: #eee;
+}
 
-    let subtotal = 0;
-    let totalDiscount = 0;
-    let cartRows = '';
+.action-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
 
-    (order.cart || []).forEach(item => {
+button {
+    margin: 5px;
+    padding: 10px 15px;
+    border: none;
+    background: #1a73e8;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+}
+</style>
 
-        let price = item.price || 0;
-        let qty = item.qty || 1;
-        let discount = item.discount || 0;
+</head>
 
-        let itemSubtotal = price * qty;
-        let itemTotal = itemSubtotal - discount;
+<body>
 
-        subtotal += itemSubtotal;
-        totalDiscount += discount;
+<div id="invoiceContent"></div>
 
-        cartRows += `
-        <tr>
-            <td>${escapeHtml(item.code)}</td>
-            <td>${escapeHtml(item.name)}</td>
-            <td>${escapeHtml(item.desc)}</td>
-            <td>${qty}</td>
-            <td>${price.toFixed(2)}</td>
-            <td>${discount.toFixed(2)}</td>
-            <td>${itemTotal.toFixed(2)}</td>
-        </tr>
-        `;
-    });
-
-    let taxableAmount = subtotal - totalDiscount;
-    let tax = taxableAmount * 0.15;
-    let grandTotal = taxableAmount + tax;
-
-    let displayDate = order.date || new Date().toLocaleDateString();
-
-    // 🔥 التصميم نفسه اللي طلبته
-    let html = `
-<div class="invoice" id="invoiceToPrint" style="direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
-
-    <div class="top-margin">
-        <div>رقم شهادة العمل الحر: FL-765735204</div>
-        <div>الرقم الضريبي: 312495447600003</div>
-    </div>
-
-    <div class="logo-center" style="text-align:center;margin:10px 0;">
-        <img src="images/logo.svg" onerror="this.style.display='none'" style="width:120px;">
-    </div>
-
-    <div class="invoice-header" style="display:flex;justify-content:space-between;">
-        <p><strong>رقم الفاتورة:</strong> ${order.orderNumber || 'FK-0000'}</p>
-        <p><strong>التاريخ:</strong> ${displayDate}</p>
-    </div>
-
-    <div class="invoice-parties" style="display:flex;justify-content:space-between;margin-top:15px;">
-        <div class="invoice-from">
-            <h3>📌 مصدرة من:</h3>
-            <p>
-            <strong>منصة في خدمتك</strong><br>
-            المملكة العربية السعودية<br>
-            حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>
-            الرقم الإضافي: 7718 - الرمز البريدي: 55431
-            </p>
-        </div>
-
-        <div class="invoice-to">
-            <h3>📌 مصدرة إلى:</h3>
-            <p>
-            <strong>${escapeHtml(order.customer) || '-'}</strong><br>
-            المملكة العربية السعودية<br>
-            ${order.city || ''} 
-            ${order.district ? '- ' + order.district : ''} 
-            ${order.street ? '- ' + order.street : ''} 
-            ${order.building ? '- ' + order.building : ''} 
-            ${order.extra ? '- ' + order.extra : ''} 
-            ${order.postal ? '- ' + order.postal : ''}<br>
-            هاتف: ${order.phone || '-'}<br>
-            بريد: ${order.email || 'غير مدخل'}
-            </p>
-        </div>
-    </div>
-
-    <div class="payment-shipping" style="margin-top:10px;">
-        <span>💳 طريقة الدفع: ${order.payment || '-'}</span>
-        ${order.payment === 'تمارا' && order.tamaraAuth ? `<span> | 🔑 ${order.tamaraAuth}</span>` : ''}
-        <span> | 🚚 ${order.shipping || '-'}</span>
-    </div>
-
-    <h3 style="margin-top:15px;">📦 تفاصيل الطلب</h3>
-
-    <table class="products-table" style="width:100%;border-collapse:collapse;">
-        <thead>
-            <tr style="background:#eee;">
-                <th>كود المنتج</th>
-                <th>اسم المنتج</th>
-                <th>الوصف</th>
-                <th>الكمية</th>
-                <th>السعر</th>
-                <th>الخصم</th>
-                <th>الإجمالي</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${cartRows}
-        </tbody>
-    </table>
-
-    <div class="totals-wrapper" style="margin-top:15px;">
-        <div style="display:flex;justify-content:space-between;">
-            <div>
-                <p>المجموع الفرعي</p>
-                <p>الخصم الكلي</p>
-                <p>الضريبة (15%)</p>
-            </div>
-            <div>
-                <p>${subtotal.toFixed(2)} ريال</p>
-                <p>${totalDiscount.toFixed(2)} ريال</p>
-                <p>${tax.toFixed(2)} ريال</p>
-            </div>
-        </div>
-
-        <div class="grand-total" style="margin-top:10px;font-size:18px;font-weight:bold;color:#1a73e8;">
-            الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال
-        </div>
-    </div>
-
-    <div class="contact-bar" style="margin-top:20px;display:flex;justify-content:space-between;font-size:14px;">
-        <span>📞 +966597771565</span>
-        <span>✉️ info@fi-khidmatik.com</span>
-        <span>🌐 www.khidmatik.com</span>
-    </div>
-
-    <p class="thanks" style="text-align:center;margin-top:15px;">شكراً لتسوقكم معنا</p>
-
+<div class="action-buttons">
+    <button onclick="downloadPDF()">📥 تحميل PDF</button>
+    <button onclick="window.print()">🖨️ طباعة</button>
+    <button onclick="newOrder()">🔄 طلب جديد</button>
 </div>
-`;
 
-    document.getElementById('invoiceContent').innerHTML = html;
-}
+<!-- 🔥 مكتبة PDF (مهم جداً) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-window.onload = loadInvoice;
+<!-- 🔥 كود الفاتورة -->
+<script src="js/order.js"></script>
+
+</body>
+</html>
