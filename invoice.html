@@ -1,123 +1,106 @@
-let cartRows = '';
-let subtotal = 0;
-let totalDiscount = 0;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الفاتورة</title>
 
-// 🔥 استخدام items بدل cart
-order.items.forEach(function(item) {
-
-    let name = item.name || '-';
-    let desc = item.desc || '-';
-    let code = item.code || '-';
-    let qty = item.qty || 1;
-    let price = item.price || 0;
-    let discount = item.discount || 0;
-
-    let itemSubtotal = price * qty;
-    let itemTotal = itemSubtotal - discount;
-
-    subtotal += itemSubtotal;
-    totalDiscount += discount;
-
-    cartRows += `
-        <tr>
-            <td>${escapeHtml(code)}</td>
-            <td>${escapeHtml(name)}</td>
-            <td>${escapeHtml(desc)}</td>
-            <td>${qty}</td>
-            <td>${price.toFixed(2)}</td>
-            <td>${discount.toFixed(2)}</td>
-            <td>${itemTotal.toFixed(2)}</td>
-        </tr>
-    `;
-});
-
-// الحسابات
-let taxableAmount = subtotal - totalDiscount;
-let tax = taxableAmount * 0.15;
-let grandTotal = taxableAmount + tax;
-
-// التاريخ
-let displayDate = order.date || '';
-if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    let parts = displayDate.split('-');
-    displayDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+<style>
+body {
+    background: #f5f7fb;
+    margin: 0;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma;
 }
 
-// 🔥 نفس تصميمك بدون تغيير
-let html = `<div class="invoice" id="invoiceToPrint" style="direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
-    <div class="top-margin">
-        <div>رقم شهادة العمل الحر: FL-765735204</div>
-        <div>الرقم الضريبي: 312495447600003</div>
-    </div>
+.invoice {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 900px;
+    margin: auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
 
-    <div class="logo-center">
-        <img src="images/logo.svg" onerror="this.style.display='none'" alt="شعار المنصة">
-    </div>
+.logo-center {
+    text-align: center;
+    margin-bottom: 15px;
+}
 
-    <div class="invoice-header">
-        <p><strong>رقم الفاتورة:</strong> ${order.orderNumber || 'FK-0000'}</p>
-        <p><strong>التاريخ:</strong> ${displayDate}</p>
-    </div>
+.logo-center img {
+    width: 120px;
+}
 
-    <div class="invoice-parties">
-        <div class="invoice-from">
-            <h3>📌 مصدرة من:</h3>
-            <p><strong>منصة في خدمتك</strong><br>
-            المملكة العربية السعودية<br>
-            حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>
-            الرقم الإضافي: 7718 - الرمز البريدي: 55431</p>
-        </div>
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+}
 
-        <div class="invoice-to">
-            <h3>📌 مصدرة إلى:</h3>
-            <p>
-            <strong>${escapeHtml(order.customer) || '-'}</strong><br>
-            ${order.city || ''} ${order.district || ''} ${order.street || ''}<br>
-            هاتف: ${order.phone || '-'}<br>
-            بريد: ${order.email || '-'}
-            </p>
-        </div>
-    </div>
+.invoice-parties {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
 
-    <div class="payment-shipping">
-        <span>💳 طريقة الدفع: ${order.payment || '-'}</span>
-        ${order.payment === 'تمارا' && order.tamaraAuth ? `<span>🔑 رمز الموافقة: ${order.tamaraAuth}</span>` : ''}
-        <span>🚚 الشحن: ${order.shipping || '-'}</span>
-    </div>
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
 
-    <h3>📦 تفاصيل الطلب</h3>
+.products-table th, .products-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
 
-    <table class="products-table">
-        <thead>
-            <tr>
-                <th>كود المنتج</th>
-                <th>اسم المنتج</th>
-                <th>الوصف</th>
-                <th>الكمية</th>
-                <th>السعر</th>
-                <th>الخصم</th>
-                <th>الإجمالي</th>
-            </tr>
-        </thead>
-        <tbody>${cartRows}</tbody>
-    </table>
+.products-table th {
+    background: #eee;
+}
 
-    <div class="totals-wrapper">
-        <p>المجموع: ${subtotal.toFixed(2)} ريال</p>
-        <p>الخصم: ${totalDiscount.toFixed(2)} ريال</p>
-        <p>الضريبة: ${tax.toFixed(2)} ريال</p>
+.totals-wrapper {
+    margin-top: 20px;
+}
 
-        <h2>الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
-    </div>
+.grand-total {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a73e8;
+}
 
-    <div class="contact-bar">
-        <span>📞 +966597771565</span>
-        <span>✉️ info@fi-khidmatik.com</span>
-        <span>🌐 www.khidmatik.com</span>
-    </div>
+.action-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
 
-    <p class="thanks">شكراً لتسوقكم معنا</p>
-</div>`;
+button {
+    margin: 5px;
+    padding: 10px 15px;
+    border: none;
+    background: #1a73e8;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+}
+</style>
 
-// عرض
-document.getElementById('invoiceContent').innerHTML = html;
+</head>
+
+<body>
+
+<div id="invoiceContent"></div>
+
+<div class="action-buttons">
+    <button onclick="downloadPDF()">📥 تحميل PDF</button>
+    <button onclick="window.print()">🖨️ طباعة</button>
+    <button onclick="newOrder()">🔄 طلب جديد</button>
+</div>
+
+<!-- مكتبة PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script src="js/order.js"></script>
+
+</body>
+</html>
