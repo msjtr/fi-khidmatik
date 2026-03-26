@@ -1,36 +1,51 @@
-// cart.js - إدارة سلة المشتريات
-
-// تهيئة السلة كمصفوفة فارغة
+// cart.js
 if (typeof window.cart === 'undefined' || !Array.isArray(window.cart)) {
     window.cart = [];
 }
 
 function addToCart() {
+    const code = document.getElementById('product_code').value.trim();
     const name = document.getElementById('product_name').value.trim();
     const desc = document.getElementById('product_desc').value.trim();
     const price = parseFloat(document.getElementById('product_price').value);
     let qty = parseInt(document.getElementById('product_qty').value);
+    let discount = parseFloat(document.getElementById('product_discount').value) || 0;
 
-    if (!name || isNaN(price) || price <= 0) {
-        alert('❌ يرجى إدخال اسم المنتج وسعر صحيح');
+    if (!code || !name || isNaN(price) || price <= 0) {
+        alert('❌ يرجى إدخال كود المنتج واسم المنتج وسعر صحيح');
         return;
     }
     if (isNaN(qty) || qty < 1) qty = 1;
+    if (isNaN(discount) || discount < 0) discount = 0;
 
-    const existingIndex = window.cart.findIndex(item => item.name === name && item.desc === desc);
+    // رقم المنتج عشوائي أو يمكن جعله فريد
+    const productNumber = 'P-' + Math.floor(Math.random() * 10000);
+
+    const existingIndex = window.cart.findIndex(item => item.code === code);
     if (existingIndex !== -1) {
         window.cart[existingIndex].qty += qty;
     } else {
-        window.cart.push({ name, desc, price, qty });
+        window.cart.push({
+            number: productNumber,
+            code: code,
+            name: name,
+            desc: desc,
+            price: price,
+            qty: qty,
+            discount: discount,
+            // صورة افتراضية
+            image: 'https://via.placeholder.com/50?text=Product'
+        });
     }
-
     renderCart();
 
     // تفريغ الحقول
+    document.getElementById('product_code').value = '';
     document.getElementById('product_name').value = '';
     document.getElementById('product_desc').value = '';
     document.getElementById('product_price').value = '';
     document.getElementById('product_qty').value = '1';
+    document.getElementById('product_discount').value = '0';
 }
 
 function renderCart() {
@@ -48,13 +63,14 @@ function renderCart() {
     let total = 0;
 
     window.cart.forEach((item, index) => {
-        const itemTotal = item.price * item.qty;
+        const itemTotal = (item.price * item.qty) - item.discount;
         total += itemTotal;
 
         html += `
             <div class="cart-item">
                 <div class="cart-item-info">
                     <strong>${escapeHtml(item.name)}</strong>
+                    <br><small>كود: ${escapeHtml(item.code)}</small>
                     ${item.desc ? `<br><small>${escapeHtml(item.desc)}</small>` : ''}
                 </div>
                 <div class="cart-item-price">${item.price.toFixed(2)} ريال</div>
@@ -63,6 +79,7 @@ function renderCart() {
                     <span>${item.qty}</span>
                     <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
                 </div>
+                <div>خصم: ${item.discount.toFixed(2)}</div>
                 <div class="cart-item-price">${itemTotal.toFixed(2)} ريال</div>
                 <button class="remove-btn" onclick="removeItem(${index})">🗑️ حذف</button>
             </div>
