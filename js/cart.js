@@ -2,9 +2,9 @@
 window.cart = [];
 
 function addToCart() {
-    let code = document.getElementById('product_code').value;
-    let name = document.getElementById('product_name').value;
-    let desc = document.getElementById('product_desc').value;
+    let code = document.getElementById('product_code').value.trim();
+    let name = document.getElementById('product_name').value.trim();
+    let desc = document.getElementById('product_desc').value.trim();
     let price = parseFloat(document.getElementById('product_price').value);
     let qty = parseInt(document.getElementById('product_qty').value);
     let discount = parseFloat(document.getElementById('product_discount').value) || 0;
@@ -14,10 +14,11 @@ function addToCart() {
         return;
     }
     if (isNaN(qty) || qty < 1) qty = 1;
+    if (isNaN(discount) || discount < 0) discount = 0;
 
-    let existing = window.cart.findIndex(item => item.code === code);
-    if (existing !== -1) {
-        window.cart[existing].qty += qty;
+    let existingIndex = window.cart.findIndex(item => item.code === code);
+    if (existingIndex !== -1) {
+        window.cart[existingIndex].qty += qty;
     } else {
         window.cart.push({
             code: code,
@@ -25,8 +26,7 @@ function addToCart() {
             desc: desc,
             price: price,
             qty: qty,
-            discount: discount,
-            image: 'https://via.placeholder.com/50?text=Product'
+            discount: discount
         });
     }
     renderCart();
@@ -58,9 +58,9 @@ function renderCart() {
 
         html += `<div class="cart-item">
             <div class="cart-item-info">
-                <strong>${item.name}</strong><br>
-                <small>كود: ${item.code}</small>
-                ${item.desc ? `<br><small>${item.desc}</small>` : ''}
+                <strong>${escapeHtml(item.name)}</strong><br>
+                <small>كود: ${escapeHtml(item.code)}</small>
+                ${item.desc ? `<br><small>${escapeHtml(item.desc)}</small>` : ''}
             </div>
             <div>${item.price.toFixed(2)} ريال</div>
             <div class="cart-item-qty">
@@ -94,6 +94,16 @@ function removeItem(index) {
         window.cart.splice(index, 1);
         renderCart();
     }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
 }
 
 document.addEventListener('DOMContentLoaded', renderCart);
