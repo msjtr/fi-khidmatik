@@ -1,4 +1,5 @@
 function checkout() {
+
     if (!window.cart || window.cart.length === 0) {
         alert('❌ السلة فارغة');
         return;
@@ -6,23 +7,10 @@ function checkout() {
 
     let name = document.getElementById('name').value.trim();
     let phone = document.getElementById('phone').value.trim();
+
     if (!name || !phone) {
         alert('❌ يرجى إدخال اسم العميل ورقم الجوال');
         return;
-    }
-
-    let orderNumber = document.getElementById('order_number_manual').value.trim();
-    if (!orderNumber) orderNumber = 'FK-0000';
-
-    let timeVal = document.getElementById('order_time').value;
-    let formattedTime = '-';
-    if (timeVal) {
-        let parts = timeVal.split(':');
-        let h = parseInt(parts[0]);
-        let m = parts[1];
-        let period = h >= 12 ? 'م' : 'ص';
-        h = h % 12 || 12;
-        formattedTime = h + ':' + m + ' ' + period;
     }
 
     function getVal(id) {
@@ -30,25 +18,20 @@ function checkout() {
         return el ? el.value.trim() : '';
     }
 
-    let safeCart = [];
-    for (let i = 0; i < window.cart.length; i++) {
-        let item = window.cart[i];
-        safeCart.push({
-            code: item.code || '',
-            name: item.name || '',
-            desc: item.desc || '',
-            price: parseFloat(item.price) || 0,
-            qty: parseInt(item.qty) || 1,
-            discount: parseFloat(item.discount) || 0,
-            image: item.image || '',
-            barcode: item.barcode || ''
-        });
-    }
+    let safeCart = window.cart.map(item => ({
+        code: item.code || '',
+        name: item.name || '',
+        desc: item.desc || '',
+        price: parseFloat(item.price) || 0,
+        qty: parseInt(item.qty) || 1,
+        discount: parseFloat(item.discount) || 0,
+        image: item.image || '',
+        barcode: item.barcode || ''
+    }));
 
     let order = {
-        orderNumber: orderNumber,
+        orderNumber: getVal('order_number_manual') || 'FK-0000',
         date: getVal('order_date') || new Date().toISOString().split('T')[0],
-        time: formattedTime,
         customer: name,
         phone: phone,
         email: getVal('email'),
@@ -64,197 +47,17 @@ function checkout() {
         shipping: getVal('shipping')
     };
 
+    // حفظ محلي
     localStorage.setItem('currentOrder', JSON.stringify(order));
-   
-}
 
-// حفظ في Firebase
-db.collection("orders").add(order)
-    .then(() => {
-        console.log("تم حفظ الطلب في Firebase");
-    })
-    .catch((error) => {
-        console.error("خطأ:", error);
-    });
-
-function loadInvoice() {
-    let orderJSON = localStorage.getItem('currentOrder');
-    if (!orderJSON) {
-        document.getElementById('invoiceContent').innerHTML = '<div class="invoice-wrapper"><div class="empty-cart">⚠️ لا توجد فاتورة. الرجاء إنشاء طلب أولاً.</div></div>';
-        return;
-    }
-
-    let order;
-    try {
-        order = JSON.parse(orderJSON);
-    } catch(e) {
-        document.getElementById('invoiceContent').innerHTML = '<div class="invoice-wrapper"><div class="empty-cart">⚠️ خطأ في قراءة بيانات الطلب.</div></div>';
-        return;
-    }
-
-    if (!order.cart || !Array.isArray(order.cart) || order.cart.length === 0) {
-        document.getElementById('invoiceContent').innerHTML = '<div class="invoice-wrapper"><div class="empty-cart">⚠️ السلة فارغة أو لا توجد منتجات.</div></div>';
-        return;
-    }
-
-    let cartRows = '';
-    let subtotal = 0;
-    let totalDiscount = 0;
-
-    order.cart.forEach(function(item) {
-        let name = item.name || 'منتج غير معروف';
-        let desc = item.desc || '-';
-        let qty = (typeof item.qty === 'number' && !isNaN(item.qty)) ? item.qty : 1;
-        let price = (typeof item.price === 'number' && !isNaN(item.price)) ? item.price : 0;
-        let discount = (typeof item.discount === 'number' && !isNaN(item.discount)) ? item.discount : 0;
-
-        let itemSubtotal = price * qty;
-        let itemTotal = itemSubtotal - discount;
-        subtotal += itemSubtotal;
-        totalDiscount += discount;
-
-        cartRows += `
-            <tr>
-                <td>${escapeHtml(name)}</td>
-
-                <td>
-                    ${item.image ? `<img src="${item.image}" style="width:40px;height:40px;object-fit:contain">` : '-'}
-                </td>
-
-                <td>
-                    ${item.barcode ? `<img src="https://barcode.tec-it.com/barcode.ashx?data=${item.barcode}&code=Code128&dpi=96" style="height:40px;">` : '-'}
-                </td>
-
-                <td>${escapeHtml(desc)}</td>
-                <td>${qty}</td>
-                <td>${price.toFixed(2)}</td>
-                <td>${discount.toFixed(2)}</td>
-                <td>${itemTotal.toFixed(2)}</td>
-            </tr>
-        `;
-    });
-
-    let taxableAmount = subtotal - totalDiscount;
-    let tax = taxableAmount * 0.15;
-    let grandTotal = taxableAmount + tax;
-
-    let displayDate = order.date || '';
-    if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        let parts = displayDate.split('-');
-        displayDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-    }
-
-    let paymentLine = `<span>💳 طريقة الدفع: ${order.payment || '-'}</span>`;
-    if (order.payment === 'تمارا' && order.tamaraAuth) {
-        paymentLine += `<span>رمز الموافقة على الطلب في تمارا: ${order.tamaraAuth}</span>`;
-    }
-
-    let html = `<div class="invoice" id="invoiceToPrint">
-        <div class="top-margin">
-            <div>رقم شهادة العمل الحر: FL-765735204</div>
-            <div>الرقم الضريبي: 312495447600003</div>
-        </div>
-        <div class="logo-center">
-            <img src="images/logo.svg" onerror="this.style.display='none'" alt="شعار المنصة">
-        </div>
-        <div class="invoice-header">
-            <p><strong>رقم الفاتورة:</strong> ${order.orderNumber || 'FK-0000'}</p>
-            <p><strong>التاريخ:</strong> ${displayDate} ${order.time && order.time !== '-' ? ' - ' + order.time : ''}</p>
-        </div>
-        <div class="invoice-parties">
-            <div class="invoice-from">
-                <h3>📌 مصدرة من:</h3>
-                <p><strong>منصة في خدمتك</strong><br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>الرقم الإضافي: 7718 - الرمز البريدي: 55431</p>
-            </div>
-            <div class="invoice-to">
-                <h3>📌 مصدرة إلى:</h3>
-                <p><strong>${escapeHtml(order.customer) || '-'}</strong><br>المملكة العربية السعودية<br>${order.city || ''} ${order.district ? '- ' + order.district : ''} ${order.street ? '- ' + order.street : ''} ${order.building ? '- ' + order.building : ''} ${order.extra ? '- ' + order.extra : ''} ${order.postal ? '- ' + order.postal : ''}<br>هاتف: ${order.phone || '-'}<br>بريد: ${order.email || 'غير مدخل'}</p>
-            </div>
-        </div>
-        <div class="payment-shipping">
-            ${paymentLine}
-            <span>🚚 خدمة الشحن: ${order.shipping || '-'}</span>
-        </div>
-        <h3>📦 تفاصيل الطلب</h3>
-        <table class="products-table">
-            <thead>
-                <tr>
-                    <th>اسم المنتج</th>
-                    <th>الصورة</th>
-                    <th>الباركود</th>
-                    <th>الوصف</th>
-                    <th>الكمية</th>
-                    <th>السعر</th>
-                    <th>الخصم</th>
-                    <th>الإجمالي</th>
-                </tr>
-            </thead>
-            <tbody>${cartRows}</tbody>
-        </table>
-        <div class="totals-wrapper">
-            <div class="totals-labels">
-                <p>المجموع الفرعي</p>
-                <p>الخصم الكلي</p>
-                <p>الضريبة (15%)</p>
-            </div>
-            <div class="totals-values">
-                <p>${subtotal.toFixed(2)} ريال</p>
-                <p>${totalDiscount.toFixed(2)} ريال</p>
-                <p>${tax.toFixed(2)} ريال</p>
-            </div>
-            <div class="grand-total">
-                <h2>الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
-            </div>
-        </div>
-        <div class="contact-bar">
-            <span>📞 +966597771565</span>
-            <span>✉️ info@fi-khidmatik.com</span>
-            <span>🌐 www.khidmatik.com</span>
-        </div>
-        <p class="thanks">شكراً لتسوقكم معنا</p>
-    </div>`;
-
-    document.getElementById('invoiceContent').innerHTML = html;
-}
-
-function downloadPDF() {
-    let element = document.getElementById('invoiceToPrint');
-    if (!element) {
-        alert('لا يوجد فاتورة للتحميل');
-        return;
-    }
-
-    const opt = {
-        margin: [10, 10, 10, 10],
-        filename: 'فاتورة_' + new Date().toLocaleDateString('ar-SA') + '.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
-    html2pdf().set(opt).from(element).save();
-}
-
-function printInvoice() {
-    window.print();
-}
-
-function newOrder() {
-    localStorage.removeItem('currentOrder');
-    window.location.href = 'index.html';
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-if (window.location.pathname.includes('invoice.html')) {
-    document.addEventListener('DOMContentLoaded', loadInvoice);
+    // 🔥 حفظ في Firebase
+    db.collection("orders").add(order)
+        .then(() => {
+            console.log("✅ تم حفظ الطلب");
+            window.location.href = 'invoice.html';
+        })
+        .catch((error) => {
+            console.error("❌ خطأ:", error);
+            window.location.href = 'invoice.html';
+        });
 }
