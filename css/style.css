@@ -20,48 +20,6 @@ body {
     margin: 20px auto;
 }
 
-/* تنسيق الفاتورة */
-.invoice {
-    background: white;
-    padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    direction: rtl;
-}
-
-/* الهوامش العلوية والسفلية الثابتة للطباعة */
-.invoice-header-fixed, .invoice-footer-fixed {
-    display: none;
-}
-
-/* إعدادات صفحة A4 للطباعة */
-@media print {
-    body {
-        background: white;
-        padding: 0;
-        margin: 0;
-    }
-    .invoice-wrapper {
-        margin: 0;
-        padding: 0;
-        box-shadow: none;
-        background: white;
-    }
-    .invoice {
-        padding: 0.5cm;
-        margin: 0;
-    }
-    .action-buttons, .btn-pdf, .btn-new {
-        display: none;
-    }
-    .products-table {
-        page-break-inside: avoid;
-    }
-    .totals-wrapper, .contact-bar {
-        page-break-inside: avoid;
-    }
-}
-
-/* تنسيقات عامة */
 .header {
     text-align: center;
     margin-bottom: 30px;
@@ -133,7 +91,6 @@ button:hover {
 .btn-pdf { background: #ef4444; }
 .btn-new { background: #6b7280; }
 
-/* Cart items */
 .cart-item {
     background: #f9fafb;
     border-radius: 12px;
@@ -154,79 +111,97 @@ button:hover {
 .cart-total { background: #f1f5f9; padding: 15px; border-radius: 12px; text-align: left; font-weight: bold; margin-top: 15px; }
 .empty-cart { text-align: center; padding: 30px; background: #fef2f2; border-radius: 12px; color: #991b1b; }
 
-/* تنسيقات الفاتورة */
+/* Invoice Styles */
+.invoice {
+    padding: 20px;
+    max-width: 21cm;
+    margin: 0 auto;
+    background: white;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    line-height: 1.5;
+}
+
 .top-margin {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
-    color: #6b7280;
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+    color: #4b5563;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .logo-center {
     text-align: center;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 .logo-center img {
-    max-width: 100px;
+    max-width: 80px;
+    height: auto;
 }
 
 .invoice-header {
     text-align: left;
     margin-bottom: 20px;
+    font-size: 14px;
 }
 
 .invoice-parties {
     display: flex;
     gap: 30px;
-    margin: 20px 0;
     background: #f9fafb;
-    padding: 20px;
-    border-radius: 12px;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 13px;
 }
 .invoice-from, .invoice-to {
     flex: 1;
 }
 .invoice-from h3, .invoice-to h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
     color: #1e3a8a;
-    margin-bottom: 10px;
-    border-right: 4px solid #1e3a8a;
-    padding-right: 10px;
+    border-right: 3px solid #1e3a8a;
+    padding-right: 8px;
 }
 
 .payment-shipping {
     background: #f1f5f9;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     display: flex;
     justify-content: space-between;
-    margin: 20px 0;
+    margin: 15px 0;
+    font-size: 13px;
     flex-wrap: wrap;
+    gap: 10px;
 }
 
 .products-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0;
+    margin: 15px 0;
+    font-size: 13px;
 }
 .products-table th, .products-table td {
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     border: 1px solid #ddd;
 }
 .products-table th {
     background: #f2f2f2;
+    font-weight: bold;
 }
 
 .totals-wrapper {
     display: flex;
     justify-content: space-between;
     background: #f9fafb;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 14px;
     flex-wrap: wrap;
 }
 .totals-labels {
@@ -240,29 +215,32 @@ button:hover {
 }
 .grand-total {
     text-align: center;
-    border-right: 1px solid #cbd5e1;
     border-left: 1px solid #cbd5e1;
-    padding: 0 20px;
+    border-right: 1px solid #cbd5e1;
+    padding: 0 15px;
 }
 .grand-total h2 {
+    font-size: 18px;
+    margin: 0;
     color: #1e3a8a;
 }
 
 .contact-bar {
     background: #f1f5f9;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     display: flex;
     justify-content: center;
     gap: 30px;
-    margin: 20px 0;
+    margin: 15px 0;
+    font-size: 12px;
     flex-wrap: wrap;
 }
 
 .thanks {
     text-align: center;
-    margin-top: 30px;
-    font-size: 18px;
+    margin: 20px 0 5px;
+    font-size: 14px;
     font-weight: bold;
     color: #1e3a8a;
 }
@@ -275,6 +253,35 @@ button:hover {
     justify-content: center;
 }
 
+/* تنسيقات الطباعة */
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+        background: white;
+    }
+    .invoice-wrapper, .invoice {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+    .action-buttons, .btn-pdf, .btn-new {
+        display: none;
+    }
+    .invoice {
+        padding: 0.5cm;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .products-table {
+        page-break-inside: avoid;
+    }
+    .totals-wrapper, .contact-bar, .invoice-parties, .payment-shipping {
+        page-break-inside: avoid;
+    }
+}
+
+/* استجابة للجوال */
 @media (max-width: 768px) {
     .invoice-parties {
         flex-direction: column;
@@ -286,5 +293,11 @@ button:hover {
     .grand-total {
         border: none;
         padding: 10px 0;
+    }
+    .products-table {
+        font-size: 11px;
+    }
+    .products-table th, .products-table td {
+        padding: 5px;
     }
 }
