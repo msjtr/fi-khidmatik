@@ -17,17 +17,11 @@ function addToCart() {
     }
     if (isNaN(qty) || qty < 1) qty = 1;
 
-    // البحث عن منتج مكرر
     const existingIndex = window.cart.findIndex(item => item.name === name && item.desc === desc);
     if (existingIndex !== -1) {
         window.cart[existingIndex].qty += qty;
     } else {
-        window.cart.push({
-            name: name,
-            desc: desc,
-            price: price,
-            qty: qty
-        });
+        window.cart.push({ name, desc, price, qty });
     }
 
     renderCart();
@@ -43,10 +37,7 @@ function renderCart() {
     const cartDiv = document.getElementById('cart');
     if (!cartDiv) return;
 
-    // تأكد من أن cart مصفوفة
-    if (!Array.isArray(window.cart)) {
-        window.cart = [];
-    }
+    if (!Array.isArray(window.cart)) window.cart = [];
 
     if (window.cart.length === 0) {
         cartDiv.innerHTML = '<div class="empty-cart">🛒 السلة فارغة، أضف منتجات</div>';
@@ -100,7 +91,6 @@ function removeItem(index) {
     }
 }
 
-// helper لتجنب XSS
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -111,7 +101,6 @@ function escapeHtml(str) {
     });
 }
 
-// تحميل السلة عند بدء الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof renderCart === 'function') renderCart();
 });
