@@ -18,7 +18,7 @@ function addToCart() {
     if (isNaN(qty) || qty < 1) qty = 1;
     if (isNaN(discount) || discount < 0) discount = 0;
 
-    // رقم المنتج عشوائي أو يمكن جعله فريد
+    // رقم المنتج عشوائي (يمكنك تعديله حسب رغبتك)
     const productNumber = 'P-' + Math.floor(Math.random() * 10000);
 
     const existingIndex = window.cart.findIndex(item => item.code === code);
@@ -33,7 +33,6 @@ function addToCart() {
             price: price,
             qty: qty,
             discount: discount,
-            // صورة افتراضية
             image: 'https://via.placeholder.com/50?text=Product'
         });
     }
