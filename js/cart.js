@@ -1,13 +1,11 @@
 // cart.js
-if (typeof window.cart === 'undefined' || !Array.isArray(window.cart)) {
-    window.cart = [];
-}
+window.cart = [];
 
 function addToCart() {
-    const code = document.getElementById('product_code').value.trim();
-    const name = document.getElementById('product_name').value.trim();
-    const desc = document.getElementById('product_desc').value.trim();
-    const price = parseFloat(document.getElementById('product_price').value);
+    let code = document.getElementById('product_code').value;
+    let name = document.getElementById('product_name').value;
+    let desc = document.getElementById('product_desc').value;
+    let price = parseFloat(document.getElementById('product_price').value);
     let qty = parseInt(document.getElementById('product_qty').value);
     let discount = parseFloat(document.getElementById('product_discount').value) || 0;
 
@@ -16,17 +14,12 @@ function addToCart() {
         return;
     }
     if (isNaN(qty) || qty < 1) qty = 1;
-    if (isNaN(discount) || discount < 0) discount = 0;
 
-    // رقم المنتج عشوائي (يمكنك تعديله حسب رغبتك)
-    const productNumber = 'P-' + Math.floor(Math.random() * 10000);
-
-    const existingIndex = window.cart.findIndex(item => item.code === code);
-    if (existingIndex !== -1) {
-        window.cart[existingIndex].qty += qty;
+    let existing = window.cart.findIndex(item => item.code === code);
+    if (existing !== -1) {
+        window.cart[existing].qty += qty;
     } else {
         window.cart.push({
-            number: productNumber,
             code: code,
             name: name,
             desc: desc,
@@ -38,7 +31,6 @@ function addToCart() {
     }
     renderCart();
 
-    // تفريغ الحقول
     document.getElementById('product_code').value = '';
     document.getElementById('product_name').value = '';
     document.getElementById('product_desc').value = '';
@@ -48,42 +40,39 @@ function addToCart() {
 }
 
 function renderCart() {
-    const cartDiv = document.getElementById('cart');
+    let cartDiv = document.getElementById('cart');
     if (!cartDiv) return;
 
-    if (!Array.isArray(window.cart)) window.cart = [];
-
     if (window.cart.length === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">🛒 السلة فارغة، أضف منتجات</div>';
+        cartDiv.innerHTML = '<div class="empty-cart">🛒 السلة فارغة</div>';
         return;
     }
 
     let html = '';
     let total = 0;
 
-    window.cart.forEach((item, index) => {
-        const itemTotal = (item.price * item.qty) - item.discount;
+    for (let i = 0; i < window.cart.length; i++) {
+        let item = window.cart[i];
+        let itemTotal = (item.price * item.qty) - item.discount;
         total += itemTotal;
 
-        html += `
-            <div class="cart-item">
-                <div class="cart-item-info">
-                    <strong>${escapeHtml(item.name)}</strong>
-                    <br><small>كود: ${escapeHtml(item.code)}</small>
-                    ${item.desc ? `<br><small>${escapeHtml(item.desc)}</small>` : ''}
-                </div>
-                <div class="cart-item-price">${item.price.toFixed(2)} ريال</div>
-                <div class="cart-item-qty">
-                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
-                    <span>${item.qty}</span>
-                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
-                </div>
-                <div>خصم: ${item.discount.toFixed(2)}</div>
-                <div class="cart-item-price">${itemTotal.toFixed(2)} ريال</div>
-                <button class="remove-btn" onclick="removeItem(${index})">🗑️ حذف</button>
+        html += `<div class="cart-item">
+            <div class="cart-item-info">
+                <strong>${item.name}</strong><br>
+                <small>كود: ${item.code}</small>
+                ${item.desc ? `<br><small>${item.desc}</small>` : ''}
             </div>
-        `;
-    });
+            <div>${item.price.toFixed(2)} ريال</div>
+            <div class="cart-item-qty">
+                <button class="qty-btn" onclick="updateQty(${i}, -1)">-</button>
+                <span>${item.qty}</span>
+                <button class="qty-btn" onclick="updateQty(${i}, 1)">+</button>
+            </div>
+            <div>خصم: ${item.discount.toFixed(2)}</div>
+            <div class="cart-item-price">${itemTotal.toFixed(2)} ريال</div>
+            <button class="remove-btn" onclick="removeItem(${i})">🗑️ حذف</button>
+        </div>`;
+    }
 
     html += `<div class="cart-total">💰 المجموع الكلي: ${total.toFixed(2)} ريال</div>`;
     cartDiv.innerHTML = html;
@@ -91,7 +80,7 @@ function renderCart() {
 
 function updateQty(index, delta) {
     if (!window.cart[index]) return;
-    const newQty = window.cart[index].qty + delta;
+    let newQty = window.cart[index].qty + delta;
     if (newQty <= 0) {
         removeItem(index);
     } else {
@@ -107,16 +96,4 @@ function removeItem(index) {
     }
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof renderCart === 'function') renderCart();
-});
+document.addEventListener('DOMContentLoaded', renderCart);
