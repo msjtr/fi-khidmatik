@@ -3,52 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الفاتورة</title>
+<title>فاتورة احترافية</title>
 
 <style>
 body {
-    background: #f5f7fb;
+    background: linear-gradient(135deg, #eef2f7, #dfe7f3);
     margin: 0;
     padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Arial;
+    font-family: 'Segoe UI', Tahoma;
 }
 
+/* صفحة الفاتورة */
 .invoice {
     background: #fff;
-    padding: 25px;
     border-radius: 12px;
+    padding: 30px;
     max-width: 900px;
     margin: auto;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    page-break-after: always;
 }
 
-.products-table {
+/* الهيدر */
+.header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+}
+
+.logo img {
+    width: 120px;
+}
+
+.title {
+    text-align: left;
+    color: #1a73e8;
+}
+
+/* معلومات */
+.info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* جدول */
+table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
-.products-table th, .products-table td {
+th {
+    background: #1a73e8;
+    color: #fff;
+    padding: 10px;
+}
+
+td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
 }
 
-.products-table th {
-    background: #eee;
+/* المجموع */
+.total-box {
+    margin-top: 20px;
+    text-align: left;
 }
 
-.action-buttons {
+.total-box h2 {
+    color: #1a73e8;
+}
+
+/* فوتر */
+.footer {
+    margin-top: 25px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+/* أزرار */
+.actions {
     text-align: center;
     margin-top: 20px;
 }
 
 button {
-    margin: 5px;
     padding: 10px 15px;
-    border: none;
+    margin: 5px;
     background: #1a73e8;
     color: #fff;
+    border: none;
     border-radius: 6px;
     cursor: pointer;
 }
@@ -60,16 +110,13 @@ button {
 
 <div id="invoiceContent"></div>
 
-<div class="action-buttons">
+<div class="actions">
     <button onclick="downloadPDF()">📥 تحميل PDF</button>
     <button onclick="window.print()">🖨️ طباعة</button>
     <button onclick="newOrder()">🔄 طلب جديد</button>
 </div>
 
-<!-- 🔥 مكتبة PDF (مهم جداً) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<!-- 🔥 كود الفاتورة -->
 <script src="js/order.js"></script>
 
 </body>
