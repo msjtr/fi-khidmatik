@@ -1,50 +1,76 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>لوحة التحكم</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | منصة في خدمتك</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #f1f5f9; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #e2e8f0; }
+        th { background: #1e293b; color: white; }
+        .status { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-new { background: #10b981; color: white; }
+        .status-processing { background: #f59e0b; color: white; }
+        .status-completed { background: #3b82f6; color: white; }
+        button { padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+    </style>
 </head>
-
 <body>
+<div class="container">
+    <h1>📊 لوحة التحكم - الطلبات</h1>
+    <div id="orders-list" class="card">⏳ جاري تحميل الطلبات...</div>
+</div>
+<script type="module">
+    import { getAllOrdersFromFirebase, updateOrderStatusInFirebase } from './js/order.js';
 
-<h2>لوحة التحكم</h2>
+    async function loadOrders() {
+        try {
+            const orders = await getAllOrdersFromFirebase();
+            if (orders.length === 0) {
+                document.getElementById('orders-list').innerHTML = '<div class="card">لا توجد طلبات بعد</div>';
+                return;
+            }
 
-<table border="1">
-<tr>
-<th>رقم</th>
-<th>العميل</th>
-<th>الدفع</th>
-<th>رمز</th>
-<th>تمارا</th>
-</tr>
+            let html = '<table><thead><tr><th>رقم الطلب</th><th>العميل</th><th>الجوال</th><th>المبلغ</th><th>التاريخ</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>';
+            for (let order of orders) {
+                const statusClass = order.status === 'جديد' ? 'status-new' : (order.status === 'قيد المعالجة' ? 'status-processing' : 'status-completed');
+                html += `
+                    <tr>
+                        <td>${order.orderNumber}</td>
+                        <td>${order.customer}</td>
+                        <td>${order.phone}</td>
+                        <td>${order.totalAmount} ريال</td>
+                        <td>${order.date}</td>
+                        <td><span class="status ${statusClass}">${order.status}</span></td>
+                        <td>
+                            <button onclick="updateStatus('${order.id}', 'قيد المعالجة')">قيد المعالجة</button>
+                            <button onclick="updateStatus('${order.id}', 'مكتمل')">مكتمل</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            html += '</tbody></table>';
+            document.getElementById('orders-list').innerHTML = html;
+        } catch (error) {
+            document.getElementById('orders-list').innerHTML = '<div class="card">❌ خطأ في تحميل الطلبات</div>';
+        }
+    }
 
-<tbody id="table"></tbody>
+    window.updateStatus = async function(orderId, newStatus) {
+        try {
+            await updateOrderStatusInFirebase(orderId, newStatus);
+            alert('✅ تم تحديث الحالة');
+            loadOrders();
+        } catch (error) {
+            alert('❌ فشل تحديث الحالة');
+        }
+    };
 
-</table>
-
-<script>
-
-let orders = JSON.parse(localStorage.getItem("orders")) || [];
-
-let html = "";
-
-orders.forEach(o => {
-
-html += `
-<tr>
-<td>${o.id}</td>
-<td>${o.customer}</td>
-<td>${o.payment}</td>
-<td>${o.tamara_auth || "-"}</td>
-<td>${o.tamara_order || "-"}</td>
-</tr>
-`;
-
-});
-
-document.getElementById("table").innerHTML = html;
-
+    loadOrders();
 </script>
-
 </body>
 </html>
