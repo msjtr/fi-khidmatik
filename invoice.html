@@ -820,13 +820,9 @@ async function printInvoice() {
 </script>
 
 <script type="module">
-    // استيراد دوال Firebase إذا كانت موجودة (اختياري)
-    try {
-        import { getOrderFromFirebase } from './js/order.js';
-        window.getOrderFromFirebase = getOrderFromFirebase;
-    } catch(e) {
-        console.log('Firebase غير متاح، سيتم استخدام localStorage فقط');
-    }
+import { getOrderFromFirebase } from './js/order.js';
+window.getOrderFromFirebase = getOrderFromFirebase;
+</script>
 </script>
 </body>
 </html>
