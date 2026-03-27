@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الفاتورة | منصة في خدمتك</title>
     <style>
+        /* Reset */
         * {
             margin: 0;
             padding: 0;
@@ -12,38 +13,39 @@
         }
 
         body {
-            font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             padding: 40px 20px;
+            min-height: 100vh;
         }
 
         /* حاوية الفاتورة */
-        .invoice-wrapper {
+        .invoice-container {
             max-width: 1100px;
             margin: 0 auto;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            overflow: auto;
         }
 
-        /* تصميم الفاتورة الرئيسي */
+        /* تنسيق الفاتورة الأساسي */
         .invoice {
-            background: #ffffff;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* المحتوى الداخلي للفاتورة */
+        .invoice-content {
             padding: 30px;
-            width: 100%;
         }
 
         /* الهوامش العلوية */
         .top-margin {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            background: #1e293b;
             color: #e2e8f0;
             padding: 12px 25px;
             display: flex;
             justify-content: space-between;
             font-size: 12px;
-            font-weight: 500;
             margin: -30px -30px 20px -30px;
         }
 
@@ -52,9 +54,8 @@
             text-align: center;
             margin-bottom: 25px;
         }
-
         .logo-center img {
-            max-width: 120px;
+            max-width: 100px;
         }
 
         /* رأس الفاتورة */
@@ -62,26 +63,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
+            padding-bottom: 15px;
             margin-bottom: 20px;
             border-bottom: 2px solid #e2e8f0;
         }
-
         .invoice-number {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #1e3a8a;
         }
-
         .invoice-number span {
             background: #e0e7ff;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 14px;
-            font-weight: normal;
             margin-right: 8px;
         }
-
         .invoice-date {
             font-size: 14px;
             color: #475569;
@@ -93,53 +90,48 @@
             gap: 25px;
             margin-bottom: 25px;
         }
-
         .invoice-from, .invoice-to {
             flex: 1;
-            padding: 20px;
-            border-radius: 16px;
+            padding: 18px;
+            border-radius: 12px;
         }
-
         .invoice-from {
             background: #fef9e3;
             border-right: 4px solid #f59e0b;
         }
-
         .invoice-to {
             background: #e0f2fe;
             border-right: 4px solid #0284c7;
         }
-
         .invoice-from h3, .invoice-to h3 {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-
         .invoice-from p, .invoice-to p {
             font-size: 13px;
-            line-height: 1.8;
+            line-height: 1.7;
             color: #334155;
         }
 
-        /* معلومات الدفع والشحن */
+        /* الدفع والشحن */
         .payment-shipping {
             background: #f1f5f9;
-            padding: 15px 20px;
-            border-radius: 12px;
+            padding: 12px 20px;
+            border-radius: 10px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 25px;
         }
-
         .payment-shipping span {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
             background: white;
-            border-radius: 30px;
+            padding: 6px 15px;
+            border-radius: 25px;
+            font-size: 13px;
         }
 
         /* جدول المنتجات */
@@ -148,18 +140,15 @@
             border-collapse: collapse;
             margin-bottom: 25px;
         }
-
         .products-table th {
             background: #1e3a8a;
             color: white;
-            padding: 12px 10px;
-            font-weight: 600;
+            padding: 12px 8px;
             font-size: 14px;
             border: 1px solid #2e4a9a;
         }
-
         .products-table td {
-            padding: 10px;
+            padding: 10px 8px;
             text-align: center;
             border: 1px solid #e2e8f0;
             font-size: 13px;
@@ -169,60 +158,53 @@
         .totals-wrapper {
             background: #f8fafc;
             padding: 20px;
-            border-radius: 16px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             flex-wrap: wrap;
             margin-bottom: 25px;
         }
-
         .totals-labels p, .totals-values p {
-            margin: 8px 0;
-            font-size: 14px;
+            margin: 6px 0;
         }
-
         .totals-labels {
             text-align: right;
             font-weight: 600;
         }
-
         .totals-values {
             text-align: left;
             font-weight: 600;
             color: #059669;
         }
-
         .grand-total {
             text-align: center;
             padding: 0 20px;
-            border-right: 2px solid #cbd5e1;
-            border-left: 2px solid #cbd5e1;
+            border-right: 1px solid #cbd5e1;
+            border-left: 1px solid #cbd5e1;
         }
-
         .grand-total h2 {
-            font-size: 22px;
+            font-size: 20px;
             color: #1e3a8a;
-            margin: 0;
         }
 
         /* شريط الاتصال */
         .contact-bar {
             background: #f1f5f9;
             padding: 12px;
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             gap: 30px;
             flex-wrap: wrap;
-            font-size: 13px;
             margin-bottom: 15px;
+            font-size: 13px;
         }
 
-        /* تذييل الفاتورة */
+        /* تذييل */
         .thanks {
             text-align: center;
-            padding: 15px;
+            padding-top: 15px;
             font-size: 14px;
             color: #475569;
             border-top: 1px solid #e2e8f0;
@@ -235,72 +217,42 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            flex-wrap: wrap;
         }
-
         button {
             padding: 12px 28px;
             border: none;
             border-radius: 40px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: bold;
+            transition: all 0.2s;
         }
-
         button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-pdf { background: #dc2626; color: white; }
+        .btn-print { background: #2563eb; color: white; }
+        .btn-new { background: #f59e0b; color: white; }
+
+        /* حالة فارغة */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
         }
 
-        .btn-pdf {
-            background: #dc2626;
-            color: white;
-        }
-
-        .btn-print {
-            background: #2563eb;
-            color: white;
-        }
-
-        .btn-new {
-            background: #f59e0b;
-            color: white;
-        }
-
-        /* استجابة للجوال */
+        /* استجابة */
         @media (max-width: 768px) {
-            .invoice-parties {
-                flex-direction: column;
-            }
-            .invoice-header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-            .totals-wrapper {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            .grand-total {
-                border: none;
-                padding: 10px 0;
-                border-top: 1px solid #e2e8f0;
-            }
-            .products-table th, .products-table td {
-                padding: 6px 4px;
-                font-size: 11px;
-            }
-            .invoice {
-                padding: 15px;
-            }
-            .top-margin {
-                margin: -15px -15px 15px -15px;
-            }
+            body { padding: 20px 10px; }
+            .invoice-parties { flex-direction: column; }
+            .invoice-header { flex-direction: column; text-align: center; gap: 10px; }
+            .totals-wrapper { flex-direction: column; text-align: center; gap: 10px; }
+            .grand-total { border: none; padding: 10px 0; border-top: 1px solid #ddd; }
+            .products-table th, .products-table td { padding: 6px 3px; font-size: 11px; }
+            .invoice-content { padding: 15px; }
+            .top-margin { margin: -15px -15px 15px -15px; }
         }
 
         /* تنسيق الطباعة */
@@ -313,22 +265,20 @@
             .buttons {
                 display: none;
             }
-            .invoice-wrapper {
+            .invoice {
                 box-shadow: none;
                 margin: 0;
                 padding: 0;
-                max-width: 100%;
             }
-            .invoice {
-                padding: 0.5cm;
-                margin: 0;
+            .invoice-content {
+                padding: 0.3cm;
             }
             .top-margin {
                 background: #f1f5f9;
-                color: #334155;
+                color: #333;
+                margin: -0.3cm -0.3cm 0.3cm -0.3cm;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                margin: -0.5cm -0.5cm 0.5cm -0.5cm;
             }
             .products-table th {
                 background: #1e3a8a;
@@ -339,19 +289,15 @@
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            .products-table {
-                page-break-inside: auto;
-            }
-            tr {
+            tr, .products-table {
                 page-break-inside: avoid;
-                page-break-after: auto;
             }
         }
     </style>
 </head>
 <body>
 
-<div id="invoiceContent" class="invoice-wrapper"></div>
+<div class="invoice-container" id="invoiceContent"></div>
 
 <div class="buttons">
     <button class="btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
@@ -361,36 +307,40 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-// order.js - نسخة محسنة مع حفظ PDF باسم العميل والتاريخ
+// ============================================================
+// نظام الفواتير الإلكتروني - منصة في خدمتك
+// ============================================================
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, m => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;'
-    }[m]));
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
 }
 
 function loadInvoice() {
     let orderData = localStorage.getItem('currentOrder');
     
     if (!orderData) {
-        document.getElementById('invoiceContent').innerHTML = `
-            <div style="text-align: center; padding: 60px; background: white; border-radius: 24px;">
-                ❌ لا يوجد طلب لعرضه
-            </div>`;
+        document.getElementById('invoiceContent').innerHTML = '<div class="empty-state">❌ لا يوجد طلب لعرضه</div>';
         return;
     }
 
-    let order = JSON.parse(orderData);
+    let order;
+    try {
+        order = JSON.parse(orderData);
+    } catch(e) {
+        document.getElementById('invoiceContent').innerHTML = '<div class="empty-state">❌ خطأ في قراءة بيانات الطلب</div>';
+        return;
+    }
+
     let items = order.cart || order.items || [];
 
     if (!items.length) {
-        document.getElementById('invoiceContent').innerHTML = `
-            <div style="text-align: center; padding: 60px; background: white; border-radius: 24px;">
-                ❌ السلة فارغة
-            </div>`;
+        document.getElementById('invoiceContent').innerHTML = '<div class="empty-state">❌ السلة فارغة</div>';
         return;
     }
 
@@ -398,18 +348,20 @@ function loadInvoice() {
     let subtotal = 0;
     let totalDiscount = 0;
 
-    items.forEach(item => {
+    for (let i = 0; i < items.length; i++) {
+        let item = items[i];
         let price = parseFloat(item.price) || 0;
         let qty = parseInt(item.qty) || 1;
         let discount = parseFloat(item.discount) || 0;
         let itemTotal = (price * qty) - discount;
+        
         subtotal += price * qty;
         totalDiscount += discount;
 
         cartRows += `
             <tr>
-                <td>${escapeHtml(item.name)}</td>
-                <td>${escapeHtml(item.code)}</td>
+                <td>${escapeHtml(item.name || '-')}</td>
+                <td>${escapeHtml(item.code || '-')}</td>
                 <td>${escapeHtml(item.desc || '-')}</td>
                 <td>${qty}</td>
                 <td>${price.toFixed(2)}</td>
@@ -417,137 +369,150 @@ function loadInvoice() {
                 <td>${itemTotal.toFixed(2)}</td>
             </tr>
         `;
-    });
+    }
 
     let taxableAmount = subtotal - totalDiscount;
     let tax = taxableAmount * 0.15;
     let grandTotal = taxableAmount + tax;
 
+    // تنسيق التاريخ
     let displayDate = order.date || '-';
     if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
         let parts = displayDate.split('-');
         displayDate = parts[2] + '-' + parts[1] + '-' + parts[0];
     }
 
-    let invoiceHTML = `
+    // تنسيق الوقت
+    let timeDisplay = '';
+    if (order.time && order.time !== '-') {
+        timeDisplay = ' - ' + order.time;
+    }
+
+    // بناء الفاتورة
+    let html = `
         <div class="invoice" id="invoiceToPrint">
-            <div class="top-margin">
-                <div>رقم شهادة العمل الحر: FL-765735204</div>
-                <div>الرقم الضريبي: 312495447600003</div>
-            </div>
-
-            <div class="logo-center">
-                <img src="images/logo.svg" onerror="this.style.display='none'" alt="شعار المنصة">
-            </div>
-
-            <div class="invoice-header">
-                <div class="invoice-number">
-                    رقم الفاتورة: <span>${order.orderNumber || 'FK-0000'}</span>
+            <div class="invoice-content">
+                <div class="top-margin">
+                    <div>رقم شهادة العمل الحر: FL-765735204</div>
+                    <div>الرقم الضريبي: 312495447600003</div>
                 </div>
-                <div class="invoice-date">
-                    التاريخ: ${displayDate} ${order.time && order.time !== '-' ? ' - ' + order.time : ''}
-                </div>
-            </div>
 
-            <div class="invoice-parties">
-                <div class="invoice-from">
-                    <h3>📌 مصدرة من</h3>
-                    <p>
-                        <strong>منصة في خدمتك</strong><br>
-                        المملكة العربية السعودية<br>
-                        حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>
-                        الرقم الإضافي: 7718 - الرمز البريدي: 55431
-                    </p>
+                <div class="logo-center">
+                    <img src="images/logo.svg" onerror="this.style.display='none'" alt="شعار المنصة">
                 </div>
-                <div class="invoice-to">
-                    <h3>📌 مصدرة إلى</h3>
-                    <p>
-                        <strong>${escapeHtml(order.customer) || '-'}</strong><br>
-                        المملكة العربية السعودية<br>
-                        ${order.city || ''} ${order.district ? '- ' + order.district : ''} ${order.street ? '- ' + order.street : ''} ${order.building ? '- ' + order.building : ''} ${order.extra ? '- ' + order.extra : ''} ${order.postal ? '- ' + order.postal : ''}<br>
-                        هاتف: ${order.phone || '-'}<br>
-                        بريد: ${order.email || 'غير مدخل'}
-                    </p>
+
+                <div class="invoice-header">
+                    <div class="invoice-number">
+                        رقم الفاتورة: <span>${escapeHtml(order.orderNumber || 'FK-0000')}</span>
+                    </div>
+                    <div class="invoice-date">
+                        التاريخ: ${displayDate}${timeDisplay}
+                    </div>
                 </div>
-            </div>
 
-            <div class="payment-shipping">
-                <span>💳 طريقة الدفع: ${order.payment || '-'}</span>
-                ${order.payment === 'تمارا' && order.tamaraAuth ? `<span>🔑 رمز الموافقة: ${order.tamaraAuth}</span>` : ''}
-                <span>🚚 خدمة الشحن: ${order.shipping || '-'}</span>
-            </div>
-
-            <h3 style="margin-bottom: 15px;">📦 تفاصيل الطلب</h3>
-            <table class="products-table">
-                <thead>
-                    <tr>
-                        <th>اسم المنتج</th>
-                        <th>كود المنتج</th>
-                        <th>الوصف</th>
-                        <th>الكمية</th>
-                        <th>السعر</th>
-                        <th>الخصم</th>
-                        <th>الإجمالي</th>
-                    </tr>
-                </thead>
-                <tbody>${cartRows}</tbody>
-            </table>
-
-            <div class="totals-wrapper">
-                <div class="totals-labels">
-                    <p>المجموع الفرعي</p>
-                    <p>الخصم الكلي</p>
-                    <p>الضريبة (15%)</p>
+                <div class="invoice-parties">
+                    <div class="invoice-from">
+                        <h3>📌 مصدرة من</h3>
+                        <p>
+                            <strong>منصة في خدمتك</strong><br>
+                            المملكة العربية السعودية<br>
+                            حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>
+                            الرقم الإضافي: 7718 - الرمز البريدي: 55431
+                        </p>
+                    </div>
+                    <div class="invoice-to">
+                        <h3>📌 مصدرة إلى</h3>
+                        <p>
+                            <strong>${escapeHtml(order.customer) || '-'}</strong><br>
+                            المملكة العربية السعودية<br>
+                            ${escapeHtml(order.city || '')} ${order.district ? '- ' + escapeHtml(order.district) : ''} ${order.street ? '- ' + escapeHtml(order.street) : ''} ${order.building ? '- ' + escapeHtml(order.building) : ''}<br>
+                            ${order.extra ? 'الرقم الإضافي: ' + escapeHtml(order.extra) + ' - ' : ''}${order.postal ? 'الرمز البريدي: ' + escapeHtml(order.postal) : ''}<br>
+                            هاتف: ${escapeHtml(order.phone) || '-'}<br>
+                            بريد: ${escapeHtml(order.email) || 'غير مدخل'}
+                        </p>
+                    </div>
                 </div>
-                <div class="totals-values">
-                    <p>${subtotal.toFixed(2)} ريال</p>
-                    <p>${totalDiscount.toFixed(2)} ريال</p>
-                    <p>${tax.toFixed(2)} ريال</p>
-                </div>
-                <div class="grand-total">
-                    <h2>الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
-                </div>
-            </div>
 
-            <div class="contact-bar">
-                <span>📞 +966597771565</span>
-                <span>✉️ info@fi-khidmatik.com</span>
-                <span>🌐 www.khidmatik.com</span>
-            </div>
+                <div class="payment-shipping">
+                    <span>💳 طريقة الدفع: ${escapeHtml(order.payment) || '-'}</span>
+                    ${order.payment === 'تمارا' && order.tamaraAuth ? `<span>🔑 رمز الموافقة: ${escapeHtml(order.tamaraAuth)}</span>` : ''}
+                    <span>🚚 خدمة الشحن: ${escapeHtml(order.shipping) || '-'}</span>
+                </div>
 
-            <div class="thanks">
-                شكراً لتسوقكم معنا
+                <h3 style="margin: 0 0 15px 0;">📦 تفاصيل الطلب</h3>
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>اسم المنتج</th>
+                            <th>كود المنتج</th>
+                            <th>الوصف</th>
+                            <th>الكمية</th>
+                            <th>السعر</th>
+                            <th>الخصم</th>
+                            <th>الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>${cartRows}</tbody>
+                </table>
+
+                <div class="totals-wrapper">
+                    <div class="totals-labels">
+                        <p>المجموع الفرعي</p>
+                        <p>الخصم الكلي</p>
+                        <p>الضريبة (15%)</p>
+                    </div>
+                    <div class="totals-values">
+                        <p>${subtotal.toFixed(2)} ريال</p>
+                        <p>${totalDiscount.toFixed(2)} ريال</p>
+                        <p>${tax.toFixed(2)} ريال</p>
+                    </div>
+                    <div class="grand-total">
+                        <h2>الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
+                    </div>
+                </div>
+
+                <div class="contact-bar">
+                    <span>📞 +966597771565</span>
+                    <span>✉️ info@fi-khidmatik.com</span>
+                    <span>🌐 www.khidmatik.com</span>
+                </div>
+
+                <div class="thanks">
+                    شكراً لتسوقكم معنا
+                </div>
             </div>
         </div>
     `;
 
-    document.getElementById('invoiceContent').innerHTML = invoiceHTML;
+    document.getElementById('invoiceContent').innerHTML = html;
 }
 
 function downloadPDF() {
-    const element = document.getElementById('invoiceToPrint');
+    let element = document.getElementById('invoiceToPrint');
     if (!element) {
         alert('لا يوجد فاتورة للتحميل');
         return;
     }
 
-    // جلب بيانات العميل لإنشاء اسم الملف
+    // إنشاء اسم الملف من بيانات العميل والتاريخ
     let orderData = localStorage.getItem('currentOrder');
     let fileName = 'فاتورة';
     
     if (orderData) {
         try {
             let order = JSON.parse(orderData);
-            let customerName = order.customer || 'عميل';
+            let customerName = (order.customer || 'عميل').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '');
             let today = new Date();
-            let dateStr = today.toLocaleDateString('ar-SA').replace(/\//g, '-');
-            fileName = `${customerName}_${dateStr}`;
+            let day = today.getDate();
+            let month = today.getMonth() + 1;
+            let year = today.getFullYear();
+            fileName = `${customerName}_${day}-${month}-${year}`;
         } catch(e) {}
     }
 
     // إعدادات عالية الجودة للـ PDF
     const opt = {
-        margin: [0.5, 0.5, 0.5, 0.5],
+        margin: [0.3, 0.3, 0.3, 0.3],
         filename: `${fileName}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
@@ -555,20 +520,18 @@ function downloadPDF() {
             letterRendering: true,
             useCORS: false,
             logging: false,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight
+            windowWidth: element.scrollWidth + 100
         },
         jsPDF: { 
             unit: 'in', 
             format: 'a4', 
-            orientation: 'portrait',
-            compress: true
+            orientation: 'portrait'
         }
     };
 
-    // إضافة مؤقت تحميل
-    const btn = event.target;
-    const originalText = btn.innerHTML;
+    // تعطيل الزر أثناء التحميل
+    let btn = event.target;
+    let originalText = btn.innerHTML;
     btn.innerHTML = '⏳ جاري التحضير...';
     btn.disabled = true;
 
@@ -577,9 +540,9 @@ function downloadPDF() {
             btn.innerHTML = originalText;
             btn.disabled = false;
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('PDF error:', err);
-            alert('حدث خطأ أثناء إنشاء PDF');
+            alert('حدث خطأ أثناء إنشاء PDF، يرجى المحاولة مرة أخرى');
             btn.innerHTML = originalText;
             btn.disabled = false;
         });
@@ -590,6 +553,7 @@ function newOrder() {
     window.location.href = "index.html";
 }
 
+// تحميل الفاتورة عند اكتمال تحميل الصفحة
 window.onload = loadInvoice;
 </script>
 
