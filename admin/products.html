@@ -1,1 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>المنتجات</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase.js"></script>
+    <script src="../js/admin.js"></script>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex flex-wrap justify-between mb-4 gap-2">
+            <h2 class="text-2xl font-bold">المنتجات</h2>
+            <div>
+                <button onclick="showAddProductModal()" class="bg-blue-600 text-white px-4 py-2 rounded">+ إضافة يدوي</button>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none" onchange="handleExcelUpload(this)">
+                <button onclick="document.getElementById('excelFile').click()" class="bg-green-600 text-white px-4 py-2 rounded"><i class="fas fa-file-excel"></i> رفع Excel</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="products-grid"></div>
+    </div>
 
+    <script>
+        let products = [];
+        async function loadProducts() {
+            products = await getCollection('products');
+            renderProducts();
+        }
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = products.map(p => `
+                <div class="border rounded-lg p-4 shadow-sm">
+                    <img src="${p.imageUrl || 'https://via.placeholder.com/150'}" class="w-full h-32 object-cover rounded mb-2">
+                    <h3 class="font-bold">${p.name}</h3>
+                    <p>السعر: ${p.price} ريال</p>
+                    <p>الكمية: ${p.quantity}</p>
+                    <div class="flex justify-between mt-2">
+                        <button onclick="editProduct('${p.id}')" class="text-blue-600"><i class="fas fa-edit"></i> تعديل</button>
+                        <button onclick="deleteProduct('${p.id}')" class="text-red-600"><i class="fas fa-trash"></i> حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        window.showAddProductModal = () => {
+            const name = prompt('اسم المنتج:');
+            const price = parseFloat(prompt('السعر:'));
+            const quantity = parseInt(prompt('الكمية:') || 0);
+            const imageUrl = prompt('رابط الصورة (اختياري):');
+            if (name && !isNaN(price)) {
+                addDocument('products', { name, price, quantity, imageUrl: imageUrl || '' });
+                loadProducts();
+            }
+        };
+        window.editProduct = async (id) => {
+            const p = products.find(p => p.id === id);
+            const newQuantity = parseInt(prompt('الكمية الجديدة:', p.quantity));
+            if (!isNaN(newQuantity)) {
+                await updateDocument('products', id, { quantity: newQuantity });
+                loadProducts();
+            }
+        };
+        window.deleteProduct = async (id) => {
+            if (confirm('حذف المنتج؟')) {
+                await deleteDocument('products', id);
+                loadProducts();
+            }
+        };
+        window.handleExcelUpload = (input) => {
+            const file = input.files[0];
+            if (file) {
+                importProductsFromExcel(file, (success) => {
+                    if (success) {
+                        alert('تم استيراد المنتجات بنجاح');
+                        loadProducts();
+                    } else alert('فشل الاستيراد');
+                });
+            }
+        };
+        loadProducts();
+    </script>
+</body>
+</html>
