@@ -1,38 +1,24 @@
-/* تحسين الخلفية العامة */
-body {
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    padding: 20px;
-    min-height: 100vh;
-}
+/* invoice.css - تنسيق الفاتورة الاحترافي */
 
-/* الكارد العام */
-.invoice-wrapper {
-    max-width: 1000px;
-    background: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
-    padding: 30px;
-    margin: 20px auto;
-}
-
-/* الفاتورة */
+/* تنسيقات عامة */
 .invoice {
-    padding: 25px;
+    max-width: 21cm;
+    margin: 0 auto;
     background: white;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    line-height: 1.6;
+    color: #1f2937;
 }
 
-/* الهيدر */
+/* الهوامش العلوية */
 .top-margin {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 11px;
     color: #6b7280;
-    border-bottom: 2px dashed #e5e7eb;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 /* الشعار */
@@ -41,161 +27,171 @@ body {
     margin: 15px 0;
 }
 .logo-center img {
-    max-width: 90px;
-    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+    max-width: 100px;
+    height: auto;
 }
 
-/* بيانات الفاتورة */
+/* رأس الفاتورة */
 .invoice-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 15px;
+    text-align: left;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+.invoice-header p {
+    margin: 5px 0;
 }
 
-/* الأطراف */
+/* معلومات المصدر والمستلم */
 .invoice-parties {
     display: flex;
-    gap: 20px;
-    background: linear-gradient(135deg,#f9fafb,#f1f5f9);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    gap: 30px;
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
 }
-
 .invoice-from, .invoice-to {
     flex: 1;
 }
-
 .invoice-from h3, .invoice-to h3 {
-    font-size: 15px;
-    margin-bottom: 8px;
+    font-size: 16px;
+    margin-bottom: 12px;
     color: #1e3a8a;
+    border-right: 3px solid #1e3a8a;
+    padding-right: 10px;
+}
+.invoice-from p, .invoice-to p {
+    font-size: 13px;
+    line-height: 1.7;
 }
 
-/* الدفع والشحن */
+/* معلومات الدفع والشحن */
 .payment-shipping {
-    background: #eef2ff;
-    border: 1px solid #c7d2fe;
-    padding: 12px;
-    border-radius: 10px;
+    background: #f1f5f9;
+    padding: 12px 20px;
+    border-radius: 8px;
     display: flex;
     justify-content: space-between;
+    margin: 20px 0;
     flex-wrap: wrap;
-    font-size: 13px;
-    margin-bottom: 20px;
+    gap: 15px;
+    font-size: 14px;
 }
 
-/* الجدول */
+/* جدول المنتجات */
 .products-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin: 20px 0;
+    font-size: 13px;
 }
-
+.products-table th, .products-table td {
+    padding: 10px 8px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
 .products-table th {
-    background: linear-gradient(135deg,#1e3a8a,#3b82f6);
-    color: white;
-    padding: 10px;
-    font-size: 13px;
+    background: #f1f5f9;
+    font-weight: 600;
+    color: #1e3a8a;
+}
+.products-table tbody tr:hover {
+    background: #f8fafc;
 }
 
-.products-table td {
-    border: 1px solid #e5e7eb;
-    padding: 8px;
-    font-size: 13px;
-}
-
-.products-table tr:nth-child(even) {
-    background: #f9fafb;
-}
-
-/* الإجماليات */
+/* ملخص الحساب */
 .totals-wrapper {
     display: flex;
     justify-content: space-between;
-    background: #f8fafc;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 20px;
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
 }
-
+.totals-labels {
+    text-align: right;
+    font-weight: 600;
+    color: #374151;
+}
 .totals-values {
+    text-align: left;
+    font-weight: 600;
     color: #1e3a8a;
-    font-weight: bold;
 }
-
+.grand-total {
+    text-align: center;
+    padding: 0 20px;
+    border-right: 1px solid #e2e8f0;
+    border-left: 1px solid #e2e8f0;
+}
 .grand-total h2 {
-    color: #10b981;
     font-size: 20px;
+    margin: 0;
+    color: #1e3a8a;
 }
 
-/* الفوتر */
+/* شريط الاتصال */
 .contact-bar {
-    margin-top: 20px;
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     gap: 30px;
+    margin: 20px 0;
     font-size: 13px;
-    color: #374151;
+    flex-wrap: wrap;
 }
 
+/* تذييل الفاتورة */
 .thanks {
     text-align: center;
-    margin-top: 15px;
-    font-weight: bold;
+    margin: 25px 0 10px;
+    font-size: 14px;
+    font-weight: 500;
     color: #1e3a8a;
 }
 
-/* الأزرار */
-.action-buttons {
-    margin-top: 25px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
-
-button {
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-button:hover {
-    transform: scale(1.05);
-}
-
-.btn-pdf { background: #ef4444; color: white; }
-.btn-new { background: #6b7280; color: white; }
-
-/* 🔥 أهم شيء: PDF ما ينقص */
-.invoice {
-    page-break-inside: avoid;
-}
-
-.products-table,
-tr,
-td,
-th {
-    page-break-inside: avoid !important;
-}
-
-/* الطباعة */
+/* تنسيق الطباعة */
 @media print {
     body {
+        margin: 0;
+        padding: 0;
         background: white;
     }
-
-    .action-buttons {
-        display: none;
+    .invoice {
+        padding: 0.5cm;
+        margin: 0;
     }
+    .products-table {
+        page-break-inside: auto;
+    }
+    tr {
+        page-break-inside: avoid;
+    }
+}
 
-    .invoice-wrapper {
-        box-shadow: none;
-        border-radius: 0;
+/* استجابة للجوال */
+@media (max-width: 768px) {
+    .invoice-parties {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .totals-wrapper {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    .grand-total {
+        border: none;
+        padding: 10px 0;
+    }
+    .products-table {
+        font-size: 11px;
+    }
+    .products-table th, .products-table td {
+        padding: 6px 4px;
     }
 }
