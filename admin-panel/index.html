@@ -1,332 +1,612 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>Admin Pro System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - منصة في خدمتك</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #f5f7fb;
+            overflow-x: hidden;
+        }
 
-<style>
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
 
-/* ===== تصميم احترافي ===== */
-body{margin:0;font-family:sans-serif;display:flex;background:#f1f5f9;}
-.sidebar{width:250px;background:#0f172a;color:white;height:100vh;padding:20px;}
-.sidebar h2{margin-bottom:20px;}
-.sidebar a{display:block;padding:12px;margin:6px 0;border-radius:8px;cursor:pointer;}
-.sidebar a:hover{background:#1e293b;}
-.main{flex:1;padding:25px;}
-.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;}
-table{width:100%;border-collapse:collapse;}
-th{background:#2563eb;color:white;}
-td,th{padding:10px;text-align:center;border-bottom:1px solid #eee;}
-button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;}
-.btn-danger{background:#ef4444;color:white;}
-.btn-primary{background:#2563eb;color:white;}
-img{width:60px;height:60px;border-radius:8px;object-fit:cover;}
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
 
-</style>
+        .sidebar-header img {
+            max-width: 80px;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 12px 25px;
+            margin: 5px 15px;
+            border-radius: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .nav-item i {
+            width: 24px;
+            font-size: 18px;
+        }
+
+        .nav-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-right: 280px;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-radius: 16px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-title {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .stat-icon {
+            float: left;
+            font-size: 40px;
+            opacity: 0.3;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tables */
+        .data-table {
+            background: white;
+            border-radius: 16px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-unpaid { background: #fed7aa; color: #92400e; }
+        .status-refunded { background: #fee2e2; color: #991b1b; }
+        .status-cancelled { background: #f1f5f9; color: #475569; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: inherit;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                right: -280px;
+            }
+            .main-content {
+                margin-right: 0;
+            }
+            .sidebar.open {
+                right: 0;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-<!-- ===== القائمة ===== -->
-<div class="sidebar">
-<h2>⚙️ الإدارة</h2>
-
-<a onclick="loadOrders()">📦 الطلبات</a>
-<a onclick="loadProducts()">🛒 المنتجات</a>
-<a onclick="loadCustomers()">👥 العملاء</a>
-<a onclick="loadInventory()">📦 المخزون</a>
-<a onclick="loadSettings()">⚙️ الإعدادات</a>
-
-</div>
-
-<!-- ===== المحتوى ===== -->
-<div class="main">
-
-<div class="card">
-<h3 id="title">📦 الطلبات</h3>
-<div id="content"></div>
-</div>
-
-</div>
-
-<script type="module">
-
-/* ===== Firebase ===== */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-getFirestore, collection, getDocs,
-addDoc, deleteDoc, doc, updateDoc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-apiKey:"YOUR_KEY",
-authDomain:"YOUR_DOMAIN",
-projectId:"YOUR_ID",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* =========================
-📦 الطلبات
-========================= */
-window.loadOrders = async ()=>{
-
-title.innerText="📦 الطلبات";
-
-const snap = await getDocs(collection(db,"orders"));
-
-let html=`<table>
-<tr>
-<th>رقم</th><th>عميل</th><th>مبلغ</th>
-<th>الحالة</th><th>إدارة</th>
-</tr>`;
-
-snap.forEach(d=>{
-const o=d.data();
-
-html+=`
-<tr>
-<td>${o.orderNumber||'-'}</td>
-<td>${o.customer||'-'}</td>
-<td>${o.total||0}</td>
-
-<td>
-<select onchange="changeStatus('${d.id}',this.value)">
-<option ${o.status=="جديد"?"selected":""}>جديد</option>
-<option ${o.status=="مدفوع"?"selected":""}>مدفوع</option>
-<option ${o.status=="غير مدفوع"?"selected":""}>غير مدفوع</option>
-<option ${o.status=="مسترجع"?"selected":""}>مسترجع</option>
-<option ${o.status=="ملغي"?"selected":""}>ملغي</option>
-</select>
-</td>
-
-<td>
-<button onclick="refundOrder('${d.id}')">↩️</button>
-<button class="btn-danger" onclick="deleteOrder('${d.id}')">❌</button>
-</td>
-</tr>`;
-});
-
-html+="</table>";
-
-content.innerHTML=html;
-};
-
-/* تغيير الحالة */
-window.changeStatus = async (id,status)=>{
-await updateDoc(doc(db,"orders",id),{status});
-};
-
-/* حذف */
-window.deleteOrder = async id=>{
-await deleteDoc(doc(db,"orders",id));
-loadOrders();
-};
-
-/* استرداد + مخزون */
-window.refundOrder = async id=>{
-
-const orderSnap = await getDoc(doc(db,"orders",id));
-const order = orderSnap.data();
-
-for(let item of order.cart||[]){
-
-const productSnap = await getDoc(doc(db,"products",item.productId));
-
-if(productSnap.exists()){
-const p = productSnap.data();
-
-await updateDoc(doc(db,"products",item.productId),{
-stock:(p.stock||0)+(item.qty||1)
-});
-}
-}
-
-await updateDoc(doc(db,"orders",id),{status:"مسترجع"});
-
-alert("تم الاسترجاع");
-loadOrders();
-};
-
-/* =========================
-🛒 المنتجات
-========================= */
-window.loadProducts = async ()=>{
-
-title.innerText="🛒 المنتجات";
-
-const snap = await getDocs(collection(db,"products"));
-
-let html=`
-<input type="file" onchange="importExcel(this.files[0])">
-<button onclick="addProduct()">➕ إضافة</button>
-
-<table>
-<tr>
-<th>صورة</th><th>اسم</th><th>سعر</th><th>مخزون</th><th>إدارة</th>
-</tr>`;
-
-snap.forEach(d=>{
-const p=d.data();
-
-html+=`
-<tr>
-<td><img src="${p.image||''}"></td>
-<td>${p.name}</td>
-<td>${p.price}</td>
-<td>${p.stock}</td>
-<td>
-<button onclick="editProduct('${d.id}')">✏️</button>
-<button class="btn-danger" onclick="deleteProduct('${d.id}')">❌</button>
-</td>
-</tr>`;
-});
-
-html+="</table>";
-
-content.innerHTML=html;
-};
-
-/* إضافة منتج */
-window.addProduct = async ()=>{
-const name=prompt("اسم");
-const price=prompt("سعر");
-const stock=prompt("كمية");
-
-await addDoc(collection(db,"products"),{
-name,price:Number(price),stock:Number(stock)
-});
-
-loadProducts();
-};
-
-/* Excel */
-window.importExcel = file=>{
-const reader=new FileReader();
-
-reader.onload=async e=>{
-const data=new Uint8Array(e.target.result);
-const wb=XLSX.read(data,{type:'array'});
-const json=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-
-for(let r of json){
-await addDoc(collection(db,"products"),{
-name:r.name,
-price:Number(r.price),
-stock:Number(r.stock),
-image:r.image||""
-});
-}
-
-alert("تم الرفع");
-loadProducts();
-};
-
-reader.readAsArrayBuffer(file);
-};
-
-/* تعديل */
-window.editProduct = async id=>{
-const name=prompt("اسم");
-const price=prompt("سعر");
-const stock=prompt("كمية");
-
-await updateDoc(doc(db,"products",id),{
-name,price:Number(price),stock:Number(stock)
-});
-
-loadProducts();
-};
-
-/* حذف */
-window.deleteProduct = async id=>{
-await deleteDoc(doc(db,"products",id));
-loadProducts();
-};
-
-/* =========================
-👥 العملاء
-========================= */
-window.loadCustomers = async ()=>{
-
-title.innerText="👥 العملاء";
-
-const snap = await getDocs(collection(db,"orders"));
-
-let c={};
-
-snap.forEach(d=>{
-const o=d.data();
-if(!c[o.phone]) c[o.phone]={name:o.customer,count:0};
-c[o.phone].count++;
-});
-
-let html="<table><tr><th>اسم</th><th>جوال</th><th>طلبات</th></tr>";
-
-Object.keys(c).forEach(p=>{
-html+=`<tr><td>${c[p].name}</td><td>${p}</td><td>${c[p].count}</td></tr>`;
-});
-
-html+="</table>";
-
-content.innerHTML=html;
-};
-
-/* =========================
-📦 المخزون
-========================= */
-window.loadInventory = async ()=>{
-
-title.innerText="📦 المخزون";
-
-const snap = await getDocs(collection(db,"products"));
-
-let html="<table><tr><th>منتج</th><th>كمية</th></tr>";
-
-snap.forEach(d=>{
-const p=d.data();
-
-html+=`<tr>
-<td>${p.name}</td>
-<td style="color:${p.stock<=5?'red':'black'}">${p.stock}</td>
-</tr>`;
-});
-
-html+="</table>";
-
-content.innerHTML=html;
-};
-
-/* =========================
-⚙️ الإعدادات
-========================= */
-window.loadSettings = ()=>{
-
-title.innerText="⚙️ الإعدادات";
-
-content.innerHTML=`
-<h3>طرق الدفع</h3>
-<input placeholder="مدى - فيزا - تمارا"><br><br>
-
-<h3>تعليمات الفاتورة</h3>
-<textarea placeholder="اكتب التعليمات"></textarea><br><br>
-
-<h3>ختم المنصة</h3>
-<input placeholder="تم بواسطة منصة تيرا"><br><br>
-
-<button class="btn-primary">حفظ</button>
-`;
-};
-
-/* =========================
-🚀 تشغيل
-========================= */
-loadOrders();
-
-</script>
-
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.svg" alt="شعار المنصة" onerror="this.style.display='none'">
+            <h3>منصة في خدمتك</h3>
+            <p>لوحة تحكم الإدارة</p>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item active" data-section="dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span>الرئيسية</span>
+            </div>
+            <div class="nav-item" data-section="orders">
+                <i class="fas fa-shopping-cart"></i>
+                <span>الطلبات</span>
+            </div>
+            <div class="nav-item" data-section="customers">
+                <i class="fas fa-users"></i>
+                <span>العملاء</span>
+            </div>
+            <div class="nav-item" data-section="products">
+                <i class="fas fa-box"></i>
+                <span>المنتجات</span>
+            </div>
+            <div class="nav-item" data-section="inventory">
+                <i class="fas fa-warehouse"></i>
+                <span>المخزون</span>
+            </div>
+            <div class="nav-item" data-section="payments">
+                <i class="fas fa-credit-card"></i>
+                <span>طرق الدفع</span>
+            </div>
+            <div class="nav-item" data-section="invoice-settings">
+                <i class="fas fa-file-invoice"></i>
+                <span>إعدادات الفاتورة</span>
+            </div>
+            <div class="nav-item" data-section="general-settings">
+                <i class="fas fa-cog"></i>
+                <span>الإعدادات العامة</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title" id="pageTitle">الرئيسية</h1>
+            <div class="user-info">
+                <span>مرحباً، المدير</span>
+                <div class="user-avatar">أ</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="content-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-title">إجمالي الطلبات</div>
+                    <div class="stat-value" id="totalOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-title">عدد العملاء</div>
+                    <div class="stat-value" id="totalCustomers">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-box"></i></div>
+                    <div class="stat-title">المنتجات في المخزون</div>
+                    <div class="stat-value" id="totalStock">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-title">إجمالي الإيرادات</div>
+                    <div class="stat-value" id="totalRevenue">0</div>
+                </div>
+            </div>
+            <div class="data-table">
+                <h3 style="padding: 20px; margin: 0;">أحدث الطلبات</h3>
+                <table>
+                    <thead>
+                        <tr><th>رقم الطلب</th><th>العميل</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th></tr>
+                    </thead>
+                    <tbody id="recentOrders"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="orders" class="content-section">
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="openOrderModal()"><i class="fas fa-plus"></i> طلب جديد</button>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr><th>رقم الطلب</th><th>العميل</th><th>الهاتف</th><th>المبلغ</th><th>الحالة</th><th>طريقة الدفع</th><th>التاريخ</th><th>الإجراءات</th></tr>
+                    </thead>
+                    <tbody id="ordersList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customers Section -->
+        <div id="customers" class="content-section">
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="openCustomerModal()"><i class="fas fa-plus"></i> عميل جديد</button>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الهاتف</th><th>إجمالي المشتريات</th><th>عدد الطلبات</th><th>الإجراءات</th></tr>
+                    </thead>
+                    <tbody id="customersList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div id="products" class="content-section">
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> منتج جديد</button>
+                <button class="btn btn-warning" onclick="openExcelModal()"><i class="fas fa-file-excel"></i> رفع ملف Excel</button>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr><th>الصورة</th><th>كود المنتج</th><th>الاسم</th><th>السعر</th><th>الكمية</th><th>الإجراءات</th></tr>
+                    </thead>
+                    <tbody id="productsList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div id="inventory" class="content-section">
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr><th>الصورة</th><th>المنتج</th><th>السعر</th><th>الكمية الحالية</th><th>الحد الأدنى</th><th>الحالة</th><th>تحديث الكمية</th></tr>
+                    </thead>
+                    <tbody id="inventoryList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments Section -->
+        <div id="payments" class="content-section">
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="openPaymentModal()"><i class="fas fa-plus"></i> إضافة طريقة دفع</button>
+            </div>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr><th>طريقة الدفع</th><th>الحالة</th><th>الإجراءات</th></tr>
+                    </thead>
+                    <tbody id="paymentsList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Invoice Settings Section -->
+        <div id="invoice-settings" class="content-section">
+            <div class="data-table" style="padding: 25px;">
+                <div class="form-group">
+                    <label>تعليمات الفاتورة</label>
+                    <textarea id="invoiceInstruction" rows="4" style="width: 100%;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>ختم المنصة (تذييل الفاتورة)</label>
+                    <input type="text" id="platformStamp" placeholder="ختم المنصة">
+                </div>
+                <button class="btn btn-primary" onclick="saveInvoiceSettings()">حفظ الإعدادات</button>
+            </div>
+        </div>
+
+        <!-- General Settings Section -->
+        <div id="general-settings" class="content-section">
+            <div class="data-table" style="padding: 25px;">
+                <div class="form-group">
+                    <label>اسم المتجر</label>
+                    <input type="text" id="storeName">
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني للدعم</label>
+                    <input type="email" id="supportEmail">
+                </div>
+                <div class="form-group">
+                    <label>رقم الجوال للدعم</label>
+                    <input type="tel" id="supportPhone">
+                </div>
+                <div class="form-group">
+                    <label>العنوان</label>
+                    <input type="text" id="storeAddress">
+                </div>
+                <div class="form-group">
+                    <label>الرقم الضريبي</label>
+                    <input type="text" id="taxNumber">
+                </div>
+                <button class="btn btn-primary" onclick="saveGeneralSettings()">حفظ الإعدادات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <h3>إضافة/تعديل طلب</h3>
+            <div class="form-group"><label>رقم الطلب</label><input type="text" id="orderNumber"></div>
+            <div class="form-group"><label>اسم العميل</label><input type="text" id="orderCustomer"></div>
+            <div class="form-group"><label>هاتف العميل</label><input type="tel" id="orderPhone"></div>
+            <div class="form-group"><label>المبلغ الإجمالي</label><input type="number" id="orderTotal"></div>
+            <div class="form-group"><label>الحالة</label>
+                <select id="orderStatus">
+                    <option value="paid">مدفوع</option>
+                    <option value="unpaid">غير مدفوع</option>
+                    <option value="refunded">مسترجع</option>
+                    <option value="cancelled">ملغي</option>
+                </select>
+            </div>
+            <div class="form-group"><label>طريقة الدفع</label><input type="text" id="orderPayment"></div>
+            <button class="btn btn-success" onclick="saveOrder()">حفظ</button>
+            <button class="btn btn-danger" onclick="closeModal('orderModal')">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <h3>إضافة/تعديل عميل</h3>
+            <div class="form-group"><label>الاسم</label><input type="text" id="customerName"></div>
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="customerEmail"></div>
+            <div class="form-group"><label>الهاتف</label><input type="tel" id="customerPhone"></div>
+            <button class="btn btn-success" onclick="saveCustomer()">حفظ</button>
+            <button class="btn btn-danger" onclick="closeModal('customerModal')">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <h3>إضافة/تعديل منتج</h3>
+            <div class="form-group"><label>كود المنتج</label><input type="text" id="productCode"></div>
+            <div class="form-group"><label>اسم المنتج</label><input type="text" id="productName"></div>
+            <div class="form-group"><label>السعر</label><input type="number" id="productPrice"></div>
+            <div class="form-group"><label>الكمية</label><input type="number" id="productQuantity"></div>
+            <div class="form-group"><label>صورة المنتج (رابط)</label><input type="text" id="productImage"></div>
+            <button class="btn btn-success" onclick="saveProduct()">حفظ</button>
+            <button class="btn btn-danger" onclick="closeModal('productModal')">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="excelModal" class="modal">
+        <div class="modal-content">
+            <h3>رفع ملف Excel للمنتجات</h3>
+            <div class="form-group">
+                <label>اختر ملف Excel</label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls">
+            </div>
+            <div class="form-group">
+                <label>تنسيق الأعمدة المطلوب:</label>
+                <p style="font-size: 12px; color: #666;">الكود | اسم المنتج | السعر | الكمية | رابط الصورة</p>
+            </div>
+            <button class="btn btn-success" onclick="uploadExcel()">رفع واستيراد</button>
+            <button class="btn btn-danger" onclick="closeModal('excelModal')">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <h3>إضافة طريقة دفع</h3>
+            <div class="form-group"><label>اسم طريقة الدفع</label><input type="text" id="paymentMethodName"></div>
+            <button class="btn btn-success" onclick="addPaymentMethod()">إضافة</button>
+            <button class="btn btn-danger" onclick="closeModal('paymentModal')">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <h3>تحديث كمية المنتج</h3>
+            <div class="form-group"><label>المنتج</label><input type="text" id="inventoryProductName" readonly></div>
+            <div class="form-group"><label>الكمية الجديدة</label><input type="number" id="inventoryNewQuantity"></div>
+            <button class="btn btn-success" onclick="updateInventoryQuantity()">تحديث</button>
+            <button class="btn btn-danger" onclick="closeModal('inventoryModal')">إلغاء</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module" src="js/admin.js"></script>
 </body>
 </html>
