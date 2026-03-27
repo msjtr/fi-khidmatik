@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Admin Pro System</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+
+/* ===== تصميم احترافي ===== */
+body{margin:0;font-family:sans-serif;display:flex;background:#f1f5f9;}
+.sidebar{width:250px;background:#0f172a;color:white;height:100vh;padding:20px;}
+.sidebar h2{margin-bottom:20px;}
+.sidebar a{display:block;padding:12px;margin:6px 0;border-radius:8px;cursor:pointer;}
+.sidebar a:hover{background:#1e293b;}
+.main{flex:1;padding:25px;}
+.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;}
+th{background:#2563eb;color:white;}
+td,th{padding:10px;text-align:center;border-bottom:1px solid #eee;}
+button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;}
+.btn-danger{background:#ef4444;color:white;}
+.btn-primary{background:#2563eb;color:white;}
+img{width:60px;height:60px;border-radius:8px;object-fit:cover;}
+
+</style>
+</head>
+
+<body>
+
+<!-- ===== القائمة ===== -->
+<div class="sidebar">
+<h2>⚙️ الإدارة</h2>
+
+<a onclick="loadOrders()">📦 الطلبات</a>
+<a onclick="loadProducts()">🛒 المنتجات</a>
+<a onclick="loadCustomers()">👥 العملاء</a>
+<a onclick="loadInventory()">📦 المخزون</a>
+<a onclick="loadSettings()">⚙️ الإعدادات</a>
+
+</div>
+
+<!-- ===== المحتوى ===== -->
+<div class="main">
+
+<div class="card">
+<h3 id="title">📦 الطلبات</h3>
+<div id="content"></div>
+</div>
+
+</div>
+
+<script type="module">
+
+/* ===== Firebase ===== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+getFirestore, collection, getDocs,
+addDoc, deleteDoc, doc, updateDoc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey:"YOUR_KEY",
+authDomain:"YOUR_DOMAIN",
+projectId:"YOUR_ID",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* =========================
+📦 الطلبات
+========================= */
+window.loadOrders = async ()=>{
+
+title.innerText="📦 الطلبات";
+
+const snap = await getDocs(collection(db,"orders"));
+
+let html=`<table>
+<tr>
+<th>رقم</th><th>عميل</th><th>مبلغ</th>
+<th>الحالة</th><th>إدارة</th>
+</tr>`;
+
+snap.forEach(d=>{
+const o=d.data();
+
+html+=`
+<tr>
+<td>${o.orderNumber||'-'}</td>
+<td>${o.customer||'-'}</td>
+<td>${o.total||0}</td>
+
+<td>
+<select onchange="changeStatus('${d.id}',this.value)">
+<option ${o.status=="جديد"?"selected":""}>جديد</option>
+<option ${o.status=="مدفوع"?"selected":""}>مدفوع</option>
+<option ${o.status=="غير مدفوع"?"selected":""}>غير مدفوع</option>
+<option ${o.status=="مسترجع"?"selected":""}>مسترجع</option>
+<option ${o.status=="ملغي"?"selected":""}>ملغي</option>
+</select>
+</td>
+
+<td>
+<button onclick="refundOrder('${d.id}')">↩️</button>
+<button class="btn-danger" onclick="deleteOrder('${d.id}')">❌</button>
+</td>
+</tr>`;
+});
+
+html+="</table>";
+
+content.innerHTML=html;
+};
+
+/* تغيير الحالة */
+window.changeStatus = async (id,status)=>{
+await updateDoc(doc(db,"orders",id),{status});
+};
+
+/* حذف */
+window.deleteOrder = async id=>{
+await deleteDoc(doc(db,"orders",id));
+loadOrders();
+};
+
+/* استرداد + مخزون */
+window.refundOrder = async id=>{
+
+const orderSnap = await getDoc(doc(db,"orders",id));
+const order = orderSnap.data();
+
+for(let item of order.cart||[]){
+
+const productSnap = await getDoc(doc(db,"products",item.productId));
+
+if(productSnap.exists()){
+const p = productSnap.data();
+
+await updateDoc(doc(db,"products",item.productId),{
+stock:(p.stock||0)+(item.qty||1)
+});
+}
+}
+
+await updateDoc(doc(db,"orders",id),{status:"مسترجع"});
+
+alert("تم الاسترجاع");
+loadOrders();
+};
+
+/* =========================
+🛒 المنتجات
+========================= */
+window.loadProducts = async ()=>{
+
+title.innerText="🛒 المنتجات";
+
+const snap = await getDocs(collection(db,"products"));
+
+let html=`
+<input type="file" onchange="importExcel(this.files[0])">
+<button onclick="addProduct()">➕ إضافة</button>
+
+<table>
+<tr>
+<th>صورة</th><th>اسم</th><th>سعر</th><th>مخزون</th><th>إدارة</th>
+</tr>`;
+
+snap.forEach(d=>{
+const p=d.data();
+
+html+=`
+<tr>
+<td><img src="${p.image||''}"></td>
+<td>${p.name}</td>
+<td>${p.price}</td>
+<td>${p.stock}</td>
+<td>
+<button onclick="editProduct('${d.id}')">✏️</button>
+<button class="btn-danger" onclick="deleteProduct('${d.id}')">❌</button>
+</td>
+</tr>`;
+});
+
+html+="</table>";
+
+content.innerHTML=html;
+};
+
+/* إضافة منتج */
+window.addProduct = async ()=>{
+const name=prompt("اسم");
+const price=prompt("سعر");
+const stock=prompt("كمية");
+
+await addDoc(collection(db,"products"),{
+name,price:Number(price),stock:Number(stock)
+});
+
+loadProducts();
+};
+
+/* Excel */
+window.importExcel = file=>{
+const reader=new FileReader();
+
+reader.onload=async e=>{
+const data=new Uint8Array(e.target.result);
+const wb=XLSX.read(data,{type:'array'});
+const json=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+
+for(let r of json){
+await addDoc(collection(db,"products"),{
+name:r.name,
+price:Number(r.price),
+stock:Number(r.stock),
+image:r.image||""
+});
+}
+
+alert("تم الرفع");
+loadProducts();
+};
+
+reader.readAsArrayBuffer(file);
+};
+
+/* تعديل */
+window.editProduct = async id=>{
+const name=prompt("اسم");
+const price=prompt("سعر");
+const stock=prompt("كمية");
+
+await updateDoc(doc(db,"products",id),{
+name,price:Number(price),stock:Number(stock)
+});
+
+loadProducts();
+};
+
+/* حذف */
+window.deleteProduct = async id=>{
+await deleteDoc(doc(db,"products",id));
+loadProducts();
+};
+
+/* =========================
+👥 العملاء
+========================= */
+window.loadCustomers = async ()=>{
+
+title.innerText="👥 العملاء";
+
+const snap = await getDocs(collection(db,"orders"));
+
+let c={};
+
+snap.forEach(d=>{
+const o=d.data();
+if(!c[o.phone]) c[o.phone]={name:o.customer,count:0};
+c[o.phone].count++;
+});
+
+let html="<table><tr><th>اسم</th><th>جوال</th><th>طلبات</th></tr>";
+
+Object.keys(c).forEach(p=>{
+html+=`<tr><td>${c[p].name}</td><td>${p}</td><td>${c[p].count}</td></tr>`;
+});
+
+html+="</table>";
+
+content.innerHTML=html;
+};
+
+/* =========================
+📦 المخزون
+========================= */
+window.loadInventory = async ()=>{
+
+title.innerText="📦 المخزون";
+
+const snap = await getDocs(collection(db,"products"));
+
+let html="<table><tr><th>منتج</th><th>كمية</th></tr>";
+
+snap.forEach(d=>{
+const p=d.data();
+
+html+=`<tr>
+<td>${p.name}</td>
+<td style="color:${p.stock<=5?'red':'black'}">${p.stock}</td>
+</tr>`;
+});
+
+html+="</table>";
+
+content.innerHTML=html;
+};
+
+/* =========================
+⚙️ الإعدادات
+========================= */
+window.loadSettings = ()=>{
+
+title.innerText="⚙️ الإعدادات";
+
+content.innerHTML=`
+<h3>طرق الدفع</h3>
+<input placeholder="مدى - فيزا - تمارا"><br><br>
+
+<h3>تعليمات الفاتورة</h3>
+<textarea placeholder="اكتب التعليمات"></textarea><br><br>
+
+<h3>ختم المنصة</h3>
+<input placeholder="تم بواسطة منصة تيرا"><br><br>
+
+<button class="btn-primary">حفظ</button>
+`;
+};
+
+/* =========================
+🚀 تشغيل
+========================= */
+loadOrders();
+
+</script>
+
+</body>
+</html>
