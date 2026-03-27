@@ -1,76 +1,234 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | منصة في خدمتك</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #f1f5f9; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #e2e8f0; }
-        th { background: #1e293b; color: white; }
-        .status { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .status-new { background: #10b981; color: white; }
-        .status-processing { background: #f59e0b; color: white; }
-        .status-completed { background: #3b82f6; color: white; }
-        button { padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
-        button:hover { background: #1d4ed8; }
-    </style>
+<meta charset="UTF-8">
+<title>Admin Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{margin:0;font-family:sans-serif;display:flex;background:#f1f5f9;}
+.sidebar{width:240px;background:#1e293b;color:white;height:100vh;padding:20px;}
+.sidebar a{display:block;padding:10px;margin:5px 0;cursor:pointer;}
+.sidebar a:hover{background:#334155;}
+.main{flex:1;padding:20px;}
+.card{background:white;padding:20px;border-radius:10px;}
+table{width:100%;border-collapse:collapse;}
+th{background:#3b82f6;color:white;}
+td,th{padding:10px;text-align:center;border-bottom:1px solid #eee;}
+img{width:60px;height:60px;border-radius:8px;object-fit:cover;}
+</style>
 </head>
+
 <body>
-<div class="container">
-    <h1>📊 لوحة التحكم - الطلبات</h1>
-    <div id="orders-list" class="card">⏳ جاري تحميل الطلبات...</div>
+
+<div class="sidebar">
+<h2>⚙️ الإدارة</h2>
+<a onclick="loadProducts()">🛒 المنتجات</a>
 </div>
+
+<div class="main">
+<div class="card">
+<h3 id="title">🛒 المنتجات</h3>
+<div id="content"></div>
+</div>
+</div>
+
 <script type="module">
-    import { getAllOrdersFromFirebase, updateOrderStatusInFirebase } from './js/order.js';
 
-    async function loadOrders() {
-        try {
-            const orders = await getAllOrdersFromFirebase();
-            if (orders.length === 0) {
-                document.getElementById('orders-list').innerHTML = '<div class="card">لا توجد طلبات بعد</div>';
-                return;
-            }
+// ================= Firebase =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+getFirestore, collection, getDocs,
+addDoc, deleteDoc, doc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-            let html = '<table><thead><tr><th>رقم الطلب</th><th>العميل</th><th>الجوال</th><th>المبلغ</th><th>التاريخ</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>';
-            for (let order of orders) {
-                const statusClass = order.status === 'جديد' ? 'status-new' : (order.status === 'قيد المعالجة' ? 'status-processing' : 'status-completed');
-                html += `
-                    <tr>
-                        <td>${order.orderNumber}</td>
-                        <td>${order.customer}</td>
-                        <td>${order.phone}</td>
-                        <td>${order.totalAmount} ريال</td>
-                        <td>${order.date}</td>
-                        <td><span class="status ${statusClass}">${order.status}</span></td>
-                        <td>
-                            <button onclick="updateStatus('${order.id}', 'قيد المعالجة')">قيد المعالجة</button>
-                            <button onclick="updateStatus('${order.id}', 'مكتمل')">مكتمل</button>
-                        </td>
-                    </tr>
-                `;
-            }
-            html += '</tbody></table>';
-            document.getElementById('orders-list').innerHTML = html;
-        } catch (error) {
-            document.getElementById('orders-list').innerHTML = '<div class="card">❌ خطأ في تحميل الطلبات</div>';
-        }
-    }
+const firebaseConfig = {
+apiKey:"YOUR_KEY",
+authDomain:"YOUR_DOMAIN",
+projectId:"YOUR_ID",
+};
 
-    window.updateStatus = async function(orderId, newStatus) {
-        try {
-            await updateOrderStatusInFirebase(orderId, newStatus);
-            alert('✅ تم تحديث الحالة');
-            loadOrders();
-        } catch (error) {
-            alert('❌ فشل تحديث الحالة');
-        }
-    };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    loadOrders();
+// ================= عرض المنتجات =================
+window.loadProducts = async () => {
+
+const snap = await getDocs(collection(db,"products"));
+
+let html = `
+<input placeholder="بحث..." oninput="search(this.value)">
+<br><br>
+
+<input type="file" onchange="importExcel(this.files[0])">
+
+<br><br>
+
+<table>
+<tr>
+<th>صورة</th>
+<th>اسم</th>
+<th>كود</th>
+<th>سعر</th>
+<th>خصم</th>
+<th>مخزون</th>
+<th>إدارة</th>
+</tr>`;
+
+snap.forEach(d=>{
+const p = d.data();
+
+html += `
+<tr>
+<td><img src="${p.image}"></td>
+<td>${p.name}</td>
+<td>${p.code}</td>
+<td>
+${p.discount>0 
+? `<del>${p.price}</del> ${p.finalPrice}`
+: p.price}
+</td>
+<td>${p.discount||0}%</td>
+<td style="color:${p.stock<=5?'red':'black'}">${p.stock}</td>
+<td>
+<button onclick="edit('${d.id}')">✏️</button>
+<button onclick="del('${d.id}')">❌</button>
+</td>
+</tr>`;
+});
+
+html += '</table>';
+content.innerHTML = html;
+};
+
+// ================= Excel احترافي =================
+window.importExcel = function(file){
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+const data = new Uint8Array(e.target.result);
+const workbook = XLSX.read(data,{type:'array'});
+const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+let valid=[], errors=[];
+
+json.forEach((row,i)=>{
+if(!row["اسم المنتج"] || !row["كود المنتج"]){
+errors.push(i+1);
+}else{
+valid.push(row);
+}
+});
+
+window.previewData = valid;
+
+let html = `
+<h3>📋 معاينة</h3>
+<p>✅ صالح: ${valid.length}</p>
+<p>❌ أخطاء: ${errors.length}</p>
+
+<button onclick="confirmImport()">استيراد</button>
+<hr>
+`;
+
+valid.forEach(r=>{
+html += `<p>${r["اسم المنتج"]} - ${r["كود المنتج"]}</p>`;
+});
+
+content.innerHTML = html;
+};
+
+reader.readAsArrayBuffer(file);
+};
+
+// ================= تأكيد الاستيراد =================
+window.confirmImport = async ()=>{
+
+let added=0, updated=0;
+
+const snap = await getDocs(collection(db,"products"));
+let map={};
+
+snap.forEach(d=> map[d.data().code]={id:d.id});
+
+for(let row of window.previewData){
+
+const price = Number(row["سعر المنتج"]||0);
+const discount = Number(row["تخفيض"]||0);
+
+const finalPrice = discount>0
+? price - (price*discount/100)
+: price;
+
+const data = {
+name: row["اسم المنتج"],
+code: row["كود المنتج"],
+description: row["وصف المنتج"],
+stock: Number(row["الكميه"]),
+price,
+discount,
+finalPrice,
+image: row["صورة المنتج"],
+images:[
+row["صوره واحد"],
+row["صوره ثنين"],
+row["صوره ثلاثه"]
+].filter(i=>i)
+};
+
+if(map[data.code]){
+await updateDoc(doc(db,"products",map[data.code].id),data);
+updated++;
+}else{
+await addDoc(collection(db,"products"),data);
+added++;
+}
+}
+
+content.innerHTML = `
+<h2>📊 التقرير</h2>
+<p>إضافة: ${added}</p>
+<p>تحديث: ${updated}</p>
+`;
+
+};
+
+// ================= تعديل =================
+window.edit = async (id)=>{
+const name = prompt("اسم");
+const price = prompt("سعر");
+const stock = prompt("كمية");
+
+await updateDoc(doc(db,"products",id),{
+name,
+price:Number(price),
+stock:Number(stock)
+});
+
+loadProducts();
+};
+
+// ================= حذف =================
+window.del = async (id)=>{
+await deleteDoc(doc(db,"products",id));
+loadProducts();
+};
+
+// ================= بحث =================
+window.search = (t)=>{
+document.querySelectorAll("table tr").forEach((r,i)=>{
+if(i===0)return;
+r.style.display = r.innerText.includes(t)?'':'none';
+});
+};
+
+// ================= تشغيل =================
+loadProducts();
+
 </script>
+
 </body>
 </html>
