@@ -368,7 +368,7 @@
             }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -434,48 +434,63 @@
     // ============================================
     // حفظ كـ PDF - طريقة محسنة
     // ============================================
-    async function saveAsPDF() {
-        const element = document.getElementById('invoiceToPrint');
-        if (!element) {
-            alert('لا توجد فاتورة للتحميل');
-            return;
-        }
-
-        const btn = document.querySelector('.btn-pdf');
-        const originalText = btn.innerHTML;
-        showLoading(btn, originalText);
-
-        await waitForImages(element);
-
-        const opt = {
-            margin: [0.3, 0.3, 0.3, 0.3],
-            filename: `فاتورة_${new Date().toISOString().slice(0,10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2.5,
-                letterRendering: true,
-                useCORS: false,
-                logging: false,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight
-            },
-            jsPDF: { 
-                unit: 'in', 
-                format: 'a4', 
-                orientation: 'portrait'
-            }
-        };
-
-        try {
-            await html2pdf().set(opt).from(element).save();
-        } catch (err) {
-            console.error('PDF error:', err);
-            alert('حدث خطأ في إنشاء PDF، سيتم استخدام الطباعة بدلاً من ذلك');
-            window.print();
-        } finally {
-            hideLoading(btn, originalText);
-        }
+   async function saveAsPDF() {
+    const element = document.getElementById('invoiceToPrint');
+    if (!element) {
+        alert('لا توجد فاتورة للتحميل');
+        return;
     }
+
+    const btn = document.querySelector('.btn-pdf');
+    const originalText = btn.innerHTML;
+    showLoading(btn, originalText);
+
+    await waitForImages(element);
+
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            scrollY: -window.scrollY
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // الصفحة الأولى
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // الصفحات التالية بدون قص
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save(`فاتورة_${new Date().toISOString().slice(0,10)}.pdf`);
+
+    } catch (err) {
+        console.error(err);
+        alert('حدث خطأ، سيتم استخدام الطباعة');
+        window.print();
+    } finally {
+        hideLoading(btn, originalText);
+    }
+}
 
     // ============================================
     // حفظ كـ PNG - ميزة جديدة
