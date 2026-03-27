@@ -808,7 +808,7 @@ async function printInvoice() {
     window.saveAsPDF = saveAsPDF;
     window.saveAsPNG = saveAsPNG;
     window.printInvoice = printInvoice;
-    window.newOrder = newOrder;
+    window.newOrder = 'index.html';
 
     // تحميل الفاتورة عند بدء الصفحة
     window.onload = () => {
@@ -823,6 +823,6 @@ async function printInvoice() {
 import { getOrderFromFirebase } from './js/order.js';
 window.getOrderFromFirebase = getOrderFromFirebase;
 </script>
-</script>
+
 </body>
 </html>
