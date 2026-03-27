@@ -420,3 +420,102 @@ button:hover {
         font-size: 12px;
     }
 }
+
+@media print {
+    /* إعادة تعيين كل شيء */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* إخفاء الأزرار */
+    .buttons, button, .btn-pdf, .btn-print, .btn-new {
+        display: none !important;
+    }
+    
+    /* تنسيق الفاتورة */
+    .invoice {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        overflow: visible !important;
+    }
+    
+    .invoice-content {
+        padding: 0.3cm !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* منع كسر الصفحات */
+    .invoice-parties,
+    .payment-shipping,
+    .totals-wrapper,
+    .contact-bar,
+    .thanks,
+    .products-table tr,
+    .invoice-from,
+    .invoice-to,
+    .top-margin {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* تثبيت عرض الجدول */
+    .products-table {
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+    
+    /* تحسين عرض الخلايا */
+    .products-table td,
+    .products-table th {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        padding: 6px 4px !important;
+        font-size: 10px !important;
+    }
+    
+    /* ضبط عرض الأعمدة */
+    .products-table th:nth-child(1) { width: 18%; } /* اسم المنتج */
+    .products-table th:nth-child(2) { width: 10%; } /* الكود */
+    .products-table th:nth-child(3) { width: 20%; } /* الوصف */
+    .products-table th:nth-child(4) { width: 8%; }  /* الكمية */
+    .products-table th:nth-child(5) { width: 12%; } /* السعر */
+    .products-table th:nth-child(6) { width: 12%; } /* الخصم */
+    .products-table th:nth-child(7) { width: 20%; } /* الإجمالي */
+    
+    /* الحفاظ على الألوان */
+    .top-margin,
+    .invoice-from,
+    .invoice-to,
+    .products-table th {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* إصلاح الهوامش العلوية */
+    .top-margin {
+        background: #f1f5f9 !important;
+        color: #333 !important;
+        margin-bottom: 10px !important;
+        padding: 6px 12px !important;
+    }
+    
+    /* تقليل حجم الخط للعناصر الطويلة */
+    .invoice-from p, 
+    .invoice-to p {
+        font-size: 11px !important;
+        line-height: 1.4 !important;
+    }
+}
