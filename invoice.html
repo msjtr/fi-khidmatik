@@ -537,104 +537,33 @@
     // ============================================
     // طباعة - استخدام الطباعة المدمجة
     // ============================================
- async function printInvoice() {
-    const element = document.getElementById('invoiceToPrint');
-    if (!element) {
-        alert('لا توجد فاتورة للطباعة');
-        return;
-    }
+let currentPosition = 0;
+const pageHeightPx = (pageHeight * canvas.width) / pageWidth;
 
-    await waitForImages(element);
+while (currentPosition < canvas.height) {
+    const pageCanvas = document.createElement('canvas');
+    const pageCtx = pageCanvas.getContext('2d');
 
-    const canvas = await html2canvas(element, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: "#ffffff"
-    });
+    const sliceHeight = Math.min(pageHeightPx, canvas.height - currentPosition);
 
-    const imgData = canvas.toDataURL("image/jpeg", 1.0);
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeight;
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    pageCtx.drawImage(
+        canvas,
+        0,
+        currentPosition,
+        canvas.width,
+        sliceHeight,
+        0,
+        0,
+        canvas.width,
+        sliceHeight
+    );
 
-    const pageWidth = 210;
-    const pageHeight = 297;
+    pages.push(pageCanvas.toDataURL("image/jpeg", 1.0));
 
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let remainingHeight = imgHeight;
-    let position = 0;
-
-    const pages = [];
-
-    // تقسيم الصفحات
-    while (remainingHeight > 0) {
-        const pageCanvas = document.createElement('canvas');
-        const pageCtx = pageCanvas.getContext('2d');
-
-        const sliceHeight = Math.min(canvas.height, (pageHeight * canvas.width) / pageWidth);
-
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sliceHeight;
-
-        pageCtx.drawImage(
-            canvas,
-            0,
-            position,
-            canvas.width,
-            sliceHeight,
-            0,
-            0,
-            canvas.width,
-            sliceHeight
-        );
-
-        pages.push(pageCanvas.toDataURL("image/jpeg", 1.0));
-
-        position += sliceHeight;
-        remainingHeight -= pageHeight;
-    }
-
-    // فتح نافذة الطباعة
-    const printWindow = window.open('', '_blank');
-
-    printWindow.document.write(`
-        <html>
-        <head>
-            <title>طباعة الفاتورة</title>
-            <style>
-                body {
-                    margin: 0;
-                    padding: 0;
-                }
-                img {
-                    width: 100%;
-                    display: block;
-                    page-break-after: always;
-                }
-                img:last-child {
-                    page-break-after: auto;
-                }
-                @page {
-                    size: A4;
-                    margin: 0;
-                }
-            </style>
-        </head>
-        <body>
-            ${pages.map(p => `<img src="${p}" />`).join('')}
-        </body>
-        </html>
-    `);
-
-    printWindow.document.close();
-
-    printWindow.onload = function () {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-    };
+    currentPosition += sliceHeight;
 }
     // ============================================
     // عرض الفاتورة
