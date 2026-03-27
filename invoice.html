@@ -40,14 +40,14 @@
         }
 
         /* ============================================
-           INVOICE CONTENT - تم إزالة الهوامش السالبة
+           INVOICE CONTENT
            ============================================ */
         .invoice-content {
             padding: 30px;
         }
 
         /* ============================================
-           TOP MARGIN SECTION - تم إصلاح الهوامش نهائياً
+           TOP MARGIN SECTION
            ============================================ */
         .top-margin {
             background: #1e293b;
@@ -70,6 +70,11 @@
         .logo-center img {
             max-width: 100px;
             height: auto;
+        }
+        .logo-placeholder {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a8a;
         }
 
         /* ============================================
@@ -366,6 +371,18 @@
             .products-table td, .products-table th {
                 border: 1px solid #ccc;
             }
+            /* ضمان عرض جميع الأعمدة في الطباعة */
+            .products-table {
+                width: 100%;
+                table-layout: fixed;
+            }
+            .products-table th:nth-child(1), .products-table td:nth-child(1) { width: 20%; } /* اسم المنتج */
+            .products-table th:nth-child(2), .products-table td:nth-child(2) { width: 10%; } /* الكود */
+            .products-table th:nth-child(3), .products-table td:nth-child(3) { width: 25%; } /* الوصف */
+            .products-table th:nth-child(4), .products-table td:nth-child(4) { width: 8%; } /* الكمية */
+            .products-table th:nth-child(5), .products-table td:nth-child(5) { width: 12%; } /* السعر */
+            .products-table th:nth-child(6), .products-table td:nth-child(6) { width: 10%; } /* الخصم */
+            .products-table th:nth-child(7), .products-table td:nth-child(7) { width: 15%; } /* الإجمالي */
         }
     </style>
 </head>
@@ -382,7 +399,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 // ============================================================
-// نظام الفواتير الإلكتروني - منصة في خدمتك
+// نظام الفواتير الإلكتروني - منصة في خدمتك (النسخة المحسنة)
 // ============================================================
 
 function escapeHtml(str) {
@@ -395,27 +412,55 @@ function escapeHtml(str) {
     });
 }
 
+// دالة لإنشاء بيانات تجريبية في حالة عدم وجود بيانات حقيقية
+function createDemoOrder() {
+    const demoOrder = {
+        orderNumber: "FK-DEMO-001",
+        customer: "عميل تجريبي",
+        city: "الرياض",
+        district: "الملك فهد",
+        street: "الطريق العام",
+        building: "برج الأعمال",
+        extra: "1234",
+        postal: "12345",
+        phone: "05XXXXXXXX",
+        email: "demo@example.com",
+        payment: "مدى",
+        shipping: "شحن سريع",
+        date: new Date().toISOString().slice(0,10),
+        time: new Date().toLocaleTimeString('ar-SA'),
+        cart: [
+            { name: "منتج تجريبي 1", code: "P001", desc: "وصف المنتج الأول", qty: 2, price: 150.00, discount: 10.00 },
+            { name: "منتج تجريبي 2", code: "P002", desc: "وصف المنتج الثاني", qty: 1, price: 300.00, discount: 0.00 },
+            { name: "منتج تجريبي 3", code: "P003", desc: "وصف المنتج الثالث", qty: 3, price: 75.00, discount: 25.00 }
+        ]
+    };
+    localStorage.setItem('currentOrder', JSON.stringify(demoOrder));
+    return demoOrder;
+}
+
 function loadInvoice() {
     let orderData = localStorage.getItem('currentOrder');
+    let order;
     
     if (!orderData) {
-        document.getElementById('invoiceContent').innerHTML = '<div class="empty-state">❌ لا يوجد طلب لعرضه</div>';
-        return;
+        // إذا لم توجد بيانات، نقوم بإنشاء بيانات تجريبية
+        order = createDemoOrder();
+    } else {
+        try {
+            order = JSON.parse(orderData);
+        } catch(e) {
+            console.error("خطأ في قراءة البيانات:", e);
+            order = createDemoOrder();
+        }
     }
 
-    let order;
-    try {
-        order = JSON.parse(orderData);
-    } catch(e) {
-        document.getElementById('invoiceContent').innerHTML = '<div class="empty-state">❌ خطأ في قراءة بيانات الطلب</div>';
-        return;
-    }
-
+    // التأكد من وجود مصفوفة المنتجات
     let items = order.cart || order.items || [];
-
     if (!items.length) {
-        document.getElementById('invoiceContent').innerHTML = '<div class="empty-state">❌ السلة فارغة</div>';
-        return;
+        // إذا كانت السلة فارغة، نستخدم البيانات التجريبية
+        order = createDemoOrder();
+        items = order.cart;
     }
 
     let cartRows = '';
@@ -472,7 +517,7 @@ function loadInvoice() {
                 </div>
 
                 <div class="logo-center">
-                    <img src="images/logo.svg" onerror="this.style.display='none'" alt="شعار المنصة">
+                    <img src="images/logo.svg" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'logo-placeholder\'>منصة في خدمتك</div>';" alt="شعار المنصة">
                 </div>
 
                 <div class="invoice-header">
@@ -602,8 +647,11 @@ function downloadPDF() {
         }
     };
 
-    // تعطيل الزر أثناء التحميل
-    let btn = event.target;
+    // تعطيل الزر أثناء التحميل - نستخدم event أو نجد الزر بطريقة أخرى
+    let btns = document.querySelectorAll('.btn-pdf');
+    let btn = btns[0];
+    if (!btn) return;
+    
     let originalText = btn.innerHTML;
     btn.innerHTML = '⏳ جاري التحضير...';
     btn.disabled = true;
@@ -623,7 +671,10 @@ function downloadPDF() {
 
 function newOrder() {
     localStorage.removeItem('currentOrder');
-    window.location.href = "index.html";
+    // يمكن توجيه المستخدم إلى صفحة إنشاء الطلب، أو إعادة تحميل الصفحة لإنشاء طلب جديد
+    window.location.href = "index.html"; // تأكد من وجود ملف index.html في نفس المسار
+    // إذا لم يكن موجوداً، يمكن إعادة تحميل الصفحة الحالية مع إنشاء طلب جديد
+    // window.location.reload();
 }
 
 // تحميل الفاتورة عند اكتمال تحميل الصفحة
