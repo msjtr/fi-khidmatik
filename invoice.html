@@ -6,7 +6,7 @@
     <title>الفاتورة | منصة في خدمتك</title>
     <style>
         /* ============================================
-           التنسيقات الأساسية
+           التنسيقات الأساسية للعرض على الشاشة
            ============================================ */
         * {
             margin: 0;
@@ -260,9 +260,10 @@
         }
 
         /* ============================================
-           تنسيق الطباعة والـ PDF - حل قطع المحتوى
+           تنسيق الطباعة - الحل النهائي لمنع القطع
            ============================================ */
         @media print {
+            /* إعادة تعيين كل شيء للطباعة */
             * {
                 margin: 0;
                 padding: 0;
@@ -275,16 +276,19 @@
                 margin: 0 !important;
             }
             
+            /* إخفاء الأزرار */
             .buttons, button, .btn-pdf, .btn-print, .btn-new {
                 display: none !important;
             }
             
+            /* تنسيق الحاوية */
             .invoice-container {
                 max-width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
             
+            /* تنسيق الفاتورة */
             .invoice {
                 box-shadow: none !important;
                 border-radius: 0 !important;
@@ -294,19 +298,19 @@
                 overflow: visible !important;
             }
             
+            /* المحتوى الداخلي */
             .invoice-content {
                 padding: 0.3cm !important;
                 width: 100% !important;
                 max-width: 100% !important;
             }
             
-            /* منع كسر الصفحات */
+            /* منع كسر الصفحات في جميع العناصر */
             .invoice-parties,
             .payment-shipping,
             .totals-wrapper,
             .contact-bar,
             .thanks,
-            .products-table tr,
             .invoice-from,
             .invoice-to,
             .top-margin {
@@ -320,49 +324,69 @@
                 table-layout: fixed !important;
             }
             
-            /* تحسين عرض الخلايا ومنع الانضغاط */
+            /* منع كسر صفوف الجدول */
+            .products-table tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            /* تحسين عرض الخلايا */
             .products-table td,
             .products-table th {
                 white-space: normal !important;
                 word-break: break-word !important;
                 overflow-wrap: break-word !important;
-                padding: 6px 4px !important;
-                font-size: 10px !important;
+                padding: 8px 4px !important;
+                font-size: 11px !important;
+                border: 1px solid #ccc !important;
             }
             
-            /* تحديد عرض الأعمدة */
-            .products-table th:nth-child(1) { width: 18%; }
-            .products-table th:nth-child(2) { width: 10%; }
-            .products-table th:nth-child(3) { width: 20%; }
-            .products-table th:nth-child(4) { width: 8%; }
-            .products-table th:nth-child(5) { width: 12%; }
-            .products-table th:nth-child(6) { width: 12%; }
-            .products-table th:nth-child(7) { width: 20%; }
+            /* تحديد عرض الأعمدة بدقة */
+            .products-table th:nth-child(1) { width: 18%; } /* اسم المنتج */
+            .products-table th:nth-child(2) { width: 10%; } /* الكود */
+            .products-table th:nth-child(3) { width: 22%; } /* الوصف */
+            .products-table th:nth-child(4) { width: 8%; }  /* الكمية */
+            .products-table th:nth-child(5) { width: 12%; } /* السعر */
+            .products-table th:nth-child(6) { width: 12%; } /* الخصم */
+            .products-table th:nth-child(7) { width: 18%; } /* الإجمالي */
             
             /* الحفاظ على الألوان */
             .top-margin,
             .invoice-from,
             .invoice-to,
+            .payment-shipping span,
+            .contact-bar,
             .products-table th {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
             
+            /* تنسيق الهوامش العلوية */
             .top-margin {
                 background: #f1f5f9 !important;
                 color: #333 !important;
-                margin-bottom: 10px !important;
+                margin-bottom: 12px !important;
                 padding: 6px 12px !important;
             }
             
+            /* تصغير حجم الخط للعناوين الطويلة */
             .invoice-from p, 
             .invoice-to p {
                 font-size: 11px !important;
                 line-height: 1.4 !important;
             }
+            
+            /* تحسين عرض الإجمالي */
+            .grand-total h2 {
+                font-size: 16px !important;
+            }
+            
+            /* ضمان عدم تجاوز المحتوى */
+            .invoice-content {
+                overflow: visible !important;
+            }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -371,12 +395,15 @@
 </div>
 
 <div class="buttons">
-    <button class="btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
-    <button class="btn-print" onclick="window.print()">🖨️ طباعة</button>
+    <button class="btn-pdf" onclick="printInvoice()">📥 حفظ كـ PDF</button>
+    <button class="btn-print" onclick="printInvoice()">🖨️ طباعة</button>
     <button class="btn-new" onclick="newOrder()">🔄 طلب جديد</button>
 </div>
 
 <script>
+    // ============================================
+    // دوال مساعدة
+    // ============================================
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, function(m) {
@@ -398,61 +425,19 @@
         `;
     }
 
-    // دالة تحميل PDF محسنة لمنع القطع
-    async function downloadPDF() {
+    // دالة الطباعة - تستخدم خاصية الطباعة المدمجة في المتصفح
+    function printInvoice() {
         const element = document.getElementById('invoiceToPrint');
         if (!element) {
-            alert('لا توجد فاتورة للتحميل');
+            alert('لا توجد فاتورة للطباعة');
             return;
         }
 
-        const btn = document.querySelector('.btn-pdf');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ جاري التحضير...';
-        btn.disabled = true;
-
-        // انتظار تحميل الصور
-        const images = element.querySelectorAll('img');
-        await Promise.all(Array.from(images).map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise(resolve => {
-                img.onload = resolve;
-                img.onerror = resolve;
-            });
-        }));
-
-        // إعدادات محسنة لمنع القطع
-        const opt = {
-            margin: [0.3, 0.3, 0.3, 0.3],
-            filename: `فاتورة_${new Date().toISOString().slice(0,10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2,
-                letterRendering: true,
-                useCORS: false,
-                logging: false,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight
-            },
-            jsPDF: { 
-                unit: 'in', 
-                format: 'a4', 
-                orientation: 'portrait'
-            }
-        };
-
-        try {
-            await html2pdf().set(opt).from(element).save();
-        } catch (err) {
-            console.error('PDF error:', err);
-            alert('حدث خطأ في إنشاء PDF، سيتم استخدام الطباعة بدلاً من ذلك');
-            window.print();
-        } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
+        // فتح نافذة الطباعة المدمجة في المتصفح
+        window.print();
     }
 
+    // دالة الطلب الجديد
     function newOrder() {
         localStorage.removeItem('currentOrder');
         window.location.href = "index.html";
@@ -466,35 +451,44 @@
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('orderId');
 
+        // إذا كان هناك دالة Firebase متاحة
         if (orderId && typeof window.getOrderFromFirebase === 'function') {
             try {
                 order = await window.getOrderFromFirebase(orderId);
                 if (order) {
                     localStorage.setItem('currentOrder', JSON.stringify(order));
                 }
-            } catch(e) { console.warn('فشل جلب من Firebase', e); }
+            } catch(e) {
+                console.warn('فشل جلب من Firebase', e);
+            }
         }
 
+        // إذا لم نجد، نبحث في localStorage
         if (!order) {
             const stored = localStorage.getItem('currentOrder');
             if (stored) {
                 try {
                     order = JSON.parse(stored);
-                } catch(e) { console.error(e); }
+                } catch(e) {
+                    console.error(e);
+                }
             }
         }
 
+        // إذا لم توجد بيانات
         if (!order) {
             showError("لا توجد بيانات للفاتورة. يرجى إنشاء طلب أولاً.");
             return;
         }
 
+        // التأكد من وجود سلة
         let items = order.cart || order.items || [];
         if (!items.length) {
             showError("السلة فارغة. لا توجد منتجات لعرضها.");
             return;
         }
 
+        // حساب الإجماليات
         let cartRows = '';
         let subtotal = 0;
         let totalDiscount = 0;
@@ -526,6 +520,7 @@
         let tax = taxableAmount * 0.15;
         let grandTotal = taxableAmount + tax;
 
+        // تنسيق التاريخ
         let displayDate = order.date || '-';
         if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
             let parts = displayDate.split('-');
@@ -533,6 +528,7 @@
         }
         let timeDisplay = (order.time && order.time !== '-') ? ' - ' + order.time : '';
 
+        // بناء HTML الفاتورة
         let html = `
             <div class="invoice" id="invoiceToPrint">
                 <div class="invoice-content">
@@ -631,9 +627,12 @@
         document.getElementById('invoiceContent').innerHTML = html;
     }
 
+    // ربط الدوال بالنافذة
     window.loadInvoice = loadInvoice;
-    window.downloadPDF = downloadPDF;
+    window.printInvoice = printInvoice;
+    window.newOrder = newOrder;
 
+    // تحميل الفاتورة عند بدء الصفحة
     window.onload = () => {
         loadInvoice().catch(err => {
             console.error(err);
@@ -643,9 +642,13 @@
 </script>
 
 <script type="module">
-    // استيراد دوال Firebase إذا كانت موجودة
-    import { getOrderFromFirebase } from './js/order.js';
-    window.getOrderFromFirebase = getOrderFromFirebase;
+    // استيراد دوال Firebase إذا كانت موجودة (اختياري)
+    try {
+        import { getOrderFromFirebase } from './js/order.js';
+        window.getOrderFromFirebase = getOrderFromFirebase;
+    } catch(e) {
+        console.log('Firebase غير متاح، سيتم استخدام localStorage فقط');
+    }
 </script>
 </body>
 </html>
