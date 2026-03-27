@@ -16,7 +16,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
 }
 
-/* حاوية الفاتورة الخارجية - استخدام الاسم الصحيح */
+/* حاوية الفاتورة الخارجية */
 .invoice-container {
     max-width: 1100px;
     margin: 0 auto;
@@ -36,7 +36,7 @@ body {
     width: 100%;
 }
 
-/* الهوامش العلوية - إصلاح الهوامش */
+/* الهوامش العلوية */
 .top-margin {
     background: #1e293b;
     color: #e2e8f0;
@@ -251,108 +251,6 @@ button:hover {
 }
 
 /* ============================================
-   تنسيق الطباعة والـ PDF - حل جذري للمشاكل
-   ============================================ */
-@media print {
-    /* إعادة تعيين كل شيء للطباعة */
-    body {
-        background: white !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    /* إخفاء الأزرار */
-    .buttons, button, .btn-pdf, .btn-print, .btn-new {
-        display: none !important;
-    }
-    
-    /* إعادة تعيين حاوية الفاتورة */
-    .invoice-container {
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    /* تنسيق الفاتورة للطباعة */
-    .invoice {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-        overflow: visible !important;
-    }
-    
-    /* المحتوى الداخلي */
-    .invoice-content {
-        padding: 0.5cm !important;
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    
-    /* الهوامش العلوية للطباعة */
-    .top-margin {
-        background: #f1f5f9 !important;
-        color: #333 !important;
-        padding: 8px 15px !important;
-        margin-bottom: 15px !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    
-    /* الحفاظ على الألوان الخلفية في الطباعة */
-    .invoice-from, .invoice-to,
-    .payment-shipping span,
-    .contact-bar {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    
-    /* ألوان الجدول */
-    .products-table th {
-        background: #1e3a8a !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    
-    .products-table td {
-        background: white !important;
-    }
-    
-    /* منع كسر الصفحات داخل العناصر المهمة */
-    .invoice-parties, 
-    .payment-shipping, 
-    .totals-wrapper, 
-    .contact-bar {
-        page-break-inside: avoid !important;
-    }
-    
-    /* منع كسر الصفوف في الجدول */
-    .products-table tr {
-        page-break-inside: avoid !important;
-        page-break-after: auto !important;
-    }
-    
-    .products-table {
-        page-break-inside: auto !important;
-    }
-    
-    /* تحسين عرض الجدول */
-    .products-table td, 
-    .products-table th {
-        border: 1px solid #ccc !important;
-    }
-    
-    /* ضمان ظهور كل المحتوى */
-    .invoice, 
-    .invoice-content, 
-    .invoice-parties, 
-    .totals-wrapper {
-        page-break-inside: avoid !important;
-    }
-}
-
-/* ============================================
    استجابة للجوال
    ============================================ */
 @media (max-width: 768px) {
@@ -421,8 +319,11 @@ button:hover {
     }
 }
 
+/* ============================================
+   تنسيق الطباعة والـ PDF - نسخة موحدة
+   ============================================ */
 @media print {
-    /* إعادة تعيين كل شيء */
+    /* إعادة تعيين كل شيء للطباعة */
     * {
         margin: 0;
         padding: 0;
@@ -440,7 +341,14 @@ button:hover {
         display: none !important;
     }
     
-    /* تنسيق الفاتورة */
+    /* إعادة تعيين حاوية الفاتورة */
+    .invoice-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* تنسيق الفاتورة للطباعة */
     .invoice {
         box-shadow: none !important;
         border-radius: 0 !important;
@@ -450,13 +358,14 @@ button:hover {
         overflow: visible !important;
     }
     
+    /* المحتوى الداخلي */
     .invoice-content {
         padding: 0.3cm !important;
         width: 100% !important;
         max-width: 100% !important;
     }
     
-    /* منع كسر الصفحات */
+    /* منع كسر الصفحات في جميع العناصر المهمة */
     .invoice-parties,
     .payment-shipping,
     .totals-wrapper,
@@ -474,41 +383,45 @@ button:hover {
     .products-table {
         width: 100% !important;
         table-layout: fixed !important;
+        page-break-inside: auto !important;
     }
     
-    /* تحسين عرض الخلايا */
+    /* تحسين عرض الخلايا ومنع الانضغاط */
     .products-table td,
     .products-table th {
         white-space: normal !important;
         word-break: break-word !important;
         overflow-wrap: break-word !important;
-        padding: 6px 4px !important;
-        font-size: 10px !important;
+        padding: 8px 4px !important;
+        font-size: 11px !important;
+        border: 1px solid #ccc !important;
     }
     
-    /* ضبط عرض الأعمدة */
+    /* تحديد عرض الأعمدة بدقة */
     .products-table th:nth-child(1) { width: 18%; } /* اسم المنتج */
     .products-table th:nth-child(2) { width: 10%; } /* الكود */
-    .products-table th:nth-child(3) { width: 20%; } /* الوصف */
+    .products-table th:nth-child(3) { width: 22%; } /* الوصف */
     .products-table th:nth-child(4) { width: 8%; }  /* الكمية */
     .products-table th:nth-child(5) { width: 12%; } /* السعر */
     .products-table th:nth-child(6) { width: 12%; } /* الخصم */
-    .products-table th:nth-child(7) { width: 20%; } /* الإجمالي */
+    .products-table th:nth-child(7) { width: 18%; } /* الإجمالي */
     
-    /* الحفاظ على الألوان */
+    /* الحفاظ على الألوان الخلفية في الطباعة */
     .top-margin,
     .invoice-from,
     .invoice-to,
+    .payment-shipping span,
+    .contact-bar,
     .products-table th {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
     
-    /* إصلاح الهوامش العلوية */
+    /* تنسيق الهوامش العلوية */
     .top-margin {
         background: #f1f5f9 !important;
         color: #333 !important;
-        margin-bottom: 10px !important;
+        margin-bottom: 12px !important;
         padding: 6px 12px !important;
     }
     
@@ -517,5 +430,10 @@ button:hover {
     .invoice-to p {
         font-size: 11px !important;
         line-height: 1.4 !important;
+    }
+    
+    /* تحسين عرض الإجمالي */
+    .grand-total h2 {
+        font-size: 16px !important;
     }
 }
