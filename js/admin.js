@@ -1,5 +1,8 @@
 // js/admin.js
-import { db, collection, addDoc, doc, getDoc, getDocs, updateDoc, deleteDoc, query, orderBy, where } from './firebase.js';
+import { 
+    db, collection, addDoc, doc, getDoc, getDocs, updateDoc, deleteDoc,
+    query, orderBy, where
+} from './firebase.js';
 
 // ==============================
 // إشعارات
@@ -78,26 +81,40 @@ async function loadDashboard() {
         const ordersSnap = await getDocs(collection(db, 'orders'));
         const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         document.getElementById('totalOrders').textContent = orders.length;
+        
         const uniqueCustomers = new Set(orders.map(o => o.phone));
         document.getElementById('totalCustomers').textContent = uniqueCustomers.size;
+        
         let totalStock = 0;
         const productsSnap = await getDocs(collection(db, 'products'));
         productsSnap.docs.forEach(d => { totalStock += d.data().quantity || 0; });
         document.getElementById('totalStock').textContent = totalStock;
+        
         const totalRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
         document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
+        
         const recent = orders.slice(0, 5);
         const tbody = document.getElementById('recentOrders');
         tbody.innerHTML = recent.map(o => `
-            <tr><td>${o.orderNumber || o.id.slice(0,8)}</td><td>${o.customer || '-'}</td><td>${formatCurrency(o.total)}</td><td>${getStatusBadge(o.status)}</td><td>${new Date(o.createdAt).toLocaleDateString('ar-SA')}</td></tr>
+            <tr>
+                <td>${o.orderNumber || o.id.slice(0,8)}</td>
+                <td>${o.customer || '-'}</td>
+                <td>${formatCurrency(o.total)}</td>
+                <td>${getStatusBadge(o.status)}</td>
+                <td>${new Date(o.createdAt).toLocaleDateString('ar-SA')}</td>
+            </tr>
         `).join('');
-    } catch (err) { console.error(err); showNotification('خطأ في تحميل البيانات', 'error'); }
+    } catch (err) { 
+        console.error(err); 
+        showNotification('خطأ في تحميل البيانات', 'error'); 
+    }
 }
 
 // ==============================
 // الطلبات
 // ==============================
 let currentOrderId = null;
+
 async function loadOrders() {
     try {
         const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
@@ -122,7 +139,10 @@ async function loadOrders() {
                 </tr>
             `;
         }).join('');
-    } catch (err) { console.error(err); showNotification('خطأ في تحميل الطلبات', 'error'); }
+    } catch (err) { 
+        console.error(err); 
+        showNotification('خطأ في تحميل الطلبات', 'error'); 
+    }
 }
 
 window.editOrder = async (id) => {
@@ -185,7 +205,6 @@ window.refundOrder = async (id) => {
 // ==============================
 // العملاء
 // ==============================
-let currentCustomerId = null;
 async function loadCustomers() {
     try {
         const ordersSnap = await getDocs(collection(db, 'orders'));
@@ -217,19 +236,18 @@ async function loadCustomers() {
                 </td>
             </tr>
         `).join('');
-    } catch (err) { console.error(err); showNotification('خطأ في تحميل العملاء', 'error'); }
+    } catch (err) { 
+        console.error(err); 
+        showNotification('خطأ في تحميل العملاء', 'error'); 
+    }
 }
 
 window.editCustomer = (phone) => {
-    // نستخدم phone كمفتاح مؤقت، لكن لا يوجد تعديل مباشر للعملاء في Firebase
-    // يمكن إضافة collection customers لاحقاً. حالياً سنعرض رسالة
     showNotification('يمكن تعديل العميل من خلال تعديل الطلبات', 'info');
 };
 
 window.deleteCustomer = (phone) => {
     if (confirm(`حذف جميع طلبات العميل ${phone}؟`)) {
-        // حذف الطلبات المرتبطة بهذا الهاتف
-        // تنفيذ لاحقاً
         showNotification('حذف العميل يتطلب حذف طلباته أولاً', 'info');
     }
 };
@@ -247,7 +265,6 @@ window.saveCustomer = async () => {
     const email = document.getElementById('customerEmail').value;
     const phone = document.getElementById('customerPhone').value;
     if (!name || !phone) { showNotification('الاسم والهاتف مطلوبان', 'error'); return; }
-    // نضيف عميلاً جديداً عن طريق إضافة طلب فارغ؟ الأفضل إنشاء collection منفصل
     showNotification('سيتم إضافة العميل عند إنشاء طلب جديد', 'info');
     closeModal('customerModal');
 };
@@ -256,6 +273,7 @@ window.saveCustomer = async () => {
 // المنتجات
 // ==============================
 let currentProductId = null;
+
 async function loadProducts() {
     try {
         const snap = await getDocs(collection(db, 'products'));
@@ -276,7 +294,10 @@ async function loadProducts() {
                 </tr>
             `;
         }).join('');
-    } catch (err) { console.error(err); showNotification('خطأ في تحميل المنتجات', 'error'); }
+    } catch (err) { 
+        console.error(err); 
+        showNotification('خطأ في تحميل المنتجات', 'error'); 
+    }
 }
 
 window.editProduct = async (id) => {
@@ -344,7 +365,10 @@ async function loadInventory() {
                 </tr>
             `;
         }).join('');
-    } catch (err) { console.error(err); showNotification('خطأ في تحميل المخزون', 'error'); }
+    } catch (err) { 
+        console.error(err); 
+        showNotification('خطأ في تحميل المخزون', 'error'); 
+    }
 }
 
 window.openInventoryModal = (id, name) => {
@@ -494,19 +518,6 @@ window.closeModal = (id) => {
     document.getElementById(id).classList.remove('active');
     currentOrderId = null;
     currentProductId = null;
-    currentCustomerId = null;
-};
-
-// تحميل البيانات الابتدائية
-window.onload = () => {
-    loadDashboard();
-    loadOrders();
-    loadCustomers();
-    loadProducts();
-    loadInventory();
-    loadPayments();
-    loadInvoiceSettings();
-    loadGeneralSettings();
 };
 
 // ربط الدوال للنطاق العام
@@ -520,6 +531,7 @@ window.openOrderModal = () => {
     currentOrderId = null;
     openModal('orderModal');
 };
+
 window.openProductModal = () => {
     document.getElementById('productCode').value = '';
     document.getElementById('productName').value = '';
@@ -528,4 +540,16 @@ window.openProductModal = () => {
     document.getElementById('productImage').value = '';
     currentProductId = null;
     openModal('productModal');
+};
+
+// تحميل البيانات الابتدائية
+window.onload = () => {
+    loadDashboard();
+    loadOrders();
+    loadCustomers();
+    loadProducts();
+    loadInventory();
+    loadPayments();
+    loadInvoiceSettings();
+    loadGeneralSettings();
 };
