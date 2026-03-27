@@ -6,103 +6,511 @@
 <title>الفاتورة | منصة في خدمتك</title>
 
 <style>
-body {
-    font-family: 'Segoe UI', Tahoma;
-    background: linear-gradient(135deg,#1e3c72,#2a5298);
-    margin: 0;
-    padding: 20px;
-}
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-.invoice {
-    background: #fff;
-    max-width: 900px;
-    margin: auto;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
+    body {
+        font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+        position: relative;
+    }
 
-.logo-center {
-    text-align: center;
-    margin-bottom: 20px;
-}
+    /* خلفية متحركة */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        pointer-events: none;
+        animation: pulse 4s ease-in-out infinite;
+    }
 
-.logo-center img {
-    max-width: 140px;
-}
+    @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
 
-.invoice-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
+    /* حاوية الفاتورة */
+    .invoice-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+        animation: slideUp 0.5s ease-out;
+    }
 
-.invoice-parties {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
-.invoice-parties div {
-    width: 48%;
-}
+    /* تصميم الفاتورة الرئيسي */
+    .invoice {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-.products-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
+    .invoice:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+    }
 
-.products-table th, .products-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-}
+    /* الهوامش العلوية */
+    .top-margin {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: #e2e8f0;
+        padding: 12px 25px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
 
-.products-table th {
-    background: #2a5298;
-    color: #fff;
-}
+    /* الشعار */
+    .logo-center {
+        text-align: center;
+        padding: 30px 0 20px;
+        background: linear-gradient(to bottom, #fff 0%, #f8fafc 100%);
+    }
 
-.totals {
-    margin-top: 20px;
-    text-align: left;
-}
+    .logo-center img {
+        max-width: 120px;
+        transition: transform 0.3s ease;
+    }
 
-.total-final {
-    font-size: 20px;
-    font-weight: bold;
-    color: green;
-}
+    .logo-center img:hover {
+        transform: scale(1.05);
+    }
 
-.buttons {
-    text-align: center;
-    margin-top: 20px;
-}
+    /* رأس الفاتورة */
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
 
-button {
-    padding: 10px 20px;
-    border: none;
-    margin: 5px;
-    border-radius: 8px;
-    cursor: pointer;
-}
+    .invoice-header p {
+        margin: 5px 0;
+    }
 
-.btn-pdf { background:#4CAF50;color:#fff;}
-.btn-print { background:#2196F3;color:#fff;}
-.btn-new { background:#ff9800;color:#fff;}
+    .invoice-number {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1e3a8a;
+        direction: ltr;
+        text-align: left;
+    }
+
+    .invoice-number span {
+        background: #e0e7ff;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: normal;
+        margin-right: 8px;
+    }
+
+    .invoice-date {
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .invoice-date strong {
+        color: #1e293b;
+    }
+
+    /* معلومات المصدر والمستلم */
+    .invoice-parties {
+        display: flex;
+        gap: 25px;
+        padding: 25px;
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .invoice-from, .invoice-to {
+        flex: 1;
+        padding: 20px;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .invoice-from {
+        background: linear-gradient(135deg, #fef9e3 0%, #fef3c7 100%);
+        border-right: 4px solid #f59e0b;
+    }
+
+    .invoice-to {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        border-right: 4px solid #0284c7;
+    }
+
+    .invoice-from h3, .invoice-to h3 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .invoice-from h3::before {
+        content: "🏢";
+        font-size: 20px;
+    }
+
+    .invoice-to h3::before {
+        content: "👤";
+        font-size: 20px;
+    }
+
+    .invoice-from p, .invoice-to p {
+        font-size: 13px;
+        line-height: 1.8;
+        color: #334155;
+    }
+
+    /* معلومات الدفع والشحن */
+    .payment-shipping {
+        background: #f1f5f9;
+        margin: 0 25px 20px 25px;
+        padding: 15px 20px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+        font-size: 14px;
+    }
+
+    .payment-shipping span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* جدول المنتجات */
+    .products-section {
+        padding: 0 25px;
+    }
+
+    .products-section h3 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 25px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .products-table th {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        padding: 14px 10px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .products-table td {
+        padding: 12px 10px;
+        text-align: center;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 13px;
+    }
+
+    .products-table tbody tr {
+        transition: background 0.2s ease;
+    }
+
+    .products-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    /* ملخص الحساب */
+    .totals-wrapper {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        margin: 0 25px 20px 25px;
+        padding: 20px;
+        border-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .totals-labels p, .totals-values p {
+        margin: 8px 0;
+        font-size: 14px;
+    }
+
+    .totals-labels {
+        text-align: right;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .totals-values {
+        text-align: left;
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .grand-total {
+        text-align: center;
+        padding: 0 20px;
+        border-right: 2px solid #cbd5e1;
+        border-left: 2px solid #cbd5e1;
+    }
+
+    .grand-total h2 {
+        font-size: 22px;
+        color: #1e3a8a;
+        margin: 0;
+        background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* شريط الاتصال */
+    .contact-bar {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #e2e8f0;
+        padding: 15px 25px;
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        font-size: 13px;
+    }
+
+    .contact-bar span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .contact-bar span:hover {
+        transform: translateY(-2px);
+    }
+
+    /* تذييل الفاتورة */
+    .thanks {
+        text-align: center;
+        padding: 20px;
+        font-size: 14px;
+        color: #475569;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 10px;
+    }
+
+    /* أزرار التحكم */
+    .buttons {
+        text-align: center;
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    .btn-pdf {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        color: white;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        color: white;
+    }
+
+    .btn-new {
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        color: white;
+    }
+
+    /* حالة عدم وجود بيانات */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 24px;
+    }
+
+    .empty-state svg {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    /* استجابة للجوال */
+    @media (max-width: 768px) {
+        body {
+            padding: 20px 10px;
+        }
+
+        .invoice-parties {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .invoice-header {
+            flex-direction: column;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .invoice-number {
+            text-align: center;
+        }
+
+        .totals-wrapper {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .grand-total {
+            border: none;
+            padding: 10px 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .products-table th, .products-table td {
+            padding: 8px 4px;
+            font-size: 11px;
+        }
+
+        .payment-shipping {
+            flex-direction: column;
+        }
+
+        .contact-bar {
+            gap: 15px;
+            font-size: 11px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 12px;
+        }
+    }
+
+    /* تأثيرات طباعة */
+    @media print {
+        body {
+            background: white;
+            padding: 0;
+        }
+
+        .buttons {
+            display: none;
+        }
+
+        .invoice {
+            box-shadow: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .invoice:hover {
+            transform: none;
+        }
+
+        .top-margin {
+            background: #f1f5f9;
+            color: #334155;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .products-table th {
+            background: #1e3a8a;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .contact-bar {
+            background: #f1f5f9;
+            color: #334155;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
 </style>
-
 </head>
 
 <body>
 
-<div id="invoiceContent"></div>
+<div id="invoiceContent" class="invoice-wrapper"></div>
 
 <div class="buttons">
-    <button class="btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
-    <button class="btn-print" onclick="window.print()">🖨️ طباعة</button>
-    <button class="btn-new" onclick="newOrder()">🔄 طلب جديد</button>
+    <button class="btn-pdf" onclick="downloadPDF()">
+        📥 تحميل PDF
+    </button>
+    <button class="btn-print" onclick="window.print()">
+        🖨️ طباعة
+    </button>
+    <button class="btn-new" onclick="newOrder()">
+        🔄 طلب جديد
+    </button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
