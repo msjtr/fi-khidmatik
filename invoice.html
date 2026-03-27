@@ -537,7 +537,7 @@
     // ============================================
     // طباعة - استخدام الطباعة المدمجة
     // ============================================
-    async function printInvoice() {
+ async function printInvoice() {
     const element = document.getElementById('invoiceToPrint');
     if (!element) {
         alert('لا توجد فاتورة للطباعة');
@@ -552,8 +552,51 @@
         backgroundColor: "#ffffff"
     });
 
-    const imgData = canvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/jpeg", 1.0);
 
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let remainingHeight = imgHeight;
+    let position = 0;
+
+    const pages = [];
+
+    // تقسيم الصفحات
+    while (remainingHeight > 0) {
+        const pageCanvas = document.createElement('canvas');
+        const pageCtx = pageCanvas.getContext('2d');
+
+        const sliceHeight = Math.min(canvas.height, (pageHeight * canvas.width) / pageWidth);
+
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+
+        pageCtx.drawImage(
+            canvas,
+            0,
+            position,
+            canvas.width,
+            sliceHeight,
+            0,
+            0,
+            canvas.width,
+            sliceHeight
+        );
+
+        pages.push(pageCanvas.toDataURL("image/jpeg", 1.0));
+
+        position += sliceHeight;
+        remainingHeight -= pageHeight;
+    }
+
+    // فتح نافذة الطباعة
     const printWindow = window.open('', '_blank');
 
     printWindow.document.write(`
@@ -564,11 +607,14 @@
                 body {
                     margin: 0;
                     padding: 0;
-                    text-align: center;
                 }
                 img {
                     width: 100%;
-                    max-width: 794px;
+                    display: block;
+                    page-break-after: always;
+                }
+                img:last-child {
+                    page-break-after: auto;
                 }
                 @page {
                     size: A4;
@@ -577,7 +623,7 @@
             </style>
         </head>
         <body>
-            <img src="${imgData}" />
+            ${pages.map(p => `<img src="${p}" />`).join('')}
         </body>
         </html>
     `);
