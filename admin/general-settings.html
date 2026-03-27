@@ -1,1 +1,51 @@
-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الإعدادات العامة</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase.js"></script>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-bold mb-4">الإعدادات العامة</h2>
+        <div class="space-y-4">
+            <div><label>اسم الموقع:</label><input id="siteName" type="text" class="border rounded w-full p-2"></div>
+            <div><label>رمز العملة:</label><input id="currency" type="text" class="border rounded w-full p-2"></div>
+            <div><label>ختم المنصة (تذييل):</label><textarea id="platformStamp" rows="2" class="border rounded w-full p-2"></textarea></div>
+            <div><label>بريد الدعم:</label><input id="contactEmail" type="email" class="border rounded w-full p-2"></div>
+            <button onclick="saveGeneralSettings()" class="bg-blue-600 text-white px-4 py-2 rounded">حفظ الإعدادات</button>
+        </div>
+    </div>
+    <script>
+        async function loadGeneralSettings() {
+            const doc = await db.collection('settings').doc('general').get();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('siteName').value = data.siteName || '';
+                document.getElementById('currency').value = data.currency || '';
+                document.getElementById('platformStamp').value = data.platformStamp || '';
+                document.getElementById('contactEmail').value = data.contactEmail || '';
+            } else {
+                document.getElementById('siteName').value = 'متجرك';
+                document.getElementById('currency').value = 'ريال';
+                document.getElementById('platformStamp').value = 'جميع الحقوق محفوظة';
+                document.getElementById('contactEmail').value = 'info@shop.com';
+            }
+        }
+        window.saveGeneralSettings = async () => {
+            const settings = {
+                siteName: document.getElementById('siteName').value,
+                currency: document.getElementById('currency').value,
+                platformStamp: document.getElementById('platformStamp').value,
+                contactEmail: document.getElementById('contactEmail').value
+            };
+            await db.collection('settings').doc('general').set(settings);
+            alert('تم حفظ الإعدادات');
+        };
+        loadGeneralSettings();
+    </script>
+</body>
+</html>
