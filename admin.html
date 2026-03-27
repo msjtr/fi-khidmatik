@@ -2,205 +2,322 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>Admin Pro</title>
+<title>Admin Full Pro</title>
 
+<!-- Excel -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-body{margin:0;font-family:sans-serif;display:flex;background:#f1f5f9;}
-.sidebar{width:240px;background:#1e293b;color:white;height:100vh;padding:20px;}
-.sidebar a{display:block;padding:10px;margin:5px 0;cursor:pointer;}
-.sidebar a:hover{background:#334155;}
-.main{flex:1;padding:20px;}
-.card{background:white;padding:20px;border-radius:10px;}
-table{width:100%;border-collapse:collapse;}
-th{background:#3b82f6;color:white;}
-td,th{padding:10px;text-align:center;border-bottom:1px solid #eee;}
-img{width:60px;height:60px;border-radius:8px;object-fit:cover;}
+
+/* =======================
+🎨 تصميم عام
+======================= */
+body{
+  margin:0;
+  font-family:sans-serif;
+  display:flex;
+  background:#f1f5f9;
+}
+
+/* =======================
+📌 القائمة الجانبية
+======================= */
+.sidebar{
+  width:240px;
+  background:#1e293b;
+  color:white;
+  height:100vh;
+  padding:20px;
+}
+
+.sidebar h2{
+  margin-bottom:20px;
+}
+
+.sidebar a{
+  display:block;
+  padding:12px;
+  margin:6px 0;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.sidebar a:hover{
+  background:#334155;
+}
+
+/* =======================
+📌 المحتوى
+======================= */
+.main{
+  flex:1;
+  padding:25px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+
+/* =======================
+📊 جدول
+======================= */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th{
+  background:#3b82f6;
+  color:white;
+}
+
+td,th{
+  padding:10px;
+  border-bottom:1px solid #eee;
+  text-align:center;
+}
+
+img{
+  width:60px;
+  height:60px;
+  object-fit:cover;
+  border-radius:8px;
+}
+
+/* =======================
+🔘 أزرار
+======================= */
+.btn{
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.btn-danger{background:#ef4444;color:white;}
+.btn-primary{background:#3b82f6;color:white;}
+
 </style>
 </head>
 
 <body>
 
+<!-- =======================
+📌 القائمة
+======================= -->
 <div class="sidebar">
-<h2>⚙️ الإدارة</h2>
-<a onclick="loadProducts()">🛒 المنتجات</a>
+  <h2>⚙️ الإدارة</h2>
+
+  <a onclick="loadOrders()">📦 الطلبات</a>
+  <a onclick="loadProducts()">🛒 المنتجات</a>
+  <a onclick="loadCustomers()">👥 العملاء</a>
+  <a onclick="loadReports()">📊 التقارير</a>
 </div>
 
+<!-- =======================
+📌 المحتوى
+======================= -->
 <div class="main">
-<div class="card">
-<h3 id="title">🛒 المنتجات</h3>
-<div id="content"></div>
-</div>
+
+  <!-- الإحصائيات -->
+  <div class="card">
+    <h3>📊 الإحصائيات</h3>
+    <p id="stats">...</p>
+  </div>
+
+  <!-- المحتوى -->
+  <div class="card">
+    <h3 id="title">📦 الطلبات</h3>
+    <div id="content"></div>
+  </div>
+
 </div>
 
 <script type="module">
 
-// ================= Firebase =================
+/* =======================
+🔥 Firebase
+======================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getFirestore, collection, getDocs,
-addDoc, deleteDoc, doc, updateDoc
+  getFirestore, collection, getDocs,
+  addDoc, deleteDoc, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey:"YOUR_KEY",
-authDomain:"YOUR_DOMAIN",
-projectId:"YOUR_ID",
+  apiKey:"YOUR_KEY",
+  authDomain:"YOUR_DOMAIN",
+  projectId:"YOUR_ID",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ================= عرض المنتجات =================
-window.loadProducts = async () => {
+/* =======================
+📦 الطلبات
+======================= */
+window.loadOrders = async ()=>{
+  title.innerText="📦 الطلبات";
 
-const snap = await getDocs(collection(db,"products"));
+  const snap = await getDocs(collection(db,"orders"));
 
-let html = `
-<input placeholder="بحث..." oninput="search(this.value)">
-<br><br>
+  let total=0;
 
-<input type="file" onchange="importExcel(this.files[0])">
+  let html=`<table>
+  <tr><th>رقم</th><th>عميل</th><th>مبلغ</th></tr>`;
 
-<br><br>
+  snap.forEach(d=>{
+    const o=d.data();
+    total+=Number(o.total||0);
 
-<table>
-<tr>
-<th>صورة</th>
-<th>اسم</th>
-<th>كود</th>
-<th>سعر</th>
-<th>خصم</th>
-<th>مخزون</th>
-<th>إدارة</th>
-</tr>`;
+    html+=`
+    <tr>
+      <td>${o.orderNumber||'-'}</td>
+      <td>${o.customer||'-'}</td>
+      <td>${o.total||0}</td>
+    </tr>`;
+  });
 
-snap.forEach(d=>{
-const p = d.data();
+  html+="</table>";
 
-html += `
-<tr>
-<td><img src="${p.image}"></td>
-<td>${p.name}</td>
-<td>${p.code}</td>
-<td>
-${p.discount>0 
-? `<del>${p.price}</del> ${p.finalPrice}`
-: p.price}
-</td>
-<td>${p.discount||0}%</td>
-<td style="color:${p.stock<=5?'red':'black'}">${p.stock}</td>
-<td>
-<button onclick="edit('${d.id}')">✏️</button>
-<button onclick="del('${d.id}')">❌</button>
-</td>
-</tr>`;
-});
+  stats.innerText=`الطلبات: ${snap.size} | المبيعات: ${total}`;
 
-html += '</table>';
-content.innerHTML = html;
+  content.innerHTML=html;
 };
 
-// ================= Excel احترافي =================
+/* =======================
+🛒 المنتجات
+======================= */
+window.loadProducts = async ()=>{
+
+  title.innerText="🛒 المنتجات";
+
+  const snap = await getDocs(collection(db,"products"));
+
+  let html=`
+  <input placeholder="بحث..." oninput="search(this.value)">
+  <br><br>
+
+  <input type="file" onchange="importExcel(this.files[0])">
+  <br><br>
+
+  <table>
+  <tr>
+    <th>صورة</th>
+    <th>اسم</th>
+    <th>كود</th>
+    <th>سعر</th>
+    <th>خصم</th>
+    <th>مخزون</th>
+    <th>إدارة</th>
+  </tr>`;
+
+  snap.forEach(d=>{
+    const p=d.data();
+
+    html+=`
+    <tr>
+      <td><img src="${p.image}"></td>
+      <td>${p.name}</td>
+      <td>${p.code}</td>
+      <td>
+      ${p.discount>0
+        ? `<del>${p.price}</del> ${p.finalPrice}`
+        : p.price}
+      </td>
+      <td>${p.discount||0}%</td>
+      <td style="color:${p.stock<=5?'red':'black'}">${p.stock}</td>
+      <td>
+        <button onclick="edit('${d.id}')">✏️</button>
+        <button class="btn-danger" onclick="del('${d.id}')">❌</button>
+      </td>
+    </tr>`;
+  });
+
+  html+="</table>";
+
+  content.innerHTML=html;
+};
+
+/* =======================
+📥 Excel احترافي
+======================= */
 window.importExcel = function(file){
 
-const reader = new FileReader();
+const reader=new FileReader();
 
-reader.onload = function(e){
+reader.onload=function(e){
 
-const data = new Uint8Array(e.target.result);
-const workbook = XLSX.read(data,{type:'array'});
-const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+const data=new Uint8Array(e.target.result);
+const workbook=XLSX.read(data,{type:'array'});
+const json=XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-let valid=[], errors=[];
+window.previewData=json;
 
-json.forEach((row,i)=>{
-if(!row["اسم المنتج"] || !row["كود المنتج"]){
-errors.push(i+1);
-}else{
-valid.push(row);
-}
+let html="<h3>📋 معاينة</h3>";
+html+=`<button onclick="confirmImport()">استيراد</button><hr>`;
+
+json.forEach(r=>{
+html+=`<p>${r["اسم المنتج"]} - ${r["كود المنتج"]}</p>`;
 });
 
-window.previewData = valid;
-
-let html = `
-<h3>📋 معاينة</h3>
-<p>✅ صالح: ${valid.length}</p>
-<p>❌ أخطاء: ${errors.length}</p>
-
-<button onclick="confirmImport()">استيراد</button>
-<hr>
-`;
-
-valid.forEach(r=>{
-html += `<p>${r["اسم المنتج"]} - ${r["كود المنتج"]}</p>`;
-});
-
-content.innerHTML = html;
+content.innerHTML=html;
 };
 
 reader.readAsArrayBuffer(file);
 };
 
-// ================= تأكيد الاستيراد =================
+/* =======================
+📥 حفظ Excel
+======================= */
 window.confirmImport = async ()=>{
 
-let added=0, updated=0;
-
-const snap = await getDocs(collection(db,"products"));
+const snap=await getDocs(collection(db,"products"));
 let map={};
 
-snap.forEach(d=> map[d.data().code]={id:d.id});
+snap.forEach(d=>map[d.data().code]={id:d.id});
 
 for(let row of window.previewData){
 
-const price = Number(row["سعر المنتج"]||0);
-const discount = Number(row["تخفيض"]||0);
+const price=Number(row["سعر المنتج"]||0);
+const discount=Number(row["تخفيض"]||0);
 
-const finalPrice = discount>0
-? price - (price*discount/100)
+const finalPrice=discount>0
+? price-(price*discount/100)
 : price;
 
-const data = {
-name: row["اسم المنتج"],
-code: row["كود المنتج"],
-description: row["وصف المنتج"],
-stock: Number(row["الكميه"]),
+const data={
+name:row["اسم المنتج"],
+code:row["كود المنتج"],
+description:row["وصف المنتج"],
+stock:Number(row["الكميه"]),
 price,
 discount,
 finalPrice,
-image: row["صورة المنتج"],
-images:[
-row["صوره واحد"],
-row["صوره ثنين"],
-row["صوره ثلاثه"]
-].filter(i=>i)
+image:row["صورة المنتج"]
 };
 
 if(map[data.code]){
 await updateDoc(doc(db,"products",map[data.code].id),data);
-updated++;
 }else{
 await addDoc(collection(db,"products"),data);
-added++;
 }
 }
 
-content.innerHTML = `
-<h2>📊 التقرير</h2>
-<p>إضافة: ${added}</p>
-<p>تحديث: ${updated}</p>
-`;
-
+alert("تم الاستيراد");
+loadProducts();
 };
 
-// ================= تعديل =================
-window.edit = async (id)=>{
-const name = prompt("اسم");
-const price = prompt("سعر");
-const stock = prompt("كمية");
+/* =======================
+✏️ تعديل
+======================= */
+window.edit=async(id)=>{
+const name=prompt("اسم");
+const price=prompt("سعر");
+const stock=prompt("كمية");
 
 await updateDoc(doc(db,"products",id),{
 name,
@@ -211,22 +328,65 @@ stock:Number(stock)
 loadProducts();
 };
 
-// ================= حذف =================
-window.del = async (id)=>{
+/* =======================
+❌ حذف
+======================= */
+window.del=async(id)=>{
 await deleteDoc(doc(db,"products",id));
 loadProducts();
 };
 
-// ================= بحث =================
-window.search = (t)=>{
-document.querySelectorAll("table tr").forEach((r,i)=>{
-if(i===0)return;
-r.style.display = r.innerText.includes(t)?'':'none';
+/* =======================
+👥 العملاء
+======================= */
+window.loadCustomers=async()=>{
+title.innerText="👥 العملاء";
+
+const snap=await getDocs(collection(db,"orders"));
+
+let c={};
+
+snap.forEach(d=>{
+const o=d.data();
+if(!c[o.phone]) c[o.phone]={name:o.customer,count:0};
+c[o.phone].count++;
 });
+
+let html="<table><tr><th>اسم</th><th>جوال</th><th>طلبات</th></tr>";
+
+Object.keys(c).forEach(p=>{
+html+=`<tr><td>${c[p].name}</td><td>${p}</td><td>${c[p].count}</td></tr>`;
+});
+
+html+="</table>";
+
+content.innerHTML=html;
 };
 
-// ================= تشغيل =================
-loadProducts();
+/* =======================
+📊 التقارير
+======================= */
+window.loadReports=async()=>{
+title.innerText="📊 التقارير";
+
+const snap=await getDocs(collection(db,"orders"));
+
+let total=0;
+
+snap.forEach(d=>{
+total+=Number(d.data().total||0);
+});
+
+content.innerHTML=`
+إجمالي الطلبات: ${snap.size}<br>
+إجمالي المبيعات: ${total}
+`;
+};
+
+/* =======================
+🚀 تشغيل
+======================= */
+loadOrders();
 
 </script>
 
