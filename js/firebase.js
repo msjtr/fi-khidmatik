@@ -1,6 +1,7 @@
 // js/firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { 
     getFirestore, 
     collection, 
@@ -11,10 +12,11 @@ import {
     updateDoc,
     query,
     orderBy,
-    where
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    where,
+    limit
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// إعدادات Firebase (الخاصة بك)
+// إعدادات Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -30,31 +32,17 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-// تصدير العناصر الأساسية لاستخدامها في الملفات الأخرى
-export { db, collection, addDoc, doc, getDoc, getDocs, updateDoc, query, orderBy, where };
-
-import { 
-  getFirestore,
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  query,
-  orderBy,
-  limit
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+// التصدير (مرة واحدة فقط)
 export {
-  db,
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  query,
-  orderBy,
-  limit
+    db,
+    collection,
+    addDoc,
+    doc,
+    getDoc,
+    getDocs,
+    updateDoc,
+    query,
+    orderBy,
+    where,
+    limit
 };
