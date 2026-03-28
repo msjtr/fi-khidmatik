@@ -9,6 +9,9 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <style>
         body { background: #f1f5f9; font-family: 'Tahoma', system-ui; }
         .sidebar-item {
@@ -122,7 +125,7 @@
             max-height: 90vh;
             overflow-y: auto;
             padding: 1.5rem;
-            width: 800px;
+            width: 900px;
         }
         .image-preview {
             display: inline-block;
@@ -155,6 +158,15 @@
             align-items: center;
             border-bottom: 1px solid #e5e7eb;
             padding: 8px 0;
+        }
+        /* Quill editor RTL adjustments */
+        .ql-editor {
+            min-height: 150px;
+            direction: rtl;
+            text-align: right;
+        }
+        .ql-toolbar {
+            direction: ltr;
         }
     </style>
 </head>
@@ -285,7 +297,7 @@
         await db.collection('settings').doc(docId).set(data, { merge: true });
     }
 
-    // Excel import with advanced columns (same as before)
+    // Excel import with advanced columns
     function importProductsFromExcel(file, callback) {
         const reader = new FileReader();
         reader.onload = async function(e) {
@@ -383,9 +395,12 @@
         XLSX.writeFile(wb, 'قالب_استيراد_المنتجات.xlsx');
     };
 
-    // ---------- Modal for Product Edit / Add ----------
+    // ---------- Quill Editor Integration ----------
+    let currentQuill = null; // to store Quill instance in modal
+
+    // Product Modal with Quill
     let currentEditingProductId = null;
-    let productImagesBase64 = []; // array of base64 strings
+    let productImagesBase64 = [];
 
     function showProductModal(product = null) {
         currentEditingProductId = product ? product.id : null;
@@ -401,7 +416,7 @@
                         <div><label>اسم المنتج *</label><input type="text" id="prodName" value="${product ? product.name : ''}" required></div>
                         <div><label>كود المنتج</label><input type="text" id="prodCode" value="${product ? product.code || '' : ''}"></div>
                         <div><label>باركود المنتج</label><input type="text" id="prodBarcode" value="${product ? product.barcode || '' : ''}"></div>
-                        <div><label>الوصف</label><textarea id="prodDesc" rows="3">${product ? product.description || '' : ''}</textarea></div>
+                        <div><label>الوصف (محرر متقدم)</label><div id="descriptionEditor" style="min-height:150px;"></div></div>
                         <div class="grid grid-cols-2 gap-3">
                             <div><label>الكمية</label><input type="number" id="prodQuantity" value="${product ? product.quantity || 0 : 0}"></div>
                             <div><label>سعر التكلفة</label><input type="number" id="prodCost" value="${product ? product.costPrice || 0 : 0}"></div>
@@ -429,15 +444,41 @@
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
+        // Initialize Quill after modal is in DOM
+        const quill = new Quill('#descriptionEditor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'أدخل وصف المنتج...',
+            direction: 'rtl'
+        });
+        currentQuill = quill;
+        // Set initial content if product exists
+        if (product && product.description) {
+            quill.root.innerHTML = product.description;
+        } else {
+            quill.root.innerHTML = '';
+        }
+
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('prodName').value;
             if (!name) return alert('الاسم مطلوب');
+            const descriptionHtml = quill.root.innerHTML;
             const productData = {
                 name,
                 code: document.getElementById('prodCode').value,
                 barcode: document.getElementById('prodBarcode').value,
-                description: document.getElementById('prodDesc').value,
+                description: descriptionHtml,
                 quantity: parseFloat(document.getElementById('prodQuantity').value) || 0,
                 costPrice: parseFloat(document.getElementById('prodCost').value) || 0,
                 price: parseFloat(document.getElementById('prodPrice').value) || 0,
@@ -453,6 +494,7 @@
             closeModal();
             renderSection('products');
         });
+
         document.getElementById('productImages').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             for (let file of files) {
@@ -482,9 +524,40 @@
         }
     }
 
-    function closeModal() {
-        const modal = document.getElementById('productModal');
-        if (modal) modal.remove();
+    // Invoice Instructions with Quill
+    async function renderInvoiceInstructions(container) {
+        let invoiceDoc = await getSettingsDoc('invoiceInstructions');
+        let text = invoiceDoc?.text || 'شكراً لتسوقكم معنا.';
+        container.innerHTML = `
+            <div class="bg-white rounded-2xl shadow p-6">
+                <h2 class="text-2xl font-bold mb-4"><i class="fas fa-file-invoice-dollar ml-2"></i>تعليمات الفاتورة</h2>
+                <div id="invoiceEditor" style="min-height:200px; margin-bottom:1rem;"></div>
+                <button onclick="window.saveInvoiceInstructions()" class="btn-primary mt-4">حفظ التعليمات</button>
+            </div>
+        `;
+        // Initialize Quill after container is ready
+        const quill = new Quill('#invoiceEditor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'أدخل تعليمات الفاتورة...',
+            direction: 'rtl'
+        });
+        quill.root.innerHTML = text;
+        window.saveInvoiceInstructions = async () => {
+            const newText = quill.root.innerHTML;
+            await setSettingsDoc('invoiceInstructions', { text: newText });
+            alert('تم حفظ التعليمات');
+        };
     }
 
     // ---------- New Order Modal with Product Selection ----------
@@ -611,9 +684,8 @@
     }
 
     // ---------- باقي الأقسام (مختصرة لكن كاملة) ----------
-    // نعيد استخدام الأقسام السابقة ولكن مع تعديل زر إضافة طلب ليفتح المودال الجديد
-    // سأقوم بدمجها مع تعديل بسيط في renderOrders ليستخدم showNewOrderModal
     let currentSection = 'orders';
+
     async function renderSection(section) {
         const container = document.getElementById('page-content');
         if (!container) return;
@@ -634,7 +706,7 @@
         }
     }
 
-    // Orders section with new button
+    // Orders section
     async function renderOrders(container) {
         container.innerHTML = `<div class="loading-spinner"></div><div class="text-center">جاري تحميل الطلبات...</div>`;
         let orders = await loadOrders();
@@ -659,7 +731,7 @@
                             <tr><th class="p-3">رقم الطلب</th><th class="p-3">اسم العميل</th><th class="p-3">طريقة الدفع</th><th class="p-3">الحالة</th><th class="p-3">التاريخ</th><th class="p-3">الإجراءات</th></tr>
                         </thead>
                         <tbody>
-                            ${orders.length === 0 ? '<tr><td colspan="6" class="text-center p-6">لا توجد طلبات</td></tr>' : orders.map(order => `
+                            ${orders.length === 0 ? '发展<td colspan="6" class="text-center p-6">لا توجد طلبات</td>' : orders.map(order => `
                                 <tr class="border-b">
                                     <td class="p-3">${order.orderNumber || order.id.slice(-6)}</td>
                                     <td class="p-3">${order.customerName || '-'}</td>
@@ -692,7 +764,7 @@
         window.refundOrder = async (id) => { if (confirm('استرداد الطلب؟')) await updateOrderStatus(id, 'مسترجع') && renderSection('orders'); };
     }
 
-    // Customers (بسيطة)
+    // Customers
     async function renderCustomers(container) {
         container.innerHTML = `<div class="loading-spinner"></div><div class="text-center">جاري تحميل العملاء...</div>`;
         let customers = await loadCustomers();
@@ -705,8 +777,8 @@
                 <div class="overflow-x-auto">
                     <table class="min-w-full"><thead class="bg-gray-100"><tr><th class="p-3">الاسم</th><th class="p-3">الهاتف</th><th class="p-3">البريد</th><th class="p-3">العنوان</th><th class="p-3">إجراءات</th></tr></thead><tbody>
                         ${customers.length === 0 ? '<tr><td colspan="5" class="text-center p-6">لا يوجد عملاء</td></tr>' : customers.map(c => `
-                            <tr><td class="p-3">${c.name}</td><td class="p-3">${c.phone || '-'}</td><td class="p-3">${c.email || '-'}</td><td class="p-3">${c.address || '-'}</td>
-                            <td><button onclick="window.editCustomer('${c.id}')" class="text-blue-600 ml-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteCustomerItem('${c.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>
+                            <tr class="border-b"><td class="p-3">${c.name}</td><td class="p-3">${c.phone || '-'}</td><td class="p-3">${c.email || '-'}</td><td class="p-3">${c.address || '-'}</td>
+                            <td class="p-3"><button onclick="window.editCustomer('${c.id}')" class="text-blue-600 ml-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteCustomerItem('${c.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>
                         `).join('')}
                     </tbody></table>
                 </div>
@@ -772,7 +844,7 @@
         };
     }
 
-    // Inventory (same)
+    // Inventory
     async function renderInventory(container) {
         container.innerHTML = `<div class="loading-spinner"></div><div class="text-center">جاري تحميل المخزون...</div>`;
         let products = await loadProducts();
@@ -781,8 +853,8 @@
                 <h2 class="text-2xl font-bold mb-6"><i class="fas fa-warehouse ml-2"></i>المخزون</h2>
                 <div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-100"><tr><th class="p-3">المنتج</th><th class="p-3">الكمية الحالية</th><th class="p-3">تحديث الكمية</th></tr></thead><tbody>
                     ${products.length === 0 ? '<tr><td colspan="3" class="text-center p-6">لا توجد منتجات</td></tr>' : products.map(p => `
-                        <tr><td class="p-3">${p.name}</td><td class="p-3"><span class="font-bold ${p.quantity < 5 ? 'text-red-600' : 'text-green-600'}">${p.quantity || 0}</span></td>
-                        <td><div class="flex gap-2"><input type="number" id="qty-${p.id}" value="${p.quantity || 0}" class="border rounded p-2 w-24"><button onclick="window.updateQuantity('${p.id}')" class="btn-primary text-sm py-1">تحديث</button></div></td></tr>
+                        <tr class="border-b"><td class="p-3">${p.name}</td><td class="p-3"><span class="font-bold ${p.quantity < 5 ? 'text-red-600' : 'text-green-600'}">${p.quantity || 0}</span></td>
+                        <td class="p-3"><div class="flex gap-2"><input type="number" id="qty-${p.id}" value="${p.quantity || 0}" class="border rounded p-2 w-24"><button onclick="window.updateQuantity('${p.id}')" class="btn-primary text-sm py-1">تحديث</button></div></td></tr>
                     `).join('')}
                 </tbody></table></div>
             </div>
@@ -823,24 +895,6 @@
             methods.splice(idx, 1);
             await setSettingsDoc('paymentMethods', { methods });
             renderSection('payment-methods');
-        };
-    }
-
-    // Invoice instructions
-    async function renderInvoiceInstructions(container) {
-        let invoiceDoc = await getSettingsDoc('invoiceInstructions');
-        let text = invoiceDoc?.text || 'شكراً لتسوقكم معنا.';
-        container.innerHTML = `
-            <div class="bg-white rounded-2xl shadow p-6">
-                <h2 class="text-2xl font-bold mb-4"><i class="fas fa-file-invoice-dollar ml-2"></i>تعليمات الفاتورة</h2>
-                <textarea id="invoiceText" rows="6" class="w-full border rounded-lg p-3">${text}</textarea>
-                <button onclick="window.saveInvoiceInstructions()" class="btn-primary mt-4">حفظ التعليمات</button>
-            </div>
-        `;
-        window.saveInvoiceInstructions = async () => {
-            const newText = document.getElementById('invoiceText').value;
-            await setSettingsDoc('invoiceInstructions', { text: newText });
-            alert('تم حفظ التعليمات');
         };
     }
 
@@ -891,9 +945,15 @@
         });
     });
 
+    // Global close modal function
+    window.closeModal = () => {
+        const modal = document.getElementById('productModal') || document.getElementById('orderModal');
+        if (modal) modal.remove();
+        if (currentQuill) currentQuill = null;
+    };
     window.showProductModal = showProductModal;
     window.showNewOrderModal = showNewOrderModal;
-    window.closeModal = closeModal;
+
     renderSection('orders');
 </script>
 </body>
