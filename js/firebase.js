@@ -26,6 +26,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 🔥 مهم: اختبار الاتصال
+console.log("✅ Firebase Connected");
+
 // التصدير
 export {
     db,
