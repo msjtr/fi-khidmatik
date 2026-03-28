@@ -1,350 +1,83 @@
-/* admin.css - تنسيقات خاصة بلوحة التحكم (قائمة جانبية، أزرار، شعار) */
-
-/* ========== إعدادات عامة ========== */
-:root {
-    --primary: #2c3e8f;
-    --primary-dark: #1a2a6c;
-    --secondary: #f5a623;
-    --dark: #1e293b;
-    --light: #f8fafc;
-    --gray: #64748b;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Poppins', 'Tahoma', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
-    min-height: 100vh;
-}
-
-/* ========== القائمة الجانبية ========== */
-.sidebar {
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    backdrop-filter: blur(10px);
-    border-left: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: var(--shadow-lg);
-}
-
-.sidebar-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.sidebar-logo-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(44, 62, 143, 0.3);
-}
-
-.sidebar-logo-icon i {
-    font-size: 22px;
-    color: white;
-}
-
-.sidebar-logo h1 {
-    font-size: 1.35rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    letter-spacing: -0.5px;
-}
-
 .sidebar-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    margin: 4px 16px;
-    border-radius: 14px;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
     cursor: pointer;
-    transition: var(--transition);
-    color: var(--gray);
-    font-weight: 500;
-    position: relative;
-    overflow: hidden;
-}
-
-.sidebar-item::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: var(--primary);
-    border-radius: 3px;
-    transform: scaleY(0);
-    transition: transform 0.3s;
-}
-
-.sidebar-item:hover {
-    background: rgba(44, 62, 143, 0.08);
-    color: var(--primary);
-    transform: translateX(-3px);
-}
-
-.sidebar-active {
-    background: rgba(44, 62, 143, 0.12);
-    color: var(--primary);
-    font-weight: 600;
-}
-
-.sidebar-active::before {
-    transform: scaleY(1);
-}
-
-.sidebar-item i {
-    width: 24px;
-    font-size: 1.2rem;
-}
-
-/* ========== المحتوى الرئيسي ========== */
-.main-content {
-    background: var(--light);
-    padding: 24px;
-    border-radius: 32px 0 0 32px;
-    margin: 12px 12px 12px 0;
-    box-shadow: var(--shadow);
-}
-
-/* ========== الأزرار ========== */
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-    font-weight: 600;
-    padding: 10px 24px;
-    border-radius: 40px;
-    transition: var(--transition);
-    box-shadow: 0 4px 10px rgba(44, 62, 143, 0.3);
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(44, 62, 143, 0.4);
-}
-
-.btn-secondary {
-    background: white;
-    color: var(--gray);
-    border: 1px solid #e2e8f0;
-    font-weight: 500;
-    padding: 10px 20px;
-    border-radius: 40px;
-    transition: var(--transition);
-    cursor: pointer;
-}
-
-.btn-secondary:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-}
-
-.btn-danger {
-    background: #ef4444;
-    color: white;
-    font-weight: 500;
-    padding: 8px 18px;
-    border-radius: 40px;
-    transition: var(--transition);
-    cursor: pointer;
-    border: none;
-}
-
-.btn-danger:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-}
-
-/* ========== البطاقات ========== */
-.card {
-    background: white;
-    border-radius: 24px;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-    overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.card-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.card-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #1e293b, #334155);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-/* ========== الجداول ========== */
-.table-container {
-    overflow-x: auto;
-    border-radius: 16px;
-}
-
-.table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table th {
-    text-align: right;
-    padding: 16px;
-    background: #f8fafc;
-    font-weight: 600;
-    color: var(--dark);
-    border-bottom: 2px solid #e2e8f0;
-}
-
-.table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    color: var(--gray);
-}
-
-.table tr:hover {
-    background: #fef9e8;
-}
-
-/* ========== المودال ========== */
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 32px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 24px;
-    width: 900px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* ========== صور المنتجات ========== */
-.product-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 16px;
-    transition: var(--transition);
-}
-
-.product-card {
-    border: 1px solid #eef2ff;
-    border-radius: 24px;
-    overflow: hidden;
-    transition: var(--transition);
-    background: white;
-}
-
-.product-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-lg);
-    border-color: rgba(44, 62, 143, 0.2);
-}
-
-/* ========== إضافات ========== */
-.badge-status {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    border-radius: 40px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    gap: 6px;
-}
-
-.status-paid {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-unpaid {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.status-refunded {
-    background: #ffedd5;
-    color: #9a3412;
-}
-
-.status-cancelled {
-    background: #f3f4f6;
+    transition: all 0.2s ease;
     color: #374151;
 }
-
-/* شريط التمرير */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+.sidebar-item:hover {
+    background-color: #f3f4f6;
 }
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+.sidebar-active {
+    background-color: #eff6ff;
+    color: #1e40af;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
-::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
+iframe {
+    width: 100%;
+    height: calc(100vh - 2rem);
+    border: none;
+    background: #f9fafb;
+    border-radius: 0.75rem;
 }
-::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+.btn-primary {
+    background: #2563eb;
+    color: white;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+}
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+.btn-danger {
+    background: #dc2626;
+    color: white;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+.btn-danger:hover {
+    background: #b91c1c;
+}
+.btn-success {
+    background: #16a34a;
+    color: white;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+.btn-success:hover {
+    background: #15803d;
+}
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+.btn-secondary:hover {
+    background: #4b5563;
+}
+input, select, textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    outline: none;
+    width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+    ring: 2px solid #3b82f6;
+    border-color: #3b82f6;
 }
