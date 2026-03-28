@@ -1,1 +1,345 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الطلبات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script type="module">
+        import { loadOrders, loadProducts, addOrder, updateOrder, deleteOrder, getSettings } from '../js/common.js';
+        
+        let orders = [];
+        let products = [];
+        let currentOrderId = null;
+        let cartItems = [];
 
+        async function init() {
+            await loadData();
+            renderOrders();
+        }
+
+        async function loadData() {
+            orders = await loadOrders();
+            products = await loadProducts();
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('orders-container');
+            if (!container) return;
+            const getStatusClass = (status) => {
+                const map = {
+                    'مدفوع': 'bg-green-100 text-green-700',
+                    'غير مدفوع': 'bg-red-100 text-red-700',
+                    'مسترجع': 'bg-orange-100 text-orange-700',
+                    'ملغي': 'bg-gray-100 text-gray-700'
+                };
+                return map[status] || 'bg-gray-100';
+            };
+            container.innerHTML = `
+                <div class="bg-white rounded-2xl shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold"><i class="fas fa-truck-fast ml-2"></i>الطلبات</h2>
+                        <button onclick="window.showOrderModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"><i class="fas fa-plus ml-1"></i>طلب جديد</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-3 text-right">رقم الطلب</th>
+                                    <th class="p-3 text-right">العميل</th>
+                                    <th class="p-3 text-right">طريقة الدفع</th>
+                                    <th class="p-3 text-right">الحالة</th>
+                                    <th class="p-3 text-right">التاريخ</th>
+                                    <th class="p-3 text-right">الإجراءات</th>
+                                 </tr>
+                            </thead>
+                            <tbody>
+                                ${orders.length === 0 ? '<tr><td colspan="6" class="text-center p-6">لا توجد طلبات</td></tr>' : orders.map(order => `
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="p-3 font-mono">${order.orderNumber || order.id.slice(-6)}</td>
+                                        <td class="p-3">
+                                            <div class="font-semibold">${order.customerName || '-'}</div>
+                                            <div class="text-xs text-gray-500">${order.customerPhone || ''}</div>
+                                        </td>
+                                        <td class="p-3">${order.paymentMethod || '-'} ${order.paymentApproved ? '<span class="text-green-600 text-xs">✓</span>' : ''}</td>
+                                        <td class="p-3"><span class="px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}">${order.status || 'غير مدفوع'}</span></td>
+                                        <td class="p-3">${order.date || '-'}</td>
+                                        <td class="p-3">
+                                            <button onclick="window.editOrder('${order.id}')" class="text-blue-600 hover:text-blue-800 ml-2" title="تعديل"><i class="fas fa-edit"></i></button>
+                                            <button onclick="window.deleteOrderItem('${order.id}')" class="text-red-600 hover:text-red-800 ml-2" title="حذف"><i class="fas fa-trash"></i></button>
+                                            <button onclick="window.refundOrder('${order.id}')" class="text-orange-600 hover:text-orange-800 ml-2" title="استرداد"><i class="fas fa-undo-alt"></i></button>
+                                            <button onclick="window.exportInvoice('${order.id}')" class="text-green-600 hover:text-green-800" title="تصدير فاتورة"><i class="fas fa-file-pdf"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Modal for creating/editing order
+        async function showOrderModal(order = null) {
+            currentOrderId = order ? order.id : null;
+            cartItems = order ? (order.items || []) : [];
+            const paymentMethods = (await getSettings('paymentMethods'))?.methods || ['نقدي', 'بطاقة ائتمان', 'تحويل بنكي', 'تمارا', 'تابي'];
+            const modalHtml = `
+                <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="backdrop-filter: blur(2px);">
+                    <div class="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <h3 class="text-xl font-bold mb-4">${order ? 'تعديل الطلب' : 'إنشاء طلب جديد'}</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">بيانات العميل</h4>
+                                <input type="text" id="customerName" placeholder="اسم العميل *" class="w-full border rounded p-2 mb-2" value="${order ? order.customerName || '' : ''}">
+                                <input type="text" id="customerPhone" placeholder="رقم الهاتف" class="w-full border rounded p-2 mb-2" value="${order ? order.customerPhone || '' : ''}">
+                                <input type="email" id="customerEmail" placeholder="البريد الإلكتروني" class="w-full border rounded p-2 mb-2" value="${order ? order.customerEmail || '' : ''}">
+                                <input type="text" id="nationalAddress" placeholder="العنوان الوطني" class="w-full border rounded p-2 mb-2" value="${order ? order.nationalAddress || '' : ''}">
+                                <input type="text" id="shippingAddress" placeholder="عنوان الشحن" class="w-full border rounded p-2 mb-2" value="${order ? order.shippingAddress || '' : ''}">
+                                <h4 class="font-semibold mb-2 mt-3">طريقة الدفع</h4>
+                                <select id="paymentMethod" class="w-full border rounded p-2 mb-2">
+                                    ${paymentMethods.map(m => `<option value="${m}" ${order && order.paymentMethod === m ? 'selected' : ''}>${m}</option>`).join('')}
+                                </select>
+                                <div id="paymentApprovalDiv" style="display: ${order && (order.paymentMethod === 'تمارا' || order.paymentMethod === 'تابي') ? 'block' : 'none'}" class="mb-2">
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" id="paymentApproved" ${order && order.paymentApproved ? 'checked' : ''}> 
+                                        <span>تمت الموافقة على الدفع</span>
+                                    </label>
+                                </div>
+                                <h4 class="font-semibold mb-2 mt-3">إضافة منتج إلى السلة</h4>
+                                <select id="productSelect" class="w-full border rounded p-2 mb-2">
+                                    <option value="">-- اختر منتج --</option>
+                                    ${products.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} - ${p.price} ريال</option>`).join('')}
+                                </select>
+                                <div class="flex gap-2">
+                                    <input type="number" id="productQty" placeholder="الكمية" value="1" class="w-24 border rounded p-2">
+                                    <button onclick="addToCart()" class="bg-blue-600 text-white px-4 py-2 rounded">إضافة إلى السلة</button>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-2">السلة</h4>
+                                <div id="cartItemsList" class="max-h-64 overflow-y-auto border rounded p-2 bg-gray-50"></div>
+                                <div class="mt-2 font-bold">المجموع: <span id="cartTotal">0</span> ريال</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2 mt-4">
+                            <button onclick="closeModal()" class="bg-gray-500 text-white px-4 py-2 rounded">إلغاء</button>
+                            <button onclick="saveOrder()" class="bg-blue-600 text-white px-4 py-2 rounded">حفظ الطلب</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            updateCartDisplay();
+            
+            document.getElementById('paymentMethod').addEventListener('change', (e) => {
+                const val = e.target.value;
+                const div = document.getElementById('paymentApprovalDiv');
+                div.style.display = (val === 'تمارا' || val === 'تابي') ? 'block' : 'none';
+            });
+            
+            window.addToCart = () => {
+                const select = document.getElementById('productSelect');
+                const productId = select.value;
+                if (!productId) return;
+                const product = products.find(p => p.id === productId);
+                const qty = parseInt(document.getElementById('productQty').value) || 1;
+                const existing = cartItems.find(item => item.productId === productId);
+                if (existing) {
+                    existing.quantity += qty;
+                } else {
+                    cartItems.push({
+                        productId: product.id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: qty
+                    });
+                }
+                updateCartDisplay();
+                document.getElementById('productQty').value = '1';
+                select.value = '';
+            };
+            
+            window.updateCartDisplay = () => {
+                const container = document.getElementById('cartItemsList');
+                let total = 0;
+                container.innerHTML = cartItems.map((item, idx) => {
+                    const itemTotal = item.price * item.quantity;
+                    total += itemTotal;
+                    return `
+                        <div class="flex justify-between items-center border-b py-2">
+                            <span>${item.name} x ${item.quantity}</span>
+                            <span>${itemTotal} ريال</span>
+                            <div>
+                                <button onclick="adjustCartItem(${idx}, -1)" class="text-blue-600 px-1">-</button>
+                                <button onclick="adjustCartItem(${idx}, 1)" class="text-blue-600 px-1">+</button>
+                                <button onclick="removeCartItem(${idx})" class="text-red-600 ml-2"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                document.getElementById('cartTotal').innerText = total;
+            };
+            
+            window.adjustCartItem = (idx, delta) => {
+                if (cartItems[idx].quantity + delta > 0) {
+                    cartItems[idx].quantity += delta;
+                } else {
+                    cartItems.splice(idx, 1);
+                }
+                updateCartDisplay();
+            };
+            
+            window.removeCartItem = (idx) => {
+                cartItems.splice(idx, 1);
+                updateCartDisplay();
+            };
+            
+            window.saveOrder = async () => {
+                const customerName = document.getElementById('customerName').value.trim();
+                if (!customerName) return alert('اسم العميل مطلوب');
+                const customerPhone = document.getElementById('customerPhone').value;
+                const customerEmail = document.getElementById('customerEmail').value;
+                const nationalAddress = document.getElementById('nationalAddress').value;
+                const shippingAddress = document.getElementById('shippingAddress').value;
+                const paymentMethod = document.getElementById('paymentMethod').value;
+                const paymentApproved = document.getElementById('paymentApproved')?.checked || false;
+                if (cartItems.length === 0) return alert('أضف منتجات إلى السلة');
+                const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const orderData = {
+                    customerName,
+                    customerPhone,
+                    customerEmail,
+                    nationalAddress,
+                    shippingAddress,
+                    paymentMethod,
+                    paymentApproved,
+                    status: 'غير مدفوع',
+                    date: new Date().toISOString().slice(0,10),
+                    items: cartItems,
+                    totalAmount
+                };
+                if (currentOrderId) {
+                    await updateOrder(currentOrderId, orderData);
+                } else {
+                    orderData.orderNumber = `ORD-${Date.now()}`;
+                    await addOrder(orderData);
+                }
+                closeModal();
+                await loadData();
+                renderOrders();
+            };
+        }
+        
+        async function editOrder(id) {
+            const order = orders.find(o => o.id === id);
+            if (order) await showOrderModal(order);
+        }
+        
+        async function deleteOrderItem(id) {
+            if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
+                await deleteOrder(id);
+                await loadData();
+                renderOrders();
+            }
+        }
+        
+        async function refundOrder(id) {
+            if (confirm('هل تريد استرداد هذا الطلب؟')) {
+                await updateOrder(id, { status: 'مسترجع' });
+                await loadData();
+                renderOrders();
+            }
+        }
+        
+        async function exportInvoice(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            const general = await getSettings('general');
+            const platformStamp = general?.platformStamp || 'جميع الحقوق محفوظة';
+            const invoiceInstructions = (await getSettings('invoiceInstructions'))?.text || 'شكراً لتسوقكم معنا.';
+            const invoiceHtml = `
+                <div style="padding:20px; font-family:Tahoma; direction:rtl;">
+                    <div style="border-bottom:2px solid #2563eb; margin-bottom:20px; padding-bottom:10px;">
+                        <h1 style="font-size:24px; margin:0;">فاتورة شراء</h1>
+                        <p style="margin:5px 0;">رقم الطلب: ${order.orderNumber}</p>
+                        <p style="margin:5px 0;">التاريخ: ${order.date}</p>
+                    </div>
+                    <div style="margin-bottom:20px;">
+                        <h3 style="margin-bottom:10px;">بيانات العميل</h3>
+                        <p><strong>الاسم:</strong> ${order.customerName}</p>
+                        <p><strong>الهاتف:</strong> ${order.customerPhone}</p>
+                        <p><strong>البريد الإلكتروني:</strong> ${order.customerEmail || '-'}</p>
+                        <p><strong>العنوان الوطني:</strong> ${order.nationalAddress || '-'}</p>
+                        <p><strong>عنوان الشحن:</strong> ${order.shippingAddress || '-'}</p>
+                        <p><strong>طريقة الدفع:</strong> ${order.paymentMethod} ${order.paymentApproved ? '(تمت الموافقة)' : ''}</p>
+                        <p><strong>حالة الطلب:</strong> ${order.status}</p>
+                    </div>
+                    <div style="margin-bottom:20px;">
+                        <h3 style="margin-bottom:10px;">المنتجات</h3>
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#f3f4f6;">
+                                    <th style="padding:8px; border:1px solid #ddd; text-align:right;">المنتج</th>
+                                    <th style="padding:8px; border:1px solid #ddd; text-align:right;">الكمية</th>
+                                    <th style="padding:8px; border:1px solid #ddd; text-align:right;">السعر</th>
+                                    <th style="padding:8px; border:1px solid #ddd; text-align:right;">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.items.map(item => `
+                                    <tr>
+                                        <td style="padding:8px; border:1px solid #ddd;">${item.name}</td>
+                                        <td style="padding:8px; border:1px solid #ddd;">${item.quantity}</td>
+                                        <td style="padding:8px; border:1px solid #ddd;">${item.price} ريال</td>
+                                        <td style="padding:8px; border:1px solid #ddd;">${item.price * item.quantity} ريال</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <p style="font-weight:bold; margin-top:10px;">الإجمالي: ${order.totalAmount} ريال</p>
+                    </div>
+                    <div style="margin-top:30px; border-top:1px solid #ccc; padding-top:10px; text-align:center;">
+                        <div>${invoiceInstructions}</div>
+                        <div style="margin-top:5px;">${platformStamp}</div>
+                    </div>
+                </div>
+            `;
+            const element = document.createElement('div');
+            element.innerHTML = invoiceHtml;
+            document.body.appendChild(element);
+            html2pdf().from(element).set({
+                margin: 0.5,
+                filename: `invoice_${order.orderNumber}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }).save().then(() => {
+                document.body.removeChild(element);
+            });
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('orderModal');
+            if (modal) modal.remove();
+        }
+        
+        window.showOrderModal = showOrderModal;
+        window.editOrder = editOrder;
+        window.deleteOrderItem = deleteOrderItem;
+        window.refundOrder = refundOrder;
+        window.exportInvoice = exportInvoice;
+        window.closeModal = closeModal;
+        
+        init();
+    </script>
+    <style>
+        body { background: #f1f5f9; font-family: 'Tahoma', system-ui; margin: 0; padding: 1rem; }
+        .badge-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div id="orders-container"></div>
+</body>
+</html>
