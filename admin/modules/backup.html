@@ -1,34 +1,233 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>النسخ الاحتياطي - متجرك الذكي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6">
+
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">💾 النسخ الاحتياطي</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- تصدير البيانات -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <span class="text-3xl ml-3">📤</span>
+                <h2 class="text-xl font-semibold">تصدير البيانات</h2>
+            </div>
+            <p class="text-gray-600 mb-4">قم بتصدير جميع بيانات المتجر (العملاء، المنتجات، الطلبات) إلى ملف JSON.</p>
+            <div class="space-y-2 mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" id="exportCustomers" checked class="ml-2">
+                    <span>العملاء</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="exportProducts" checked class="ml-2">
+                    <span>المنتجات</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="exportOrders" checked class="ml-2">
+                    <span>الطلبات</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="exportSettings" checked class="ml-2">
+                    <span>الإعدادات</span>
+                </label>
+            </div>
+            <button id="exportBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                تصدير البيانات
+            </button>
+        </div>
+
+        <!-- استيراد البيانات -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <span class="text-3xl ml-3">📥</span>
+                <h2 class="text-xl font-semibold">استيراد البيانات</h2>
+            </div>
+            <p class="text-gray-600 mb-4">استيراد بيانات من ملف JSON تم تصديره سابقاً.</p>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">اختر ملف JSON</label>
+                <input type="file" id="importFile" accept=".json" class="w-full border rounded-lg px-3 py-2">
+            </div>
+            <div class="space-y-2 mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" id="importCustomers" checked class="ml-2">
+                    <span>استيراد العملاء</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="importProducts" checked class="ml-2">
+                    <span>استيراد المنتجات</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="importOrders" checked class="ml-2">
+                    <span>استيراد الطلبات</span>
+                </label>
+            </div>
+            <button id="importBtn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                استيراد البيانات
+            </button>
+        </div>
+    </div>
+
+    <!-- سجل العمليات -->
+    <div class="mt-6 bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-4">📋 سجل العمليات</h2>
+        <div id="logContainer" class="bg-gray-50 rounded-lg p-4 h-48 overflow-y-auto font-mono text-sm">
+            <div class="text-gray-500">جاهز للتصدير أو الاستيراد...</div>
+        </div>
+    </div>
+</div>
 
 <script type="module">
-import {exportAllData,importAllData} from '../../js/common.js';
+    import { 
+        loadCustomers, addCustomer, deleteCustomer,
+        loadProducts, addProduct, deleteProduct,
+        loadOrders, addOrder, deleteOrder,
+        getSettings, setSettings
+    } from '../../js/common.js';
 
-window.exportData=async()=>{
-const data=await exportAllData();
-const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-const a=document.createElement('a');
-a.href=URL.createObjectURL(blob);
-a.download='backup.json';
-a.click();
-};
+    const logContainer = document.getElementById('logContainer');
 
-window.importData=(i)=>{
-const r=new FileReader();
-r.onload=async e=>{
-await importAllData(JSON.parse(e.target.result));
-alert('تم الاستيراد');
-};
-r.readAsText(i.files[0]);
-};
+    function addLog(message, type = 'info') {
+        const colors = {
+            info: 'text-blue-600',
+            success: 'text-green-600',
+            error: 'text-red-600',
+            warning: 'text-orange-600'
+        };
+        const time = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.className = `${colors[type]} mb-1`;
+        logEntry.innerHTML = `[${time}] ${message}`;
+        logContainer.appendChild(logEntry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    async function exportData() {
+        const data = {};
+        
+        addLog('بدء عملية التصدير...', 'info');
+        
+        try {
+            if (document.getElementById('exportCustomers').checked) {
+                data.customers = await loadCustomers();
+                addLog(`✅ تم تصدير ${data.customers.length} عميل`, 'success');
+            }
+            
+            if (document.getElementById('exportProducts').checked) {
+                data.products = await loadProducts();
+                addLog(`✅ تم تصدير ${data.products.length} منتج`, 'success');
+            }
+            
+            if (document.getElementById('exportOrders').checked) {
+                data.orders = await loadOrders();
+                addLog(`✅ تم تصدير ${data.orders.length} طلب`, 'success');
+            }
+            
+            if (document.getElementById('exportSettings').checked) {
+                data.settings = await getSettings('general_settings');
+                addLog(`✅ تم تصدير الإعدادات`, 'success');
+            }
+            
+            data.exportDate = new Date().toISOString();
+            
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            addLog(`✅ اكتمل التصدير - تم حفظ ${Object.keys(data).length} قسم`, 'success');
+        } catch (err) {
+            addLog(`❌ خطأ في التصدير: ${err.message}`, 'error');
+            console.error(err);
+        }
+    }
+
+    async function importData() {
+        const file = document.getElementById('importFile').files[0];
+        if (!file) {
+            addLog('❌ الرجاء اختيار ملف JSON أولاً', 'error');
+            return;
+        }
+        
+        addLog('بدء عملية الاستيراد...', 'info');
+        
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            
+            // تأكيد الاستيراد
+            if (!confirm(`هل أنت متأكد من استيراد البيانات؟\nسيتم حذف البيانات الحالية واستبدالها.`)) {
+                addLog('❌ تم إلغاء الاستيراد', 'warning');
+                return;
+            }
+            
+            // استيراد العملاء
+            if (document.getElementById('importCustomers').checked && data.customers) {
+                // حذف العملاء الحاليين
+                const currentCustomers = await loadCustomers();
+                for (const c of currentCustomers) {
+                    await deleteCustomer(c.id);
+                }
+                addLog(`🗑️ تم حذف ${currentCustomers.length} عميل سابق`, 'info');
+                
+                // إضافة العملاء الجدد
+                for (const c of data.customers) {
+                    await addCustomer(c);
+                }
+                addLog(`✅ تم استيراد ${data.customers.length} عميل`, 'success');
+            }
+            
+            // استيراد المنتجات
+            if (document.getElementById('importProducts').checked && data.products) {
+                const currentProducts = await loadProducts();
+                for (const p of currentProducts) {
+                    await deleteProduct(p.id);
+                }
+                addLog(`🗑️ تم حذف ${currentProducts.length} منتج سابق`, 'info');
+                
+                for (const p of data.products) {
+                    await addProduct(p);
+                }
+                addLog(`✅ تم استيراد ${data.products.length} منتج`, 'success');
+            }
+            
+            // استيراد الطلبات
+            if (document.getElementById('importOrders').checked && data.orders) {
+                const currentOrders = await loadOrders();
+                for (const o of currentOrders) {
+                    await deleteOrder(o.id);
+                }
+                addLog(`🗑️ تم حذف ${currentOrders.length} طلب سابق`, 'info');
+                
+                for (const o of data.orders) {
+                    await addOrder(o);
+                }
+                addLog(`✅ تم استيراد ${data.orders.length} طلب`, 'success');
+            }
+            
+            addLog(`✅ اكتمل الاستيراد بنجاح`, 'success');
+            alert('تم استيراد البيانات بنجاح');
+            
+            // إعادة تحميل الصفحة
+            setTimeout(() => location.reload(), 1000);
+            
+        } catch (err) {
+            addLog(`❌ خطأ في الاستيراد: ${err.message}`, 'error');
+            console.error(err);
+        }
+    }
+
+    document.getElementById('exportBtn').onclick = exportData;
+    document.getElementById('importBtn').onclick = importData;
 </script>
-</head>
-
-<body class="p-6 bg-gray-100">
-<button onclick="exportData()" class="bg-green-600 text-white p-2">تصدير</button>
-<input type="file" onchange="importData(this)">
 </body>
 </html>
