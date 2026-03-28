@@ -8,7 +8,8 @@ import {
     getDocs,
     updateDoc,
     deleteDoc,
-    setDoc
+    setDoc,
+    deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // إعدادات Firebase
@@ -43,27 +44,23 @@ export const loadProducts = () => getCollection('products');
 export const addProduct = (data) =>
     addDoc(collection(db, 'products'), data);
 
-export const updateProduct = (id, data) =>   // ✅ هذه الدالة المفقودة
-    updateDoc(doc(db, 'products', id), data);
-
 export const deleteProduct = (id) =>
     deleteDoc(doc(db, 'products', id));
+
+export const updateProduct = (id, data) =>
+    updateDoc(doc(db, 'products', id), data);
+
+export const updateProductStock = (id, newStock) =>
+    updateDoc(doc(db, 'products', id), { stock: newStock });
 
 // ===================== العملاء =====================
 export const loadCustomers = () => getCollection('customers');
 
 export const addCustomer = (data) =>
-    addDoc(collection(db, 'customers'), {
-        ...data,
-        createdAt: data.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    });
+    addDoc(collection(db, 'customers'), data);
 
 export const updateCustomer = (id, data) =>
-    updateDoc(doc(db, 'customers', id), {
-        ...data,
-        updatedAt: new Date().toISOString()
-    });
+    updateDoc(doc(db, 'customers', id), data);
 
 export const deleteCustomer = (id) =>
     deleteDoc(doc(db, 'customers', id));
@@ -79,27 +76,37 @@ export const addOrder = (data) =>
     });
 
 export const updateOrder = (id, data) =>
-    updateDoc(doc(db, 'orders', id), data);
+    updateDoc(doc(db, 'orders', id), {
+        ...data,
+        updatedAt: new Date().toISOString()
+    });
 
 export const deleteOrder = (id) =>
     deleteDoc(doc(db, 'orders', id));
 
-// ===================== جلب الطلبات مع بيانات العميل =====================
-export const getOrdersWithCustomers = async () => {
+// جلب الطلبات مع تفاصيل العملاء والمنتجات
+export const getOrdersWithDetails = async () => {
     const orders = await getCollection('orders');
-    const customers = await loadCustomers();
+    const customers = await getCollection('customers');
+    const products = await getCollection('products');
+    
     const customersMap = {};
     customers.forEach(c => {
         customersMap[c.id] = c;
     });
-
+    
+    const productsMap = {};
+    products.forEach(p => {
+        productsMap[p.id] = p;
+    });
+    
     return orders.map(order => ({
         ...order,
-        customer: customersMap[order.customerId] || { 
-            name: order.customer || 'غير معروف',
-            phone: '',
-            email: ''
-        }
+        customer: customersMap[order.customerId] || { name: 'غير معروف' },
+        items: order.items?.map(item => ({
+            ...item,
+            productDetails: productsMap[item.productId] || null
+        })) || []
     }));
 };
 
@@ -122,5 +129,6 @@ export {
     getDocs,
     updateDoc,
     deleteDoc,
-    setDoc
+    setDoc,
+    deleteField
 };
