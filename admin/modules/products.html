@@ -1,251 +1,100 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>المنتجات</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <script type="module">
-        import { loadProducts, addProduct, updateProduct, deleteProduct, importProductsFromExcel } from '../js/common.js';
-        
-        let products = [];
-        let currentProductId = null;
-        let productImages = [];
-        let quillEditor = null;
+<meta charset="UTF-8">
+<title>المنتجات</title>
 
-        async function init() {
-            await loadData();
-            renderProducts();
-        }
+<script src="https://cdn.tailwindcss.com"></script>
 
-        async function loadData() {
-            products = await loadProducts();
-        }
-
-        function renderProducts() {
-            const container = document.getElementById('products-container');
-            if (!container) return;
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow p-6">
-                    <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
-                        <h2 class="text-2xl font-bold"><i class="fas fa-boxes ml-2"></i>المنتجات</h2>
-                        <div class="flex gap-2">
-                            <button onclick="window.showProductModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"><i class="fas fa-plus ml-1"></i>إضافة منتج</button>
-                            <button onclick="window.downloadProductTemplate()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"><i class="fas fa-download ml-1"></i>تحميل قالب Excel</button>
-                            <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="window.handleExcelUpload(this)">
-                            <button onclick="document.getElementById('excelFile').click()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"><i class="fas fa-file-excel ml-1"></i>رفع Excel</button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                        ${products.length === 0 ? '<div class="col-span-full text-center p-8 text-gray-500">لا توجد منتجات</div>' : products.map(p => `
-                            <div class="border rounded-lg p-4 shadow-sm hover:shadow-md transition">
-                                <img src="${p.imageUrl || '/images/default-product.png'}" class="w-full h-40 object-cover rounded mb-3" onerror="this.src='/images/default-product.png'">
-                                <h3 class="font-bold text-lg">${p.name}</h3>
-                                <p class="text-blue-600 font-bold">${p.price} ريال</p>
-                                <p class="text-gray-600 text-sm">الكمية: ${p.quantity || 0}</p>
-                                <div class="flex justify-between mt-3 pt-2 border-t">
-                                    <button onclick="window.editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit ml-1"></i>تعديل</button>
-                                    <button onclick="window.deleteProductItem('${p.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash ml-1"></i>حذف</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function showProductModal(product = null) {
-            currentProductId = product ? product.id : null;
-            productImages = product ? (product.images || []) : [];
-            const modalHtml = `
-                <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="backdrop-filter: blur(2px);">
-                    <div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <h3 class="text-xl font-bold mb-4">${product ? 'تعديل المنتج' : 'إضافة منتج جديد'}</h3>
-                        <form id="productForm" class="space-y-3">
-                            <div><label class="block font-semibold mb-1">اسم المنتج *</label><input type="text" id="prodName" class="w-full border rounded p-2" value="${product ? product.name : ''}" required></div>
-                            <div><label class="block font-semibold mb-1">كود المنتج</label><input type="text" id="prodCode" class="w-full border rounded p-2" value="${product ? product.code || '' : ''}"></div>
-                            <div><label class="block font-semibold mb-1">باركود المنتج</label><input type="text" id="prodBarcode" class="w-full border rounded p-2" value="${product ? product.barcode || '' : ''}"></div>
-                            <div><label class="block font-semibold mb-1">الوصف (محرر متقدم)</label><div id="descriptionEditor" style="min-height:150px;"></div></div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div><label class="block font-semibold mb-1">الكمية</label><input type="number" id="prodQuantity" class="w-full border rounded p-2" value="${product ? product.quantity || 0 : 0}"></div>
-                                <div><label class="block font-semibold mb-1">سعر التكلفة</label><input type="number" id="prodCost" class="w-full border rounded p-2" value="${product ? product.costPrice || 0 : 0}"></div>
-                                <div><label class="block font-semibold mb-1">سعر البيع</label><input type="number" id="prodPrice" class="w-full border rounded p-2" value="${product ? product.price || 0 : 0}"></div>
-                                <div><label class="block font-semibold mb-1">سعر التخفيض</label><input type="number" id="prodDiscount" class="w-full border rounded p-2" value="${product ? product.discountPrice || 0 : 0}"></div>
-                            </div>
-                            <div>
-                                <label class="block font-semibold mb-1">الصور (يمكن رفع عدة صور)</label>
-                                <input type="file" id="productImages" multiple accept="image/*" class="w-full border rounded p-2">
-                                <div id="imagePreviewContainer" class="flex flex-wrap gap-2 mt-2"></div>
-                            </div>
-                            <div class="flex justify-end gap-2 pt-3">
-                                <button type="button" onclick="window.closeModal()" class="bg-gray-500 text-white px-4 py-2 rounded">إلغاء</button>
-                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">حفظ</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            updateImagePreview();
-            
-            // Initialize Quill
-            quillEditor = new Quill('#descriptionEditor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'color': [] }, { 'background': [] }],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['link', 'image', 'video'],
-                        ['clean']
-                    ]
-                },
-                placeholder: 'أدخل وصف المنتج...',
-                direction: 'rtl'
-            });
-            if (product && product.description) quillEditor.root.innerHTML = product.description;
-            
-            document.getElementById('productForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('prodName').value.trim();
-                if (!name) return alert('الاسم مطلوب');
-                const productData = {
-                    name,
-                    code: document.getElementById('prodCode').value,
-                    barcode: document.getElementById('prodBarcode').value,
-                    description: quillEditor.root.innerHTML,
-                    quantity: parseFloat(document.getElementById('prodQuantity').value) || 0,
-                    costPrice: parseFloat(document.getElementById('prodCost').value) || 0,
-                    price: parseFloat(document.getElementById('prodPrice').value) || 0,
-                    discountPrice: parseFloat(document.getElementById('prodDiscount').value) || 0,
-                    images: productImages,
-                    imageUrl: productImages.length > 0 ? productImages[0] : '/images/default-product.png'
-                };
-                if (currentProductId) {
-                    await updateProduct(currentProductId, productData);
-                } else {
-                    await addProduct(productData);
-                }
-                closeModal();
-                await loadData();
-                renderProducts();
-            });
-            
-            document.getElementById('productImages').addEventListener('change', async (e) => {
-                const files = Array.from(e.target.files);
-                for (let file of files) {
-                    const reader = new FileReader();
-                    await new Promise((resolve) => {
-                        reader.onload = (ev) => {
-                            productImages.push(ev.target.result);
-                            resolve();
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                }
-                updateImagePreview();
-            });
-            
-            window.removeImage = (idx) => {
-                productImages.splice(idx, 1);
-                updateImagePreview();
-            };
-            
-            function updateImagePreview() {
-                const container = document.getElementById('imagePreviewContainer');
-                container.innerHTML = productImages.map((img, idx) => `
-                    <div class="relative inline-block">
-                        <img src="${img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-                        <div onclick="window.removeImage(${idx})" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-center cursor-pointer text-xs">×</div>
-                    </div>
-                `).join('');
-            }
-        }
-        
-        async function editProduct(id) {
-            const product = products.find(p => p.id === id);
-            if (product) showProductModal(product);
-        }
-        
-        async function deleteProductItem(id) {
-            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-                await deleteProduct(id);
-                await loadData();
-                renderProducts();
-            }
-        }
-        
-        function downloadProductTemplate() {
-            const headers = [
-                'اسم المنتج', 'كود المنتج', 'باركود المنتج', 'وصف المنتج', 'الكمية',
-                'سعر التكلفة', 'سعر البيع', 'سعر التخفيض', 'الصورة الرئيسية', 'صورة 2', 'صورة 3', 'صورة 4', 'صورة 5'
-            ];
-            const exampleRow = [
-                'منتج تجريبي', 'PROD-001', '1234567890123', 'هذا وصف للمنتج التجريبي',
-                '10', '50', '100', '80', 'https://example.com/image1.jpg', 'https://example.com/image2.jpg',
-                'https://example.com/image3.jpg', 'https://example.com/image4.jpg', 'https://example.com/image5.jpg'
-            ];
-            const data = [headers, exampleRow];
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'منتجات');
-            XLSX.writeFile(wb, 'قالب_استيراد_المنتجات.xlsx');
-        }
-        
-        function handleExcelUpload(input) {
-            const file = input.files[0];
-            if (file) {
-                importProductsFromExcel(file, async (res) => {
-                    if (res.success) {
-                        alert(`تم استيراد ${res.count} منتج بنجاح`);
-                        await loadData();
-                        renderProducts();
-                    } else {
-                        alert(res.error || 'فشل الاستيراد');
-                    }
-                });
-            }
-            input.value = '';
-        }
-        
-        function closeModal() {
-            const modal = document.getElementById('productModal');
-            if (modal) modal.remove();
-            quillEditor = null;
-        }
-        
-        window.showProductModal = showProductModal;
-        window.editProduct = editProduct;
-        window.deleteProductItem = deleteProductItem;
-        window.downloadProductTemplate = downloadProductTemplate;
-        window.handleExcelUpload = handleExcelUpload;
-        window.closeModal = closeModal;
-        window.removeImage = (idx) => {
-            productImages.splice(idx, 1);
-            const container = document.getElementById('imagePreviewContainer');
-            if (container) {
-                container.innerHTML = productImages.map((img, i) => `
-                    <div class="relative inline-block">
-                        <img src="${img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-                        <div onclick="window.removeImage(${i})" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-center cursor-pointer text-xs">×</div>
-                    </div>
-                `).join('');
-            }
-        };
-        
-        init();
-    </script>
-    <style>
-        body { background: #f1f5f9; font-family: 'Tahoma', system-ui; margin: 0; padding: 1rem; }
-        .ql-editor { min-height: 150px; direction: rtl; text-align: right; }
-    </style>
 </head>
-<body>
-    <div id="products-container"></div>
+
+<body class="p-6 bg-gray-100">
+
+<div id="products"></div>
+
+<script type="module">
+
+import {
+    loadProducts,
+    addProduct,
+    deleteProduct
+} from '../../js/common.js';
+
+let data = [];
+
+async function init() {
+    data = await loadProducts();
+    render();
+}
+
+function render() {
+    document.getElementById('products').innerHTML = `
+    
+    <div class="bg-white p-6 rounded-xl shadow">
+    
+        <div class="flex justify-between mb-4">
+            <h2 class="text-xl font-bold">المنتجات</h2>
+            <button onclick="add()" class="bg-blue-600 text-white px-4 py-2 rounded">
+                إضافة
+            </button>
+        </div>
+
+        ${data.length === 0 ? `
+            <p class="text-center text-gray-500">لا يوجد منتجات</p>
+        ` : `
+        
+        <div class="grid grid-cols-2 gap-4">
+        
+        ${data.map(p => `
+        
+        <div class="border p-4 rounded-lg bg-gray-50">
+            
+            <!-- ✅ مسار الصورة الصحيح -->
+            <img 
+                src="${p.imageUrl || '../../admin/images/default-product.png'}"
+                class="w-full h-32 object-cover mb-2 rounded"
+            >
+
+            <h3 class="font-bold">${p.name || '-'}</h3>
+            <p class="text-sm text-gray-600">${p.price || 0} ريال</p>
+
+            <button onclick="del('${p.id}')" 
+                class="mt-2 bg-red-600 text-white px-3 py-1 rounded">
+                حذف
+            </button>
+
+        </div>
+        
+        `).join('')}
+        
+        </div>
+        `}
+    </div>
+    `;
+}
+
+window.add = async () => {
+    const name = prompt('اسم المنتج');
+    if (!name) return;
+
+    await addProduct({
+        name,
+        price: 0,
+        imageUrl: ''
+    });
+
+    init();
+};
+
+window.del = async (id) => {
+    if (!confirm('حذف المنتج؟')) return;
+    await deleteProduct(id);
+    init();
+};
+
+init();
+
+</script>
+
 </body>
 </html>
