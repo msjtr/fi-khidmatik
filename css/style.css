@@ -455,3 +455,122 @@ img {
 html, body {
     height: auto !important;
 }
+
+
+* {
+    font-family: 'Tahoma', 'Segoe UI', system-ui, sans-serif;
+}
+body {
+    background: #f1f5f9;
+}
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: white;
+    border-radius: 1rem;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    width: 800px;
+}
+.card-hover {
+    transition: all 0.2s ease;
+}
+.card-hover:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 12px 8px;
+    text-align: right;
+    border-bottom: 1px solid #e2e8f0;
+}
+.badge-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.badge-paid {
+    background: #dcfce7;
+    color: #166534;
+}
+.badge-unpaid {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.badge-refunded {
+    background: #ffedd5;
+    color: #9a3412;
+}
+.badge-cancelled {
+    background: #f3f4f6;
+    color: #374151;
+}
+.image-preview {
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+}
+.image-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+.remove-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+}
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
