@@ -1,95 +1,242 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl">
 <head>
-<meta charset="UTF-8">
-<script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلبات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6">
+
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">📦 إضافة طلب جديد</h1>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <form id="orderForm">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">اختر العميل</label>
+                <div class="flex gap-2">
+                    <select id="customerSelect" required class="flex-1 border rounded-lg px-3 py-2">
+                        <option value="">-- اختر عميلاً --</option>
+                    </select>
+                    <button type="button" id="quickAddCustomerBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg">+ عميل جديد</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">المنتجات</label>
+                <div id="itemsContainer">
+                    <div class="item-row flex gap-2 mb-2">
+                        <input type="text" name="productName[]" placeholder="اسم المنتج" class="flex-1 border rounded-lg px-3 py-2">
+                        <input type="number" name="quantity[]" placeholder="الكمية" class="w-24 border rounded-lg px-3 py-2">
+                        <input type="number" name="price[]" placeholder="السعر" class="w-32 border rounded-lg px-3 py-2">
+                        <button type="button" class="remove-item text-red-600 px-2">✖️</button>
+                    </div>
+                </div>
+                <button type="button" id="addItemBtn" class="text-blue-600 text-sm mt-2">+ إضافة منتج آخر</button>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">الإجمالي</label>
+                <input type="text" id="total" readonly class="w-full bg-gray-100 border rounded-lg px-3 py-2">
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">حفظ الطلب</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- مودال إضافة عميل سريع (مشابه لصفحة العملاء لكن مبسط) -->
+    <div id="quickCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">إضافة عميل جديد</h2>
+                    <button id="closeQuickModalBtn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <form id="quickCustomerForm">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل *</label>
+                        <input type="text" id="quickName" required class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">رقم الجوال *</label>
+                        <input type="tel" id="quickPhone" required class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
+                        <input type="email" id="quickEmail" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" id="cancelQuickBtn" class="px-4 py-2 border rounded-lg">إلغاء</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="module">
-import { loadOrders, deleteOrder } from '../../js/common.js';
+    import { loadCustomers, addCustomer, addOrder, loadProducts } from '../../js/common.js';
 
-let orders = [];
+    let customers = [];
+    let products = []; // يمكن استخدامه لاحقاً
 
-async function init() {
-    orders = await loadOrders();
-    render();
-}
+    const customerSelect = document.getElementById('customerSelect');
+    const itemsContainer = document.getElementById('itemsContainer');
+    const totalInput = document.getElementById('total');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const orderForm = document.getElementById('orderForm');
+    const quickModal = document.getElementById('quickCustomerModal');
+    const quickForm = document.getElementById('quickCustomerForm');
+    const quickName = document.getElementById('quickName');
+    const quickPhone = document.getElementById('quickPhone');
+    const quickEmail = document.getElementById('quickEmail');
 
-function render() {
-    document.body.innerHTML = `
-    <div class="p-6">
-
-        <h2 class="text-xl font-bold mb-4">الطلبات</h2>
-
-        ${orders.length === 0 ? `
-            <p class="text-center text-gray-500">لا يوجد طلبات</p>
-        ` : `
-
-        <table class="w-full bg-white rounded shadow text-center">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th>رقم الطلب</th>
-                    <th>الجوال</th>
-                    <th>طريقة الدفع</th>
-                    <th>الحالة</th>
-                    <th>التاريخ</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                ${orders.map(o => `
-                    <tr class="border-b">
-
-                        <!-- رقم الطلب -->
-                        <td class="font-bold text-blue-600">
-                            ${o.orderNumber || o.id}
-                        </td>
-
-                        <!-- الجوال -->
-                        <td>
-                            ${o.phone || '-'}
-                        </td>
-
-                        <!-- الدفع -->
-                        <td>
-                            ${o.payment || '-'}
-                        </td>
-
-                        <!-- الحالة -->
-                        <td class="${o.status === 'مدفوع' ? 'text-green-600' : 'text-red-600'}">
-                            ${o.status || '-'}
-                        </td>
-
-                        <!-- التاريخ -->
-                        <td>
-                            ${o.date || '-'}
-                        </td>
-
-                        <!-- حذف -->
-                        <td>
-                            <button onclick="del('${o.id}')" class="text-red-600">
-                                حذف
-                            </button>
-                        </td>
-
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        `}
-    </div>
-    `;
-}
-
-window.del = async (id) => {
-    if (confirm('حذف الطلب؟')) {
-        await deleteOrder(id);
-        init();
+    async function loadCustomersList() {
+        customers = await loadCustomers();
+        customerSelect.innerHTML = '<option value="">-- اختر عميلاً --</option>' +
+            customers.map(c => `<option value="${c.id}">${c.name} - ${c.phone}</option>`).join('');
     }
-};
 
-init();
+    function updateTotal() {
+        let total = 0;
+        const rows = document.querySelectorAll('.item-row');
+        rows.forEach(row => {
+            const quantity = row.querySelector('input[name="quantity[]"]').value;
+            const price = row.querySelector('input[name="price[]"]').value;
+            if (quantity && price) {
+                total += parseFloat(quantity) * parseFloat(price);
+            }
+        });
+        totalInput.value = total.toFixed(2);
+    }
+
+    function addItemRow(productName = '', quantity = 1, price = 0) {
+        const row = document.createElement('div');
+        row.className = 'item-row flex gap-2 mb-2';
+        row.innerHTML = `
+            <input type="text" name="productName[]" placeholder="اسم المنتج" value="${escapeHtml(productName)}" class="flex-1 border rounded-lg px-3 py-2">
+            <input type="number" name="quantity[]" placeholder="الكمية" value="${quantity}" class="w-24 border rounded-lg px-3 py-2" onchange="updateTotal()">
+            <input type="number" name="price[]" placeholder="السعر" value="${price}" class="w-32 border rounded-lg px-3 py-2" onchange="updateTotal()">
+            <button type="button" class="remove-item text-red-600 px-2">✖️</button>
+        `;
+        const removeBtn = row.querySelector('.remove-item');
+        removeBtn.onclick = () => {
+            row.remove();
+            updateTotal();
+        };
+        itemsContainer.appendChild(row);
+        const qtyInput = row.querySelector('input[name="quantity[]"]');
+        const priceInput = row.querySelector('input[name="price[]"]');
+        qtyInput.addEventListener('input', updateTotal);
+        priceInput.addEventListener('input', updateTotal);
+        updateTotal();
+    }
+
+    window.updateTotal = updateTotal; // لاستدعائه من onchange
+
+    addItemBtn.onclick = () => addItemRow();
+
+    async function saveOrder(event) {
+        event.preventDefault();
+        const customerId = customerSelect.value;
+        if (!customerId) {
+            alert('يرجى اختيار عميل');
+            return;
+        }
+
+        const items = [];
+        const rows = document.querySelectorAll('.item-row');
+        for (let row of rows) {
+            const productName = row.querySelector('input[name="productName[]"]').value;
+            const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value);
+            const price = parseFloat(row.querySelector('input[name="price[]"]').value);
+            if (productName && quantity && price) {
+                items.push({ name: productName, quantity, price, total: quantity * price });
+            }
+        }
+        if (items.length === 0) {
+            alert('أضف منتجاً واحداً على الأقل');
+            return;
+        }
+        const total = items.reduce((sum, item) => sum + item.total, 0);
+
+        const orderData = {
+            customerId,
+            items,
+            total,
+            status: 'جديد',
+            date: new Date().toISOString().split('T')[0]
+        };
+        try {
+            await addOrder(orderData);
+            alert('تم حفظ الطلب بنجاح');
+            orderForm.reset();
+            itemsContainer.innerHTML = '';
+            addItemRow(); // إضافة صف فارغ واحد
+            customerSelect.value = '';
+        } catch (err) {
+            console.error(err);
+            alert('حدث خطأ أثناء حفظ الطلب');
+        }
+    }
+
+    // مودال العميل السريع
+    function openQuickModal() {
+        quickModal.classList.remove('hidden');
+        quickModal.classList.add('flex');
+        quickForm.reset();
+    }
+    function closeQuickModal() {
+        quickModal.classList.add('hidden');
+        quickModal.classList.remove('flex');
+    }
+    async function saveQuickCustomer(event) {
+        event.preventDefault();
+        const name = quickName.value.trim();
+        const phone = quickPhone.value.trim();
+        const email = quickEmail.value.trim();
+        if (!name || !phone) {
+            alert('الاسم ورقم الجوال مطلوبان');
+            return;
+        }
+        const newCustomer = {
+            name, phone, email,
+            createdAt: new Date().toISOString()
+        };
+        try {
+            const docRef = await addCustomer(newCustomer);
+            closeQuickModal();
+            await loadCustomersList();
+            customerSelect.value = docRef.id; // تحديد العميل الجديد تلقائياً
+        } catch (err) {
+            console.error(err);
+            alert('حدث خطأ أثناء إضافة العميل');
+        }
+    }
+
+    document.getElementById('quickAddCustomerBtn').onclick = openQuickModal;
+    document.getElementById('closeQuickModalBtn').onclick = closeQuickModal;
+    document.getElementById('cancelQuickBtn').onclick = closeQuickModal;
+    quickForm.onsubmit = saveQuickCustomer;
+
+    // تهيئة الصفحة
+    await loadCustomersList();
+    addItemRow(); // صف فارغ افتراضي
+    orderForm.onsubmit = saveOrder;
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 </script>
-</head>
-<body></body>
+</body>
 </html>
