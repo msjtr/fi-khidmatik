@@ -1,5 +1,3 @@
-// js/firebase.js
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { 
@@ -10,6 +8,7 @@ import {
     getDoc, 
     getDocs,
     updateDoc,
+    deleteDoc,          // ← تمت الإضافة
     query,
     orderBy,
     where,
@@ -41,6 +40,7 @@ export {
     getDoc,
     getDocs,
     updateDoc,
+    deleteDoc,          // ← تمت الإضافة
     query,
     orderBy,
     where,
