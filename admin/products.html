@@ -6,81 +6,114 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script src="../js/firebase.js"></script>
-    <script src="../js/admin.js"></script>
-</head>
-<body class="bg-gray-50 p-6">
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex flex-wrap justify-between mb-4 gap-2">
-            <h2 class="text-2xl font-bold">المنتجات</h2>
-            <div>
-                <button onclick="showAddProductModal()" class="bg-blue-600 text-white px-4 py-2 rounded">+ إضافة يدوي</button>
-                <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none" onchange="handleExcelUpload(this)">
-                <button onclick="document.getElementById('excelFile').click()" class="bg-green-600 text-white px-4 py-2 rounded"><i class="fas fa-file-excel"></i> رفع Excel</button>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="products-grid"></div>
-    </div>
-
-    <script>
+    <script type="module">
+        import { getProducts, addProduct, updateProduct, deleteProduct, importProductsFromExcel } from '../js/admin.js';
+        
         let products = [];
+
         async function loadProducts() {
-            products = await getCollection('products');
+            products = await getProducts();
             renderProducts();
         }
+
         function renderProducts() {
             const grid = document.getElementById('products-grid');
+            if (!grid) return;
+            
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center p-8 text-gray-500">لا توجد منتجات. أضف منتجاً جديداً.</div>';
+                return;
+            }
+            
             grid.innerHTML = products.map(p => `
-                <div class="border rounded-lg p-4 shadow-sm">
-                    <img src="${p.imageUrl || 'https://via.placeholder.com/150'}" class="w-full h-32 object-cover rounded mb-2">
-                    <h3 class="font-bold">${p.name}</h3>
-                    <p>السعر: ${p.price} ريال</p>
-                    <p>الكمية: ${p.quantity}</p>
-                    <div class="flex justify-between mt-2">
-                        <button onclick="editProduct('${p.id}')" class="text-blue-600"><i class="fas fa-edit"></i> تعديل</button>
-                        <button onclick="deleteProduct('${p.id}')" class="text-red-600"><i class="fas fa-trash"></i> حذف</button>
+                <div class="border rounded-lg p-4 shadow-sm hover:shadow-md transition">
+                    <img src="${p.imageUrl || 'https://via.placeholder.com/150?text=No+Image'}" class="w-full h-40 object-cover rounded mb-3">
+                    <h3 class="font-bold text-lg">${p.name}</h3>
+                    <p class="text-blue-600 font-bold mt-1">${p.price} ريال</p>
+                    <p class="text-gray-600 text-sm">الكمية: ${p.quantity || 0}</p>
+                    <div class="flex justify-between mt-3 pt-2 border-t">
+                        <button onclick="window.editProductItem('${p.id}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit ml-1"></i>تعديل</button>
+                        <button onclick="window.deleteProductItem('${p.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash ml-1"></i>حذف</button>
                     </div>
                 </div>
             `).join('');
         }
-        window.showAddProductModal = () => {
+
+        window.showAddProduct = () => {
             const name = prompt('اسم المنتج:');
+            if (!name) return;
             const price = parseFloat(prompt('السعر:'));
+            if (isNaN(price)) return;
             const quantity = parseInt(prompt('الكمية:') || 0);
             const imageUrl = prompt('رابط الصورة (اختياري):');
-            if (name && !isNaN(price)) {
-                addDocument('products', { name, price, quantity, imageUrl: imageUrl || '' });
+            
+            addProduct({ name, price, quantity, imageUrl: imageUrl || '' })
+                .then(() => loadProducts())
+                .catch(err => alert('خطأ: ' + err.message));
+        };
+
+        window.editProductItem = async (id) => {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            
+            const name = prompt('الاسم الجديد:', product.name);
+            if (!name) return;
+            const price = parseFloat(prompt('السعر الجديد:', product.price));
+            if (isNaN(price)) return;
+            const quantity = parseInt(prompt('الكمية الجديدة:', product.quantity) || 0);
+            const imageUrl = prompt('رابط الصورة الجديد:', product.imageUrl);
+            
+            await updateProduct(id, { name, price, quantity, imageUrl });
+            loadProducts();
+        };
+
+        window.deleteProductItem = async (id) => {
+            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                await deleteProduct(id);
                 loadProducts();
             }
         };
-        window.editProduct = async (id) => {
-            const p = products.find(p => p.id === id);
-            const newQuantity = parseInt(prompt('الكمية الجديدة:', p.quantity));
-            if (!isNaN(newQuantity)) {
-                await updateDocument('products', id, { quantity: newQuantity });
-                loadProducts();
-            }
-        };
-        window.deleteProduct = async (id) => {
-            if (confirm('حذف المنتج؟')) {
-                await deleteDocument('products', id);
-                loadProducts();
-            }
-        };
+
         window.handleExcelUpload = (input) => {
             const file = input.files[0];
             if (file) {
-                importProductsFromExcel(file, (success) => {
-                    if (success) {
-                        alert('تم استيراد المنتجات بنجاح');
+                importProductsFromExcel(file, (result) => {
+                    if (result.success) {
+                        alert(`تم استيراد ${result.count} منتج بنجاح`);
                         loadProducts();
-                    } else alert('فشل الاستيراد');
+                    } else {
+                        alert('فشل الاستيراد');
+                    }
                 });
             }
+            input.value = '';
         };
+
         loadProducts();
+        
+        window.showAddProduct = showAddProduct;
+        window.editProductItem = editProductItem;
+        window.deleteProductItem = deleteProductItem;
+        window.handleExcelUpload = handleExcelUpload;
     </script>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+            <h2 class="text-2xl font-bold"><i class="fas fa-boxes ml-2"></i>المنتجات</h2>
+            <div class="flex gap-2">
+                <button onclick="showAddProduct()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-plus ml-1"></i>إضافة يدوي
+                </button>
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleExcelUpload(this)">
+                <button onclick="document.getElementById('excelFile').click()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-file-excel ml-1"></i>رفع Excel
+                </button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="products-grid">
+            <div class="col-span-full text-center p-8 text-gray-500">جاري التحميل...</div>
+        </div>
+    </div>
 </body>
 </html>
