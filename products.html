@@ -27,7 +27,9 @@
             
             grid.innerHTML = products.map(p => `
                 <div class="border rounded-lg p-4 shadow-sm hover:shadow-md transition">
-                    <img src="${p.imageUrl || 'https://via.placeholder.com/150?text=No+Image'}" class="w-full h-40 object-cover rounded mb-3">
+                    <img src="${p.imageUrl && p.imageUrl.trim() !== '' ? p.imageUrl : '/images/default-product.png'}" 
+                         class="w-full h-40 object-cover rounded mb-3" 
+                         onerror="this.src='/images/default-product.png'">
                     <h3 class="font-bold text-lg">${p.name}</h3>
                     <p class="text-blue-600 font-bold mt-1">${p.price} ريال</p>
                     <p class="text-gray-600 text-sm">الكمية: ${p.quantity || 0}</p>
@@ -45,9 +47,10 @@
             const price = parseFloat(prompt('السعر:'));
             if (isNaN(price)) return;
             const quantity = parseInt(prompt('الكمية:') || 0);
-            const imageUrl = prompt('رابط الصورة (اختياري):');
+            let imageUrl = prompt('رابط الصورة (اتركه فارغاً للصورة الافتراضية):', '');
+            if (!imageUrl || imageUrl.trim() === '') imageUrl = '/images/default-product.png';
             
-            addProduct({ name, price, quantity, imageUrl: imageUrl || '' })
+            addProduct({ name, price, quantity, imageUrl })
                 .then(() => loadProducts())
                 .catch(err => alert('خطأ: ' + err.message));
         };
@@ -61,7 +64,8 @@
             const price = parseFloat(prompt('السعر الجديد:', product.price));
             if (isNaN(price)) return;
             const quantity = parseInt(prompt('الكمية الجديدة:', product.quantity) || 0);
-            const imageUrl = prompt('رابط الصورة الجديد:', product.imageUrl);
+            let imageUrl = prompt('رابط الصورة الجديد:', product.imageUrl);
+            if (!imageUrl || imageUrl.trim() === '') imageUrl = '/images/default-product.png';
             
             await updateProduct(id, { name, price, quantity, imageUrl });
             loadProducts();
