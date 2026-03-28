@@ -1,70 +1,61 @@
-<script type="module">
-import { loadCustomers, addCustomer, updateCustomer, deleteCustomer } from '../../js/common.js';
+import {
+db,
+collection,
+addDoc,
+doc,
+getDoc,
+getDocs,
+updateDoc,
+deleteDoc,
+setDoc
+} from './firebase.js';
 
-let customers = [];
-
-async function init() {
-    await loadData();
-    renderCustomers();
+// ===== عام =====
+export async function getCollection(name){
+const snap = await getDocs(collection(db,name));
+return snap.docs.map(d=>({id:d.id,...d.data()}));
 }
 
-async function loadData() {
-    customers = await loadCustomers();
+// ===== المنتجات =====
+export const loadProducts = ()=>getCollection('products');
+export const addProduct = (d)=>addDoc(collection(db,'products'),d);
+export const updateProduct = (id,d)=>updateDoc(doc(db,'products',id),d);
+export const deleteProduct = (id)=>deleteDoc(doc(db,'products',id));
+export const updateProductQuantity = (id,q)=>updateProduct(id,{quantity:q});
+
+// ===== العملاء =====
+export const loadCustomers = ()=>getCollection('customers');
+export const addCustomer = (d)=>addDoc(collection(db,'customers'),d);
+export const updateCustomer = (id,d)=>updateDoc(doc(db,'customers',id),d);
+export const deleteCustomer = (id)=>deleteDoc(doc(db,'customers',id));
+
+// ===== الطلبات =====
+export const loadOrders = ()=>getCollection('orders');
+export const addOrder = (d)=>addDoc(collection(db,'orders'),d);
+
+// ===== الإعدادات =====
+export async function getSettings(id){
+const d = await getDoc(doc(db,'settings',id));
+return d.exists()?d.data():null;
+}
+export const setSettings = (id,data)=>setDoc(doc(db,'settings',id),data,{merge:true});
+
+// ===== النسخ الاحتياطي =====
+export async function exportAllData(){
+const cols=['products','customers','orders','settings'];
+let data={};
+for(let c of cols){
+const snap=await getDocs(collection(db,c));
+data[c]=snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+return data;
 }
 
-function renderCustomers() {
-    const container = document.getElementById('customers-container');
-    container.innerHTML = `
-        <div class="bg-white rounded-2xl shadow p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">العملاء</h2>
-                <button onclick="window.showAddCustomerModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">عميل جديد</button>
-            </div>
-            <table class="min-w-full">
-                <thead>
-                    <tr>
-                        <th>الاسم</th>
-                        <th>الهاتف</th>
-                        <th>الإجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${customers.map(c => `
-                        <tr>
-                            <td>${c.name}</td>
-                            <td>${c.phone || '-'}</td>
-                            <td>
-                                <button onclick="editCustomer('${c.id}')">تعديل</button>
-                                <button onclick="deleteCustomerItem('${c.id}')">حذف</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
+export async function importAllData(data){
+for(let col in data){
+for(let item of data[col]){
+const {id,...rest}=item;
+await setDoc(doc(db,col,id),rest);
 }
-
-window.showAddCustomerModal = async () => {
-    const name = prompt('الاسم');
-    if (!name) return;
-    await addCustomer({ name });
-    await init();
-};
-
-window.editCustomer = async (id) => {
-    const name = prompt('اسم جديد');
-    if (!name) return;
-    await updateCustomer(id, { name });
-    await init();
-};
-
-window.deleteCustomerItem = async (id) => {
-    if (confirm('حذف؟')) {
-        await deleteCustomer(id);
-        await init();
-    }
-};
-
-init();
-</script>
+}
+}
