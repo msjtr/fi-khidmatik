@@ -1,39 +1,94 @@
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
-<script src="https://cdn.tailwindcss.com"></script>
-<script type="module">
-import {loadCustomers,addCustomer,deleteCustomer} from '../../js/common.js';
-
-let data=[];
-
-async function init(){
-data=await loadCustomers();
-render();
-}
-
-function render(){
-document.body.innerHTML=data.map(c=>`
-<div>
-${c.name}
-<button onclick="del('${c.id}')">حذف</button>
-</div>`).join('')+
-`<button onclick="add()">إضافة</button>`;
-}
-
-window.add=async()=>{
-const n=prompt('اسم');
-if(!n)return;
-await addCustomer({name:n});
-init();
-}
-
-window.del=async(id)=>{
-await deleteCustomer(id);
-init();
-}
-
-init();
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العملاء</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body>
+    <div id="app" class="p-4">
+        <!-- سيتم عرض العملاء هنا -->
+        <div class="text-center text-gray-500">جاري التحميل...</div>
+    </div>
+
+    <script type="module">
+        import { loadCustomers, addCustomer, deleteCustomer } from '../../js/common.js';
+
+        const app = document.getElementById('app');
+        let customers = [];
+
+        async function init() {
+            try {
+                customers = await loadCustomers();
+                console.log('تم تحميل العملاء:', customers);
+                render();
+            } catch (error) {
+                console.error('خطأ في تحميل العملاء:', error);
+                app.innerHTML = '<div class="text-red-500">حدث خطأ في تحميل البيانات</div>';
+            }
+        }
+
+        function render() {
+            if (!customers || customers.length === 0) {
+                app.innerHTML = `
+                    <div class="text-center text-gray-500 p-8">لا يوجد عملاء</div>
+                    <div class="text-center">
+                        <button onclick="window.addCustomer()" class="bg-blue-500 text-white px-4 py-2 rounded">إضافة عميل</button>
+                    </div>
+                `;
+                return;
+            }
+
+            app.innerHTML = `
+                <div class="space-y-2">
+                    ${customers.map(c => `
+                        <div class="flex justify-between items-center border p-3 rounded">
+                            <span class="text-lg">${c.name}</span>
+                            <button onclick="window.deleteCustomer('${c.id}')" 
+                                    class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                حذف
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="window.addCustomer()" 
+                            class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        إضافة عميل جديد
+                    </button>
+                </div>
+            `;
+        }
+
+        // دوال عامة للنافذة
+        window.addCustomer = async () => {
+            const name = prompt('أدخل اسم العميل:');
+            if (!name || name.trim() === '') return;
+            
+            try {
+                await addCustomer({ name: name.trim() });
+                await init();
+            } catch (error) {
+                console.error('خطأ في إضافة العميل:', error);
+                alert('حدث خطأ في إضافة العميل');
+            }
+        };
+
+        window.deleteCustomer = async (id) => {
+            if (!confirm('هل أنت متأكد من حذف هذا العميل؟')) return;
+            
+            try {
+                await deleteCustomer(id);
+                await init();
+            } catch (error) {
+                console.error('خطأ في حذف العميل:', error);
+                alert('حدث خطأ في حذف العميل');
+            }
+        };
+
+        // بدء التحميل
+        init();
+    </script>
+</body>
 </html>
