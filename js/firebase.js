@@ -8,8 +8,7 @@ import {
     getDocs,
     updateDoc,
     deleteDoc,
-    setDoc,
-    deleteField
+    setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // إعدادات Firebase
@@ -84,30 +83,35 @@ export const updateOrder = (id, data) =>
 export const deleteOrder = (id) =>
     deleteDoc(doc(db, 'orders', id));
 
-// جلب الطلبات مع تفاصيل العملاء والمنتجات
+// ===================== جلب الطلبات مع تفاصيل العميل =====================
 export const getOrdersWithDetails = async () => {
-    const orders = await getCollection('orders');
-    const customers = await getCollection('customers');
-    const products = await getCollection('products');
-    
-    const customersMap = {};
-    customers.forEach(c => {
-        customersMap[c.id] = c;
-    });
-    
-    const productsMap = {};
-    products.forEach(p => {
-        productsMap[p.id] = p;
-    });
-    
-    return orders.map(order => ({
-        ...order,
-        customer: customersMap[order.customerId] || { name: 'غير معروف' },
-        items: order.items?.map(item => ({
-            ...item,
-            productDetails: productsMap[item.productId] || null
-        })) || []
-    }));
+    try {
+        const orders = await getCollection('orders');
+        const customers = await getCollection('customers');
+        const products = await getCollection('products');
+        
+        const customersMap = {};
+        customers.forEach(c => {
+            customersMap[c.id] = c;
+        });
+        
+        const productsMap = {};
+        products.forEach(p => {
+            productsMap[p.id] = p;
+        });
+        
+        return orders.map(order => ({
+            ...order,
+            customer: customersMap[order.customerId] || { name: 'غير معروف', phone: '', email: '' },
+            items: order.items?.map(item => ({
+                ...item,
+                productDetails: productsMap[item.productId] || { name: 'منتج غير موجود', price: item.price }
+            })) || []
+        }));
+    } catch (error) {
+        console.error("خطأ في جلب الطلبات:", error);
+        return [];
+    }
 };
 
 // ===================== الإعدادات =====================
@@ -129,6 +133,5 @@ export {
     getDocs,
     updateDoc,
     deleteDoc,
-    setDoc,
-    deleteField
+    setDoc
 };
