@@ -1,69 +1,83 @@
 import { db, collection, addDoc, doc, getDoc, getDocs, updateDoc, deleteDoc, setDoc, query, orderBy, where } from './firebase.js';
 
+// ===================== دوال عامة =====================
 export async function getCollection(collectionName) {
     const snapshot = await getDocs(collection(db, collectionName));
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
+
 export async function addDocument(collectionName, data) {
     return await addDoc(collection(db, collectionName), data);
 }
+
 export async function updateDocument(collectionName, id, data) {
     const docRef = doc(db, collectionName, id);
     await updateDoc(docRef, data);
 }
+
 export async function deleteDocument(collectionName, id) {
     const docRef = doc(db, collectionName, id);
     await deleteDoc(docRef);
 }
+
 export async function getDocument(collectionName, id) {
     const docRef = doc(db, collectionName, id);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
 }
+
 export async function setDocument(collectionName, id, data) {
     const docRef = doc(db, collectionName, id);
     await setDoc(docRef, data, { merge: true });
 }
 
-// المنتجات
+// ===================== المنتجات =====================
 export async function loadProducts() {
     return await getCollection('products');
 }
+
 export async function addProduct(data) {
     if (!data.imageUrl || data.imageUrl.trim() === '') data.imageUrl = '/admin/images/default-product.png';
     return await addDocument('products', data);
 }
+
 export async function updateProduct(id, data) {
     if (data.imageUrl && data.imageUrl.trim() === '') data.imageUrl = '/admin/images/default-product.png';
     await updateDocument('products', id, data);
 }
+
 export async function deleteProduct(id) {
     await deleteDocument('products', id);
 }
+
 export async function updateProductQuantity(id, quantity) {
     await updateDocument('products', id, { quantity });
 }
 
-// العملاء
+// ===================== العملاء =====================
 export async function loadCustomers() {
     return await getCollection('customers');
 }
+
 export async function addCustomer(data) {
     return await addDocument('customers', data);
 }
+
 export async function updateCustomer(id, data) {
     await updateDocument('customers', id, data);
 }
+
 export async function deleteCustomer(id) {
     await deleteDocument('customers', id);
 }
 
-// الطلبات
+// ===================== الطلبات =====================
 export async function loadOrders() {
     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
+
 export async function addOrder(data) {
     const newOrder = {
         orderNumber: data.orderNumber || `ORD-${Date.now()}`,
@@ -85,25 +99,28 @@ export async function addOrder(data) {
     };
     return await addDocument('orders', newOrder);
 }
+
 export async function updateOrder(id, data) {
     await updateDocument('orders', id, data);
 }
+
 export async function deleteOrder(id) {
     await deleteDocument('orders', id);
 }
 
-// الإعدادات
+// ===================== الإعدادات =====================
 export async function getSettings(docId) {
     const docRef = doc(db, 'settings', docId);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? docSnap.data() : null;
 }
+
 export async function setSettings(docId, data) {
     const docRef = doc(db, 'settings', docId);
     await setDoc(docRef, data, { merge: true });
 }
 
-// استيراد Excel
+// ===================== استيراد Excel =====================
 export async function importProductsFromExcel(file, callback) {
     const XLSX = window.XLSX;
     const reader = new FileReader();
