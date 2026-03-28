@@ -1,79 +1,46 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>طرق الدفع</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script type="module">
-        import { getSettings, setSettings } from '../js/common.js';
-        
-        let paymentMethods = [];
+<script type="module">
+import { getSettings, setSettings } from '../../js/common.js';
 
-        async function init() {
-            await loadPaymentMethods();
-            renderMethods();
-        }
+let methods = [];
 
-        async function loadPaymentMethods() {
-            const data = await getSettings('paymentMethods');
-            paymentMethods = data?.methods || ['نقدي', 'بطاقة ائتمان', 'تحويل بنكي', 'تمارا', 'تابي'];
-        }
+async function init() {
+    const data = await getSettings('paymentMethods');
+    methods = data?.methods || [];
+    render();
+}
 
-        async function saveMethods() {
-            await setSettings('paymentMethods', { methods: paymentMethods });
-        }
+function render() {
+    document.getElementById('payment-methods-container').innerHTML = `
+        <div>
+            <button onclick="addMethod()">إضافة</button>
+            <ul>
+                ${methods.map((m, i) => `
+                    <li>
+                        ${m}
+                        <button onclick="del(${i})">حذف</button>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+}
 
-        function renderMethods() {
-            const container = document.getElementById('payment-methods-container');
-            if (!container) return;
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold"><i class="fas fa-credit-card ml-2"></i>طرق الدفع</h2>
-                        <button onclick="window.addPaymentMethod()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"><i class="fas fa-plus ml-1"></i>إضافة طريقة</button>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <ul class="space-y-2">
-                            ${paymentMethods.length === 0 ? '<li class="text-center text-gray-500 p-4">لا توجد طرق دفع</li>' : paymentMethods.map((method, index) => `
-                                <li class="flex justify-between items-center border rounded-lg p-3 hover:bg-gray-100">
-                                    <span><i class="fas fa-credit-card text-gray-500 ml-2"></i>${method}</span>
-                                    <button onclick="window.deletePaymentMethod(${index})" class="text-red-600 hover:text-red-800">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-4"><i class="fas fa-info-circle ml-1"></i>طرق الدفع المتاحة ستظهر في صفحة إتمام الطلب</p>
-                </div>
-            `;
-        }
+window.addMethod = async () => {
+    const m = prompt('اسم الطريقة');
+    if (!m) return;
+    methods.push(m);
+    await save();
+};
 
-        window.addPaymentMethod = async () => {
-            const newMethod = prompt('أدخل طريقة الدفع الجديدة:');
-            if (newMethod && newMethod.trim()) {
-                paymentMethods.push(newMethod.trim());
-                await saveMethods();
-                renderMethods();
-            }
-        };
+window.del = async (i) => {
+    methods.splice(i, 1);
+    await save();
+};
 
-        window.deletePaymentMethod = async (index) => {
-            if (confirm('هل تريد حذف طريقة الدفع هذه؟')) {
-                paymentMethods.splice(index, 1);
-                await saveMethods();
-                renderMethods();
-            }
-        };
+async function save() {
+    await setSettings('paymentMethods', { methods });
+    render();
+}
 
-        init();
-    </script>
-    <style>
-        body { background: #f1f5f9; font-family: 'Tahoma', system-ui; margin: 0; padding: 1rem; }
-    </style>
-</head>
-<body>
-    <div id="payment-methods-container"></div>
-</body>
-</html>
+init();
+</script>
