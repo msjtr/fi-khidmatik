@@ -46,23 +46,6 @@ export const addProduct = (data) =>
 export const deleteProduct = (id) =>
     deleteDoc(doc(db, 'products', id));
 
-
-
-// أضف هذه الدوال في ملف firebase.js بعد دوال المنتجات
-
-// ===================== العملاء =====================
-export const loadCustomers = () => getCollection('customers');
-
-export const addCustomer = (data) =>
-    addDoc(collection(db, 'customers'), data);
-
-export const deleteCustomer = (id) =>
-    deleteDoc(doc(db, 'customers', id));
-
-export const updateCustomer = (id, data) =>
-    updateDoc(doc(db, 'customers', id), data);
-
-
 // ===================== الطلبات =====================
 export const loadOrders = () => getCollection('orders');
 
@@ -75,9 +58,17 @@ export const deleteOrder = (id) =>
 export const updateOrderStatus = (id, status) =>
     updateDoc(doc(db, 'orders', id), { status });
 
+// ===================== العملاء =====================
+export const loadCustomers = () => getCollection('customers');  // ✅ أضف هذا
 
+export const addCustomer = (data) =>
+    addDoc(collection(db, 'customers'), data);  // ✅ أضف هذا
 
+export const deleteCustomer = (id) =>
+    deleteDoc(doc(db, 'customers', id));  // ✅ أضف هذا
 
+export const updateCustomer = (id, data) =>
+    updateDoc(doc(db, 'customers', id), data);  // ✅ أضف هذا (اختياري)
 
 // ===================== الإعدادات =====================
 export async function getSettings(id) {
