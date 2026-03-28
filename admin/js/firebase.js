@@ -1,23 +1,6 @@
-// js/firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    doc, 
-    getDoc, 
-    getDocs,
-    updateDoc,
-    deleteDoc,
-    setDoc,
-    query,
-    orderBy,
-    where,
-    limit
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, getDocs, updateDoc, deleteDoc, setDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// إعدادات Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -28,12 +11,9 @@ const firebaseConfig = {
     measurementId: "G-NDVGC9GPQZ"
 };
 
-// تهيئة Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-// تصدير كل الدوال المطلوبة
 export {
     db,
     collection,
