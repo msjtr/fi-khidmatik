@@ -12,22 +12,22 @@ import {
     getCollection,
     loadProducts,
     addProduct,
-    updateProduct,
     deleteProduct,
+    updateProductStock,
     loadOrders,
     addOrder,
     updateOrder,
     deleteOrder,
+    getOrdersWithDetails,
     loadCustomers,
     addCustomer,
     updateCustomer,
     deleteCustomer,
     getSettings,
-    setSettings,
-    getOrdersWithCustomers
+    setSettings
 } from './firebase.js';
 
-// إعادة تصدير كل الدوال
+// إعادة تصدير كل شيء للاستخدام في الملفات الأخرى
 export {
     db,
     collection,
@@ -41,17 +41,17 @@ export {
     getCollection,
     loadProducts,
     addProduct,
-    updateProduct,
     deleteProduct,
+    updateProductStock,
     loadOrders,
     addOrder,
     updateOrder,
     deleteOrder,
+    getOrdersWithDetails,
     loadCustomers,
     addCustomer,
     updateCustomer,
     deleteCustomer,
     getSettings,
-    setSettings,
-    getOrdersWithCustomers
+    setSettings
 };
