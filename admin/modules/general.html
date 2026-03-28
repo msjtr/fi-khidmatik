@@ -1,73 +1,29 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>الإعدادات العامة</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script type="module">
-        import { getSettings, setSettings } from '../js/common.js';
-        
-        async function init() {
-            await loadGeneralSettings();
-        }
+<script src="https://cdn.tailwindcss.com"></script>
 
-        async function loadGeneralSettings() {
-            const data = await getSettings('general');
-            const settings = data || { siteName: 'متجرك', currency: 'ريال', platformStamp: 'جميع الحقوق محفوظة', contactEmail: 'info@shop.com', whatsapp: '' };
-            const container = document.getElementById('general-container');
-            if (!container) return;
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow p-6">
-                    <h2 class="text-2xl font-bold mb-4"><i class="fas fa-sliders-h ml-2"></i>الإعدادات العامة</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block font-semibold mb-1">اسم الموقع:</label>
-                            <input id="siteName" type="text" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" value="${settings.siteName || ''}">
-                        </div>
-                        <div>
-                            <label class="block font-semibold mb-1">رمز العملة:</label>
-                            <input id="currency" type="text" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" value="${settings.currency || ''}" placeholder="مثال: ريال، USD، SAR">
-                        </div>
-                        <div>
-                            <label class="block font-semibold mb-1">ختم المنصة (تذييل):</label>
-                            <textarea id="platformStamp" rows="2" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="يظهر في أسفل الصفحات والفاتورة">${settings.platformStamp || ''}</textarea>
-                        </div>
-                        <div>
-                            <label class="block font-semibold mb-1">بريد الدعم:</label>
-                            <input id="contactEmail" type="email" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" value="${settings.contactEmail || ''}">
-                        </div>
-                        <div>
-                            <label class="block font-semibold mb-1">رقم واتساب الدعم:</label>
-                            <input id="whatsapp" type="text" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" value="${settings.whatsapp || ''}" placeholder="مثال: 9665xxxxxxxx">
-                        </div>
-                        <button onclick="window.saveGeneralSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition">
-                            <i class="fas fa-save ml-1"></i>حفظ الإعدادات
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
+<script type="module">
+import { getSettings, setSettings } from '../../js/common.js';
 
-        window.saveGeneralSettings = async () => {
-            const settings = {
-                siteName: document.getElementById('siteName').value,
-                currency: document.getElementById('currency').value,
-                platformStamp: document.getElementById('platformStamp').value,
-                contactEmail: document.getElementById('contactEmail').value,
-                whatsapp: document.getElementById('whatsapp').value
-            };
-            await setSettings('general', settings);
-            alert('تم حفظ الإعدادات العامة بنجاح');
-        };
+async function init() {
+    const data = await getSettings('general') || {};
 
-        init();
-    </script>
-    <style>
-        body { background: #f1f5f9; font-family: 'Tahoma', system-ui; margin: 0; padding: 1rem; }
-    </style>
+    document.body.innerHTML = `
+    <div class="p-6">
+        <input id="name" value="${data.siteName || ''}" placeholder="اسم الموقع">
+        <button onclick="save()">حفظ</button>
+    </div>`;
+}
+
+window.save = async () => {
+    const siteName = document.getElementById('name').value;
+    await setSettings('general', { siteName });
+    alert('تم');
+};
+
+init();
+</script>
 </head>
-<body>
-    <div id="general-container"></div>
-</body>
+<body></body>
 </html>
