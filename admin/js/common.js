@@ -1,7 +1,6 @@
-// js/common.js
 import { db, collection, addDoc, doc, getDoc, getDocs, updateDoc, deleteDoc, setDoc, query, orderBy, where } from './firebase.js';
 
-// ===================== دوال عامة =====================
+// دوال عامة
 export async function getCollection(collectionName) {
     const snapshot = await getDocs(collection(db, collectionName));
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -32,18 +31,18 @@ export async function setDocument(collectionName, id, data) {
     await setDoc(docRef, data, { merge: true });
 }
 
-// ===================== دوال المنتجات =====================
+// المنتجات
 export async function loadProducts() {
     return await getCollection('products');
 }
 
 export async function addProduct(data) {
-    if (!data.imageUrl || data.imageUrl.trim() === '') data.imageUrl = '/images/default-product.png';
+    if (!data.imageUrl || data.imageUrl.trim() === '') data.imageUrl = '/admin/images/default-product.png';
     return await addDocument('products', data);
 }
 
 export async function updateProduct(id, data) {
-    if (data.imageUrl && data.imageUrl.trim() === '') data.imageUrl = '/images/default-product.png';
+    if (data.imageUrl && data.imageUrl.trim() === '') data.imageUrl = '/admin/images/default-product.png';
     await updateDocument('products', id, data);
 }
 
@@ -55,7 +54,7 @@ export async function updateProductQuantity(id, quantity) {
     await updateDocument('products', id, { quantity });
 }
 
-// ===================== دوال العملاء =====================
+// العملاء
 export async function loadCustomers() {
     return await getCollection('customers');
 }
@@ -72,7 +71,7 @@ export async function deleteCustomer(id) {
     await deleteDocument('customers', id);
 }
 
-// ===================== دوال الطلبات =====================
+// الطلبات (تدعم هيكل البيانات الحالي)
 export async function loadOrders() {
     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -80,20 +79,24 @@ export async function loadOrders() {
 }
 
 export async function addOrder(data) {
+    // توافق مع الحقول القديمة والجديدة
     const newOrder = {
         orderNumber: data.orderNumber || `ORD-${Date.now()}`,
-        customerName: data.customerName,
-        customerPhone: data.customerPhone,
+        customer: data.customer || data.customerName,
+        customerName: data.customerName || data.customer,
+        customerPhone: data.customerPhone || '',
         customerEmail: data.customerEmail || '',
         nationalAddress: data.nationalAddress || '',
         shippingAddress: data.shippingAddress || '',
-        paymentMethod: data.paymentMethod,
+        payment: data.payment || data.paymentMethod,
+        paymentMethod: data.paymentMethod || data.payment,
         paymentApproved: data.paymentApproved || false,
         status: data.status || 'غير مدفوع',
         date: data.date || new Date().toISOString().slice(0,10),
         createdAt: new Date(),
-        items: data.items || [],
-        totalAmount: data.totalAmount
+        items: data.items || data.cart || [],
+        cart: data.cart || data.items || [],
+        totalAmount: data.totalAmount || 0
     };
     return await addDocument('orders', newOrder);
 }
@@ -106,7 +109,7 @@ export async function deleteOrder(id) {
     await deleteDocument('orders', id);
 }
 
-// ===================== دوال الإعدادات =====================
+// الإعدادات
 export async function getSettings(docId) {
     const docRef = doc(db, 'settings', docId);
     const docSnap = await getDoc(docRef);
@@ -118,7 +121,7 @@ export async function setSettings(docId, data) {
     await setDoc(docRef, data, { merge: true });
 }
 
-// ===================== استيراد Excel =====================
+// استيراد Excel
 export async function importProductsFromExcel(file, callback) {
     const XLSX = window.XLSX;
     const reader = new FileReader();
@@ -169,7 +172,7 @@ export async function importProductsFromExcel(file, callback) {
             if (colIndex.image3 !== -1 && row[colIndex.image3]) product.images.push(row[colIndex.image3].toString().trim());
             if (colIndex.image4 !== -1 && row[colIndex.image4]) product.images.push(row[colIndex.image4].toString().trim());
             if (colIndex.image5 !== -1 && row[colIndex.image5]) product.images.push(row[colIndex.image5].toString().trim());
-            product.imageUrl = product.images.length > 0 ? product.images[0] : '/images/default-product.png';
+            product.imageUrl = product.images.length > 0 ? product.images[0] : '/admin/images/default-product.png';
             await addProduct(product);
             count++;
         }
