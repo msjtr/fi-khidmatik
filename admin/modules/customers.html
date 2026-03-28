@@ -1,165 +1,237 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>العملاء</title>
+    <title>إدارة العملاء</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        .customer-card {
-            transition: all 0.2s ease;
-        }
-        .customer-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .modal {
+            transition: opacity 0.3s ease;
         }
     </style>
 </head>
 <body class="bg-gray-50 p-6">
 
-<div class="max-w-4xl mx-auto">
-    <!-- عنوان الصفحة -->
+<div class="max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">👥 إدارة العملاء</h1>
-        <button id="addCustomerBtn" 
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
-            <span>➕</span>
-            <span>إضافة عميل جديد</span>
+        <button id="newCustomerBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+            + إضافة عميل جديد
         </button>
     </div>
 
-    <!-- حاوية عرض العملاء -->
-    <div id="customersContainer" class="space-y-3">
-        <div class="text-center text-gray-500 py-8">جاري تحميل العملاء...</div>
+    <div id="customersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- سيتم عرض العملاء هنا -->
+        <div class="col-span-full text-center text-gray-500">جاري التحميل...</div>
+    </div>
+</div>
+
+<!-- مودال إضافة / تعديل العميل -->
+<div id="customerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modalTitle" class="text-xl font-bold">إضافة عميل جديد</h2>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form id="customerForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل *</label>
+                        <input type="text" id="name" required class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">رقم الجوال *</label>
+                        <input type="tel" id="phone" required class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
+                        <input type="email" id="email" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الدولة</label>
+                        <input type="text" id="country" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
+                        <input type="text" id="city" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الحي</label>
+                        <input type="text" id="district" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الشارع</label>
+                        <input type="text" id="street" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">رقم المبنى</label>
+                        <input type="text" id="buildingNo" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">رقم إضافي</label>
+                        <input type="text" id="additionalNo" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">صندوق البريد</label>
+                        <input type="text" id="poBox" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" id="cancelModalBtn" class="px-4 py-2 border rounded-lg hover:bg-gray-100">إلغاء</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">حفظ</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <script type="module">
-    // استيراد دوال العملاء من common.js
-    import { loadCustomers, addCustomer, deleteCustomer } from '../../js/common.js';
+    import { loadCustomers, addCustomer, updateCustomer, deleteCustomer } from '../../js/common.js';
 
     let customers = [];
+    let currentEditId = null;
 
-    // تهيئة الصفحة
+    const customersListDiv = document.getElementById('customersList');
+    const modal = document.getElementById('customerModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const form = document.getElementById('customerForm');
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('email');
+    const countryInput = document.getElementById('country');
+    const cityInput = document.getElementById('city');
+    const districtInput = document.getElementById('district');
+    const streetInput = document.getElementById('street');
+    const buildingNoInput = document.getElementById('buildingNo');
+    const additionalNoInput = document.getElementById('additionalNo');
+    const poBoxInput = document.getElementById('poBox');
+
     async function init() {
-        try {
-            customers = await loadCustomers();
-            console.log('تم تحميل العملاء:', customers);
-            render();
-        } catch (error) {
-            console.error('خطأ في تحميل العملاء:', error);
-            document.getElementById('customersContainer').innerHTML = `
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    <p>❌ حدث خطأ في تحميل البيانات</p>
-                    <p class="text-sm mt-1">${error.message}</p>
-                    <button onclick="location.reload()" class="mt-2 bg-red-600 text-white px-3 py-1 rounded text-sm">
-                        إعادة المحاولة
-                    </button>
-                </div>
-            `;
-        }
+        customers = await loadCustomers();
+        render();
     }
 
-    // عرض العملاء
     function render() {
-        const container = document.getElementById('customersContainer');
-        
-        if (!customers || customers.length === 0) {
-            container.innerHTML = `
-                <div class="bg-white rounded-lg shadow p-8 text-center">
-                    <p class="text-gray-500 mb-4">📭 لا يوجد عملاء حالياً</p>
-                    <button id="emptyAddBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
-                        أضف أول عميل
-                    </button>
-                </div>
-            `;
-            
-            const emptyAddBtn = document.getElementById('emptyAddBtn');
-            if (emptyAddBtn) {
-                emptyAddBtn.onclick = () => showAddCustomerDialog();
-            }
+        if (customers.length === 0) {
+            customersListDiv.innerHTML = `<div class="col-span-full text-center text-gray-500 py-8">لا يوجد عملاء</div>`;
             return;
         }
-
-        container.innerHTML = customers.map(customer => `
-            <div class="customer-card bg-white rounded-lg shadow p-4 flex justify-between items-center border border-gray-100">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                        ${customer.name ? customer.name.charAt(0).toUpperCase() : 'ع'}
-                    </div>
+        customersListDiv.innerHTML = customers.map(c => `
+            <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition">
+                <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="font-semibold text-gray-800">${escapeHtml(customer.name)}</h3>
-                        <p class="text-xs text-gray-500">ID: ${customer.id.substring(0, 8)}...</p>
+                        <h3 class="font-bold text-lg">${escapeHtml(c.name)}</h3>
+                        <p class="text-sm text-gray-600">📞 ${c.phone || 'غير مدخل'}</p>
+                        <p class="text-sm text-gray-600">✉️ ${c.email || 'غير مدخل'}</p>
+                        <p class="text-xs text-gray-500 mt-2">
+                            ${c.city || ''} ${c.district ? ' - ' + c.district : ''}
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editCustomer('${c.id}')" class="text-blue-600 hover:text-blue-800">✏️ تعديل</button>
+                        <button onclick="deleteCustomerHandler('${c.id}')" class="text-red-600 hover:text-red-800">🗑️ حذف</button>
                     </div>
                 </div>
-                <button onclick="window.deleteCustomerHandler('${customer.id}')" 
-                        class="text-red-600 hover:text-red-800 transition p-2 rounded-lg hover:bg-red-50">
-                    🗑️ حذف
-                </button>
             </div>
         `).join('');
     }
 
-    // دالة حماية من XSS
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
 
-    // نافذة إضافة عميل
-    function showAddCustomerDialog() {
-        const name = prompt('👤 أدخل اسم العميل:');
-        if (!name || name.trim() === '') {
-            if (name !== null) alert('الرجاء إدخال اسم صحيح');
+    function openModal(editId = null) {
+        currentEditId = editId;
+        if (editId) {
+            const customer = customers.find(c => c.id === editId);
+            if (customer) {
+                modalTitle.innerText = 'تعديل عميل';
+                nameInput.value = customer.name || '';
+                phoneInput.value = customer.phone || '';
+                emailInput.value = customer.email || '';
+                countryInput.value = customer.country || '';
+                cityInput.value = customer.city || '';
+                districtInput.value = customer.district || '';
+                streetInput.value = customer.street || '';
+                buildingNoInput.value = customer.buildingNo || '';
+                additionalNoInput.value = customer.additionalNo || '';
+                poBoxInput.value = customer.poBox || '';
+            }
+        } else {
+            modalTitle.innerText = 'إضافة عميل جديد';
+            form.reset();
+        }
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        currentEditId = null;
+    }
+
+    async function saveCustomer(event) {
+        event.preventDefault();
+        const data = {
+            name: nameInput.value.trim(),
+            phone: phoneInput.value.trim(),
+            email: emailInput.value.trim(),
+            country: countryInput.value.trim(),
+            city: cityInput.value.trim(),
+            district: districtInput.value.trim(),
+            street: streetInput.value.trim(),
+            buildingNo: buildingNoInput.value.trim(),
+            additionalNo: additionalNoInput.value.trim(),
+            poBox: poBoxInput.value.trim(),
+            updatedAt: new Date().toISOString()
+        };
+        if (!data.name || !data.phone) {
+            alert('الاسم ورقم الجوال مطلوبان');
             return;
         }
-        
-        addNewCustomer(name.trim());
-    }
-
-    // إضافة عميل جديد
-    async function addNewCustomer(name) {
         try {
-            await addCustomer({ 
-                name: name,
-                createdAt: new Date().toISOString()
-            });
-            await init(); // إعادة تحميل القائمة
-        } catch (error) {
-            console.error('خطأ في إضافة العميل:', error);
-            alert('❌ حدث خطأ في إضافة العميل: ' + error.message);
+            if (currentEditId) {
+                await updateCustomer(currentEditId, data);
+            } else {
+                data.createdAt = new Date().toISOString();
+                await addCustomer(data);
+            }
+            closeModal();
+            await init();
+        } catch (err) {
+            console.error(err);
+            alert('حدث خطأ أثناء الحفظ');
         }
     }
 
-    // حذف عميل
+    window.editCustomer = (id) => openModal(id);
     window.deleteCustomerHandler = async (id) => {
-        const customer = customers.find(c => c.id === id);
-        const confirmMsg = customer 
-            ? `هل أنت متأكد من حذف العميل "${customer.name}"؟`
-            : 'هل أنت متأكد من حذف هذا العميل؟';
-            
-        if (!confirm(confirmMsg)) return;
-        
-        try {
-            await deleteCustomer(id);
-            await init(); // إعادة تحميل القائمة
-        } catch (error) {
-            console.error('خطأ في حذف العميل:', error);
-            alert('❌ حدث خطأ في حذف العميل: ' + error.message);
+        if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
+            try {
+                await deleteCustomer(id);
+                await init();
+            } catch (err) {
+                console.error(err);
+                alert('حدث خطأ أثناء الحذف');
+            }
         }
     };
 
-    // ربط أزرار الإضافة
-    document.getElementById('addCustomerBtn').onclick = () => showAddCustomerDialog();
+    document.getElementById('newCustomerBtn').onclick = () => openModal();
+    document.getElementById('closeModalBtn').onclick = closeModal;
+    document.getElementById('cancelModalBtn').onclick = closeModal;
+    form.onsubmit = saveCustomer;
 
-    // بدء التحميل
     init();
 </script>
-
 </body>
 </html>
