@@ -3,221 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم الأدمن | متجرك الذكي</title>
-    
-    <!-- Tailwind CSS -->
+    <title>لوحة التحكم - متجرك</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Google Fonts للخطوط الفاخرة -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- CSS Files -->
     <link rel="stylesheet" href="admin/css/style.css">
     <link rel="stylesheet" href="admin/css/admin.css">
-    
-    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
-    
     <style>
-        /* تخصيص إضافي للشعار والقائمة الجانبية */
-        body {
-            font-family: 'Cairo', 'Tahoma', system-ui;
-        }
-        
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px;
-        }
-        
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
-        }
-        
-        .logo-icon i {
-            font-size: 28px;
-            color: white;
-        }
-        
-        .logo-text h1 {
+        .logo {
             font-size: 1.5rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #2563eb, #1e40af);
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin: 0;
-            line-height: 1.2;
-        }
-        
-        .logo-text p {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin: 0;
-        }
-        
-        .sidebar-footer {
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            border-radius: 12px;
-            margin: 12px;
-            padding: 12px;
-            text-align: center;
-        }
-        
-        .version-badge {
-            background: #e2e8f0;
-            color: #475569;
-            font-size: 0.7rem;
-            padding: 4px 8px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-        
-        /* تحسين مظهر iframe */
-        iframe {
-            background: #f8fafc;
-            border-radius: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: transparent;
         }
     </style>
-    
-    <script>
-        // إخفاء تحذيرات Tailwind في وحدة التحكم
-        (function() {
-            const originalWarn = console.warn;
-            console.warn = function(...args) {
-                if (args[0] && typeof args[0] === 'string' && 
-                    (args[0].includes('cdn.tailwindcss.com should not be used in production') ||
-                     args[0].includes('Tailwind CSS'))) {
-                    return;
-                }
-                originalWarn.apply(console, args);
-            };
-        })();
-    </script>
 </head>
-<body class="antialiased">
+<body>
     <div class="flex h-screen overflow-hidden">
-        <!-- الشريط الجانبي المحسن -->
-        <aside class="w-80 bg-white shadow-2xl z-10 flex flex-col overflow-y-auto border-l border-gray-100">
-            <!-- شعار فخم -->
-            <div class="p-6 border-b border-gray-100">
-                <div class="logo-container">
-                    <div class="logo-icon">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                    <div class="logo-text">
-                        <h1>متجرك الذكي</h1>
-                        <p>نظام إدارة متكامل</p>
-                    </div>
+        <aside class="w-72 bg-white shadow-xl z-10 flex flex-col overflow-y-auto border-l border-gray-200">
+            <div class="p-5 border-b border-gray-200 flex items-center gap-3">
+                <i class="fas fa-crown text-2xl text-blue-600"></i>
+                <div>
+                    <h1 class="text-xl font-extrabold logo">متجرك الذكي</h1>
+                    <p class="text-xs text-gray-500">نظام إدارة متكامل</p>
                 </div>
             </div>
-            
-            <!-- القائمة الرئيسية -->
-            <nav class="flex-1 p-4 space-y-1">
-                <a href="admin/modules/orders.html" target="contentFrame" class="sidebar-item" data-section="orders">
-                    <i class="fas fa-truck-fast w-6 text-blue-500"></i>
-                    <span class="font-medium">الطلبات</span>
-                    <span class="mr-auto text-xs text-gray-400">Orders</span>
-                </a>
-                <a href="admin/modules/customers.html" target="contentFrame" class="sidebar-item" data-section="customers">
-                    <i class="fas fa-users w-6 text-green-500"></i>
-                    <span class="font-medium">العملاء</span>
-                    <span class="mr-auto text-xs text-gray-400">Customers</span>
-                </a>
-                <a href="admin/modules/products.html" target="contentFrame" class="sidebar-item" data-section="products">
-                    <i class="fas fa-boxes w-6 text-purple-500"></i>
-                    <span class="font-medium">المنتجات</span>
-                    <span class="mr-auto text-xs text-gray-400">Products</span>
-                </a>
-                <a href="admin/modules/inventory.html" target="contentFrame" class="sidebar-item" data-section="inventory">
-                    <i class="fas fa-warehouse w-6 text-orange-500"></i>
-                    <span class="font-medium">المخزون</span>
-                    <span class="mr-auto text-xs text-gray-400">Inventory</span>
-                </a>
-                <a href="admin/modules/payments.html" target="contentFrame" class="sidebar-item" data-section="payments">
-                    <i class="fas fa-credit-card w-6 text-emerald-500"></i>
-                    <span class="font-medium">طرق الدفع</span>
-                    <span class="mr-auto text-xs text-gray-400">Payments</span>
-                </a>
-                <a href="admin/modules/invoice.html" target="contentFrame" class="sidebar-item" data-section="invoice">
-                    <i class="fas fa-file-invoice-dollar w-6 text-rose-500"></i>
-                    <span class="font-medium">تعليمات الفاتورة</span>
-                    <span class="mr-auto text-xs text-gray-400">Invoice</span>
-                </a>
-                <a href="admin/modules/general.html" target="contentFrame" class="sidebar-item" data-section="general">
-                    <i class="fas fa-sliders-h w-6 text-gray-500"></i>
-                    <span class="font-medium">الإعدادات العامة</span>
-                    <span class="mr-auto text-xs text-gray-400">Settings</span>
-                </a>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="admin/modules/orders.html" target="contentFrame" class="sidebar-item" data-section="orders"><i class="fas fa-truck-fast w-6"></i> <span>الطلبات</span></a>
+                <a href="admin/modules/customers.html" target="contentFrame" class="sidebar-item" data-section="customers"><i class="fas fa-users w-6"></i> <span>العملاء</span></a>
+                <a href="admin/modules/products.html" target="contentFrame" class="sidebar-item" data-section="products"><i class="fas fa-boxes w-6"></i> <span>المنتجات</span></a>
+                <a href="admin/modules/inventory.html" target="contentFrame" class="sidebar-item" data-section="inventory"><i class="fas fa-warehouse w-6"></i> <span>المخزون</span></a>
+                <a href="admin/modules/payments.html" target="contentFrame" class="sidebar-item" data-section="payments"><i class="fas fa-credit-card w-6"></i> <span>طرق الدفع</span></a>
+                <a href="admin/modules/invoice.html" target="contentFrame" class="sidebar-item" data-section="invoice"><i class="fas fa-file-invoice-dollar w-6"></i> <span>تعليمات الفاتورة</span></a>
+                <a href="admin/modules/general.html" target="contentFrame" class="sidebar-item" data-section="general"><i class="fas fa-sliders-h w-6"></i> <span>الإعدادات العامة</span></a>
             </nav>
-            
-            <!-- تذييل أنيق -->
-            <div class="sidebar-footer">
-                <div class="flex items-center justify-between">
-                    <i class="fas fa-shield-alt text-blue-500"></i>
-                    <span class="version-badge">v7.0 Professional</span>
-                    <i class="fas fa-database text-gray-400"></i>
-                </div>
-                <p class="text-xs text-gray-500 mt-3">
-                    <i class="fas fa-chart-line ml-1"></i>
-                    إدارة ذكية • أداء عالي
-                </p>
-                <p class="text-xs text-gray-400 mt-2">
-                    © 2025 جميع الحقوق محفوظة
-                </p>
+            <div class="p-4 border-t border-gray-200 text-xs text-gray-400 text-center">
+                © 2025 جميع الحقوق محفوظة
             </div>
         </aside>
-
-        <!-- المحتوى الرئيسي -->
-        <main class="flex-1 p-6 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full">
-                <iframe name="contentFrame" id="contentFrame" src="admin/modules/orders.html" class="w-full h-full"></iframe>
-            </div>
+        <main class="flex-1 p-4 overflow-hidden bg-gray-50">
+            <iframe name="contentFrame" id="contentFrame" src="admin/modules/orders.html" class="w-full h-full rounded-xl shadow-sm"></iframe>
         </main>
     </div>
-
     <script>
-        // تنشيط القائمة الجانبية
         const links = document.querySelectorAll('.sidebar-item');
         const iframe = document.getElementById('contentFrame');
-        
         function setActive(section) {
             links.forEach(link => link.classList.remove('sidebar-active'));
             const activeLink = Array.from(links).find(link => link.getAttribute('data-section') === section);
             if (activeLink) activeLink.classList.add('sidebar-active');
         }
-        
         iframe.addEventListener('load', () => {
-            try {
-                const src = iframe.contentWindow.location.pathname;
-                const section = src.split('/').pop().replace('.html', '');
-                setActive(section);
-            } catch(e) {
-                // تجاهل أخطاء iframe
-            }
+            const src = iframe.contentWindow.location.pathname;
+            const section = src.split('/').pop().replace('.html', '');
+            setActive(section);
         });
-        
         links.forEach(link => {
             link.addEventListener('click', () => {
                 const section = link.getAttribute('data-section');
                 setActive(section);
             });
         });
-        
-        // تنشيط القسم الافتراضي
-        setTimeout(() => setActive('orders'), 100);
     </script>
 </body>
 </html>
