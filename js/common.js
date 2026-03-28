@@ -11,6 +11,7 @@ import {
     getCollection,
     loadProducts,
     addProduct,
+    updateProduct,        // ✅ أضف هذا
     deleteProduct,
     loadOrders,
     addOrder,
@@ -38,6 +39,7 @@ export {
     getCollection,
     loadProducts,
     addProduct,
+    updateProduct,        // ✅ أضف هذا
     deleteProduct,
     loadOrders,
     addOrder,
