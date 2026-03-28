@@ -12,6 +12,8 @@
     <!-- Quill Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- html2pdf for invoice export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         body { background: #f1f5f9; font-family: 'Tahoma', system-ui; }
         .sidebar-item {
@@ -125,7 +127,7 @@
             max-height: 90vh;
             overflow-y: auto;
             padding: 1.5rem;
-            width: 900px;
+            width: 1000px;
         }
         .image-preview {
             display: inline-block;
@@ -168,6 +170,25 @@
         .ql-toolbar {
             direction: ltr;
         }
+        /* Invoice styling */
+        .invoice-container {
+            padding: 20px;
+            font-family: 'Tahoma', Arial, sans-serif;
+            direction: rtl;
+            background: white;
+        }
+        .invoice-header {
+            border-bottom: 2px solid #2563eb;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+        .invoice-footer {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            font-size: 12px;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -187,7 +208,7 @@
             <div data-section="invoice" class="sidebar-item" id="nav-invoice"><i class="fas fa-file-invoice-dollar w-6"></i> <span>تعليمات الفاتورة</span></div>
             <div data-section="general" class="sidebar-item" id="nav-general"><i class="fas fa-sliders-h w-6"></i> <span>الإعدادات العامة</span></div>
         </nav>
-        <div class="p-4 border-t border-gray-200 text-xs text-gray-400">نظام إداري متكامل v6.0</div>
+        <div class="p-4 border-t border-gray-200 text-xs text-gray-400">نظام إداري متكامل v7.0</div>
     </aside>
 
     <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
@@ -226,7 +247,7 @@
 
     // Orders
     async function loadOrders() {
-        const snapshot = await db.collection('orders').get();
+        const snapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
     async function addOrder(data) {
@@ -234,7 +255,11 @@
             orderNumber: data.orderNumber || `ORD-${Date.now()}`,
             customerName: data.customerName,
             customerPhone: data.customerPhone,
+            customerEmail: data.customerEmail || '',
+            nationalAddress: data.nationalAddress || '',
+            shippingAddress: data.shippingAddress || '',
             paymentMethod: data.paymentMethod,
+            paymentApproved: data.paymentApproved || false,
             status: data.status || 'غير مدفوع',
             date: data.date || new Date().toISOString().slice(0,10),
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -243,8 +268,8 @@
         };
         return await addDocument('orders', newOrder);
     }
-    async function updateOrderStatus(id, status) {
-        await updateDocument('orders', id, { status });
+    async function updateOrder(id, data) {
+        await updateDocument('orders', id, data);
     }
     async function deleteOrder(id) {
         await deleteDocument('orders', id);
@@ -297,7 +322,7 @@
         await db.collection('settings').doc(docId).set(data, { merge: true });
     }
 
-    // Excel import with advanced columns
+    // Excel import
     function importProductsFromExcel(file, callback) {
         const reader = new FileReader();
         reader.onload = async function(e) {
@@ -395,8 +420,8 @@
         XLSX.writeFile(wb, 'قالب_استيراد_المنتجات.xlsx');
     };
 
-    // ---------- Quill Editor Integration ----------
-    let currentQuill = null; // to store Quill instance in modal
+    // ---------- Quill Editor ----------
+    let currentQuill = null;
 
     // Product Modal with Quill
     let currentEditingProductId = null;
@@ -444,7 +469,6 @@
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        // Initialize Quill after modal is in DOM
         const quill = new Quill('#descriptionEditor', {
             theme: 'snow',
             modules: {
@@ -462,23 +486,18 @@
             direction: 'rtl'
         });
         currentQuill = quill;
-        // Set initial content if product exists
         if (product && product.description) {
             quill.root.innerHTML = product.description;
-        } else {
-            quill.root.innerHTML = '';
         }
-
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('prodName').value;
             if (!name) return alert('الاسم مطلوب');
-            const descriptionHtml = quill.root.innerHTML;
             const productData = {
                 name,
                 code: document.getElementById('prodCode').value,
                 barcode: document.getElementById('prodBarcode').value,
-                description: descriptionHtml,
+                description: quill.root.innerHTML,
                 quantity: parseFloat(document.getElementById('prodQuantity').value) || 0,
                 costPrice: parseFloat(document.getElementById('prodCost').value) || 0,
                 price: parseFloat(document.getElementById('prodPrice').value) || 0,
@@ -494,7 +513,6 @@
             closeModal();
             renderSection('products');
         });
-
         document.getElementById('productImages').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
             for (let file of files) {
@@ -535,7 +553,6 @@
                 <button onclick="window.saveInvoiceInstructions()" class="btn-primary mt-4">حفظ التعليمات</button>
             </div>
         `;
-        // Initialize Quill after container is ready
         const quill = new Quill('#invoiceEditor', {
             theme: 'snow',
             modules: {
@@ -560,31 +577,35 @@
         };
     }
 
-    // ---------- New Order Modal with Product Selection ----------
+    // ---------- Order Modal (Create/Edit) ----------
+    let currentOrderId = null;
     let cartItems = [];
 
-    function showNewOrderModal() {
-        cartItems = [];
-        renderNewOrderModal();
-    }
-
-    async function renderNewOrderModal() {
+    async function showOrderModal(order = null) {
+        currentOrderId = order ? order.id : null;
+        cartItems = order ? (order.items || []) : [];
         const products = await loadProducts();
+        const paymentMethods = (await getSettingsDoc('paymentMethods'))?.methods || ['نقدي', 'بطاقة ائتمان', 'تحويل بنكي', 'تمارا', 'تابي'];
         const modalHtml = `
             <div id="orderModal" class="modal-backdrop">
-                <div class="modal-content" style="width:900px">
-                    <h3 class="text-xl font-bold mb-4">إنشاء طلب جديد</h3>
+                <div class="modal-content" style="width:1000px">
+                    <h3 class="text-xl font-bold mb-4">${order ? 'تعديل الطلب' : 'إنشاء طلب جديد'}</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <h4 class="font-semibold mb-2">بيانات العميل</h4>
-                            <input type="text" id="customerName" placeholder="اسم العميل" class="mb-2">
-                            <input type="text" id="customerPhone" placeholder="رقم الهاتف" class="mb-2">
-                            <select id="paymentMethod" class="mb-4">
-                                <option value="نقدي">نقدي</option>
-                                <option value="بطاقة ائتمان">بطاقة ائتمان</option>
-                                <option value="تحويل بنكي">تحويل بنكي</option>
+                            <input type="text" id="customerName" placeholder="اسم العميل *" class="mb-2" value="${order ? order.customerName || '' : ''}">
+                            <input type="text" id="customerPhone" placeholder="رقم الهاتف" class="mb-2" value="${order ? order.customerPhone || '' : ''}">
+                            <input type="email" id="customerEmail" placeholder="البريد الإلكتروني" class="mb-2" value="${order ? order.customerEmail || '' : ''}">
+                            <input type="text" id="nationalAddress" placeholder="العنوان الوطني" class="mb-2" value="${order ? order.nationalAddress || '' : ''}">
+                            <input type="text" id="shippingAddress" placeholder="عنوان الشحن" class="mb-2" value="${order ? order.shippingAddress || '' : ''}">
+                            <h4 class="font-semibold mb-2 mt-3">طريقة الدفع</h4>
+                            <select id="paymentMethod" class="mb-2">
+                                ${paymentMethods.map(m => `<option value="${m}" ${order && order.paymentMethod === m ? 'selected' : ''}>${m}</option>`).join('')}
                             </select>
-                            <h4 class="font-semibold mb-2">إضافة منتج إلى السلة</h4>
+                            <div id="paymentApprovalDiv" style="display: ${order && (order.paymentMethod === 'تمارا' || order.paymentMethod === 'تابي') ? 'block' : 'none'}" class="mb-2">
+                                <label><input type="checkbox" id="paymentApproved" ${order && order.paymentApproved ? 'checked' : ''}> تمت الموافقة على الدفع</label>
+                            </div>
+                            <h4 class="font-semibold mb-2 mt-3">إضافة منتج إلى السلة</h4>
                             <select id="productSelect" class="mb-2">
                                 <option value="">-- اختر منتج --</option>
                                 ${products.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} - ${p.price} ريال</option>`).join('')}
@@ -602,12 +623,21 @@
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="closeModal()" class="btn-secondary">إلغاء</button>
-                        <button onclick="saveNewOrder()" class="btn-primary">حفظ الطلب</button>
+                        <button onclick="saveOrder()" class="btn-primary">حفظ الطلب</button>
                     </div>
                 </div>
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
+        updateCartDisplay();
+
+        // Show/hide approval checkbox based on payment method selection
+        document.getElementById('paymentMethod').addEventListener('change', (e) => {
+            const val = e.target.value;
+            const div = document.getElementById('paymentApprovalDiv');
+            div.style.display = (val === 'تمارا' || val === 'تابي') ? 'block' : 'none';
+        });
+
         window.addToCart = () => {
             const select = document.getElementById('productSelect');
             const productId = select.value;
@@ -661,29 +691,111 @@
             cartItems.splice(idx, 1);
             updateCartDisplay();
         };
-        window.saveNewOrder = async () => {
-            const customerName = document.getElementById('customerName').value;
+        window.saveOrder = async () => {
+            const customerName = document.getElementById('customerName').value.trim();
+            if (!customerName) return alert('اسم العميل مطلوب');
             const customerPhone = document.getElementById('customerPhone').value;
+            const customerEmail = document.getElementById('customerEmail').value;
+            const nationalAddress = document.getElementById('nationalAddress').value;
+            const shippingAddress = document.getElementById('shippingAddress').value;
             const paymentMethod = document.getElementById('paymentMethod').value;
-            if (!customerName) return alert('يرجى إدخال اسم العميل');
+            const paymentApproved = document.getElementById('paymentApproved')?.checked || false;
             if (cartItems.length === 0) return alert('أضف منتجات إلى السلة');
             const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            await addOrder({
-                orderNumber: `ORD-${Date.now()}`,
+            const orderData = {
                 customerName,
                 customerPhone,
+                customerEmail,
+                nationalAddress,
+                shippingAddress,
                 paymentMethod,
+                paymentApproved,
                 status: 'غير مدفوع',
                 date: new Date().toISOString().slice(0,10),
                 items: cartItems,
                 totalAmount
-            });
+            };
+            if (currentOrderId) {
+                await updateOrder(currentOrderId, orderData);
+            } else {
+                orderData.orderNumber = `ORD-${Date.now()}`;
+                await addOrder(orderData);
+            }
             closeModal();
             renderSection('orders');
         };
     }
 
-    // ---------- باقي الأقسام (مختصرة لكن كاملة) ----------
+    // Export invoice as PDF
+    async function exportInvoice(orderId) {
+        const order = (await loadOrders()).find(o => o.id === orderId);
+        if (!order) return;
+        const products = await loadProducts();
+        const general = await getSettingsDoc('general');
+        const platformStamp = general?.platformStamp || 'جميع الحقوق محفوظة';
+        const invoiceInstructions = (await getSettingsDoc('invoiceInstructions'))?.text || 'شكراً لتسوقكم معنا.';
+        const invoiceHtml = `
+            <div class="invoice-container" style="padding:20px; font-family:Tahoma; direction:rtl;">
+                <div class="invoice-header" style="border-bottom:2px solid #2563eb; margin-bottom:20px;">
+                    <h1 style="font-size:24px;">فاتورة شراء</h1>
+                    <p>رقم الطلب: ${order.orderNumber}</p>
+                    <p>التاريخ: ${order.date}</p>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <h3>بيانات العميل</h3>
+                    <p>الاسم: ${order.customerName}</p>
+                    <p>الهاتف: ${order.customerPhone}</p>
+                    <p>البريد الإلكتروني: ${order.customerEmail || '-'}</p>
+                    <p>العنوان الوطني: ${order.nationalAddress || '-'}</p>
+                    <p>عنوان الشحن: ${order.shippingAddress || '-'}</p>
+                    <p>طريقة الدفع: ${order.paymentMethod} ${order.paymentApproved ? '(موافق)' : ''}</p>
+                    <p>حالة الطلب: ${order.status}</p>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <h3>المنتجات</h3>
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f3f4f6;">
+                                <th style="padding:8px; border:1px solid #ddd;">المنتج</th>
+                                <th style="padding:8px; border:1px solid #ddd;">الكمية</th>
+                                <th style="padding:8px; border:1px solid #ddd;">السعر</th>
+                                <th style="padding:8px; border:1px solid #ddd;">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${order.items.map(item => `
+                                <tr>
+                                    <td style="padding:8px; border:1px solid #ddd;">${item.name}</td>
+                                    <td style="padding:8px; border:1px solid #ddd;">${item.quantity}</td>
+                                    <td style="padding:8px; border:1px solid #ddd;">${item.price} ريال</td>
+                                    <td style="padding:8px; border:1px solid #ddd;">${item.price * item.quantity} ريال</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <p style="font-weight:bold; margin-top:10px;">الإجمالي: ${order.totalAmount} ريال</p>
+                </div>
+                <div class="invoice-footer" style="margin-top:30px; border-top:1px solid #ccc; padding-top:10px;">
+                    <div>${invoiceInstructions}</div>
+                    <div>${platformStamp}</div>
+                </div>
+            </div>
+        `;
+        const element = document.createElement('div');
+        element.innerHTML = invoiceHtml;
+        document.body.appendChild(element);
+        html2pdf().from(element).set({
+            margin: 0.5,
+            filename: `invoice_${order.orderNumber}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        }).save().then(() => {
+            document.body.removeChild(element);
+        });
+    }
+
+    // ---------- Render Sections ----------
     let currentSection = 'orders';
 
     async function renderSection(section) {
@@ -723,25 +835,26 @@
             <div class="bg-white rounded-2xl shadow p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold"><i class="fas fa-truck-fast ml-2"></i>الطلبات</h2>
-                    <button onclick="window.showNewOrderModal()" class="btn-primary"><i class="fas fa-plus ml-1"></i>طلب جديد</button>
+                    <button onclick="window.showOrderModal()" class="btn-primary"><i class="fas fa-plus ml-1"></i>طلب جديد</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
                         <thead class="bg-gray-100">
-                            <tr><th class="p-3">رقم الطلب</th><th class="p-3">اسم العميل</th><th class="p-3">طريقة الدفع</th><th class="p-3">الحالة</th><th class="p-3">التاريخ</th><th class="p-3">الإجراءات</th></tr>
+                            <tr><th class="p-3">رقم الطلب</th><th class="p-3">العميل</th><th class="p-3">طريقة الدفع</th><th class="p-3">الحالة</th><th class="p-3">التاريخ</th><th class="p-3">الإجراءات</th>\\
                         </thead>
                         <tbody>
                             ${orders.length === 0 ? '发展<td colspan="6" class="text-center p-6">لا توجد طلبات</td>' : orders.map(order => `
                                 <tr class="border-b">
                                     <td class="p-3">${order.orderNumber || order.id.slice(-6)}</td>
-                                    <td class="p-3">${order.customerName || '-'}</td>
-                                    <td class="p-3">${order.paymentMethod || '-'}</td>
+                                    <td class="p-3">${order.customerName || '-'}<br><small class="text-gray-500">${order.customerPhone || ''}</small></td>
+                                    <td class="p-3">${order.paymentMethod || '-'} ${order.paymentApproved ? '✓' : ''}</td>
                                     <td class="p-3"><span class="badge-status ${getStatusClass(order.status)}">${order.status || 'غير مدفوع'}</span></td>
                                     <td class="p-3">${order.date || '-'}</td>
                                     <td class="p-3">
-                                        <button onclick="window.editOrder('${order.id}')" class="text-blue-600 ml-2"><i class="fas fa-edit"></i></button>
-                                        <button onclick="window.deleteOrderItem('${order.id}')" class="text-red-600 ml-2"><i class="fas fa-trash"></i></button>
-                                        <button onclick="window.refundOrder('${order.id}')" class="text-orange-600"><i class="fas fa-undo-alt"></i></button>
+                                        <button onclick="window.showOrderModal('${order.id}')" class="text-blue-600 ml-2" title="تعديل"><i class="fas fa-edit"></i></button>
+                                        <button onclick="window.deleteOrderItem('${order.id}')" class="text-red-600 ml-2" title="حذف"><i class="fas fa-trash"></i></button>
+                                        <button onclick="window.refundOrder('${order.id}')" class="text-orange-600 ml-2" title="استرداد"><i class="fas fa-undo-alt"></i></button>
+                                        <button onclick="window.exportInvoice('${order.id}')" class="text-green-600" title="تصدير فاتورة"><i class="fas fa-file-pdf"></i></button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -750,21 +863,12 @@
                 </div>
             </div>
         `;
-        window.editOrder = async (id) => {
-            let orders = await loadOrders();
-            let order = orders.find(o => o.id === id);
-            if (!order) return;
-            const newStatus = prompt('تغيير الحالة (مدفوع/غير مدفوع/مسترجع/ملغي):', order.status);
-            if (newStatus && ['مدفوع','غير مدفوع','مسترجع','ملغي'].includes(newStatus)) {
-                await updateOrderStatus(id, newStatus);
-                renderSection('orders');
-            }
-        };
         window.deleteOrderItem = async (id) => { if (confirm('حذف الطلب؟')) await deleteOrder(id) && renderSection('orders'); };
-        window.refundOrder = async (id) => { if (confirm('استرداد الطلب؟')) await updateOrderStatus(id, 'مسترجع') && renderSection('orders'); };
+        window.refundOrder = async (id) => { if (confirm('استرداد الطلب؟')) await updateOrder(id, { status: 'مسترجع' }) && renderSection('orders'); };
+        window.exportInvoice = exportInvoice;
     }
 
-    // Customers
+    // Customers section
     async function renderCustomers(container) {
         container.innerHTML = `<div class="loading-spinner"></div><div class="text-center">جاري تحميل العملاء...</div>`;
         let customers = await loadCustomers();
@@ -775,10 +879,12 @@
                     <button onclick="window.showAddCustomerModal()" class="btn-primary"><i class="fas fa-plus ml-1"></i>عميل جديد</button>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full"><thead class="bg-gray-100"><tr><th class="p-3">الاسم</th><th class="p-3">الهاتف</th><th class="p-3">البريد</th><th class="p-3">العنوان</th><th class="p-3">إجراءات</th></tr></thead><tbody>
-                        ${customers.length === 0 ? '<tr><td colspan="5" class="text-center p-6">لا يوجد عملاء</td></tr>' : customers.map(c => `
+                    <table class="min-w-full"><thead class="bg-gray-100">…
+                            <th class="p-3">الاسم</th><th class="p-3">الهاتف</th><th class="p-3">البريد</th><th class="p-3">العنوان</th><th class="p-3">إجراءات</th>
+                        </thead><tbody>
+                        ${customers.length === 0 ? '发展<td colspan="5" class="text-center p-6">لا يوجد عملاء</td>' : customers.map(c => `
                             <tr class="border-b"><td class="p-3">${c.name}</td><td class="p-3">${c.phone || '-'}</td><td class="p-3">${c.email || '-'}</td><td class="p-3">${c.address || '-'}</td>
-                            <td class="p-3"><button onclick="window.editCustomer('${c.id}')" class="text-blue-600 ml-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteCustomerItem('${c.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>
+                            <td class="p-3"><button onclick="window.editCustomer('${c.id}')" class="text-blue-600 ml-2"><i class="fas fa-edit"></i></button><button onclick="window.deleteCustomerItem('${c.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td>
                         `).join('')}
                     </tbody></table>
                 </div>
@@ -800,7 +906,7 @@
         window.deleteCustomerItem = async (id) => { if(confirm('حذف العميل؟')) await deleteCustomer(id) && renderSection('customers'); };
     }
 
-    // Products section with edit modal
+    // Products section
     async function renderProducts(container) {
         container.innerHTML = `<div class="loading-spinner"></div><div class="text-center">جاري تحميل المنتجات...</div>`;
         let products = await loadProducts();
@@ -844,19 +950,21 @@
         };
     }
 
-    // Inventory
+    // Inventory section
     async function renderInventory(container) {
         container.innerHTML = `<div class="loading-spinner"></div><div class="text-center">جاري تحميل المخزون...</div>`;
         let products = await loadProducts();
         container.innerHTML = `
             <div class="bg-white rounded-2xl shadow p-6">
                 <h2 class="text-2xl font-bold mb-6"><i class="fas fa-warehouse ml-2"></i>المخزون</h2>
-                <div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-100"><tr><th class="p-3">المنتج</th><th class="p-3">الكمية الحالية</th><th class="p-3">تحديث الكمية</th></tr></thead><tbody>
-                    ${products.length === 0 ? '<tr><td colspan="3" class="text-center p-6">لا توجد منتجات</td></tr>' : products.map(p => `
-                        <tr class="border-b"><td class="p-3">${p.name}</td><td class="p-3"><span class="font-bold ${p.quantity < 5 ? 'text-red-600' : 'text-green-600'}">${p.quantity || 0}</span></td>
-                        <td class="p-3"><div class="flex gap-2"><input type="number" id="qty-${p.id}" value="${p.quantity || 0}" class="border rounded p-2 w-24"><button onclick="window.updateQuantity('${p.id}')" class="btn-primary text-sm py-1">تحديث</button></div></td></tr>
-                    `).join('')}
-                </tbody></table></div>
+                <div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-100">…
+                            <th class="p-3">المنتج</th><th class="p-3">الكمية الحالية</th><th class="p-3">تحديث الكمية</th>
+                        </thead><tbody>
+                        ${products.length === 0 ? '发展<td colspan="3" class="text-center p-6">لا توجد منتجات</td>' : products.map(p => `
+                            <tr class="border-b"><td class="p-3">${p.name}</td><td class="p-3"><span class="font-bold ${p.quantity < 5 ? 'text-red-600' : 'text-green-600'}">${p.quantity || 0}</span></td>
+                            <td class="p-3"><div class="flex gap-2"><input type="number" id="qty-${p.id}" value="${p.quantity || 0}" class="border rounded p-2 w-24"><button onclick="window.updateQuantity('${p.id}')" class="btn-primary text-sm py-1">تحديث</button></div></td>
+                        `).join('')}
+                    </tbody></table></div>
             </div>
         `;
         window.updateQuantity = async (id) => {
@@ -866,10 +974,10 @@
         };
     }
 
-    // Payment methods
+    // Payment methods section
     async function renderPaymentMethods(container) {
         let methodsDoc = await getSettingsDoc('paymentMethods');
-        let methods = methodsDoc?.methods || ['نقدي', 'بطاقة ائتمان', 'تحويل بنكي'];
+        let methods = methodsDoc?.methods || ['نقدي', 'بطاقة ائتمان', 'تحويل بنكي', 'تمارا', 'تابي'];
         container.innerHTML = `
             <div class="bg-white rounded-2xl shadow p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -898,7 +1006,7 @@
         };
     }
 
-    // General settings
+    // General settings section
     async function renderGeneralSettings(container) {
         let general = await getSettingsDoc('general');
         let data = general || { siteName: 'متجرك', currency: 'ريال', platformStamp: 'جميع الحقوق محفوظة', contactEmail: 'info@shop.com', whatsapp: '' };
@@ -945,14 +1053,14 @@
         });
     });
 
-    // Global close modal function
+    // Global functions
     window.closeModal = () => {
         const modal = document.getElementById('productModal') || document.getElementById('orderModal');
         if (modal) modal.remove();
-        if (currentQuill) currentQuill = null;
+        currentQuill = null;
     };
     window.showProductModal = showProductModal;
-    window.showNewOrderModal = showNewOrderModal;
+    window.showOrderModal = showOrderModal;
 
     renderSection('orders');
 </script>
