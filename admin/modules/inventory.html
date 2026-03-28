@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.tailwindcss.com"></script>
+
 <script type="module">
 import { loadProducts, updateProductQuantity } from '../../js/common.js';
 
@@ -9,38 +15,44 @@ async function init() {
 }
 
 function render() {
-    const el = document.getElementById('inventory-container');
+    document.body.innerHTML = `
+    <div class="p-6">
+        <h2 class="text-xl font-bold mb-4">المخزون</h2>
 
-    el.innerHTML = `
-        <table class="min-w-full">
-            <thead>
+        <table class="w-full bg-white shadow rounded">
+            <thead class="bg-gray-100">
                 <tr>
-                    <th>المنتج</th>
-                    <th>الكمية</th>
-                    <th>تعديل</th>
+                    <th class="p-2">المنتج</th>
+                    <th class="p-2">الكمية</th>
+                    <th class="p-2">تعديل</th>
                 </tr>
             </thead>
+
             <tbody>
                 ${products.map(p => `
-                    <tr>
-                        <td>${p.name}</td>
-                        <td>${p.quantity || 0}</td>
-                        <td>
-                            <input id="q-${p.id}" type="number" value="${p.quantity || 0}">
-                            <button onclick="updateQty('${p.id}')">حفظ</button>
-                        </td>
-                    </tr>
+                <tr class="border-b">
+                    <td class="p-2">${p.name}</td>
+                    <td class="p-2">${p.quantity || 0}</td>
+                    <td class="p-2">
+                        <input id="q-${p.id}" type="number" value="${p.quantity || 0}" class="border w-20 text-center">
+                        <button onclick="save('${p.id}')" class="bg-blue-600 text-white px-2 py-1">حفظ</button>
+                    </td>
+                </tr>
                 `).join('')}
             </tbody>
         </table>
+    </div>
     `;
 }
 
-window.updateQty = async (id) => {
+window.save = async (id) => {
     const val = document.getElementById(`q-${id}`).value;
     await updateProductQuantity(id, parseInt(val));
-    await init();
+    init();
 };
 
 init();
 </script>
+</head>
+<body></body>
+</html>
