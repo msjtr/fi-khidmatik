@@ -6,26 +6,12 @@
     <title>إدارة الطلبات</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* تنسيقات إضافية */
-        .modal {
-            transition: opacity 0.3s ease;
-        }
+        .modal { transition: opacity 0.3s ease; }
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            .print-area, .print-area * {
-                visibility: visible;
-            }
-            .print-area {
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 100%;
-            }
-            .no-print {
-                display: none;
-            }
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { position: absolute; top: 0; right: 0; width: 100%; }
+            .no-print { display: none; }
         }
     </style>
 </head>
@@ -34,12 +20,9 @@
 <div class="max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">📦 إدارة الطلبات</h1>
-        <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-            + إضافة طلب جديد
-        </button>
+        <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">+ إضافة طلب جديد</button>
     </div>
 
-    <!-- قائمة الطلبات -->
     <div id="ordersList" class="space-y-4">
         <div class="text-center text-gray-500 py-8">جاري التحميل...</div>
     </div>
@@ -54,7 +37,6 @@
                 <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
             <form id="orderForm">
-                <!-- اختيار العميل -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">العميل</label>
                     <div class="flex gap-2">
@@ -65,7 +47,6 @@
                     </div>
                 </div>
 
-                <!-- المنتجات -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">المنتجات</label>
                     <div id="itemsContainer" class="space-y-2">
@@ -81,7 +62,6 @@
                     <button type="button" id="addItemBtn" class="text-blue-600 text-sm mt-2">+ إضافة منتج آخر</button>
                 </div>
 
-                <!-- الخصم -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">الخصم</label>
                     <div class="flex gap-2">
@@ -93,7 +73,6 @@
                     </div>
                 </div>
 
-                <!-- الإجمالي -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">الإجمالي</label>
                     <input type="text" id="total" readonly class="w-full bg-gray-100 border rounded-lg px-3 py-2 font-bold">
@@ -108,7 +87,7 @@
     </div>
 </div>
 
-<!-- مودال إضافة عميل سريع (نفس السابق) -->
+<!-- مودال إضافة عميل سريع -->
 <div id="quickCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div class="p-6">
@@ -130,7 +109,6 @@
     </div>
 </div>
 
-<!-- منطقة الطباعة (مخفية) -->
 <div id="printArea" class="hidden print-area"></div>
 
 <script type="module">
@@ -142,9 +120,8 @@
     let customers = [];
     let products = [];
     let orders = [];
-    let currentOrderId = null; // للتعديل
+    let currentOrderId = null;
 
-    // عناصر DOM
     const ordersListDiv = document.getElementById('ordersList');
     const orderModal = document.getElementById('orderModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -159,7 +136,6 @@
     const closeModalBtn = document.getElementById('closeModalBtn');
     const cancelOrderBtn = document.getElementById('cancelOrderBtn');
 
-    // مودال العميل السريع
     const quickModal = document.getElementById('quickCustomerModal');
     const quickForm = document.getElementById('quickCustomerForm');
     const quickName = document.getElementById('quickName');
@@ -170,18 +146,11 @@
     const cancelQuickBtn = document.getElementById('cancelQuickBtn');
     const quickAddCustomerBtn = document.getElementById('quickAddCustomerBtn');
 
-    // ========== وظائف المساعدة ==========
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
     }
 
-    // تحميل العملاء والمنتجات
     async function loadData() {
         customers = await loadCustomers();
         products = await loadProducts();
@@ -201,9 +170,8 @@
             select.innerHTML = '<option value="">-- اختر منتجاً --</option>' +
                 products.map(p => `<option value="${p.id}" data-price="${p.price}" data-stock="${p.stock}">${escapeHtml(p.name)} (${p.price} ريال) - المخزون: ${p.stock}</option>`).join('');
             if (currentValue) select.value = currentValue;
-            // ربط حدث التغيير لتحديث السعر
             select.onchange = function() { updateItemPrice(this); };
-            updateItemPrice(select); // تحديث إذا كان محدداً
+            updateItemPrice(select);
         });
     }
 
@@ -218,23 +186,18 @@
 
     function calculateTotal() {
         let subtotal = 0;
-        const rows = document.querySelectorAll('.item-row');
-        rows.forEach(row => {
+        document.querySelectorAll('.item-row').forEach(row => {
             const price = parseFloat(row.querySelector('.price-input').value) || 0;
             const qty = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
             subtotal += price * qty;
         });
         let discount = parseFloat(discountValueInput.value) || 0;
-        const discountType = discountTypeSelect.value;
-        if (discountType === 'percent') {
-            discount = (subtotal * discount) / 100;
-        }
+        if (discountTypeSelect.value === 'percent') discount = (subtotal * discount) / 100;
         const total = subtotal - discount;
         totalInput.value = total.toFixed(2);
         return { subtotal, discount, total };
     }
 
-    // إضافة صف منتج جديد
     function addProductRow(productId = '', quantity = 1, price = 0) {
         const row = document.createElement('div');
         row.className = 'item-row flex gap-2 items-start bg-gray-50 p-2 rounded';
@@ -246,23 +209,19 @@
             <input type="number" name="price[]" placeholder="السعر" class="w-32 border rounded-lg px-3 py-2 price-input" readonly value="${price.toFixed(2)}">
             <button type="button" class="remove-item text-red-600 px-2">✖️</button>
         `;
-        const removeBtn = row.querySelector('.remove-item');
-        removeBtn.onclick = () => { row.remove(); calculateTotal(); };
-        const qtyInput = row.querySelector('input[name="quantity[]"]');
-        qtyInput.addEventListener('input', calculateTotal);
+        row.querySelector('.remove-item').onclick = () => { row.remove(); calculateTotal(); };
+        row.querySelector('input[name="quantity[]"]').addEventListener('input', calculateTotal);
         const select = row.querySelector('.product-select');
         select.onchange = function() { updateItemPrice(this); };
         itemsContainer.appendChild(row);
-        // تعبئة قائمة المنتجات في الـ select
-        const selectEl = row.querySelector('.product-select');
-        selectEl.innerHTML = '<option value="">-- اختر منتجاً --</option>' +
+        // تعبئة الخيارات
+        select.innerHTML = '<option value="">-- اختر منتجاً --</option>' +
             products.map(p => `<option value="${p.id}" data-price="${p.price}" data-stock="${p.stock}">${escapeHtml(p.name)} (${p.price} ريال) - المخزون: ${p.stock}</option>`).join('');
-        if (productId) selectEl.value = productId;
-        updateItemPrice(selectEl);
+        if (productId) select.value = productId;
+        updateItemPrice(select);
         calculateTotal();
     }
 
-    // ========== عرض قائمة الطلبات ==========
     async function renderOrders() {
         orders = await getOrdersWithDetails();
         if (orders.length === 0) {
@@ -301,22 +260,21 @@
     }
 
     function getStatusClass(status) {
-        switch(status) {
-            case 'جديد': return 'bg-blue-100 text-blue-800';
-            case 'قيد المعالجة': return 'bg-yellow-100 text-yellow-800';
-            case 'تم الشحن': return 'bg-purple-100 text-purple-800';
-            case 'تم التسليم': return 'bg-green-100 text-green-800';
-            case 'ملغي': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
+        const map = {
+            'جديد': 'bg-blue-100 text-blue-800',
+            'قيد المعالجة': 'bg-yellow-100 text-yellow-800',
+            'تم الشحن': 'bg-purple-100 text-purple-800',
+            'تم التسليم': 'bg-green-100 text-green-800',
+            'ملغي': 'bg-red-100 text-red-800'
+        };
+        return map[status] || 'bg-gray-100 text-gray-800';
     }
 
-    // ========== إضافة/تعديل الطلب ==========
     function resetForm() {
         currentOrderId = null;
         orderForm.reset();
         itemsContainer.innerHTML = '';
-        addProductRow(); // صف فارغ
+        addProductRow();
         customerSelect.value = '';
         discountValueInput.value = '0';
         discountTypeSelect.value = 'fixed';
@@ -329,13 +287,9 @@
         if (!order) return;
         currentOrderId = orderId;
         modalTitle.innerText = 'تعديل الطلب';
-        // تعبئة البيانات
         customerSelect.value = order.customerId;
-        // منتجات
         itemsContainer.innerHTML = '';
-        order.items.forEach(item => {
-            addProductRow(item.productId, item.quantity, item.price);
-        });
+        order.items.forEach(item => addProductRow(item.productId, item.quantity, item.price));
         if (order.items.length === 0) addProductRow();
         discountValueInput.value = order.discount || 0;
         discountTypeSelect.value = order.discountType || 'fixed';
@@ -347,36 +301,28 @@
     async function saveOrder(event) {
         event.preventDefault();
         const customerId = customerSelect.value;
-        if (!customerId) {
-            alert('يرجى اختيار عميل');
-            return;
-        }
+        if (!customerId) { alert('يرجى اختيار عميل'); return; }
+
         const items = [];
         const rows = document.querySelectorAll('.item-row');
         for (let row of rows) {
             const productId = row.querySelector('.product-select').value;
             const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value);
             const price = parseFloat(row.querySelector('.price-input').value);
-            if (productId && quantity > 0 && price > 0) {
-                items.push({ productId, quantity, price });
-            }
+            if (productId && quantity > 0 && price > 0) items.push({ productId, quantity, price });
         }
-        if (items.length === 0) {
-            alert('أضف منتجاً واحداً على الأقل');
-            return;
-        }
-        // التحقق من المخزون
+        if (items.length === 0) { alert('أضف منتجاً واحداً على الأقل'); return; }
+
+        // تحقق المخزون
         for (let item of items) {
             const product = products.find(p => p.id === item.productId);
-            if (!product) {
-                alert(`المنتج غير موجود`);
-                return;
-            }
+            if (!product) { alert('منتج غير موجود'); return; }
             if (product.stock < item.quantity) {
-                alert(`المنتج ${product.name} ليس لديه مخزون كافٍ (المتاح: ${product.stock})`);
+                alert(`المنتج ${product.name} لديه مخزون ${product.stock} فقط`);
                 return;
             }
         }
+
         const { subtotal, discount, total } = calculateTotal();
         const discountType = discountTypeSelect.value;
         const discountValue = parseFloat(discountValueInput.value) || 0;
@@ -384,48 +330,35 @@
             customerId,
             items,
             subtotal,
-            discount: discountType === 'percent' ? discountValue : discountValue,
+            discount: discountValue,
             discountType,
             total,
             status: currentOrderId ? (orders.find(o => o.id === currentOrderId)?.status || 'جديد') : 'جديد',
             date: new Date().toISOString().split('T')[0],
             updatedAt: new Date().toISOString()
         };
+        if (!currentOrderId) orderData.createdAt = new Date().toISOString();
+
         try {
             if (currentOrderId) {
-                // قبل التعديل، نحتاج لاستعادة المخزون القديم ثم تطبيق الجديد
                 const oldOrder = orders.find(o => o.id === currentOrderId);
                 if (oldOrder) {
-                    // إعادة المخزون القديم
                     for (let oldItem of oldOrder.items) {
-                        const product = products.find(p => p.id === oldItem.productId);
-                        if (product) {
-                            await updateProductStock(oldItem.productId, product.stock + oldItem.quantity);
-                        }
+                        const prod = products.find(p => p.id === oldItem.productId);
+                        if (prod) await updateProductStock(oldItem.productId, prod.stock + oldItem.quantity);
                     }
                 }
                 await updateOrder(currentOrderId, orderData);
-                // تحديث المخزون الجديد
-                for (let item of items) {
-                    const product = products.find(p => p.id === item.productId);
-                    if (product) {
-                        await updateProductStock(item.productId, product.stock - item.quantity);
-                    }
-                }
-                alert('تم تعديل الطلب بنجاح');
             } else {
-                const newOrderId = await addOrder(orderData);
-                // تحديث المخزون
-                for (let item of items) {
-                    const product = products.find(p => p.id === item.productId);
-                    if (product) {
-                        await updateProductStock(item.productId, product.stock - item.quantity);
-                    }
-                }
-                alert('تم إضافة الطلب بنجاح');
+                await addOrder(orderData);
             }
+            for (let item of items) {
+                const prod = products.find(p => p.id === item.productId);
+                if (prod) await updateProductStock(item.productId, prod.stock - item.quantity);
+            }
+            alert(currentOrderId ? 'تم تعديل الطلب' : 'تم إضافة الطلب');
             closeModal();
-            await loadData(); // إعادة تحميل المنتجات (لتحديث المخزون)
+            await loadData();
             await renderOrders();
         } catch (err) {
             console.error(err);
@@ -439,48 +372,36 @@
         resetForm();
     }
 
-    // ========== تغيير حالة الطلب ==========
     window.changeStatus = async (orderId, newStatus) => {
         try {
             await updateOrder(orderId, { status: newStatus });
             await renderOrders();
-        } catch (err) {
-            console.error(err);
-            alert('خطأ في تغيير الحالة');
-        }
+        } catch (err) { console.error(err); alert('خطأ في تغيير الحالة'); }
     };
 
-    // ========== حذف الطلب ==========
     window.deleteOrderHandler = async (orderId) => {
         if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
         try {
-            // استعادة المخزون قبل الحذف
             const order = orders.find(o => o.id === orderId);
             if (order && order.items) {
                 for (let item of order.items) {
-                    const product = products.find(p => p.id === item.productId);
-                    if (product) {
-                        await updateProductStock(item.productId, product.stock + item.quantity);
-                    }
+                    const prod = products.find(p => p.id === item.productId);
+                    if (prod) await updateProductStock(item.productId, prod.stock + item.quantity);
                 }
             }
             await deleteOrder(orderId);
             await renderOrders();
             alert('تم حذف الطلب');
-        } catch (err) {
-            console.error(err);
-            alert('خطأ في الحذف');
-        }
+        } catch (err) { console.error(err); alert('خطأ في الحذف'); }
     };
 
-    // ========== طباعة الفاتورة ==========
     window.printInvoice = async (orderId) => {
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
         const customer = customers.find(c => c.id === order.customerId) || { name: 'غير معروف', phone: '', email: '', address: '' };
         const printArea = document.getElementById('printArea');
         printArea.innerHTML = `
-            <div style="direction: rtl; font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto;">
+            <div style="direction: rtl; font-family: Arial; padding: 20px; max-width: 800px; margin: auto;">
                 <h1 style="text-align: center;">فاتورة رقم ${orderId.substring(0, 8)}</h1>
                 <hr>
                 <p><strong>العميل:</strong> ${escapeHtml(customer.name)}</p>
@@ -489,7 +410,7 @@
                 <p><strong>العنوان:</strong> ${escapeHtml(customer.address || 'غير مدخل')}</p>
                 <p><strong>التاريخ:</strong> ${order.date || order.createdAt?.split('T')[0]}</p>
                 <hr>
-                <table style="width: 100%; border-collapse: collapse;">
+                <table style="width:100%; border-collapse:collapse;">
                     <thead><tr><th style="border:1px solid #ddd; padding:8px;">المنتج</th><th style="border:1px solid #ddd; padding:8px;">الكمية</th><th style="border:1px solid #ddd; padding:8px;">السعر</th><th style="border:1px solid #ddd; padding:8px;">الإجمالي</th></tr></thead>
                     <tbody>
                         ${order.items.map(item => `<tr><td style="border:1px solid #ddd; padding:8px;">${escapeHtml(item.productDetails?.name || 'منتج')}</td><td style="border:1px solid #ddd; padding:8px;">${item.quantity}</td><td style="border:1px solid #ddd; padding:8px;">${item.price}</td><td style="border:1px solid #ddd; padding:8px;">${(item.quantity * item.price).toFixed(2)}</td></tr>`).join('')}
@@ -508,50 +429,22 @@
         printArea.classList.add('hidden');
     };
 
-    // ========== مودال العميل السريع ==========
-    function openQuickModal() {
-        quickModal.classList.remove('hidden');
-        quickModal.classList.add('flex');
-        quickForm.reset();
-    }
-    function closeQuickModal() {
-        quickModal.classList.add('hidden');
-        quickModal.classList.remove('flex');
-    }
+    window.editOrder = (id) => openModalForEdit(id);
+
+    function openQuickModal() { quickModal.classList.remove('hidden'); quickModal.classList.add('flex'); quickForm.reset(); }
+    function closeQuickModal() { quickModal.classList.add('hidden'); quickModal.classList.remove('flex'); }
     async function saveQuickCustomer(event) {
         event.preventDefault();
         const name = quickName.value.trim();
         const phone = quickPhone.value.trim();
-        const email = quickEmail.value.trim();
-        const address = quickAddress.value.trim();
-        if (!name || !phone) {
-            alert('الاسم ورقم الجوال مطلوبان');
-            return;
-        }
-        const newCustomer = {
-            name, phone, email, address,
-            createdAt: new Date().toISOString()
-        };
-        try {
-            await addCustomer(newCustomer);
-            closeQuickModal();
-            await loadData(); // إعادة تحميل العملاء
-            customerSelect.value = customers[customers.length-1]?.id || '';
-        } catch (err) {
-            console.error(err);
-            alert('حدث خطأ أثناء إضافة العميل');
-        }
+        if (!name || !phone) { alert('الاسم ورقم الجوال مطلوبان'); return; }
+        await addCustomer({ name, phone, email: quickEmail.value.trim(), address: quickAddress.value.trim(), createdAt: new Date().toISOString() });
+        closeQuickModal();
+        await loadData();
+        customerSelect.value = customers[customers.length-1]?.id || '';
     }
 
-    // ========== ربط الأحداث ==========
-    window.editOrder = (id) => {
-        openModalForEdit(id);
-    };
-    newOrderBtn.onclick = () => {
-        resetForm();
-        orderModal.classList.remove('hidden');
-        orderModal.classList.add('flex');
-    };
+    newOrderBtn.onclick = () => { resetForm(); orderModal.classList.remove('hidden'); orderModal.classList.add('flex'); };
     closeModalBtn.onclick = closeModal;
     cancelOrderBtn.onclick = closeModal;
     addItemBtn.onclick = () => addProductRow();
@@ -563,7 +456,6 @@
     quickForm.onsubmit = saveQuickCustomer;
     orderForm.onsubmit = saveOrder;
 
-    // بدء التشغيل
     await loadData();
     await renderOrders();
 </script>
