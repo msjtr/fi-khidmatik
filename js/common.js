@@ -1,3 +1,4 @@
+// استيراد من firebase.js فقط
 import {
     db,
     collection,
@@ -7,9 +8,41 @@ import {
     getDocs,
     updateDoc,
     deleteDoc,
-    setDoc
+    setDoc,
+    getCollection,
+    loadProducts,
+    addProduct,
+    deleteProduct,
+    loadOrders,
+    addOrder,
+    deleteOrder,
+    updateOrderStatus,
+    getSettings,
+    setSettings
 } from './firebase.js';
 
+// إعادة تصدير للاستخدام في الملفات الأخرى
+export {
+    db,
+    collection,
+    addDoc,
+    doc,
+    getDoc,
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    setDoc,
+    getCollection,
+    loadProducts,
+    addProduct,
+    deleteProduct,
+    loadOrders,
+    addOrder,
+    deleteOrder,
+    updateOrderStatus,
+    getSettings,
+    setSettings
+};
 // ===================== دالة عامة =====================
 export async function getCollection(name) {
     const snap = await getDocs(collection(db, name));
