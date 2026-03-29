@@ -790,12 +790,14 @@
     };
     
     // باقي الدوال (نفس الكود الأصلي)
-    function formatDateInvoice(dateStr) {
-        if(!dateStr) return ''; 
-        const d = new Date(dateStr); 
-        if(isNaN(d.getTime())) return dateStr;
-        return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`; 
-    }
+   function formatTimeInvoice(time24) {
+    if (!time24) return '';
+    let [h, m] = time24.split(':');
+    let hour = parseInt(h);
+    let ampm = hour >= 12 ? 'م' : 'ص';
+    hour = hour % 12 || 12;
+    return `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
+}
     
     function formatTimeInvoice(time24) { 
         if(!time24) return ''; 
