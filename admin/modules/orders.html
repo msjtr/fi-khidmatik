@@ -942,29 +942,34 @@ window.exportAsPNG = async (orderId) => {
     window.deleteOrderHandler=async(id)=>{ if(!confirm('تأكيد الحذف؟')) return; try{ const ord=orders.find(o=>o.id===id); if(ord?.items) for(let it of ord.items) if(it.productId){ const p=products.find(pr=>pr.id===it.productId); if(p) await updateProductStock(it.productId,p.stock+it.quantity); } await deleteOrder(id); await renderOrders(); showToast('تم الحذف','success'); }catch(e){ showToast('خطأ','error'); } };
     
     // ربط الأحداث
-    document.getElementById('newOrderBtn').onclick=()=>{ resetForm(); orderModal.classList.remove('hidden'); orderModal.classList.add('flex'); };
-    document.getElementById('closeModalBtn').onclick=closeModal;
-    document.getElementById('cancelOrderBtn').onclick=closeModal;
-    document.getElementById('addFromInventoryBtn').onclick=openInventoryModal;
-    document.getElementById('addNewProductBtn').onclick=()=>{ const row=addProductRow(); openQuickProductModal(row); };
-    document.getElementById('generateOrderNumber').onclick=()=>{ orderNumberInput.value=generateOrderNumber(); };
-    document.getElementById('quickAddCustomerBtn').onclick=openQuickModal;
-    document.getElementById('closeQuickModalBtn').onclick=closeQuickModal;
-    document.getElementById('cancelQuickBtn').onclick=closeQuickModal;
-    document.getElementById('closeInventoryModalBtn').onclick=()=>inventoryModal.classList.add('hidden');
-    document.getElementById('closeQuickProductModalBtn').onclick=closeQuickProductModal;
-    document.getElementById('cancelQuickProductBtn').onclick=closeQuickProductModal;
-    document.getElementById('viewListBtn').onclick=()=>{ currentView='list'; renderOrders(); };
-    document.getElementById('viewGridBtn').onclick=()=>{ currentView='grid'; renderOrders(); };
-    document.getElementById('applyFilters').onclick=()=>{ currentFilters={status:document.getElementById('filterStatus').value,customer:document.getElementById('filterCustomer').value.toLowerCase(),dateFrom:document.getElementById('filterDateFrom').value,dateTo:document.getElementById('filterDateTo').value}; renderOrders(); };
-    document.getElementById('resetFilters').onclick=()=>{ document.getElementById('filterStatus').value=''; document.getElementById('filterCustomer').value=''; document.getElementById('filterDateFrom').value=''; document.getElementById('filterDateTo').value=''; currentFilters={status:'',customer:'',dateFrom:'',dateTo:''}; renderOrders(); };
-    discountValueInput.addEventListener('input',updateTotals);
-    discountTypeSelect.addEventListener('change',updateTotals);
-    quickForm.onsubmit=saveQuickCustomer;
-    orderForm.onsubmit=saveOrder;
-    quickProductForm.onsubmit=saveQuickProduct;
-    paymentMethodBtns.forEach(btn=>btn.onclick=()=>setPaymentMethod(btn.dataset.payment));
-    
+  const orderHourSelect = document.getElementById('orderHour');
+const orderMinuteSelect = document.getElementById('orderMinute');
+const orderAmPmSelect = document.getElementById('orderAmPm');
+const orderDateInput = document.getElementById('orderDate');
+const orderNumberInput = document.getElementById('orderNumber');
+const customerSelect = document.getElementById('customerSelect');
+const discountValueInput = document.getElementById('discountValue');
+const discountTypeSelect = document.getElementById('discountType');
+const taxAmountInput = document.getElementById('taxAmount');
+const subtotalDisplay = document.getElementById('subtotalDisplay');
+const discountDisplay = document.getElementById('discountDisplay');
+const taxDisplay = document.getElementById('taxDisplay');
+const totalDisplay = document.getElementById('totalDisplay');
+const productsContainer = document.getElementById('productsContainer');
+const orderModal = document.getElementById('orderModal');
+const quickModal = document.getElementById('quickCustomerModal');
+const quickForm = document.getElementById('quickCustomerForm');
+const quickProductForm = document.getElementById('quickProductForm');
+const paymentMethodBtns = document.querySelectorAll('.payment-btn');
+const approvalCodeInput = document.getElementById('approvalCode');
+const otherPaymentText = document.getElementById('otherPaymentText');
+const approvalCodeField = document.getElementById('approvalCodeField');
+const otherPaymentField = document.getElementById('otherPaymentField');
+const approvalMethodLabel = document.getElementById('approvalMethodLabel');
+const inventoryModal = document.getElementById('inventoryModal');
+const inventorySearch = document.getElementById('inventorySearch');
+const inventoryList = document.getElementById('inventoryList');
+const ordersContainer = document.getElementById('ordersContainer'); 
     // بدء التشغيل
     async function init() {
         console.log('🚀 بدء تشغيل صفحة الطلبات...');
