@@ -41,16 +41,93 @@
             background: #e5e7eb;
             border-radius: 4px;
         }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .low-stock {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+        .out-of-stock {
+            color: #ef4444;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="bg-gray-50 p-6">
 
 <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
         <h1 class="text-2xl font-bold text-gray-800">📦 إدارة الطلبات</h1>
-        <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition">
-            <i class="fas fa-plus ml-1"></i> إضافة طلب جديد
-        </button>
+        <div class="flex gap-2">
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="🔍 بحث عن طلب..." 
+                       class="border rounded-lg px-4 py-2 pr-10 w-64 focus:ring-2 focus:ring-blue-500">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+            <select id="statusFilter" class="border rounded-lg px-3 py-2">
+                <option value="">كل الحالات</option>
+                <option value="جديد">جديد</option>
+                <option value="قيد المعالجة">قيد المعالجة</option>
+                <option value="تم الشحن">تم الشحن</option>
+                <option value="تم التسليم">تم التسليم</option>
+                <option value="ملغي">ملغي</option>
+            </select>
+            <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition">
+                <i class="fas fa-plus ml-1"></i> إضافة طلب جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- إحصائيات سريعة -->
+    <div id="statsContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-2xl font-bold text-blue-600" id="totalOrders">0</p>
+            <p class="text-sm text-gray-500">إجمالي الطلبات</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-2xl font-bold text-green-600" id="totalRevenue">0</p>
+            <p class="text-sm text-gray-500">إجمالي الإيرادات</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-2xl font-bold text-yellow-600" id="pendingOrders">0</p>
+            <p class="text-sm text-gray-500">طلبات قيد المعالجة</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <p class="text-2xl font-bold text-purple-600" id="completedOrders">0</p>
+            <p class="text-sm text-gray-500">طلبات مكتملة</p>
+        </div>
+    </div>
+
+    <!-- حاوية التحميل -->
+    <div id="loadingContainer" class="hidden py-8">
+        <div class="loading-spinner"></div>
+        <p class="text-center text-gray-500 mt-2">جاري تحميل الطلبات...</p>
     </div>
 
     <div id="ordersList" class="space-y-4">
@@ -58,7 +135,7 @@
     </div>
 </div>
 
-<!-- مودال إضافة/تعديل الطلب -->
+<!-- مودال إضافة/تعديل الطلب (نفس الكود السابق مع تحسينات طفيفة) -->
 <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
         <div class="p-6">
@@ -153,6 +230,7 @@
                             </select>
                             <input type="number" name="quantity[]" placeholder="الكمية" class="w-24 border rounded-lg px-3 py-2" value="1" min="1">
                             <input type="number" name="price[]" placeholder="السعر" class="w-32 border rounded-lg px-3 py-2 price-input" readonly>
+                            <span class="stock-status text-xs"></span>
                             <button type="button" class="quick-add-product text-blue-600 text-sm px-2"><i class="fas fa-plus"></i> جديد</button>
                             <button type="button" class="remove-item text-red-600 px-2"><i class="fas fa-trash-alt"></i></button>
                         </div>
@@ -191,7 +269,7 @@
     </div>
 </div>
 
-<!-- مودال إضافة عميل سريع -->
+<!-- مودال إضافة عميل سريع (نفس الكود السابق) -->
 <div id="quickCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div class="p-6">
@@ -274,6 +352,7 @@
 </div>
 
 <div id="printArea" class="hidden print-area"></div>
+<div id="toast" class="hidden fixed bottom-4 left-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"></div>
 
 <script type="module">
     import { 
@@ -287,9 +366,12 @@
     let currentOrderId = null;
     let selectedPaymentMethod = '';
     let currentProductRow = null;
+    let searchTerm = '';
+    let statusFilter = '';
 
     // عناصر DOM
     const ordersListDiv = document.getElementById('ordersList');
+    const loadingContainer = document.getElementById('loadingContainer');
     const orderModal = document.getElementById('orderModal');
     const modalTitle = document.getElementById('modalTitle');
     const orderForm = document.getElementById('orderForm');
@@ -302,6 +384,15 @@
     const newOrderBtn = document.getElementById('newOrderBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const cancelOrderBtn = document.getElementById('cancelOrderBtn');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilterSelect = document.getElementById('statusFilter');
+    const toast = document.getElementById('toast');
+    
+    // عناصر الإحصائيات
+    const totalOrdersSpan = document.getElementById('totalOrders');
+    const totalRevenueSpan = document.getElementById('totalRevenue');
+    const pendingOrdersSpan = document.getElementById('pendingOrders');
+    const completedOrdersSpan = document.getElementById('completedOrders');
     
     const orderNumberInput = document.getElementById('orderNumber');
     const orderDateInput = document.getElementById('orderDate');
@@ -351,7 +442,17 @@
         'other': 'أخرى'
     };
 
-        // ========== دوال الوقت ==========
+    // ========== Toast Notifications ==========
+    function showToast(message, isError = false) {
+        toast.textContent = message;
+        toast.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
+        toast.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 3000);
+    }
+
+    // ========== دوال الوقت ==========
     function populateTimeOptions() {
         for (let i = 1; i <= 12; i++) {
             const option = document.createElement('option');
@@ -433,6 +534,12 @@
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
     }
 
+    function getStockStatusClass(stock) {
+        if (stock === 0) return 'out-of-stock';
+        if (stock <= 5) return 'low-stock';
+        return '';
+    }
+
     // ========== إدارة طريقة الدفع ==========
     function setPaymentMethod(method) {
         selectedPaymentMethod = method;
@@ -467,10 +574,15 @@
 
     // ========== تحميل البيانات ==========
     async function loadData() {
-        customers = await loadCustomers();
-        products = await loadProducts();
-        populateCustomerSelect();
-        populateProductSelects();
+        try {
+            customers = await loadCustomers();
+            products = await loadProducts();
+            populateCustomerSelect();
+            populateProductSelects();
+        } catch (err) {
+            console.error(err);
+            showToast('حدث خطأ في تحميل البيانات', true);
+        }
     }
 
     function populateCustomerSelect() {
@@ -487,6 +599,22 @@
             if (currentValue) select.value = currentValue;
             select.onchange = function() { updateItemPrice(this); };
             updateItemPrice(select);
+            // تحديث حالة المخزون
+            const row = select.closest('.item-row');
+            const selectedOption = select.options[select.selectedIndex];
+            const stock = selectedOption ? parseInt(selectedOption.dataset.stock) : 0;
+            const stockSpan = row.querySelector('.stock-status');
+            if (stockSpan) {
+                if (stock === 0) {
+                    stockSpan.textContent = '⚠️ نفد';
+                    stockSpan.className = 'stock-status text-xs out-of-stock';
+                } else if (stock <= 5) {
+                    stockSpan.textContent = `⚠️ متبقي ${stock}`;
+                    stockSpan.className = 'stock-status text-xs low-stock';
+                } else {
+                    stockSpan.textContent = '';
+                }
+            }
         });
     }
 
@@ -523,6 +651,7 @@
             </select>
             <input type="number" name="quantity[]" placeholder="الكمية" class="w-24 border rounded-lg px-3 py-2" value="${quantity}" min="1">
             <input type="number" name="price[]" placeholder="السعر" class="w-32 border rounded-lg px-3 py-2 price-input" readonly value="${price.toFixed(2)}">
+            <span class="stock-status text-xs"></span>
             <button type="button" class="quick-add-product text-blue-600 text-sm px-2"><i class="fas fa-plus"></i> جديد</button>
             <button type="button" class="remove-item text-red-600 px-2"><i class="fas fa-trash-alt"></i></button>
         `;
@@ -548,51 +677,101 @@
         calculateTotal();
     }
 
-    // ========== عرض الطلبات ==========
-    async function renderOrders() {
-        orders = await getOrdersWithDetails();
-        if (orders.length === 0) {
-            ordersListDiv.innerHTML = '<div class="text-center text-gray-500 py-8">لا يوجد طلبات</div>';
-            return;
+    // ========== عرض الطلبات مع الفلترة ==========
+    function updateStats() {
+        const filtered = filterOrders();
+        const total = filtered.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pending = filtered.filter(o => o.status === 'جديد' || o.status === 'قيد المعالجة').length;
+        const completed = filtered.filter(o => o.status === 'تم التسليم').length;
+        
+        totalOrdersSpan.textContent = filtered.length;
+        totalRevenueSpan.textContent = total.toFixed(2);
+        pendingOrdersSpan.textContent = pending;
+        completedOrdersSpan.textContent = completed;
+    }
+
+    function filterOrders() {
+        let filtered = [...orders];
+        if (searchTerm) {
+            filtered = filtered.filter(o => 
+                (o.orderNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (o.customer?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+            );
         }
-        ordersListDiv.innerHTML = orders.map(order => {
-            const paymentDisplay = order.paymentMethod ? 
-                `<span class="text-sm px-2 py-1 rounded bg-gray-100"><i class="fas fa-credit-card ml-1"></i> ${order.paymentMethodName || order.paymentMethod}</span>` : '';
-            const approvalDisplay = order.approvalCode ? 
-                `<span class="text-xs text-gray-500"><i class="fas fa-check-circle ml-1"></i> رمز: ${order.approvalCode}</span>` : '';
-            return `
-            <div class="bg-white rounded-lg shadow p-4 border hover:shadow-md transition">
-                <div class="flex justify-between items-start flex-wrap gap-2">
-                    <div>
-                        <h3 class="font-bold text-lg text-blue-600"><i class="fas fa-receipt ml-1"></i> ${escapeHtml(order.orderNumber || 'KF-' + order.id.substring(0, 8))}</h3>
-                        <p class="text-sm text-gray-600"><i class="fas fa-calendar-alt ml-1"></i> ${order.orderDate || order.date} | <i class="fas fa-clock ml-1"></i> ${formatTime12Hour(order.orderTime)}</p>
-                        <p class="text-sm"><i class="fas fa-user ml-1"></i> ${escapeHtml(order.customer?.name || 'غير معروف')}</p>
-                        <p class="text-sm"><i class="fas fa-tag ml-1"></i> الحالة: <span class="status-badge px-2 py-1 rounded text-xs ${getStatusClass(order.status)}">${order.status}</span></p>
-                        <p class="text-sm font-bold"><i class="fas fa-money-bill-wave ml-1"></i> الإجمالي: ${order.total} ريال</p>
-                        <div class="flex gap-2 mt-1">
-                            ${paymentDisplay}
-                            ${approvalDisplay}
+        if (statusFilter) {
+            filtered = filtered.filter(o => o.status === statusFilter);
+        }
+        return filtered;
+    }
+
+    async function renderOrders() {
+        loadingContainer.classList.remove('hidden');
+        ordersListDiv.classList.add('opacity-50');
+        
+        try {
+            orders = await getOrdersWithDetails();
+            const filtered = filterOrders();
+            updateStats();
+            
+            if (filtered.length === 0) {
+                ordersListDiv.innerHTML = '<div class="text-center text-gray-500 py-8">' +
+                    (searchTerm || statusFilter ? 'لا توجد نتائج مطابقة للبحث' : 'لا يوجد طلبات') +
+                    '</div>';
+                return;
+            }
+            
+            ordersListDiv.innerHTML = filtered.map(order => {
+                const paymentDisplay = order.paymentMethod ? 
+                    `<span class="text-sm px-2 py-1 rounded bg-gray-100"><i class="fas fa-credit-card ml-1"></i> ${order.paymentMethodName || order.paymentMethod}</span>` : '';
+                const approvalDisplay = order.approvalCode ? 
+                    `<span class="text-xs text-gray-500"><i class="fas fa-check-circle ml-1"></i> رمز: ${order.approvalCode}</span>` : '';
+                return `
+                <div class="bg-white rounded-lg shadow p-4 border hover:shadow-md transition">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div>
+                            <h3 class="font-bold text-lg text-blue-600"><i class="fas fa-receipt ml-1"></i> ${escapeHtml(order.orderNumber || 'KF-' + order.id.substring(0, 8))}</h3>
+                            <p class="text-sm text-gray-600"><i class="fas fa-calendar-alt ml-1"></i> ${order.orderDate || order.date} | <i class="fas fa-clock ml-1"></i> ${formatTime12Hour(order.orderTime)}</p>
+                            <p class="text-sm"><i class="fas fa-user ml-1"></i> ${escapeHtml(order.customer?.name || 'غير معروف')}</p>
+                            <p class="text-sm"><i class="fas fa-tag ml-1"></i> الحالة: <span class="status-badge px-2 py-1 rounded text-xs ${getStatusClass(order.status)}">${order.status}</span></p>
+                            <p class="text-sm font-bold"><i class="fas fa-money-bill-wave ml-1"></i> الإجمالي: ${order.total} ريال</p>
+                            <div class="flex gap-2 mt-1 flex-wrap">
+                                ${paymentDisplay}
+                                ${approvalDisplay}
+                            </div>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="editOrder('${order.id}')" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <select onchange="changeStatus('${order.id}', this.value)" class="text-sm border rounded-lg px-2 py-1">
+                                <option value="جديد" ${order.status === 'جديد' ? 'selected' : ''}>جديد</option>
+                                <option value="قيد المعالجة" ${order.status === 'قيد المعالجة' ? 'selected' : ''}>قيد المعالجة</option>
+                                <option value="تم الشحن" ${order.status === 'تم الشحن' ? 'selected' : ''}>تم الشحن</option>
+                                <option value="تم التسليم" ${order.status === 'تم التسليم' ? 'selected' : ''}>تم التسليم</option>
+                                <option value="ملغي" ${order.status === 'ملغي' ? 'selected' : ''}>ملغي</option>
+                            </select>
+                            <button onclick="printInvoice('${order.id}')" class="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition" title="طباعة">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button onclick="deleteOrderHandler('${order.id}', '${escapeHtml(order.orderNumber || order.id.substring(0, 8))}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition" title="حذف">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="flex gap-2 flex-wrap">
-                        <button onclick="editOrder('${order.id}')" class="text-blue-600 hover:text-blue-800 p-2"><i class="fas fa-edit"></i> تعديل</button>
-                        <select onchange="changeStatus('${order.id}', this.value)" class="text-sm border rounded px-2 py-1">
-                            <option value="جديد" ${order.status === 'جديد' ? 'selected' : ''}>جديد</option>
-                            <option value="قيد المعالجة" ${order.status === 'قيد المعالجة' ? 'selected' : ''}>قيد المعالجة</option>
-                            <option value="تم الشحن" ${order.status === 'تم الشحن' ? 'selected' : ''}>تم الشحن</option>
-                            <option value="تم التسليم" ${order.status === 'تم التسليم' ? 'selected' : ''}>تم التسليم</option>
-                            <option value="ملغي" ${order.status === 'ملغي' ? 'selected' : ''}>ملغي</option>
-                        </select>
-                        <button onclick="printInvoice('${order.id}')" class="text-green-600 hover:text-green-800 p-2"><i class="fas fa-print"></i> طباعة</button>
-                        <button onclick="deleteOrderHandler('${order.id}')" class="text-red-600 hover:text-red-800 p-2"><i class="fas fa-trash-alt"></i> حذف</button>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <strong><i class="fas fa-boxes ml-1"></i> المنتجات:</strong>
+                        ${order.items.map(item => `${item.productDetails?.name || 'منتج'} (${item.quantity} × ${item.price})`).join('، ')}
                     </div>
                 </div>
-                <div class="mt-2 text-sm text-gray-600">
-                    <strong><i class="fas fa-boxes ml-1"></i> المنتجات:</strong>
-                    ${order.items.map(item => `${item.productDetails?.name || 'منتج'} (${item.quantity} × ${item.price})`).join('، ')}
-                </div>
-            </div>
-        `}).join('');
+            `}).join('');
+        } catch (err) {
+            console.error(err);
+            ordersListDiv.innerHTML = '<div class="text-center text-red-500 py-8">❌ حدث خطأ في تحميل الطلبات</div>';
+            showToast('حدث خطأ في تحميل الطلبات', true);
+        } finally {
+            loadingContainer.classList.add('hidden');
+            ordersListDiv.classList.remove('opacity-50');
+        }
     }
 
     function getStatusClass(status) {
@@ -667,22 +846,22 @@
     async function saveOrder(event) {
         event.preventDefault();
         const customerId = customerSelect.value;
-        if (!customerId) { alert('يرجى اختيار عميل'); return; }
+        if (!customerId) { showToast('يرجى اختيار عميل', true); return; }
         
         const orderNumber = orderNumberInput.value.trim();
-        if (!orderNumber) { alert('يرجى إدخال رقم الطلب'); return; }
+        if (!orderNumber) { showToast('يرجى إدخال رقم الطلب', true); return; }
         
         const orderDate = orderDateInput.value;
-        if (!orderDate) { alert('يرجى اختيار تاريخ الطلب'); return; }
+        if (!orderDate) { showToast('يرجى اختيار تاريخ الطلب', true); return; }
         
         if (!orderHourSelect.value || !orderMinuteSelect.value) {
-            alert('يرجى اختيار وقت الطلب');
+            showToast('يرجى اختيار وقت الطلب', true);
             return;
         }
         const orderTime = get24HourTime();
         
         if (!selectedPaymentMethod) {
-            alert('يرجى اختيار طريقة الدفع');
+            showToast('يرجى اختيار طريقة الدفع', true);
             return;
         }
         
@@ -693,7 +872,7 @@
         if (paymentMethod === 'tamara' || paymentMethod === 'tabby') {
             approvalCode = approvalCodeInput.value.trim();
             if (!approvalCode) {
-                alert(`يرجى إدخال رمز الموافقة لطريقة الدفع ${paymentMethod === 'tamara' ? 'تمارا' : 'تابي'}`);
+                showToast(`يرجى إدخال رمز الموافقة لطريقة الدفع ${paymentMethod === 'tamara' ? 'تمارا' : 'تابي'}`, true);
                 return;
             }
         }
@@ -701,7 +880,7 @@
         if (paymentMethod === 'other') {
             otherPaymentTextValue = otherPaymentText.value.trim();
             if (!otherPaymentTextValue) {
-                alert('يرجى إدخال طريقة الدفع');
+                showToast('يرجى إدخال طريقة الدفع', true);
                 return;
             }
         }
@@ -714,13 +893,13 @@
             const price = parseFloat(row.querySelector('.price-input').value);
             if (productId && quantity > 0 && price > 0) items.push({ productId, quantity, price });
         }
-        if (items.length === 0) { alert('أضف منتجاً واحداً على الأقل'); return; }
+        if (items.length === 0) { showToast('أضف منتجاً واحداً على الأقل', true); return; }
 
         for (let item of items) {
             const product = products.find(p => p.id === item.productId);
-            if (!product) { alert('منتج غير موجود'); return; }
+            if (!product) { showToast('منتج غير موجود', true); return; }
             if (product.stock < item.quantity) {
-                alert(`المنتج ${product.name} لديه مخزون ${product.stock} فقط`);
+                showToast(`المنتج ${product.name} لديه مخزون ${product.stock} فقط`, true);
                 return;
             }
         }
@@ -757,20 +936,21 @@
                     }
                 }
                 await updateOrder(currentOrderId, orderData);
+                showToast('✅ تم تعديل الطلب بنجاح');
             } else {
                 await addOrder(orderData);
+                showToast('✅ تم إضافة الطلب بنجاح');
             }
             for (let item of items) {
                 const prod = products.find(p => p.id === item.productId);
                 if (prod) await updateProductStock(item.productId, prod.stock - item.quantity);
             }
-            alert(currentOrderId ? 'تم تعديل الطلب' : 'تم إضافة الطلب');
             closeModal();
             await loadData();
             await renderOrders();
         } catch (err) {
             console.error(err);
-            alert('حدث خطأ أثناء حفظ الطلب');
+            showToast('حدث خطأ أثناء حفظ الطلب', true);
         }
     }
 
@@ -785,11 +965,15 @@
         try {
             await updateOrder(orderId, { status: newStatus });
             await renderOrders();
-        } catch (err) { console.error(err); alert('خطأ في تغيير الحالة'); }
+            showToast(`✅ تم تغيير حالة الطلب إلى "${newStatus}"`);
+        } catch (err) { 
+            console.error(err); 
+            showToast('خطأ في تغيير الحالة', true);
+        }
     };
 
-    window.deleteOrderHandler = async (orderId) => {
-        if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
+    window.deleteOrderHandler = async (orderId, orderNumber) => {
+        if (!confirm(`هل أنت متأكد من حذف الطلب "${orderNumber}"؟\nلا يمكن التراجع عن هذا الإجراء.`)) return;
         try {
             const order = orders.find(o => o.id === orderId);
             if (order && order.items) {
@@ -800,8 +984,11 @@
             }
             await deleteOrder(orderId);
             await renderOrders();
-            alert('تم حذف الطلب');
-        } catch (err) { console.error(err); alert('خطأ في الحذف'); }
+            showToast(`✅ تم حذف الطلب "${orderNumber}" بنجاح`);
+        } catch (err) { 
+            console.error(err); 
+            showToast('خطأ في الحذف', true);
+        }
     };
 
     window.printInvoice = async (orderId) => {
@@ -902,7 +1089,7 @@
         const name = quickName.value.trim();
         const phone = quickPhone.value.trim();
         if (!name || !phone) { 
-            alert('الاسم ورقم الجوال مطلوبان'); 
+            showToast('الاسم ورقم الجوال مطلوبان', true);
             return; 
         }
         
@@ -922,9 +1109,10 @@
             closeQuickModal();
             await loadData();
             customerSelect.value = docRef.id;
+            showToast('✅ تم إضافة العميل بنجاح');
         } catch (err) {
             console.error(err);
-            alert('حدث خطأ أثناء إضافة العميل');
+            showToast('حدث خطأ أثناء إضافة العميل', true);
         }
     }
 
@@ -948,7 +1136,7 @@
         const price = parseFloat(quickProductPrice.value);
         const stock = parseInt(quickProductStock.value);
         if (!name || isNaN(price) || isNaN(stock)) {
-            alert('الاسم والسعر والكمية مطلوبة');
+            showToast('الاسم والسعر والكمية مطلوبة', true);
             return;
         }
         const image = quickProductImage.value.trim() || null;
@@ -962,7 +1150,7 @@
         };
         try {
             const docRef = await addProduct(newProduct);
-            await loadData(); // إعادة تحميل المنتجات
+            await loadData();
             if (currentProductRow) {
                 const select = currentProductRow.querySelector('.product-select');
                 populateProductSelects();
@@ -970,9 +1158,10 @@
                 updateItemPrice(select);
             }
             closeQuickProductModal();
+            showToast(`✅ تم إضافة المنتج "${name}" بنجاح`);
         } catch (err) {
             console.error(err);
-            alert('حدث خطأ أثناء إضافة المنتج');
+            showToast('حدث خطأ أثناء إضافة المنتج', true);
         }
     }
 
@@ -992,6 +1181,16 @@
     closeQuickProductModalBtn.onclick = closeQuickProductModal;
     cancelQuickProductBtn.onclick = closeQuickProductModal;
     quickProductForm.onsubmit = saveQuickProduct;
+    
+    searchInput.addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        renderOrders();
+    });
+    
+    statusFilterSelect.addEventListener('change', (e) => {
+        statusFilter = e.target.value;
+        renderOrders();
+    });
 
     // تهيئة
     populateTimeOptions();
