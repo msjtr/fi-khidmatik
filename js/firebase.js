@@ -98,7 +98,7 @@ export async function getSettings(id) {
 
 export const setSettings = (id, data) => setDoc(doc(db, 'settings', id), data, { merge: true });
 
-// ===================== تصدير الأساسيات =====================
+// ===================== تصدير الأساسيات (مرة واحدة فقط) =====================
 export {
     db,
     collection,
@@ -111,24 +111,20 @@ export {
     setDoc,
     deleteField,
     getCollection,
-    // دوال المنتجات
     loadProducts,
     addProduct,
     updateProduct,
     deleteProduct,
     updateProductStock,
-    // دوال العملاء
     loadCustomers,
     addCustomer,
     updateCustomer,
     deleteCustomer,
-    // دوال الطلبات
     loadOrders,
     addOrder,
     updateOrder,
     deleteOrder,
     getOrdersWithDetails,
-    // دوال الإعدادات
     getSettings,
-    setSettings
+    setSettings  // ✅ موجود مرة واحدة فقط
 };
