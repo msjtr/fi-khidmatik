@@ -1,4 +1,6 @@
-// استيراد من firebase.js
+// هذا الملف هو مركز API واحد - يستورد من firebase.js ويعيد تصدير كل شيء
+// يمكن استيراد كل شيء مباشرة من هذا الملف في الصفحات
+
 import {
     db,
     collection,
@@ -29,7 +31,7 @@ import {
     setSettings
 } from './firebase.js';
 
-// إعادة تصدير كل شيء
+// إعادة تصدير كل شيء مباشرة
 export {
     db,
     collection,
