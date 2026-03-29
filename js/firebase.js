@@ -110,5 +110,25 @@ export {
     deleteDoc,
     setDoc,
     deleteField,
-    getCollection  // ✅ تمت الإضافة هنا
+    getCollection,
+    // دوال المنتجات
+    loadProducts,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    updateProductStock,
+    // دوال العملاء
+    loadCustomers,
+    addCustomer,
+    updateCustomer,
+    deleteCustomer,
+    // دوال الطلبات
+    loadOrders,
+    addOrder,
+    updateOrder,
+    deleteOrder,
+    getOrdersWithDetails,
+    // دوال الإعدادات
+    getSettings,
+    setSettings
 };
