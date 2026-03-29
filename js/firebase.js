@@ -23,12 +23,17 @@ const firebaseConfig = {
 
 // تهيئة Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+const db = getFirestore(app);
 
 // ===================== دوال مساعدة عامة =====================
 export async function getCollection(name) {
-    const snap = await getDocs(collection(db, name));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    try {
+        const snap = await getDocs(collection(db, name));
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+        console.error(`Error fetching collection ${name}:`, error);
+        throw error;
+    }
 }
 
 // ===================== المنتجات =====================
@@ -47,19 +52,28 @@ export const updateOrderStatus = (id, status) => updateDoc(doc(db, 'orders', id)
 
 // جلب الطلبات مع تفاصيل العميل والمنتجات
 export const getOrdersWithDetails = async () => {
-    const orders = await getCollection('orders');
-    const customers = await getCollection('customers');
-    const products = await getCollection('products');
-    const customersMap = Object.fromEntries(customers.map(c => [c.id, c]));
-    const productsMap = Object.fromEntries(products.map(p => [p.id, p]));
-    return orders.map(order => ({
-        ...order,
-        customer: customersMap[order.customerId] || { name: 'غير معروف' },
-        items: order.items?.map(item => ({
-            ...item,
-            productDetails: productsMap[item.productId] || null
-        })) || []
-    }));
+    try {
+        const [orders, customers, products] = await Promise.all([
+            getCollection('orders'),
+            getCollection('customers'),
+            getCollection('products')
+        ]);
+        
+        const customersMap = Object.fromEntries(customers.map(c => [c.id, c]));
+        const productsMap = Object.fromEntries(products.map(p => [p.id, p]));
+        
+        return orders.map(order => ({
+            ...order,
+            customer: customersMap[order.customerId] || { name: 'غير معروف' },
+            items: order.items?.map(item => ({
+                ...item,
+                productDetails: productsMap[item.productId] || null
+            })) || []
+        }));
+    } catch (error) {
+        console.error("Error fetching orders with details:", error);
+        throw error;
+    }
 };
 
 // ===================== العملاء =====================
@@ -70,8 +84,13 @@ export const deleteCustomer = (id) => deleteDoc(doc(db, 'customers', id));
 
 // ===================== الإعدادات =====================
 export async function getSettings(id) {
-    const d = await getDoc(doc(db, 'settings', id));
-    return d.exists() ? d.data() : null;
+    try {
+        const d = await getDoc(doc(db, 'settings', id));
+        return d.exists() ? d.data() : null;
+    } catch (error) {
+        console.error("Error getting settings:", error);
+        throw error;
+    }
 }
 export const setSettings = (id, data) => setDoc(doc(db, 'settings', id), data, { merge: true });
 
