@@ -66,13 +66,91 @@
     <div id="ordersContainer" class="space-y-4"></div>
 </div>
 
-<!-- باقي المودالات (نفس الكود السابق) -->
-<!-- ... -->
+<!-- مودال الطلب الرئيسي -->
+<div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between">
+            <h2 id="modalTitle" class="text-2xl font-bold">إضافة طلب جديد</h2>
+            <button id="closeModalBtn" class="text-gray-400 text-3xl">&times;</button>
+        </div>
+        <form id="orderForm" class="p-6">
+            <!-- رقم الطلب والتاريخ والوقت -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div><label class="font-semibold">رقم الطلب</label><div class="flex gap-2"><span class="bg-gray-200 px-3 py-2 rounded">KF-</span><input type="text" id="orderNumber" class="flex-1 border rounded px-3 py-2"><button type="button" id="generateOrderNumber" class="bg-gray-200 px-3 rounded"><i class="fas fa-sync-alt"></i></button></div></div>
+                <div><label class="font-semibold">التاريخ</label><input type="date" id="orderDate" class="w-full border rounded px-3 py-2"></div>
+                <div class="md:col-span-2"><label class="font-semibold">الوقت</label><div class="flex gap-2"><select id="orderHour" class="border rounded px-3 py-2 w-28"></select><span>:</span><select id="orderMinute" class="border rounded px-3 py-2 w-28"></select><select id="orderAmPm" class="border rounded px-3 py-2 w-28"><option value="AM">صباحاً</option><option value="PM">مساءً</option></select></div></div>
+            </div>
+
+            <!-- حالة الطلب والعميل -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div><label class="font-semibold">حالة الطلب</label><select id="orderStatus" class="w-full border rounded px-3 py-2"><option value="جديد">جديد</option><option value="تحت التنفيذ">تحت التنفيذ</option><option value="تم التنفيذ">تم التنفيذ</option><option value="تحت المراجعة">تحت المراجعة</option><option value="مسترجع">مسترجع</option><option value="ملغي">ملغي</option></select></div>
+                <div><label class="font-semibold">العميل</label><div class="flex gap-2"><select id="customerSelect" class="flex-1 border rounded px-3 py-2"></select><button type="button" id="quickAddCustomerBtn" class="bg-green-600 text-white px-3 rounded"><i class="fas fa-user-plus"></i></button></div></div>
+            </div>
+
+            <!-- الشحن -->
+            <div class="mb-4 p-3 bg-gray-50 rounded">
+                <label class="flex items-center gap-2"><input type="checkbox" id="shippingRequired"> <span>يتطلب شحن</span></label>
+                <div id="shippingAddressFields" class="hidden mt-2 grid grid-cols-2 gap-2"><input type="text" id="shippingCity" placeholder="المدينة" class="border rounded px-2 py-1"><input type="text" id="shippingStreet" placeholder="الشارع" class="border rounded px-2 py-1"><input type="text" id="shippingAdditionalNo" placeholder="رقم إضافي" class="border rounded px-2 py-1"><input type="text" id="shippingPoBox" placeholder="صندوق البريد" class="border rounded px-2 py-1"><button type="button" id="copyCustomerAddressBtn" class="text-blue-600 text-sm">جلب عنوان العميل</button></div>
+                <div id="noShippingNote" class="hidden mt-2 text-orange-600">لا يطلب شحن</div>
+            </div>
+
+            <!-- طريقة الدفع -->
+            <div class="mb-4">
+                <label class="font-semibold">طريقة الدفع</label>
+                <div class="flex flex-wrap gap-2 my-2">
+                    <button type="button" data-payment="mada" class="payment-btn px-3 py-1 border rounded">مدى</button>
+                    <button type="button" data-payment="mastercard" class="payment-btn px-3 py-1 border rounded">ماستركارد</button>
+                    <button type="button" data-payment="visa" class="payment-btn px-3 py-1 border rounded">فيزا</button>
+                    <button type="button" data-payment="stcpay" class="payment-btn px-3 py-1 border rounded">STCPay</button>
+                    <button type="button" data-payment="tamara" class="payment-btn px-3 py-1 border rounded">تمارا</button>
+                    <button type="button" data-payment="tabby" class="payment-btn px-3 py-1 border rounded">تابي</button>
+                    <button type="button" data-payment="other" class="payment-btn px-3 py-1 border rounded">أخرى</button>
+                </div>
+                <input type="hidden" id="paymentMethod">
+                <div id="approvalCodeField" class="hidden mt-2 p-2 bg-yellow-50 rounded"><label>رمز الموافقة <span id="approvalMethodLabel"></span></label><input type="text" id="approvalCode" class="w-full border rounded px-2 py-1"></div>
+                <div id="otherPaymentField" class="hidden mt-2"><input type="text" id="otherPaymentText" placeholder="طريقة دفع أخرى" class="w-full border rounded px-2 py-1"></div>
+            </div>
+
+            <!-- المنتجات -->
+            <div class="mb-4">
+                <div class="flex justify-between mb-2"><label class="font-semibold">المنتجات</label><div class="flex gap-2"><button type="button" id="addFromInventoryBtn" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm">من المخزون</button><button type="button" id="addNewProductBtn" class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">منتج جديد</button></div></div>
+                <div id="productsContainer"></div>
+            </div>
+
+            <!-- الخصم والإجماليات -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div><label class="font-semibold">الخصم</label><div class="flex gap-2"><input type="number" id="discountValue" class="w-32 border rounded px-2 py-1" value="0"><select id="discountType" class="border rounded px-2 py-1"><option value="fixed">قيمة</option><option value="percent">%</option></select></div></div>
+                <div><label class="font-semibold">الضريبة 15%</label><input type="text" id="taxAmount" readonly class="w-full bg-gray-100 border rounded px-2 py-1"></div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded mb-4">
+                <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="subtotalDisplay">0 ريال</span></div>
+                <div class="flex justify-between"><span>الخصم:</span><span id="discountDisplay">0 ريال</span></div>
+                <div class="flex justify-between"><span>الضريبة:</span><span id="taxDisplay">0 ريال</span></div>
+                <div class="flex justify-between font-bold text-lg"><span>الإجمالي:</span><span id="totalDisplay">0 ريال</span></div>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" id="cancelOrderBtn" class="px-4 py-2 border rounded">إلغاء</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">حفظ الطلب</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- مودال المخزون -->
+<div id="inventoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-xl max-w-2xl w-full"><div class="p-4 border-b"><h3>اختر منتج</h3><button id="closeInventoryModalBtn" class="float-left">&times;</button></div><div class="p-4"><input type="text" id="inventorySearch" placeholder="بحث..." class="w-full border rounded p-2 mb-2"><div id="inventoryList"></div></div></div></div>
+
+<!-- مودال العميل -->
+<div id="quickCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-xl max-w-lg w-full"><div class="p-4 border-b"><h3>إضافة عميل</h3><button id="closeQuickModalBtn" class="float-left">&times;</button></div><form id="quickCustomerForm" class="p-4"><div class="grid grid-cols-2 gap-2"><input type="text" id="quickName" placeholder="الاسم *" class="border rounded p-2 col-span-2"><input type="tel" id="quickPhone" placeholder="الجوال *" class="border rounded p-2"><input type="email" id="quickEmail" placeholder="البريد" class="border rounded p-2"><input type="text" id="quickCity" placeholder="المدينة" class="border rounded p-2"><input type="text" id="quickStreet" placeholder="الشارع" class="border rounded p-2"><input type="text" id="quickAdditionalNo" placeholder="رقم إضافي" class="border rounded p-2"><input type="text" id="quickPoBox" placeholder="صندوق بريد" class="border rounded p-2"></div><div class="flex justify-end gap-2 mt-4"><button type="button" id="cancelQuickBtn" class="px-3 py-1 border rounded">إلغاء</button><button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">حفظ</button></div></form></div></div>
+
+<!-- مودال المنتج الجديد -->
+<div id="quickProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto"><div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"><div class="p-4 border-b"><h3>إضافة منتج جديد</h3><button id="closeQuickProductModalBtn" class="float-left">&times;</button></div><form id="quickProductForm" class="p-4"><div class="grid grid-cols-2 gap-2"><input type="text" id="quickProductName" placeholder="اسم المنتج *" class="border rounded p-2"><input type="text" id="quickProductBarcode" placeholder="باركود" readonly class="border rounded p-2 bg-gray-50"><input type="number" id="quickProductPrice" placeholder="السعر *" class="border rounded p-2" step="0.01"><input type="number" id="quickProductCost" placeholder="سعر التكلفة" class="border rounded p-2" step="0.01"><input type="number" id="quickProductQuantity" placeholder="الكمية *" class="border rounded p-2" value="1"><div class="col-span-2"><label>الصورة</label><div class="flex gap-2"><input type="url" id="quickProductImageUrl" placeholder="رابط الصورة" class="flex-1 border rounded p-2"><input type="file" id="quickProductImageFile" accept="image/*" class="border rounded p-2"></div><div id="imagePreviewQuick" class="mt-1 hidden"><img id="previewQuickImg" class="w-20 h-20 object-cover"></div></div><div class="col-span-2"><label>الوصف</label><div id="quickProductEditor" style="height: 120px;"></div><input type="hidden" id="quickProductDesc"></div></div><div class="mt-3"><label><input type="checkbox" id="saveToInventory" checked> حفظ في المخزون</label></div><div class="flex justify-end gap-2 mt-4"><button type="button" id="cancelQuickProductBtn" class="px-3 py-1 border rounded">إلغاء</button><button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">إضافة</button></div></form></div></div>
 
 <div id="printArea" class="hidden print-area"></div>
 
 <script type="module">
-    import { loadCustomers, addCustomer, loadProducts, addOrder, updateOrder, deleteOrder, updateProductStock, getOrdersWithDetails, addProduct } from '../../js/common.js';
+    import { loadCustomers, addCustomer, loadProducts, addOrder, updateOrder, deleteOrder, updateProductStock, getOrdersWithDetails, addProduct } from '../../js/firebase.js';
 
     // ========== المتغيرات ==========
     let customers = [], products = [], orders = [], currentOrderId = null;
@@ -203,7 +281,6 @@
 
     // ========== عرض الطلبات ==========
     async function renderOrders() {
-        // عرض حالة تحميل
         ordersContainer.innerHTML = '<div class="loading-spinner"></div><div class="text-center text-gray-500">جاري تحميل الطلبات...</div>';
         
         try {
@@ -215,7 +292,6 @@
                 return; 
             }
             
-            // تطبيق الفلترة
             let filtered = orders.filter(o => {
                 if (currentFilters.status && o.status !== currentFilters.status) return false;
                 if (currentFilters.customer && !o.customer?.name?.toLowerCase().includes(currentFilters.customer.toLowerCase())) return false;
@@ -306,6 +382,155 @@
         return `${h.toString().padStart(2,'0')}:${m}`; 
     }
 
+    // ========== دوال إضافية أساسية ==========
+    function calculateTotals() {
+        let subtotal=0; 
+        document.querySelectorAll('.product-row').forEach(r=>{ 
+            const p=parseFloat(r.querySelector('.product-price')?.value)||0; 
+            const q=parseInt(r.querySelector('.product-quantity')?.value)||0; 
+            subtotal+=p*q; 
+        });
+        let d=parseFloat(discountValueInput.value)||0; 
+        if(discountTypeSelect.value==='percent') d=(subtotal*d)/100;
+        const ad=subtotal-d, tax=ad*0.15, total=ad+tax;
+        subtotalDisplay.innerText=subtotal.toFixed(2)+' ريال'; 
+        discountDisplay.innerText=d.toFixed(2)+' ريال'; 
+        taxDisplay.innerText=tax.toFixed(2)+' ريال'; 
+        totalDisplay.innerText=total.toFixed(2)+' ريال'; 
+        taxAmountInput.value=tax.toFixed(2);
+        return {subtotal,discount:d,tax,total};
+    }
+    
+    function updateTotals() { calculateTotals(); }
+
+    function addProductRow(pd=null) {
+        const row=document.createElement('div'); row.className='product-row';
+        row.innerHTML=`<div class="grid grid-cols-7 gap-2"><input type="text" class="product-name border rounded p-1 col-span-2" value="${escapeHtml(pd?.name||'')}" placeholder="اسم المنتج"><input type="text" class="product-barcode border rounded p-1 bg-gray-50" readonly value="${escapeHtml(pd?.barcode||'')}"><input type="number" class="product-price border rounded p-1" step="0.01" value="${pd?.price||0}"><input type="number" class="product-quantity border rounded p-1" value="${pd?.quantity||1}" min="1"><input type="text" class="product-image border rounded p-1" placeholder="رابط الصورة" value="${escapeHtml(pd?.image||'')}"><button type="button" class="remove-product-btn text-red-600"><i class="fas fa-trash"></i></button></div><div class="mt-1"><div class="product-desc-editor" style="height:80px;"></div><input type="hidden" class="product-desc-hidden" value="${escapeHtml(pd?.description||'')}"></div><input type="hidden" class="product-id" value="${pd?.productId||''}">`;
+        productsContainer.appendChild(row);
+        const editor=row.querySelector('.product-desc-editor'), hidden=row.querySelector('.product-desc-hidden');
+        const quill=new Quill(editor,{theme:'snow',placeholder:'وصف...',modules:{toolbar:[['bold','italic','underline'],['link','image']]}});
+        if(hidden.value) quill.root.innerHTML=hidden.value;
+        quill.on('text-change',()=>{ hidden.value=quill.root.innerHTML; updateTotals(); });
+        row.querySelector('.product-price').addEventListener('input',updateTotals);
+        row.querySelector('.product-quantity').addEventListener('input',updateTotals);
+        row.querySelector('.remove-product-btn').onclick=()=>{ row.remove(); updateTotals(); };
+        updateTotals();
+        return row;
+    }
+
+    function openInventoryModal() {
+        inventoryModal.classList.remove('hidden'); inventoryModal.classList.add('flex');
+        const search=inventorySearch.value.toLowerCase();
+        const filtered=products.filter(p=>p.name?.toLowerCase().includes(search));
+        inventoryList.innerHTML=filtered.map(p=>`<div class="p-2 border rounded cursor-pointer hover:bg-gray-50" onclick="window.selectFromInventory('${p.id}')"><div class="flex justify-between"><span>${escapeHtml(p.name)}</span><span>${p.price} ريال</span><span class="text-gray-400">مخزون:${p.stock}</span></div></div>`).join('');
+    }
+    
+    window.selectFromInventory=(id)=>{ const p=products.find(p=>p.id===id); if(p){ addProductRow({name:p.name,price:p.price,barcode:p.code,image:p.image,description:p.description,productId:p.id}); inventoryModal.classList.add('hidden'); } };
+    inventorySearch.addEventListener('input',openInventoryModal);
+
+    function openQuickProductModal(row){ currentProductRowTemp=row; quickProductForm.reset(); quickProductBarcode.value=''; imagePreviewQuick.classList.add('hidden'); quickProductModal.classList.remove('hidden'); quickProductModal.classList.add('flex'); if(!quillEditor) quillEditor=new Quill('#quickProductEditor',{theme:'snow',placeholder:'وصف...',modules:{toolbar:[['bold','italic','underline'],['link','image']]}}); quickProductImageUrl.oninput=()=>{ if(quickProductImageUrl.value){ previewQuickImg.src=quickProductImageUrl.value; imagePreviewQuick.classList.remove('hidden'); } }; quickProductImageFile.onchange=(e)=>{ const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(ev)=>{ previewQuickImg.src=ev.target.result; imagePreviewQuick.classList.remove('hidden'); quickProductImageUrl.value=ev.target.result; }; r.readAsDataURL(f); } }; }
+    
+    function closeQuickProductModal(){ quickProductModal.classList.add('hidden'); quickProductModal.classList.remove('flex'); currentProductRowTemp=null; }
+    
+    async function saveQuickProduct(e){ e.preventDefault(); const name=quickProductName.value.trim(), price=parseFloat(quickProductPrice.value), cost=parseFloat(quickProductCost.value)||0, quantity=parseInt(quickProductQuantity.value), image=quickProductImageUrl.value.trim(), description=quillEditor?quillEditor.root.innerHTML:'', saveToInventory=saveToInventoryCheck.checked; if(!name||isNaN(price)||isNaN(quantity)||quantity<=0){ showToast('الاسم والسعر والكمية مطلوبة','error'); return; } if(price<cost){ showToast('سعر البيع أقل من التكلفة','error'); return; } const barcode=generateRandomCode(); let productId=null; if(saveToInventory){ try{ const np={name,price,cost,stock:0,image,description,code:barcode,createdAt:new Date().toISOString()}; const ref=await addProduct(np); productId=ref.id; await loadProductsList(); showToast('تم حفظ المنتج','success'); }catch(err){ showToast('خطأ في الحفظ','error'); return; } } if(currentProductRowTemp){ currentProductRowTemp.querySelector('.product-name').value=name; currentProductRowTemp.querySelector('.product-barcode').value=barcode; currentProductRowTemp.querySelector('.product-price').value=price; currentProductRowTemp.querySelector('.product-quantity').value=quantity; currentProductRowTemp.querySelector('.product-image').value=image; currentProductRowTemp.querySelector('.product-desc-hidden').value=description; const ed=currentProductRowTemp.querySelector('.product-desc-editor .ql-editor'); if(ed) ed.innerHTML=description; currentProductRowTemp.querySelector('.product-id').value=productId||''; updateTotals(); showToast('تم إضافة المنتج','success'); } closeQuickProductModal(); }
+
+    function openQuickModal(){ quickModal.classList.remove('hidden'); quickModal.classList.add('flex'); quickForm.reset(); }
+    function closeQuickModal(){ quickModal.classList.add('hidden'); quickModal.classList.remove('flex'); }
+    
+    async function saveQuickCustomer(e){ e.preventDefault(); const name=quickName.value.trim(), phone=quickPhone.value.trim(); if(!name||!phone){ showToast('الاسم والجوال مطلوبان','error'); return; } await addCustomer({name,phone,email:quickEmail.value,city:quickCity.value,street:quickStreet.value,additionalNo:quickAdditionalNo.value,poBox:quickPoBox.value,createdAt:new Date().toISOString()}); closeQuickModal(); await loadCustomersList(); customerSelect.value=customers[customers.length-1]?.id||''; showToast('تم إضافة العميل','success'); }
+    
+    function loadCustomerAddress(){ const c=customers.find(c=>c.id===customerSelect.value); if(c){ shippingCity.value=c.city||''; shippingStreet.value=c.street||''; shippingAdditionalNo.value=c.additionalNo||''; shippingPoBox.value=c.poBox||''; showToast('تم جلب العنوان','success'); } }
+
+    function setPaymentMethod(method){
+        selectedPaymentMethod=method; paymentMethodBtns.forEach(btn=>{ btn.classList.remove('bg-blue-600','text-white'); btn.classList.add('border-gray-300'); });
+        const active=document.querySelector(`.payment-btn[data-payment="${method}"]`); if(active){ active.classList.add('bg-blue-600','text-white'); active.classList.remove('border-gray-300'); }
+        if(method==='tamara'||method==='tabby'){ approvalMethodLabel.innerText=method==='tamara'?'تمارا':'تابي'; approvalCodeField.classList.remove('hidden'); otherPaymentField.classList.add('hidden'); }
+        else if(method==='other'){ approvalCodeField.classList.add('hidden'); otherPaymentField.classList.remove('hidden'); }
+        else{ approvalCodeField.classList.add('hidden'); otherPaymentField.classList.add('hidden'); }
+    }
+
+    function resetForm(){
+        currentOrderId=null; productsContainer.innerHTML=''; addProductRow(); customerSelect.value=''; discountValueInput.value='0'; discountTypeSelect.value='fixed';
+        orderNumberInput.value=generateOrderNumber(); setCurrentDate(); setCurrentTime(); orderStatusSelect.value='جديد';
+        shippingRequiredCheck.checked=false; shippingAddressFields.classList.add('hidden'); noShippingNote.classList.add('hidden');
+        setPaymentMethod('mada'); approvalCodeInput.value=''; otherPaymentText.value=''; updateTotals();
+        document.getElementById('modalTitle').innerText='إضافة طلب جديد';
+    }
+
+    async function saveOrder(e){
+        e.preventDefault(); const customerId=customerSelect.value; if(!customerId){ showToast('اختر عميل','error'); return; }
+        const orderNumber=orderNumberInput.value.trim(); if(!orderNumber){ showToast('أدخل رقم الطلب','error'); return; }
+        const orderDate=orderDateInput.value, orderTime=get24HourTime(), status=orderStatusSelect.value;
+        const shippingRequired=shippingRequiredCheck.checked, shippingAddress=shippingRequired?{city:shippingCity.value,street:shippingStreet.value,additionalNo:shippingAdditionalNo.value,poBox:shippingPoBox.value}:null;
+        let approvalCode=null, otherText=null;
+        if(selectedPaymentMethod==='tamara'||selectedPaymentMethod==='tabby'){ approvalCode=approvalCodeInput.value.trim(); if(!approvalCode){ showToast(`أدخل رمز الموافقة لـ ${selectedPaymentMethod==='tamara'?'تمارا':'تابي'}`,'error'); return; } }
+        if(selectedPaymentMethod==='other'){ otherText=otherPaymentText.value.trim(); if(!otherText){ showToast('أدخل طريقة الدفع','error'); return; } }
+        const items=[]; const rows=document.querySelectorAll('.product-row');
+        for(let r of rows){ const name=r.querySelector('.product-name').value.trim(); const price=parseFloat(r.querySelector('.product-price').value); const qty=parseInt(r.querySelector('.product-quantity').value); if(!name||isNaN(price)||isNaN(qty)||qty<=0){ showToast('جميع المنتجات يجب أن تحتوي على اسم وسعر وكمية','error'); return; } items.push({productId:r.querySelector('.product-id').value||null,name,price,quantity:qty,barcode:r.querySelector('.product-barcode').value,image:r.querySelector('.product-image').value,description:r.querySelector('.product-desc-hidden').value}); }
+        if(items.length===0){ showToast('أضف منتجاً واحداً على الأقل','error'); return; }
+        const {subtotal,discount,tax,total}=calculateTotals();
+        const orderData={orderNumber:`KF-${orderNumber}`,orderDate,orderTime,customerId,status,shippingRequired,shippingAddress,paymentMethod:selectedPaymentMethod,paymentMethodName:selectedPaymentMethod==='other'?otherText:(selectedPaymentMethod==='tamara'?'تمارا':(selectedPaymentMethod==='tabby'?'تابي':(selectedPaymentMethod==='mada'?'مدى':(selectedPaymentMethod==='mastercard'?'ماستركارد':(selectedPaymentMethod==='visa'?'فيزا':'STCPay'))))),approvalCode,otherPaymentText:otherText,items,subtotal,discount:parseFloat(discountValueInput.value)||0,discountType:discountTypeSelect.value,tax,total,updatedAt:new Date().toISOString()};
+        if(!currentOrderId) orderData.createdAt=new Date().toISOString();
+        try{
+            if(currentOrderId){ const old=orders.find(o=>o.id===currentOrderId); if(old?.items) for(let it of old.items) if(it.productId){ const p=products.find(pr=>pr.id===it.productId); if(p) await updateProductStock(it.productId,p.stock+it.quantity); } await updateOrder(currentOrderId,orderData); showToast('تم تعديل الطلب','success'); }
+            else{ await addOrder(orderData); showToast('تم إضافة الطلب','success'); }
+            for(let it of items) if(it.productId){ const p=products.find(pr=>pr.id===it.productId); if(p) await updateProductStock(it.productId,p.stock-it.quantity); }
+            closeModal(); await loadData(); await renderOrders();
+        }catch(err){ console.error(err); showToast('خطأ في الحفظ','error'); }
+    }
+
+    function openModalForEdit(orderId){
+        const order=orders.find(o=>o.id===orderId); if(!order) return;
+        currentOrderId=orderId; document.getElementById('modalTitle').innerText='تعديل الطلب';
+        orderNumberInput.value=order.orderNumber.replace('KF-',''); orderDateInput.value=order.orderDate;
+        if(order.orderTime){ let [h,m]=order.orderTime.split(':'); let ap=parseInt(h)>=12?'PM':'AM'; let h12=parseInt(h)%12||12; orderHourSelect.value=h12; orderMinuteSelect.value=m; orderAmPmSelect.value=ap; }
+        orderStatusSelect.value=order.status; customerSelect.value=order.customerId;
+        shippingRequiredCheck.checked=order.shippingRequired||false;
+        if(order.shippingRequired&&order.shippingAddress){ shippingAddressFields.classList.remove('hidden'); noShippingNote.classList.add('hidden'); shippingCity.value=order.shippingAddress.city||''; shippingStreet.value=order.shippingAddress.street||''; shippingAdditionalNo.value=order.shippingAddress.additionalNo||''; shippingPoBox.value=order.shippingAddress.poBox||''; }
+        else{ shippingAddressFields.classList.add('hidden'); noShippingNote.classList.remove('hidden'); }
+        setPaymentMethod(order.paymentMethod);
+        if(order.approvalCode) approvalCodeInput.value=order.approvalCode;
+        if(order.otherPaymentText) otherPaymentText.value=order.otherPaymentText;
+        discountValueInput.value=order.discount||0; discountTypeSelect.value=order.discountType||'fixed';
+        productsContainer.innerHTML='';
+        order.items.forEach(item=>addProductRow({name:item.name,price:item.price,quantity:item.quantity,barcode:item.barcode,image:item.image,description:item.description,productId:item.productId}));
+        updateTotals(); orderModal.classList.remove('hidden'); orderModal.classList.add('flex');
+    }
+
+    function closeModal(){ orderModal.classList.add('hidden'); orderModal.classList.remove('flex'); resetForm(); }
+
+    window.editOrder=openModalForEdit;
+    window.changeStatus=async(id,st)=>{ try{ await updateOrder(id,{status:st}); await renderOrders(); showToast(`تم تغيير الحالة إلى ${st}`,'success'); }catch(e){ showToast('خطأ','error'); } };
+    window.deleteOrderHandler=async(id)=>{ if(!confirm('تأكيد الحذف؟')) return; try{ const ord=orders.find(o=>o.id===id); if(ord?.items) for(let it of ord.items) if(it.productId){ const p=products.find(pr=>pr.id===it.productId); if(p) await updateProductStock(it.productId,p.stock+it.quantity); } await deleteOrder(id); await renderOrders(); showToast('تم الحذف','success'); }catch(e){ showToast('خطأ','error'); } };
+    window.printInvoice=async(id)=>{ const ord=orders.find(o=>o.id===id); if(!ord) return; const cust=customers.find(c=>c.id===ord.customerId)||{}; const area=document.getElementById('printArea'); area.innerHTML=`<div style="direction:rtl;padding:20px;max-width:800px;margin:auto"><h1>فاتورة ${ord.orderNumber}</h1><hr><p>التاريخ: ${formatDate(ord.orderDate)} | ${formatTime12(ord.orderTime)}</p><p>العميل: ${cust.name||''} | ${cust.phone||''}</p><p>الحالة: ${ord.status}</p><p>طريقة الدفع: ${ord.paymentMethodName}</p>${ord.approvalCode?`<p>رمز الموافقة: ${ord.approvalCode}</p>`:''}${ord.shippingRequired?`<p>عنوان الشحن: ${ord.shippingAddress?.city||''} ${ord.shippingAddress?.street||''}</p>`:'<p>لا يطلب شحن</p>'}<hr><table style="width:100%"><thead>发展<th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th> </thead><tbody>${ord.items.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price}</td><td>${(i.quantity*i.price).toFixed(2)}</td></tr>`).join('')}</tbody></table><hr><p>المجموع: ${ord.subtotal} ريال</p><p>الخصم: ${ord.discount} ${ord.discountType==='percent'?'%':'ريال'}</p><p>الضريبة: ${ord.tax} ريال</p><p style="font-size:20px;font-weight:bold">الإجمالي: ${ord.total} ريال</p></div>`; area.classList.remove('hidden'); window.print(); area.classList.add('hidden'); };
+
+    // ========== ربط الأحداث ==========
+    document.getElementById('newOrderBtn').onclick=()=>{ resetForm(); orderModal.classList.remove('hidden'); orderModal.classList.add('flex'); };
+    document.getElementById('closeModalBtn').onclick=closeModal;
+    document.getElementById('cancelOrderBtn').onclick=closeModal;
+    document.getElementById('addFromInventoryBtn').onclick=openInventoryModal;
+    document.getElementById('addNewProductBtn').onclick=()=>{ const row=addProductRow(); openQuickProductModal(row); };
+    document.getElementById('generateOrderNumber').onclick=()=>{ orderNumberInput.value=generateOrderNumber(); };
+    document.getElementById('copyCustomerAddressBtn').onclick=loadCustomerAddress;
+    document.getElementById('quickAddCustomerBtn').onclick=openQuickModal;
+    document.getElementById('closeQuickModalBtn').onclick=closeQuickModal;
+    document.getElementById('cancelQuickBtn').onclick=closeQuickModal;
+    document.getElementById('closeInventoryModalBtn').onclick=()=>inventoryModal.classList.add('hidden');
+    document.getElementById('closeQuickProductModalBtn').onclick=closeQuickProductModal;
+    document.getElementById('cancelQuickProductBtn').onclick=closeQuickProductModal;
+    document.getElementById('viewListBtn').onclick=()=>{ currentView='list'; renderOrders(); };
+    document.getElementById('viewGridBtn').onclick=()=>{ currentView='grid'; renderOrders(); };
+    document.getElementById('applyFilters').onclick=()=>{ currentFilters={status:document.getElementById('filterStatus').value,customer:document.getElementById('filterCustomer').value.toLowerCase(),dateFrom:document.getElementById('filterDateFrom').value,dateTo:document.getElementById('filterDateTo').value}; renderOrders(); };
+    document.getElementById('resetFilters').onclick=()=>{ document.getElementById('filterStatus').value=''; document.getElementById('filterCustomer').value=''; document.getElementById('filterDateFrom').value=''; document.getElementById('filterDateTo').value=''; currentFilters={status:'',customer:'',dateFrom:'',dateTo:''}; renderOrders(); };
+    document.getElementById('exportPdfBtn').onclick=()=>window.print();
+    shippingRequiredCheck.onchange=()=>{ if(shippingRequiredCheck.checked){ shippingAddressFields.classList.remove('hidden'); noShippingNote.classList.add('hidden'); }else{ shippingAddressFields.classList.add('hidden'); noShippingNote.classList.remove('hidden'); } };
+    discountValueInput.addEventListener('input',updateTotals);
+    discountTypeSelect.addEventListener('change',updateTotals);
+    quickForm.onsubmit=saveQuickCustomer;
+    orderForm.onsubmit=saveOrder;
+    quickProductForm.onsubmit=saveQuickProduct;
+    paymentMethodBtns.forEach(btn=>btn.onclick=()=>setPaymentMethod(btn.dataset.payment));
+
     // ========== بدء التشغيل ==========
     async function init() {
         console.log('🚀 بدء تشغيل صفحة الطلبات...');
@@ -316,7 +541,6 @@
         console.log('✅ تم تهيئة الصفحة بنجاح');
     }
     
-    // تشغيل الصفحة
     init();
 </script>
 </body>
