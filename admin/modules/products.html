@@ -163,7 +163,7 @@
         <div id="reportsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </div>
 
-    <!-- مودال المنتج (محدث) -->
+    <!-- مودال المنتج -->
     <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
         <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6">
@@ -206,12 +206,10 @@
                             </div>
                         </div>
 
-                        <!-- 8 صور إضافية -->
+                        <!-- صور إضافية -->
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">صور إضافية (اختياري - حتى 8 صور)</label>
-                            <div id="galleryContainer" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
-                                <!-- سيتم إضافة حقول الصور الإضافية هنا -->
-                            </div>
+                            <div id="galleryContainer" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2"></div>
                             <button type="button" id="addGalleryImageBtn" class="text-blue-600 text-sm mt-1">
                                 <i class="fas fa-plus"></i> إضافة صورة إضافية
                             </button>
@@ -290,7 +288,74 @@
     <div id="toast" class="hidden fixed bottom-4 left-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"></div>
 
 <script type="module">
-    import { loadProducts, addProduct, updateProduct, deleteProduct } from '../../js/common.js';
+    // ===================== استيراد Firebase =====================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        doc,
+        getDocs,
+        updateDoc,
+        deleteDoc
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+        authDomain: "msjt301-974bb.firebaseapp.com",
+        projectId: "msjt301-974bb",
+        storageBucket: "msjt301-974bb.firebasestorage.app",
+        messagingSenderId: "186209858482",
+        appId: "1:186209858482:web:186ca610780799ef562aab",
+        measurementId: "G-NDVGC9GPQZ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ===================== دوال Firebase =====================
+    async function getCollection(collectionName) {
+        try {
+            const querySnapshot = await getDocs(collection(db, collectionName));
+            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error(`Error fetching ${collectionName}:`, error);
+            return [];
+        }
+    }
+
+    async function loadProducts() {
+        return await getCollection('products');
+    }
+
+    async function addProduct(data) {
+        try {
+            return await addDoc(collection(db, 'products'), data);
+        } catch (error) {
+            console.error('Error adding product:', error);
+            throw error;
+        }
+    }
+
+    async function updateProduct(id, data) {
+        try {
+            return await updateDoc(doc(db, 'products', id), data);
+        } catch (error) {
+            console.error('Error updating product:', error);
+            throw error;
+        }
+    }
+
+    async function deleteProduct(id) {
+        try {
+            return await deleteDoc(doc(db, 'products', id));
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            throw error;
+        }
+    }
 
     // ========== المتغيرات العامة ==========
     let products = [];
@@ -299,7 +364,6 @@
     let searchTerm = '';
     let currentTab = 'products';
     let stockThreshold = 10;
-    let galleryImages = []; // تخزين الصور الإضافية مؤقتاً
 
     // عناصر DOM
     const productsTableBody = document.getElementById('productsTableBody');
@@ -426,11 +490,10 @@
         document.querySelectorAll('.gallery-url').forEach(input => {
             if (input.value.trim()) urls.push(input.value.trim());
         });
-        galleryImages = urls;
         
         galleryPreview.innerHTML = urls.map((url, i) => `
             <div class="relative">
-                <img src="${escapeHtml(url)}" class="gallery-image">
+                <img src="${escapeHtml(url)}" class="gallery-image" onerror="this.style.display='none'">
                 <button type="button" class="remove-gallery-img absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs" data-index="${i}">×</button>
             </div>
         `).join('');
@@ -457,7 +520,7 @@
             const galleryCount = p.galleryImages?.length || 0;
             return `
             <tr class="hover:bg-gray-50 transition">
-                <td class="px-4 py-3">${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="product-image-preview" onerror="this.style.display='none'">` : '<i class="fas fa-image text-gray-300 text-2xl"></i>'}${p.mainImage ? '' : ''}</td>
+                <td class="px-4 py-3">${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="product-image-preview" onerror="this.style.display='none'">` : '<i class="fas fa-image text-gray-300 text-2xl"></i>'}</td>
                 <td class="px-4 py-3 font-medium">${escapeHtml(p.name)}</td>
                 <td class="px-4 py-3 font-mono text-sm">${escapeHtml(p.code || '—')}</td>
                 <td class="px-4 py-3 font-bold text-blue-600">${p.price} <span class="text-xs">ريال</span></td>
@@ -465,10 +528,10 @@
                 <td class="px-4 py-3">${galleryCount > 0 ? `<i class="fas fa-images text-purple-500"></i> ${galleryCount} صورة` : '—'}</td>
                 <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${status.class}">${status.text}</span></td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                    <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition" title="تعديل">
+                    <button onclick="window.editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition" title="تعديل">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteProductHandler('${p.id}', '${escapeHtml(p.name)}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition" title="حذف">
+                    <button onclick="window.deleteProductHandler('${p.id}', '${escapeHtml(p.name)}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition" title="حذف">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
@@ -489,13 +552,13 @@
         reportsContainer.innerHTML = lowStockProducts.map(p => `
             <div class="report-card bg-white rounded-lg shadow p-4 hover:shadow-md transition">
                 <div class="flex gap-3">
-                    ${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="w-16 h-16 object-cover rounded-lg">` : '<div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-box text-gray-400 text-2xl"></i></div>'}
+                    ${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="w-16 h-16 object-cover rounded-lg" onerror="this.style.display='none'">` : '<div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-box text-gray-400 text-2xl"></i></div>'}
                     <div class="flex-1">
                         <h3 class="font-bold text-gray-800">${escapeHtml(p.name)}</h3>
                         <p class="text-sm text-gray-500">الكود: ${p.code || '—'}</p>
                         <p class="text-sm mt-1"><span class="font-bold">المخزون:</span> <span class="text-red-600 font-bold">${p.stock}</span> <span class="text-xs text-gray-500">(أقل من ${threshold})</span></p>
                         <p class="text-sm"><span class="font-bold">السعر:</span> ${p.price} ريال</p>
-                        <button onclick="editProduct('${p.id}')" class="mt-2 text-blue-600 text-sm hover:text-blue-800 transition">
+                        <button onclick="window.editProduct('${p.id}')" class="mt-2 text-blue-600 text-sm hover:text-blue-800 transition">
                             <i class="fas fa-edit"></i> تعديل
                         </button>
                     </div>
@@ -533,7 +596,7 @@
         }
     }
 
-    // ========== قالب Excel للتحميل ==========
+    // ========== قالب Excel ==========
     function downloadTemplate() {
         const templateData = [
             ['الاسم', 'الكود', 'السعر', 'الكمية', 'الصورة_الرئيسية', 'الصور_الإضافية', 'الفيديو', 'الوصف'],
@@ -548,7 +611,7 @@
         showToast('✅ تم تحميل قالب Excel بنجاح');
     }
 
-    // ========== تصدير المنتجات ==========
+    // ========== تصدير CSV ==========
     function exportToCSV() {
         const activeProducts = products.filter(p => !deletedProducts.some(dp => dp.id === p.id));
         const headers = ['الاسم', 'الكود', 'السعر', 'الكمية', 'الصورة_الرئيسية', 'الصور_الإضافية', 'الفيديو', 'الوصف'];
@@ -571,78 +634,6 @@
         URL.revokeObjectURL(link.href);
         showToast('✅ تم تصدير المنتجات بنجاح');
     }
-
-    // ========== استيراد المنتجات ==========
-    importFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            const data = new Uint8Array(ev.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-            
-            if (rows.length < 2) {
-                importPreview.innerHTML = '<div class="text-red-500">الملف فارغ أو غير صحيح</div>';
-                return;
-            }
-            
-            const headers = rows[0];
-            const dataRows = rows.slice(1);
-            importPreview.innerHTML = `<div class="text-sm">📄 تم قراءة ${dataRows.length} منتج</div>
-                                        <div class="text-xs text-gray-500 mt-1">المعاينة: ${dataRows.slice(0, 3).map(r => r[0]).join(', ')}</div>`;
-            window.importData = dataRows;
-        };
-        reader.readAsArrayBuffer(file);
-    });
-
-    confirmImportBtn.onclick = async () => {
-        if (!window.importData) { 
-            showToast('❌ لا توجد بيانات للاستيراد', 'error'); 
-            return; 
-        }
-        
-        let imported = 0, failed = 0;
-        
-        for (const row of window.importData) {
-            try {
-                const name = row[0];
-                const code = row[1] || generateRandomCode();
-                const price = parseFloat(row[2]);
-                const stock = parseInt(row[3]) || 0;
-                const mainImage = row[4] || null;
-                const galleryImagesStr = row[5] || '';
-                const galleryImages = galleryImagesStr ? galleryImagesStr.split(';').filter(url => url.trim()) : [];
-                const video = row[6] || null;
-                const description = row[7] || '';
-                
-                if (name && !isNaN(price)) {
-                    await addProduct({ 
-                        name, 
-                        code,
-                        price, 
-                        stock, 
-                        mainImage,
-                        galleryImages,
-                        video,
-                        description,
-                        createdAt: new Date().toISOString() 
-                    });
-                    imported++;
-                } else {
-                    failed++;
-                }
-            } catch (err) { 
-                failed++; 
-            }
-        }
-        
-        showToast(`✅ تم استيراد ${imported} منتج، فشل ${failed}`);
-        importModal.classList.add('hidden');
-        await loadProductsTable();
-    };
 
     // ========== إدارة الصور ==========
     productMainImageFile.addEventListener('change', (e) => {
@@ -693,12 +684,7 @@
     document.querySelectorAll('.toolbar-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const command = btn.dataset.command;
-            if (command === 'createLink') {
-                const url = prompt('أدخل الرابط:');
-                if (url) document.execCommand('createLink', false, url);
-            } else {
-                document.execCommand(command, false, null);
-            }
+            document.execCommand(command, false, null);
             productDescription.focus();
             productDescriptionHidden.value = productDescription.innerHTML;
         });
@@ -814,12 +800,12 @@
         trashList.innerHTML = deletedProducts.map(p => `
             <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    ${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="w-10 h-10 object-cover rounded">` : '<i class="fas fa-box text-gray-400 text-2xl"></i>'}
+                    ${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="w-10 h-10 object-cover rounded" onerror="this.style.display='none'">` : '<i class="fas fa-box text-gray-400 text-2xl"></i>'}
                     <div><div class="font-medium">${escapeHtml(p.name)}</div><div class="text-xs text-gray-500">${p.code || '—'}</div></div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="restoreProduct('${p.id}')" class="text-green-600 hover:text-green-800"><i class="fas fa-trash-restore"></i> استعادة</button>
-                    <button onclick="permanentDelete('${p.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash-alt"></i> حذف نهائي</button>
+                    <button onclick="window.restoreProduct('${p.id}')" class="text-green-600 hover:text-green-800"><i class="fas fa-trash-restore"></i> استعادة</button>
+                    <button onclick="window.permanentDelete('${p.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash-alt"></i> حذف نهائي</button>
                 </div>
             </div>
         `).join('');
@@ -886,7 +872,6 @@
         videoPreview.classList.add('hidden');
         galleryContainer.innerHTML = '';
         galleryPreview.innerHTML = '';
-        galleryImages = [];
         modalTitle.innerText = 'إضافة منتج جديد';
     }
 
@@ -911,6 +896,79 @@
     applyThreshold.onclick = () => {
         stockThreshold = parseInt(stockThresholdInput.value) || 10;
         renderReports();
+    };
+
+    // ========== استيراد المنتجات ==========
+    importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const data = new Uint8Array(ev.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            
+            if (rows.length < 2) {
+                importPreview.innerHTML = '<div class="text-red-500">الملف فارغ أو غير صحيح</div>';
+                return;
+            }
+            
+            const dataRows = rows.slice(1);
+            importPreview.innerHTML = `<div class="text-sm">📄 تم قراءة ${dataRows.length} منتج</div>
+                                        <div class="text-xs text-gray-500 mt-1">المعاينة: ${dataRows.slice(0, 3).map(r => r[0]).join(', ')}</div>`;
+            window.importData = dataRows;
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    confirmImportBtn.onclick = async () => {
+        if (!window.importData) { 
+            showToast('❌ لا توجد بيانات للاستيراد', 'error'); 
+            return; 
+        }
+        
+        let imported = 0, failed = 0;
+        
+        for (const row of window.importData) {
+            try {
+                const name = row[0];
+                const code = row[1] || generateRandomCode();
+                const price = parseFloat(row[2]);
+                const stock = parseInt(row[3]) || 0;
+                const mainImage = row[4] || null;
+                const galleryImagesStr = row[5] || '';
+                const galleryImages = galleryImagesStr ? galleryImagesStr.split(';').filter(url => url.trim()) : [];
+                const video = row[6] || null;
+                const description = row[7] || '';
+                
+                if (name && !isNaN(price)) {
+                    await addProduct({ 
+                        name, 
+                        code,
+                        price, 
+                        stock, 
+                        mainImage,
+                        galleryImages,
+                        video,
+                        description,
+                        createdAt: new Date().toISOString() 
+                    });
+                    imported++;
+                } else {
+                    failed++;
+                }
+            } catch (err) { 
+                failed++; 
+            }
+        }
+        
+        showToast(`✅ تم استيراد ${imported} منتج، فشل ${failed}`);
+        importModal.classList.add('hidden');
+        await loadProductsTable();
+        window.importData = null;
+        importFile.value = '';
     };
 
     // ========== ربط الأحداث ==========
