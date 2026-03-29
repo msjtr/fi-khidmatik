@@ -6,7 +6,6 @@
     <title>إدارة المنتجات - نظام متكامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- إضافة SheetJS لقراءة Excel/CSV -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         .modal { transition: opacity 0.3s ease; }
@@ -26,23 +25,16 @@
             object-fit: cover;
             border-radius: 8px;
         }
-        .video-preview {
-            max-width: 100px;
-            max-height: 60px;
+        .gallery-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
             border-radius: 8px;
-        }
-        [contenteditable="true"] {
-            min-height: 120px;
-            direction: rtl;
-            line-height: 1.6;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        [contenteditable="true"]:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
+        .gallery-image:hover { transform: scale(1.05); border-color: #3b82f6; }
         .loading-spinner {
             border: 3px solid #f3f3f3;
             border-top: 3px solid #3b82f6;
@@ -75,7 +67,6 @@
         }
         .low-stock { background: #fee2e2; color: #dc2626; font-weight: bold; }
         .out-of-stock { background: #fecaca; color: #dc2626; font-weight: bold; }
-        .deleted-product { background: #f3f4f6; opacity: 0.7; text-decoration: line-through; }
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tab-active { background: #3b82f6; color: white; border-color: #3b82f6; }
         .report-card {
@@ -85,6 +76,12 @@
         .report-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -109,8 +106,11 @@
             <button id="importBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition">
                 <i class="fas fa-file-import ml-1"></i> استيراد
             </button>
+            <button id="downloadTemplateBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg shadow transition">
+                <i class="fas fa-download ml-1"></i> تحميل قالب Excel
+            </button>
             <button id="exportBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition">
-                <i class="fas fa-download ml-1"></i> تصدير CSV
+                <i class="fas fa-file-export ml-1"></i> تصدير CSV
             </button>
             <button id="trashBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow transition">
                 <i class="fas fa-trash-alt ml-1"></i> سلة المهملات
@@ -137,12 +137,12 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-right">الصورة</th>
+                        <th class="px-4 py-3 text-right">الصورة الرئيسية</th>
                         <th class="px-4 py-3 text-right">الاسم</th>
                         <th class="px-4 py-3 text-right">الكود</th>
                         <th class="px-4 py-3 text-right">السعر</th>
                         <th class="px-4 py-3 text-right">المخزون</th>
-                        <th class="px-4 py-3 text-right">الفيديو</th>
+                        <th class="px-4 py-3 text-right">صور إضافية</th>
                         <th class="px-4 py-3 text-right">الحالة</th>
                         <th class="px-4 py-3 text-right">العمليات</th>
                     </tr>
@@ -163,9 +163,9 @@
         <div id="reportsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </div>
 
-    <!-- مودال المنتج -->
+    <!-- مودال المنتج (محدث) -->
     <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
-        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h2 id="modalTitle" class="text-xl font-bold">إضافة منتج جديد</h2>
@@ -192,17 +192,33 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">السعر *</label>
                             <input type="number" id="productPrice" required class="w-full border rounded-lg px-3 py-2" step="0.01" min="0">
                         </div>
+                        
+                        <!-- الصورة الرئيسية -->
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">صورة المنتج</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">الصورة الرئيسية</label>
                             <div class="flex gap-2 flex-wrap">
-                                <input type="url" id="productImageUrl" placeholder="رابط الصورة" class="flex-1 border rounded-lg px-3 py-2">
-                                <input type="file" id="productImageFile" accept="image/*" class="border rounded-lg px-3 py-2">
+                                <input type="url" id="productMainImage" placeholder="رابط الصورة الرئيسية" class="flex-1 border rounded-lg px-3 py-2">
+                                <input type="file" id="productMainImageFile" accept="image/*" class="border rounded-lg px-3 py-2">
                             </div>
-                            <div id="imagePreview" class="mt-2 hidden">
-                                <img id="previewImg" class="product-image-preview">
-                                <button type="button" id="removeImageBtn" class="text-red-500 text-sm">إزالة</button>
+                            <div id="mainImagePreview" class="mt-2 hidden">
+                                <img id="mainPreviewImg" class="product-image-preview">
+                                <button type="button" id="removeMainImageBtn" class="text-red-500 text-sm">إزالة</button>
                             </div>
                         </div>
+
+                        <!-- 8 صور إضافية -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">صور إضافية (اختياري - حتى 8 صور)</label>
+                            <div id="galleryContainer" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+                                <!-- سيتم إضافة حقول الصور الإضافية هنا -->
+                            </div>
+                            <button type="button" id="addGalleryImageBtn" class="text-blue-600 text-sm mt-1">
+                                <i class="fas fa-plus"></i> إضافة صورة إضافية
+                            </button>
+                            <div id="galleryPreview" class="image-grid mt-2"></div>
+                        </div>
+
+                        <!-- رابط فيديو -->
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">رابط فيديو (YouTube/Vimeo)</label>
                             <input type="url" id="productVideo" placeholder="https://youtube.com/..." class="w-full border rounded-lg px-3 py-2">
@@ -210,6 +226,8 @@
                                 <iframe id="videoIframe" class="w-full h-48 rounded-lg" frameborder="0" allowfullscreen></iframe>
                             </div>
                         </div>
+
+                        <!-- الوصف -->
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
                             <div class="flex flex-wrap gap-1 mb-2 border rounded-lg p-2 bg-gray-50">
@@ -254,7 +272,11 @@
                 <button id="closeImportModalBtn" class="text-gray-500 text-2xl">&times;</button>
             </div>
             <div class="p-4">
-                <p class="text-sm text-gray-600 mb-3">قم بتحميل ملف CSV أو Excel يحتوي على الأعمدة: الاسم، السعر، الكمية، الكود (اختياري)</p>
+                <p class="text-sm text-gray-600 mb-3">قم بتحميل ملف CSV أو Excel يحتوي على الأعمدة التالية:</p>
+                <div class="bg-gray-50 p-3 rounded-lg text-xs mb-3">
+                    <p><strong>الأعمدة المطلوبة:</strong></p>
+                    <p>الاسم, الكود, السعر, الكمية, الصورة_الرئيسية, الصور_الإضافية (مفصولة بفاصلة منقوطة), الفيديو, الوصف</p>
+                </div>
                 <input type="file" id="importFile" accept=".csv,.xlsx,.xls" class="w-full border rounded-lg p-2">
                 <div id="importPreview" class="mt-3 max-h-60 overflow-y-auto"></div>
                 <div class="flex justify-end gap-2 mt-4">
@@ -270,7 +292,14 @@
 <script type="module">
     import { loadProducts, addProduct, updateProduct, deleteProduct } from '../../js/common.js';
 
-    let products = [], deletedProducts = [], currentProductId = null, searchTerm = '', currentTab = 'products', stockThreshold = 10;
+    // ========== المتغيرات العامة ==========
+    let products = [];
+    let deletedProducts = [];
+    let currentProductId = null;
+    let searchTerm = '';
+    let currentTab = 'products';
+    let stockThreshold = 10;
+    let galleryImages = []; // تخزين الصور الإضافية مؤقتاً
 
     // عناصر DOM
     const productsTableBody = document.getElementById('productsTableBody');
@@ -282,15 +311,18 @@
     const productCode = document.getElementById('productCode');
     const productStock = document.getElementById('productStock');
     const productPrice = document.getElementById('productPrice');
-    const productImageUrl = document.getElementById('productImageUrl');
-    const productImageFile = document.getElementById('productImageFile');
+    const productMainImage = document.getElementById('productMainImage');
+    const productMainImageFile = document.getElementById('productMainImageFile');
     const productVideo = document.getElementById('productVideo');
     const productDescription = document.getElementById('productDescription');
     const productDescriptionHidden = document.getElementById('productDescriptionHidden');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
+    const mainImagePreview = document.getElementById('mainImagePreview');
+    const mainPreviewImg = document.getElementById('mainPreviewImg');
     const videoPreview = document.getElementById('videoPreview');
     const videoIframe = document.getElementById('videoIframe');
+    const galleryContainer = document.getElementById('galleryContainer');
+    const galleryPreview = document.getElementById('galleryPreview');
+    const addGalleryImageBtn = document.getElementById('addGalleryImageBtn');
     const generateCodeBtn = document.getElementById('generateCodeBtn');
     const newProductBtn = document.getElementById('newProductBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
@@ -299,6 +331,7 @@
     const toast = document.getElementById('toast');
     const importBtn = document.getElementById('importBtn');
     const exportBtn = document.getElementById('exportBtn');
+    const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
     const trashBtn = document.getElementById('trashBtn');
     const trashModal = document.getElementById('trashModal');
     const closeTrashModalBtn = document.getElementById('closeTrashModalBtn');
@@ -317,44 +350,330 @@
     const applyThreshold = document.getElementById('applyThreshold');
     const reportsContainer = document.getElementById('reportsContainer');
 
-    // دالة الإشعارات
+    // ========== دوال مساعدة ==========
     function showToast(message, type = 'success') {
         toast.textContent = message;
-        toast.className = `fixed bottom-4 left-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'error' ? 'toast-error' : (type === 'warning' ? 'toast-warning' : '')}`;
+        toast.className = `fixed bottom-4 left-4 px-6 py-3 rounded-lg shadow-lg z-50`;
         toast.style.backgroundColor = type === 'error' ? '#ef4444' : (type === 'warning' ? '#f59e0b' : '#10b981');
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
-    function generateRandomCode() { return 'PROD-' + Math.random().toString(36).substring(2, 10).toUpperCase(); }
-    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m)); }
+    function generateRandomCode() { 
+        return 'PROD-' + Math.random().toString(36).substring(2, 10).toUpperCase(); 
+    }
+    
+    function escapeHtml(str) { 
+        if (str === undefined || str === null) return ''; 
+        if (typeof str === 'number') return str.toString();
+        return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m)); 
+    }
 
-    // رفع صورة من الجهاز
-    productImageFile.addEventListener('change', (e) => {
+    function getStockStatus(stock) {
+        if (stock === 0) return { text: 'نفد', class: 'out-of-stock' };
+        if (stock <= 5) return { text: 'منخفض', class: 'low-stock' };
+        return { text: 'متوفر', class: '' };
+    }
+
+    // ========== إدارة الصور الإضافية ==========
+    function addGalleryImageInput() {
+        const index = galleryContainer.children.length;
+        if (index >= 8) {
+            showToast('لا يمكن إضافة أكثر من 8 صور إضافية', 'warning');
+            return;
+        }
+        
+        const div = document.createElement('div');
+        div.className = 'gallery-image-input flex gap-2 items-center';
+        div.innerHTML = `
+            <input type="url" class="gallery-url flex-1 border rounded px-2 py-1 text-sm" placeholder="رابط الصورة ${index + 1}">
+            <input type="file" class="gallery-file hidden" accept="image/*">
+            <button type="button" class="upload-gallery-btn bg-gray-200 px-2 py-1 rounded text-sm"><i class="fas fa-upload"></i></button>
+            <button type="button" class="remove-gallery-btn text-red-500 px-2"><i class="fas fa-times"></i></button>
+        `;
+        
+        const urlInput = div.querySelector('.gallery-url');
+        const fileInput = div.querySelector('.gallery-file');
+        const uploadBtn = div.querySelector('.upload-gallery-btn');
+        const removeBtn = div.querySelector('.remove-gallery-btn');
+        
+        uploadBtn.onclick = () => fileInput.click();
+        
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    urlInput.value = ev.target.result;
+                    updateGalleryPreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        
+        urlInput.oninput = () => updateGalleryPreview();
+        removeBtn.onclick = () => {
+            div.remove();
+            updateGalleryPreview();
+        };
+        
+        galleryContainer.appendChild(div);
+        updateGalleryPreview();
+    }
+    
+    function updateGalleryPreview() {
+        const urls = [];
+        document.querySelectorAll('.gallery-url').forEach(input => {
+            if (input.value.trim()) urls.push(input.value.trim());
+        });
+        galleryImages = urls;
+        
+        galleryPreview.innerHTML = urls.map((url, i) => `
+            <div class="relative">
+                <img src="${escapeHtml(url)}" class="gallery-image">
+                <button type="button" class="remove-gallery-img absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs" data-index="${i}">×</button>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.remove-gallery-img').forEach(btn => {
+            btn.onclick = (e) => {
+                const idx = parseInt(btn.dataset.index);
+                const inputs = document.querySelectorAll('.gallery-url');
+                if (inputs[idx]) inputs[idx].value = '';
+                updateGalleryPreview();
+            };
+        });
+    }
+    
+    // ========== عرض المنتجات ==========
+    function renderProducts(productsToRender) {
+        if (!productsToRender || productsToRender.length === 0) {
+            productsTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">${searchTerm ? '🔍 لا توجد نتائج مطابقة للبحث' : '📦 لا توجد منتجات'}</td></tr>`;
+            return;
+        }
+        
+        productsTableBody.innerHTML = productsToRender.map(p => {
+            const status = getStockStatus(p.stock);
+            const galleryCount = p.galleryImages?.length || 0;
+            return `
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-4 py-3">${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="product-image-preview" onerror="this.style.display='none'">` : '<i class="fas fa-image text-gray-300 text-2xl"></i>'}${p.mainImage ? '' : ''}</td>
+                <td class="px-4 py-3 font-medium">${escapeHtml(p.name)}</td>
+                <td class="px-4 py-3 font-mono text-sm">${escapeHtml(p.code || '—')}</td>
+                <td class="px-4 py-3 font-bold text-blue-600">${p.price} <span class="text-xs">ريال</span></td>
+                <td class="px-4 py-3">${p.stock}</td>
+                <td class="px-4 py-3">${galleryCount > 0 ? `<i class="fas fa-images text-purple-500"></i> ${galleryCount} صورة` : '—'}</td>
+                <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${status.class}">${status.text}</span></td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition" title="تعديل">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteProductHandler('${p.id}', '${escapeHtml(p.name)}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition" title="حذف">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ========== التقارير ==========
+    function renderReports() {
+        const threshold = stockThreshold;
+        const lowStockProducts = products.filter(p => p.stock <= threshold && !deletedProducts.some(dp => dp.id === p.id));
+        
+        if (lowStockProducts.length === 0) {
+            reportsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">✨ لا توجد منتجات تحت الحد المحدد</div>';
+            return;
+        }
+        
+        reportsContainer.innerHTML = lowStockProducts.map(p => `
+            <div class="report-card bg-white rounded-lg shadow p-4 hover:shadow-md transition">
+                <div class="flex gap-3">
+                    ${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="w-16 h-16 object-cover rounded-lg">` : '<div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-box text-gray-400 text-2xl"></i></div>'}
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-800">${escapeHtml(p.name)}</h3>
+                        <p class="text-sm text-gray-500">الكود: ${p.code || '—'}</p>
+                        <p class="text-sm mt-1"><span class="font-bold">المخزون:</span> <span class="text-red-600 font-bold">${p.stock}</span> <span class="text-xs text-gray-500">(أقل من ${threshold})</span></p>
+                        <p class="text-sm"><span class="font-bold">السعر:</span> ${p.price} ريال</p>
+                        <button onclick="editProduct('${p.id}')" class="mt-2 text-blue-600 text-sm hover:text-blue-800 transition">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ========== تحميل المنتجات ==========
+    async function loadProductsTable() {
+        loadingContainer.classList.remove('hidden');
+        productsTableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8"><div class="loading-spinner"></div></td></tr>';
+        
+        try {
+            products = await loadProducts();
+            console.log('✅ تم تحميل المنتجات:', products.length);
+            
+            const activeProducts = products.filter(p => !deletedProducts.some(dp => dp.id === p.id));
+            let filtered = activeProducts;
+            if (searchTerm) {
+                filtered = activeProducts.filter(p => 
+                    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    p.code?.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            renderProducts(filtered);
+            renderReports();
+        } catch (err) {
+            console.error('❌ خطأ في تحميل المنتجات:', err);
+            productsTableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">❌ حدث خطأ في تحميل المنتجات</td></tr>';
+            showToast('حدث خطأ في تحميل المنتجات', 'error');
+        } finally {
+            loadingContainer.classList.add('hidden');
+        }
+    }
+
+    // ========== قالب Excel للتحميل ==========
+    function downloadTemplate() {
+        const templateData = [
+            ['الاسم', 'الكود', 'السعر', 'الكمية', 'الصورة_الرئيسية', 'الصور_الإضافية', 'الفيديو', 'الوصف'],
+            ['منتج تجريبي 1', 'PROD-001', '100', '50', 'https://example.com/image1.jpg', 'https://example.com/img2.jpg;https://example.com/img3.jpg', 'https://youtube.com/watch?v=xxx', 'وصف المنتج هنا'],
+            ['منتج تجريبي 2', 'PROD-002', '200', '30', 'https://example.com/image2.jpg', '', '', 'وصف المنتج الثاني']
+        ];
+        
+        const ws = XLSX.utils.aoa_to_sheet(templateData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'قالب المنتجات');
+        XLSX.writeFile(wb, `قالب_استيراد_المنتجات.xlsx`);
+        showToast('✅ تم تحميل قالب Excel بنجاح');
+    }
+
+    // ========== تصدير المنتجات ==========
+    function exportToCSV() {
+        const activeProducts = products.filter(p => !deletedProducts.some(dp => dp.id === p.id));
+        const headers = ['الاسم', 'الكود', 'السعر', 'الكمية', 'الصورة_الرئيسية', 'الصور_الإضافية', 'الفيديو', 'الوصف'];
+        const rows = activeProducts.map(p => [
+            p.name, p.code, p.price, p.stock, 
+            p.mainImage || '', 
+            (p.galleryImages || []).join(';'), 
+            p.video || '', 
+            p.description?.replace(/<[^>]*>/g, '') || ''
+        ]);
+        
+        let csv = headers.join(',') + '\n';
+        rows.forEach(row => csv += row.map(cell => `"${cell}"`).join(',') + '\n');
+        
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `products_export_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showToast('✅ تم تصدير المنتجات بنجاح');
+    }
+
+    // ========== استيراد المنتجات ==========
+    importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const data = new Uint8Array(ev.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            
+            if (rows.length < 2) {
+                importPreview.innerHTML = '<div class="text-red-500">الملف فارغ أو غير صحيح</div>';
+                return;
+            }
+            
+            const headers = rows[0];
+            const dataRows = rows.slice(1);
+            importPreview.innerHTML = `<div class="text-sm">📄 تم قراءة ${dataRows.length} منتج</div>
+                                        <div class="text-xs text-gray-500 mt-1">المعاينة: ${dataRows.slice(0, 3).map(r => r[0]).join(', ')}</div>`;
+            window.importData = dataRows;
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    confirmImportBtn.onclick = async () => {
+        if (!window.importData) { 
+            showToast('❌ لا توجد بيانات للاستيراد', 'error'); 
+            return; 
+        }
+        
+        let imported = 0, failed = 0;
+        
+        for (const row of window.importData) {
+            try {
+                const name = row[0];
+                const code = row[1] || generateRandomCode();
+                const price = parseFloat(row[2]);
+                const stock = parseInt(row[3]) || 0;
+                const mainImage = row[4] || null;
+                const galleryImagesStr = row[5] || '';
+                const galleryImages = galleryImagesStr ? galleryImagesStr.split(';').filter(url => url.trim()) : [];
+                const video = row[6] || null;
+                const description = row[7] || '';
+                
+                if (name && !isNaN(price)) {
+                    await addProduct({ 
+                        name, 
+                        code,
+                        price, 
+                        stock, 
+                        mainImage,
+                        galleryImages,
+                        video,
+                        description,
+                        createdAt: new Date().toISOString() 
+                    });
+                    imported++;
+                } else {
+                    failed++;
+                }
+            } catch (err) { 
+                failed++; 
+            }
+        }
+        
+        showToast(`✅ تم استيراد ${imported} منتج، فشل ${failed}`);
+        importModal.classList.add('hidden');
+        await loadProductsTable();
+    };
+
+    // ========== إدارة الصور ==========
+    productMainImageFile.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                previewImg.src = ev.target.result;
-                imagePreview.classList.remove('hidden');
-                productImageUrl.value = ev.target.result;
+                mainPreviewImg.src = ev.target.result;
+                mainImagePreview.classList.remove('hidden');
+                productMainImage.value = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
     });
 
-    productImageUrl.addEventListener('input', () => {
-        if (productImageUrl.value) {
-            previewImg.src = productImageUrl.value;
-            imagePreview.classList.remove('hidden');
-        } else imagePreview.classList.add('hidden');
+    productMainImage.addEventListener('input', () => {
+        if (productMainImage.value) {
+            mainPreviewImg.src = productMainImage.value;
+            mainImagePreview.classList.remove('hidden');
+        } else {
+            mainImagePreview.classList.add('hidden');
+        }
     });
 
-    document.getElementById('removeImageBtn')?.addEventListener('click', () => {
-        productImageUrl.value = '';
-        productImageFile.value = '';
-        imagePreview.classList.add('hidden');
+    document.getElementById('removeMainImageBtn')?.addEventListener('click', () => {
+        productMainImage.value = '';
+        productMainImageFile.value = '';
+        mainImagePreview.classList.add('hidden');
     });
+
+    addGalleryImageBtn.onclick = addGalleryImageInput;
 
     // معاينة الفيديو
     productVideo.addEventListener('input', () => {
@@ -365,97 +684,81 @@
             if (url.includes('youtu.be/')) embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
             videoIframe.src = embedUrl;
             videoPreview.classList.remove('hidden');
-        } else videoPreview.classList.add('hidden');
+        } else {
+            videoPreview.classList.add('hidden');
+        }
     });
 
-    // شريط أدوات الوصف
+    // ========== شريط أدوات الوصف ==========
     document.querySelectorAll('.toolbar-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const command = btn.dataset.command;
             if (command === 'createLink') {
                 const url = prompt('أدخل الرابط:');
                 if (url) document.execCommand('createLink', false, url);
-            } else document.execCommand(command, false, null);
+            } else {
+                document.execCommand(command, false, null);
+            }
             productDescription.focus();
             productDescriptionHidden.value = productDescription.innerHTML;
         });
     });
-    productDescription.addEventListener('input', () => productDescriptionHidden.value = productDescription.innerHTML);
+    
+    productDescription.addEventListener('input', () => {
+        productDescriptionHidden.value = productDescription.innerHTML;
+    });
 
-    function getStockStatus(stock) {
-        if (stock === 0) return { text: 'نفد', class: 'out-of-stock' };
-        if (stock <= 5) return { text: 'منخفض', class: 'low-stock' };
-        return { text: 'متوفر', class: '' };
-    }
-
-    // عرض المنتجات
-    function renderProducts(productsToRender) {
-        if (productsToRender.length === 0) {
-            productsTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">${searchTerm ? 'لا توجد نتائج' : 'لا توجد منتجات'}</td></tr>`;
-            return;
+    // ========== إضافة/تعديل منتج ==========
+    window.editProduct = async (id) => {
+        const product = products.find(p => p.id === id);
+        if (!product) return;
+        
+        currentProductId = id;
+        modalTitle.innerText = 'تعديل المنتج';
+        productName.value = product.name || '';
+        productCode.value = product.code || generateRandomCode();
+        productStock.value = product.stock || 0;
+        productPrice.value = product.price || '';
+        productMainImage.value = product.mainImage || '';
+        productVideo.value = product.video || '';
+        productDescription.innerHTML = product.description || '';
+        productDescriptionHidden.value = product.description || '';
+        
+        if (product.mainImage) { 
+            mainPreviewImg.src = product.mainImage; 
+            mainImagePreview.classList.remove('hidden'); 
         }
-        productsTableBody.innerHTML = productsToRender.map(p => {
-            const status = getStockStatus(p.stock);
-            return `<tr>
-                <td class="px-4 py-3">${p.image ? `<img src="${escapeHtml(p.image)}" class="product-image-preview" onerror="this.style.display='none'">` : '<i class="fas fa-image text-gray-300 text-2xl"></i>'}</td>
-                <td class="px-4 py-3 font-medium">${escapeHtml(p.name)}</td>
-                <td class="px-4 py-3 font-mono text-sm">${escapeHtml(p.code || '—')}</td>
-                <td class="px-4 py-3 font-bold text-blue-600">${p.price} ريال</td>
-                <td class="px-4 py-3">${p.stock}</td>
-                <td class="px-4 py-3">${p.video ? `<i class="fas fa-video text-purple-500"></i>` : '—'}</td>
-                <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${status.class}">${status.text}</span></td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                    <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 p-2 rounded"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteProductHandler('${p.id}', '${escapeHtml(p.name)}')" class="text-red-600 hover:text-red-800 p-2 rounded"><i class="fas fa-trash-alt"></i></button>
-                </td>
-            </tr>`;
-        }).join('');
-    }
-
-    // التقارير
-    function renderReports() {
-        const threshold = stockThreshold;
-        const lowStockProducts = products.filter(p => p.stock <= threshold);
-        if (lowStockProducts.length === 0) {
-            reportsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">✨ لا توجد منتجات تحت الحد المحدد</div>';
-            return;
+        
+        if (product.video) productVideo.dispatchEvent(new Event('input'));
+        
+        // تعبئة الصور الإضافية
+        galleryContainer.innerHTML = '';
+        if (product.galleryImages && product.galleryImages.length) {
+            product.galleryImages.forEach(img => {
+                addGalleryImageInput();
+                const lastInput = galleryContainer.lastElementChild?.querySelector('.gallery-url');
+                if (lastInput) lastInput.value = img;
+            });
         }
-        reportsContainer.innerHTML = lowStockProducts.map(p => `
-            <div class="report-card bg-white rounded-lg shadow p-4">
-                <div class="flex gap-3">
-                    ${p.image ? `<img src="${escapeHtml(p.image)}" class="w-16 h-16 object-cover rounded-lg">` : '<div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-box text-gray-400 text-2xl"></i></div>'}
-                    <div class="flex-1">
-                        <h3 class="font-bold">${escapeHtml(p.name)}</h3>
-                        <p class="text-sm text-gray-500">الكود: ${p.code || '—'}</p>
-                        <p class="text-sm"><span class="font-bold">المخزون:</span> <span class="text-red-600 font-bold">${p.stock}</span> <span class="text-xs">(أقل من ${threshold})</span></p>
-                        <p class="text-sm"><span class="font-bold">السعر:</span> ${p.price} ريال</p>
-                        <button onclick="editProduct('${p.id}')" class="mt-2 text-blue-600 text-sm"><i class="fas fa-edit"></i> تعديل</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
+        updateGalleryPreview();
+        
+        productModal.classList.remove('hidden');
+        productModal.classList.add('flex');
+    };
 
-    // سلة المهملات
-    function loadTrash() {
-        const trashList = document.getElementById('trashList');
-        if (deletedProducts.length === 0) {
-            trashList.innerHTML = '<div class="text-center text-gray-500 py-8">🗑️ سلة المهملات فارغة</div>';
-            return;
+    // ========== سلة المهملات ==========
+    window.deleteProductHandler = async (id, name) => {
+        if (!confirm(`⚠️ هل أنت متأكد من نقل المنتج "${name}" إلى سلة المهملات؟`)) return;
+        
+        const product = products.find(p => p.id === id);
+        if (product) {
+            deletedProducts.push({ ...product, deletedAt: new Date().toISOString() });
+            localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
+            products = products.filter(p => p.id !== id);
+            await loadProductsTable();
+            showToast(`🗑️ تم نقل "${name}" إلى سلة المهملات`);
         }
-        trashList.innerHTML = deletedProducts.map(p => `
-            <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    ${p.image ? `<img src="${escapeHtml(p.image)}" class="w-10 h-10 object-cover rounded">` : '<i class="fas fa-box text-gray-400 text-2xl"></i>'}
-                    <div><div class="font-medium">${escapeHtml(p.name)}</div><div class="text-xs text-gray-500">${p.code || '—'}</div></div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="restoreProduct('${p.id}')" class="text-green-600 hover:text-green-800"><i class="fas fa-trash-restore"></i> استعادة</button>
-                    <button onclick="permanentDelete('${p.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash-alt"></i> حذف نهائي</button>
-                </div>
-            </div>
-        `).join('');
-    }
+    };
 
     window.restoreProduct = (id) => {
         const product = deletedProducts.find(p => p.id === id);
@@ -469,166 +772,190 @@
         }
     };
 
-    window.permanentDelete = (id) => {
-        if (confirm('هل أنت متأكد من الحذف النهائي؟ لا يمكن التراجع.')) {
-            deletedProducts = deletedProducts.filter(p => p.id !== id);
-            localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
-            showToast('🗑️ تم الحذف النهائي');
-            loadTrash();
-        }
-    };
-
-    window.emptyTrash = () => {
-        if (confirm('⚠️ هل أنت متأكد من إفراغ سلة المهملات بالكامل؟')) {
-            deletedProducts = [];
-            localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
-            loadTrash();
-            showToast('🗑️ تم إفراغ سلة المهملات');
-        }
-    };
-
-    // استيراد من CSV/Excel
-    importFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            const data = new Uint8Array(ev.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet);
-            importPreview.innerHTML = `<div class="text-sm">📄 تم قراءة ${rows.length} منتج</div><div class="text-xs text-gray-500 mt-1">المعاينة: ${rows.slice(0, 3).map(r => r.الاسم || r.name).join(', ')}</div>`;
-            window.importData = rows;
-        };
-        reader.readAsArrayBuffer(file);
-    });
-
-    confirmImportBtn.onclick = async () => {
-        if (!window.importData) { showToast('❌ لا توجد بيانات للاستيراد', 'error'); return; }
-        let imported = 0, failed = 0;
-        for (const row of window.importData) {
+    window.permanentDelete = async (id) => {
+        if (confirm('⚠️ هل أنت متأكد من الحذف النهائي؟ لا يمكن التراجع.')) {
             try {
-                const name = row.الاسم || row.name || row.Name;
-                const price = parseFloat(row.السعر || row.price || row.Price);
-                const stock = parseInt(row.الكمية || row.stock || row.Quantity) || 0;
-                if (name && !isNaN(price)) {
-                    await addProduct({ name, price, stock, code: generateRandomCode(), createdAt: new Date().toISOString() });
-                    imported++;
-                } else failed++;
-            } catch (err) { failed++; }
-        }
-        showToast(`✅ تم استيراد ${imported} منتج، فشل ${failed}`);
-        importModal.classList.add('hidden');
-        await loadProductsTable();
-    };
-
-    // تصدير CSV
-    function exportToCSV() {
-        const headers = ['الاسم', 'الكود', 'السعر', 'المخزون', 'الوصف', 'الصورة', 'الفيديو'];
-        const rows = products.map(p => [p.name, p.code, p.price, p.stock, p.description?.replace(/<[^>]*>/g, '') || '', p.image || '', p.video || '']);
-        let csv = headers.join(',') + '\n';
-        rows.forEach(row => csv += row.map(cell => `"${cell}"`).join(',') + '\n');
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `products_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-        showToast('✅ تم تصدير المنتجات بنجاح');
-    }
-
-    // تحميل وعرض المنتجات
-    async function loadProductsTable() {
-        loadingContainer.classList.remove('hidden');
-        try {
-            products = await loadProducts();
-            const filtered = products.filter(p => !deletedProducts.some(dp => dp.id === p.id));
-            const searchFiltered = searchTerm ? filtered.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || p.code?.toLowerCase().includes(searchTerm.toLowerCase())) : filtered;
-            renderProducts(searchFiltered);
-            renderReports();
-        } catch (err) { console.error(err); showToast('❌ حدث خطأ', 'error'); }
-        finally { loadingContainer.classList.add('hidden'); }
-    }
-
-    function filterProducts() { const filtered = products.filter(p => !deletedProducts.some(dp => dp.id === p.id)); return searchTerm ? filtered.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase())) : filtered; }
-    searchInput.addEventListener('input', (e) => { searchTerm = e.target.value; loadProductsTable(); });
-
-    window.editProduct = async (id) => {
-        const product = products.find(p => p.id === id);
-        if (!product) return;
-        currentProductId = id;
-        modalTitle.innerText = 'تعديل المنتج';
-        productName.value = product.name || '';
-        productCode.value = product.code || generateRandomCode();
-        productStock.value = product.stock || 0;
-        productPrice.value = product.price || '';
-        productImageUrl.value = product.image || '';
-        productVideo.value = product.video || '';
-        productDescription.innerHTML = product.description || '';
-        productDescriptionHidden.value = product.description || '';
-        if (product.image) { previewImg.src = product.image; imagePreview.classList.remove('hidden'); }
-        if (product.video) productVideo.dispatchEvent(new Event('input'));
-        productModal.classList.remove('hidden'); productModal.classList.add('flex');
-    };
-
-    window.deleteProductHandler = async (id, name) => {
-        if (!confirm(`هل أنت متأكد من نقل المنتج "${name}" إلى سلة المهملات؟`)) return;
-        const product = products.find(p => p.id === id);
-        if (product) {
-            deletedProducts.push({ ...product, deletedAt: new Date().toISOString() });
-            localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
-            products = products.filter(p => p.id !== id);
-            await loadProductsTable();
-            showToast(`🗑️ تم نقل "${name}" إلى سلة المهملات`);
+                await deleteProduct(id);
+                deletedProducts = deletedProducts.filter(p => p.id !== id);
+                localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
+                showToast('🗑️ تم الحذف النهائي');
+                loadTrash();
+                loadProductsTable();
+            } catch (err) {
+                showToast('❌ حدث خطأ', 'error');
+            }
         }
     };
+
+    window.emptyTrash = async () => {
+        if (confirm('⚠️ هل أنت متأكد من إفراغ سلة المهملات؟')) {
+            try {
+                for (const p of deletedProducts) await deleteProduct(p.id);
+                deletedProducts = [];
+                localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
+                loadTrash();
+                loadProductsTable();
+                showToast('🗑️ تم إفراغ السلة');
+            } catch (err) {
+                showToast('❌ حدث خطأ', 'error');
+            }
+        }
+    };
+
+    function loadTrash() {
+        const trashList = document.getElementById('trashList');
+        if (!trashList) return;
+        
+        if (deletedProducts.length === 0) {
+            trashList.innerHTML = '<div class="text-center text-gray-500 py-8">🗑️ سلة المهملات فارغة</div>';
+            return;
+        }
+        
+        trashList.innerHTML = deletedProducts.map(p => `
+            <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    ${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="w-10 h-10 object-cover rounded">` : '<i class="fas fa-box text-gray-400 text-2xl"></i>'}
+                    <div><div class="font-medium">${escapeHtml(p.name)}</div><div class="text-xs text-gray-500">${p.code || '—'}</div></div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="restoreProduct('${p.id}')" class="text-green-600 hover:text-green-800"><i class="fas fa-trash-restore"></i> استعادة</button>
+                    <button onclick="permanentDelete('${p.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash-alt"></i> حذف نهائي</button>
+                </div>
+            </div>
+        `).join('');
+    }
 
     async function saveProduct(event) {
         event.preventDefault();
+        
         const name = productName.value.trim();
         if (!name) { showToast('اسم المنتج مطلوب', 'error'); return; }
+        
         const stock = parseInt(productStock.value) || 0;
         const price = parseFloat(productPrice.value);
         if (isNaN(price)) { showToast('السعر غير صحيح', 'error'); return; }
-        const data = { name, code: productCode.value.trim() || generateRandomCode(), stock, price, image: productImageUrl.value.trim() || null, video: productVideo.value.trim() || null, description: productDescriptionHidden.value, updatedAt: new Date().toISOString() };
+        
+        // جمع الصور الإضافية
+        const galleryUrls = [];
+        document.querySelectorAll('.gallery-url').forEach(input => {
+            if (input.value.trim()) galleryUrls.push(input.value.trim());
+        });
+        
+        const data = {
+            name,
+            code: productCode.value.trim() || generateRandomCode(),
+            stock,
+            price,
+            mainImage: productMainImage.value.trim() || null,
+            galleryImages: galleryUrls,
+            video: productVideo.value.trim() || null,
+            description: productDescriptionHidden.value,
+            updatedAt: new Date().toISOString()
+        };
         if (!currentProductId) data.createdAt = new Date().toISOString();
+
         try {
-            if (currentProductId) await updateProduct(currentProductId, data);
-            else await addProduct(data);
-            showToast(currentProductId ? '✅ تم التعديل' : '✅ تم الإضافة');
+            if (currentProductId) {
+                await updateProduct(currentProductId, data);
+                showToast('✅ تم تعديل المنتج بنجاح');
+            } else {
+                await addProduct(data);
+                showToast('✅ تم إضافة المنتج بنجاح');
+            }
             closeModal();
             await loadProductsTable();
-        } catch (err) { console.error(err); showToast('❌ حدث خطأ', 'error'); }
+        } catch (err) {
+            console.error(err);
+            showToast('❌ حدث خطأ أثناء حفظ المنتج', 'error');
+        }
     }
 
-    function closeModal() { productModal.classList.add('hidden'); productModal.classList.remove('flex'); resetForm(); }
-    function resetForm() { currentProductId = null; productForm.reset(); productCode.value = generateRandomCode(); productDescription.innerHTML = ''; productDescriptionHidden.value = ''; imagePreview.classList.add('hidden'); videoPreview.classList.add('hidden'); modalTitle.innerText = 'إضافة منتج جديد'; }
+    function closeModal() { 
+        productModal.classList.add('hidden'); 
+        productModal.classList.remove('flex'); 
+        resetForm(); 
+    }
+    
+    function resetForm() {
+        currentProductId = null;
+        productForm.reset();
+        productCode.value = generateRandomCode();
+        productDescription.innerHTML = '';
+        productDescriptionHidden.value = '';
+        mainImagePreview.classList.add('hidden');
+        videoPreview.classList.add('hidden');
+        galleryContainer.innerHTML = '';
+        galleryPreview.innerHTML = '';
+        galleryImages = [];
+        modalTitle.innerText = 'إضافة منتج جديد';
+    }
 
-    // التبويبات
-    tabProducts.onclick = () => { currentTab = 'products'; productsPanel.classList.remove('hidden'); reportsPanel.classList.add('hidden'); tabProducts.classList.add('tab-active', 'bg-blue-600', 'text-white'); tabReports.classList.remove('tab-active', 'bg-blue-600', 'text-white'); };
-    tabReports.onclick = () => { currentTab = 'reports'; productsPanel.classList.add('hidden'); reportsPanel.classList.remove('hidden'); renderReports(); tabReports.classList.add('tab-active', 'bg-blue-600', 'text-white'); tabProducts.classList.remove('tab-active', 'bg-blue-600', 'text-white'); };
-    applyThreshold.onclick = () => { stockThreshold = parseInt(stockThresholdInput.value) || 10; renderReports(); };
+    // ========== التبويبات ==========
+    tabProducts.onclick = () => {
+        currentTab = 'products';
+        productsPanel.classList.remove('hidden');
+        reportsPanel.classList.add('hidden');
+        tabProducts.classList.add('tab-active', 'bg-blue-600', 'text-white');
+        tabReports.classList.remove('tab-active', 'bg-blue-600', 'text-white');
+    };
+    
+    tabReports.onclick = () => {
+        currentTab = 'reports';
+        productsPanel.classList.add('hidden');
+        reportsPanel.classList.remove('hidden');
+        renderReports();
+        tabReports.classList.add('tab-active', 'bg-blue-600', 'text-white');
+        tabProducts.classList.remove('tab-active', 'bg-blue-600', 'text-white');
+    };
+    
+    applyThreshold.onclick = () => {
+        stockThreshold = parseInt(stockThresholdInput.value) || 10;
+        renderReports();
+    };
 
-    // ربط الأحداث
-    newProductBtn.onclick = () => { resetForm(); productModal.classList.remove('hidden'); productModal.classList.add('flex'); };
-    closeModalBtn.onclick = closeModal; cancelProductBtn.onclick = closeModal;
+    // ========== ربط الأحداث ==========
+    newProductBtn.onclick = () => {
+        resetForm();
+        productModal.classList.remove('hidden');
+        productModal.classList.add('flex');
+        productName.focus();
+    };
+    
+    closeModalBtn.onclick = closeModal;
+    cancelProductBtn.onclick = closeModal;
     generateCodeBtn.onclick = () => productCode.value = generateRandomCode();
     exportBtn.onclick = exportToCSV;
+    downloadTemplateBtn.onclick = downloadTemplate;
+    
     importBtn.onclick = () => importModal.classList.remove('hidden');
     closeImportModalBtn.onclick = () => importModal.classList.add('hidden');
     cancelImportBtn.onclick = () => importModal.classList.add('hidden');
-    trashBtn.onclick = () => { loadTrash(); trashModal.classList.remove('hidden'); trashModal.classList.add('flex'); };
+    
+    trashBtn.onclick = () => {
+        loadTrash();
+        trashModal.classList.remove('hidden');
+        trashModal.classList.add('flex');
+    };
     closeTrashModalBtn.onclick = () => trashModal.classList.add('hidden');
     emptyTrashBtn.onclick = window.emptyTrash;
+    
     productForm.onsubmit = saveProduct;
+    
     productModal.onclick = (e) => { if (e.target === productModal) closeModal(); };
     trashModal.onclick = (e) => { if (e.target === trashModal) trashModal.classList.add('hidden'); };
+    importModal.onclick = (e) => { if (e.target === importModal) importModal.classList.add('hidden'); };
+    searchInput.addEventListener('input', (e) => { searchTerm = e.target.value; loadProductsTable(); });
 
-    // استعادة سلة المهملات من localStorage
+    // ========== استعادة سلة المهملات ==========
     const savedTrash = localStorage.getItem('deletedProducts');
-    if (savedTrash) deletedProducts = JSON.parse(savedTrash);
+    if (savedTrash) {
+        try { deletedProducts = JSON.parse(savedTrash); } catch(e) { deletedProducts = []; }
+    }
 
+    // ========== بدء التشغيل ==========
+    console.log('🚀 بدء تشغيل صفحة المنتجات...');
     await loadProductsTable();
+    console.log('✅ تم تهيئة صفحة المنتجات بنجاح');
 </script>
 </body>
 </html>
