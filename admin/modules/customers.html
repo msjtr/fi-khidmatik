@@ -225,13 +225,74 @@
 <div id="toast" class="hidden fixed bottom-4 left-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 cursor-pointer"></div>
 
 <script type="module">
-    // ===================== استيراد الدوال من Firebase =====================
-    import { 
-        loadCustomers, 
-        addCustomer, 
-        updateCustomer, 
-        deleteCustomer 
-    } from '../../js/firebase.js';
+    // ===================== استيراد Firebase =====================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        doc,
+        getDocs,
+        updateDoc,
+        deleteDoc
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+        authDomain: "msjt301-974bb.firebaseapp.com",
+        projectId: "msjt301-974bb",
+        storageBucket: "msjt301-974bb.firebasestorage.app",
+        messagingSenderId: "186209858482",
+        appId: "1:186209858482:web:186ca610780799ef562aab",
+        measurementId: "G-NDVGC9GPQZ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ===================== دوال Firebase =====================
+    async function getCollection(collectionName) {
+        try {
+            const querySnapshot = await getDocs(collection(db, collectionName));
+            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error(`Error fetching ${collectionName}:`, error);
+            return [];
+        }
+    }
+
+    async function loadCustomers() {
+        return await getCollection('customers');
+    }
+
+    async function addCustomer(data) {
+        try {
+            return await addDoc(collection(db, 'customers'), data);
+        } catch (error) {
+            console.error('Error adding customer:', error);
+            throw error;
+        }
+    }
+
+    async function updateCustomer(id, data) {
+        try {
+            return await updateDoc(doc(db, 'customers', id), data);
+        } catch (error) {
+            console.error('Error updating customer:', error);
+            throw error;
+        }
+    }
+
+    async function deleteCustomer(id) {
+        try {
+            return await deleteDoc(doc(db, 'customers', id));
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+            throw error;
+        }
+    }
 
     // ===================== المتغيرات =====================
     let customers = [];
