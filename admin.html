@@ -24,6 +24,28 @@
     -webkit-background-clip: text;
     color: transparent;
 }
+.sidebar-link {
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #4b5563;
+}
+.sidebar-link:hover {
+    background: #f3f4f6;
+    color: #1e40af;
+}
+.sidebar-link i {
+    width: 24px;
+    font-size: 1.1rem;
+}
+.sidebar-link.active {
+    background: #eff6ff;
+    color: #1e40af;
+    font-weight: 500;
+}
 </style>
 </head>
 
@@ -35,28 +57,64 @@
 
     <div class="p-5 border-b">
         <h1 class="logo">متجرك الذكي</h1>
-        <p class="text-xs text-gray-500">نظام إدارة</p>
+        <p class="text-xs text-gray-500 mt-1">نظام إدارة متكامل</p>
     </div>
 
-    <nav class="flex-1 p-4 space-y-2">
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+        <!-- الروابط الرئيسية -->
+        <a href="admin/modules/orders.html" target="frame" class="sidebar-link">
+            <i class="fas fa-shopping-cart"></i>
+            <span>الطلبات</span>
+        </a>
 
-        <a href="admin/modules/orders.html" target="frame" class="block p-2 rounded hover:bg-gray-100">الطلبات</a>
+        <a href="admin/modules/customers.html" target="frame" class="sidebar-link">
+            <i class="fas fa-users"></i>
+            <span>العملاء</span>
+        </a>
 
-        <a href="admin/modules/customers.html" target="frame" class="block p-2 rounded hover:bg-gray-100">العملاء</a>
+        <a href="admin/modules/products.html" target="frame" class="sidebar-link">
+            <i class="fas fa-boxes"></i>
+            <span>المنتجات</span>
+        </a>
 
-        <a href="admin/modules/products.html" target="frame" class="block p-2 rounded hover:bg-gray-100">المنتجات</a>
+        <!-- فاصل -->
+        <div class="border-t my-3"></div>
 
-        <a href="admin/modules/inventory.html" target="frame" class="block p-2 rounded hover:bg-gray-100">المخزون</a>
+        <!-- روابط إضافية (يمكن تفعيلها لاحقاً) -->
+        <div class="text-xs text-gray-400 px-3 py-2">إضافات</div>
+        
+        <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" onclick="return false;">
+            <i class="fas fa-warehouse"></i>
+            <span>المخزون <span class="text-xs text-gray-400">(قريباً)</span></span>
+        </a>
 
-        <a href="admin/modules/payments.html" target="frame" class="block p-2 rounded hover:bg-gray-100">الدفع</a>
+        <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" onclick="return false;">
+            <i class="fas fa-credit-card"></i>
+            <span>الدفع <span class="text-xs text-gray-400">(قريباً)</span></span>
+        </a>
 
-        <a href="admin/modules/invoice.html" target="frame" class="block p-2 rounded hover:bg-gray-100">الفاتورة</a>
+        <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" onclick="return false;">
+            <i class="fas fa-file-invoice"></i>
+            <span>الفاتورة <span class="text-xs text-gray-400">(قريباً)</span></span>
+        </a>
 
-        <a href="admin/modules/general.html" target="frame" class="block p-2 rounded hover:bg-gray-100">الإعدادات</a>
+        <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" onclick="return false;">
+            <i class="fas fa-cog"></i>
+            <span>الإعدادات <span class="text-xs text-gray-400">(قريباً)</span></span>
+        </a>
 
-        <a href="admin/modules/backup.html" target="frame" class="block p-2 rounded hover:bg-gray-100">النسخ الاحتياطي</a>
-
+        <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" onclick="return false;">
+            <i class="fas fa-database"></i>
+            <span>النسخ الاحتياطي <span class="text-xs text-gray-400">(قريباً)</span></span>
+        </a>
     </nav>
+
+    <!-- Footer sidebar -->
+    <div class="p-4 border-t text-xs text-gray-400">
+        <i class="fas fa-code ml-1"></i> نظام إدارة متجرك الذكي
+        <br>
+        <span id="currentDate"></span>
+    </div>
 
 </aside>
 
@@ -65,11 +123,44 @@
     <iframe 
         name="frame" 
         src="admin/modules/orders.html" 
-        class="w-full h-full rounded-xl bg-white"
+        class="w-full h-full rounded-xl bg-white shadow-sm"
         frameborder="0">
     </iframe>
 </main>
 
 </div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<script>
+    // عرض التاريخ الحالي
+    const dateElement = document.getElementById('currentDate');
+    if (dateElement) {
+        const now = new Date();
+        dateElement.textContent = now.toLocaleDateString('ar-SA', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+
+    // تفعيل الرابط النشط
+    const links = document.querySelectorAll('.sidebar-link');
+    const currentSrc = document.querySelector('iframe')?.src;
+    
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && currentSrc && currentSrc.includes(href)) {
+            link.classList.add('active');
+        }
+        
+        // إضافة حدث النقر لتحديد الرابط النشط
+        link.addEventListener('click', function() {
+            links.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
 </body>
 </html>
