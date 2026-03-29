@@ -101,7 +101,7 @@ export async function getSettings(id) {
 
 export const setSettings = (id, data) => setDoc(doc(db, 'settings', id), data, { merge: true });
 
-// ===================== تصدير كل الدوال =====================
+// ===================== تصدير الأساسيات =====================
 export {
     db,
     collection,
