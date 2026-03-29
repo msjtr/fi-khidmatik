@@ -783,13 +783,10 @@
     
     // باقي الدوال (نفس الكود الأصلي)
 // إصلاح القوس الزائد
-if (order) await saveASPNG(order);
-
-window.printInvoiceHandler = async (orderId) => {
+window.savePNGHandler = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
-    if (order) await printInvoice(order);
+    if (order) await saveAsPNG(order);
 };
-
 // دالة تنسيق التاريخ
 
 
