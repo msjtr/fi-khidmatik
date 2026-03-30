@@ -1,165 +1,146 @@
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الطلبات - نظام متكامل</title>
+<meta charset="UTF-8">
+<title>إدارة الطلبات</title>
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- Quill -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
-    <style>
-        * { transition: all 0.2s ease; }
-        .modal { transition: opacity 0.3s ease; background-color: rgba(0,0,0,0.5); }
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-        .status-new { background: #dbeafe; color: #1e40af; }
-        .status-processing { background: #fef3c7; color: #b45309; }
-        .status-completed { background: #d1fae5; color: #065f46; }
-        .status-review { background: #e9d5ff; color: #6b21a5; }
-        .status-refund { background: #fed7aa; color: #9a3412; }
-        .status-cancelled { background: #fee2e2; color: #b91c1c; }
-
-        .orders-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 1rem;
-        }
-
-        #toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 9999px;
-            z-index: 1000;
-            display: none;
-        }
-    </style>
+<style>
+.product-row{border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:8px}
+</style>
 </head>
 
-<body class="bg-gray-50 p-6 font-sans">
+<body class="bg-gray-100 p-6">
 
-<div id="toast"></div>
+<div class="max-w-5xl mx-auto">
 
-<div class="max-w-7xl mx-auto">
+<div class="flex justify-between mb-6">
+<h1 class="text-2xl font-bold">إدارة الطلبات</h1>
+<button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded">طلب جديد</button>
+</div>
 
-    <!-- العنوان -->
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">
-                <i class="fas fa-shopping-cart text-blue-600 ml-2"></i>
-                إدارة الطلبات
-            </h1>
-        </div>
-    </div>
-
-    <!-- الطلبات -->
-    <div id="ordersContainer" class="space-y-4"></div>
+<div id="ordersContainer"></div>
 
 </div>
 
-<script type="module">
+<!-- مودال -->
+<div id="modal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center">
 
-/* ================================
-   🔥 الربط مع النظام المركزي
-================================ */
-import { printManager } from '../../js/print/print.manager.js';
+<div class="bg-white p-6 rounded w-full max-w-3xl">
 
-/* ================================
-   بيانات تجريبية
-================================ */
-let orders = [
-    {
-        id: "1",
-        orderNumber: "KF-1001",
-        orderDate: "2026-01-01",
-        orderTime: "14:30",
-        paymentMethodName: "مدى",
-        customer: {
-            name: "محمد الشمري",
-            phone: "0500000000"
-        },
-        items: [
-            { name: "منتج 1", price: 100, quantity: 1 },
-            { name: "منتج 2", price: 50, quantity: 2 }
-        ],
-        total: 200,
-        status: "جديد"
-    }
-];
+<h2 class="text-xl mb-4">طلب جديد</h2>
 
-/* ================================
-   عرض الطلبات
-================================ */
-function renderOrders() {
+<form id="form">
 
-    const html = orders.map(order => `
-        <div class="bg-white rounded-xl shadow-md p-4 border">
+<input id="orderNumber" placeholder="رقم الطلب" class="border p-2 w-full mb-2">
+<input id="customerName" placeholder="اسم العميل" class="border p-2 w-full mb-2">
 
-            <div class="flex justify-between">
+<div id="products"></div>
 
-                <div>
-                    <h3 class="font-bold text-blue-600">${order.orderNumber}</h3>
-                    <p class="text-sm">${order.customer.name}</p>
-                    <p class="text-green-600 font-bold">${order.total} ريال</p>
-                </div>
+<button type="button" onclick="addProduct()" class="bg-gray-200 px-3 py-1 mb-3">+ منتج</button>
 
-                <div class="flex gap-2">
+<div class="flex justify-end gap-2">
+<button type="button" onclick="closeModal()" class="border px-3 py-1">إلغاء</button>
+<button class="bg-blue-600 text-white px-3 py-1">حفظ</button>
+</div>
 
-                    <button onclick="printInvoiceHandler('${order.id}')" class="text-blue-600">
-                        🖨️
-                    </button>
+</form>
 
-                    <button onclick="exportAsPDF('${order.id}')" class="text-red-600">
-                        PDF
-                    </button>
+</div>
+</div>
 
-                    <button onclick="exportAsPNG('${order.id}')" class="text-green-600">
-                        PNG
-                    </button>
+<script>
 
-                </div>
+let orders = []
 
-            </div>
-
-        </div>
-    `).join('');
-
-    document.getElementById('ordersContainer').innerHTML = html;
+function addProduct(){
+const row=document.createElement('div')
+row.className='product-row'
+row.innerHTML=`
+<input placeholder="اسم المنتج" class="name border p-1 w-full mb-1">
+<input type="number" placeholder="السعر" class="price border p-1 w-full mb-1">
+<input type="number" placeholder="الكمية" class="qty border p-1 w-full">
+`
+document.getElementById('products').appendChild(row)
 }
 
-/* ================================
-   أوامر الطباعة (الجديدة)
-================================ */
-window.printInvoiceHandler = async (orderId) => {
-    const order = orders.find(o => o.id === orderId);
-    if (order) await printManager('print', order);
-};
+function openModal(){
+document.getElementById('modal').classList.remove('hidden')
+}
 
-window.exportAsPDF = async (orderId) => {
-    const order = orders.find(o => o.id === orderId);
-    if (order) await printManager('pdf', order);
-};
+function closeModal(){
+document.getElementById('modal').classList.add('hidden')
+}
 
-window.exportAsPNG = async (orderId) => {
-    const order = orders.find(o => o.id === orderId);
-    if (order) await printManager('image', order);
-};
+document.getElementById('form').onsubmit=function(e){
+e.preventDefault()
 
-/* ================================
-   تشغيل الصفحة
-================================ */
-renderOrders();
+const items=[]
+document.querySelectorAll('.product-row').forEach(r=>{
+items.push({
+name:r.querySelector('.name').value,
+price:parseFloat(r.querySelector('.price').value||0),
+quantity:parseInt(r.querySelector('.qty').value||0)
+})
+})
+
+let total=0
+items.forEach(i=> total += i.price*i.quantity)
+
+orders.push({
+id:Date.now().toString(),
+orderNumber:document.getElementById('orderNumber').value,
+customer:{name:document.getElementById('customerName').value},
+items,
+total
+})
+
+closeModal()
+render()
+this.reset()
+document.getElementById('products').innerHTML=''
+}
+
+function render(){
+const el=document.getElementById('ordersContainer')
+
+if(!orders.length){
+el.innerHTML='لا يوجد طلبات'
+return
+}
+
+el.innerHTML=orders.map(o=>`
+<div class="bg-white p-4 mb-3 rounded shadow">
+<h3 class="font-bold text-blue-600">${o.orderNumber}</h3>
+<p>${o.customer.name}</p>
+<p class="text-green-600">${o.total} ريال</p>
+
+<div class="flex gap-2 mt-2">
+<button onclick="printOrder('${o.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">🖨️ طباعة</button>
+<button onclick="deleteOrder('${o.id}')" class="bg-red-500 text-white px-2 py-1 rounded">حذف</button>
+</div>
+</div>
+`).join('')
+}
+
+function deleteOrder(id){
+orders=orders.filter(o=>o.id!==id)
+render()
+}
+
+/* =============================
+   ربط الطباعة المركزي
+============================= */
+function printOrder(id){
+const order = orders.find(o=>o.id===id)
+if(!order) return
+
+localStorage.setItem('print_order', JSON.stringify(order))
+window.open('print.html','_blank')
+}
+
+render()
 
 </script>
 
