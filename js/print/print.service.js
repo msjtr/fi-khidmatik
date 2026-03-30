@@ -2,21 +2,40 @@ export async function printInvoice(element) {
 
     const win = window.open('', '_blank');
 
+    const base = window.location.origin;
+
     win.document.write(`
-    <html>
+    <html dir="rtl">
     <head>
-    <link rel="stylesheet" href="/css/print.css">
+        <meta charset="UTF-8">
+
+        <!-- ربط CSS بشكل صحيح -->
+        <link rel="stylesheet" href="${base}/css/design.css">
+        <link rel="stylesheet" href="${base}/css/print.css">
+
+        <title>فاتورة</title>
+
+        <style>
+            body {
+                margin: 0;
+                padding: 20px;
+                background: #fff;
+            }
+        </style>
     </head>
+
     <body>
-    ${element.outerHTML}
+        ${element.outerHTML}
     </body>
     </html>
     `);
 
     win.document.close();
 
-    win.onload = () => {
+    // ⏳ انتظار تحميل التصميم قبل الطباعة
+    setTimeout(() => {
+        win.focus();
         win.print();
         win.close();
-    };
+    }, 700);
 }
