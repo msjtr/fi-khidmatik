@@ -376,6 +376,13 @@ function escapeHtml(text = '') {
     }[m]));
 }
 
+function generateRandomCode() {
+    return 'PRD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+}
+
+
+
+    
 function formatDateInvoice(date) {
     if (!date) return '';
     return new Date(date).toLocaleDateString('ar-SA');
@@ -385,6 +392,11 @@ function formatTimeInvoice(time) {
     return time || '';
 }
 
+    function removeInvoiceElement(el) {
+    if (el && el.parentElement) {
+        el.parentElement.remove();
+    }
+}
     
     // دوال تحميل البيانات (نفس الكود الأصلي)
     async function loadCustomersList() { 
@@ -696,7 +708,11 @@ const inventoryModal = document.getElementById('inventoryModal');
 const inventorySearch = document.getElementById('inventorySearch');
 const inventoryList = document.getElementById('inventoryList');
 const ordersContainer = document.getElementById('ordersContainer'); 
+const orderStatusSelect = document.getElementById('orderStatus');
 const saveToInventoryCheck = document.getElementById('saveToInventory');
+const quickProductBarcode = document.getElementById('quickProductBarcode');
+const imagePreviewQuick = document.getElementById('imagePreviewQuick');
+const previewQuickImg = document.getElementById('previewQuickImg');
     // بدء التشغيل
     async function init() {
         console.log('🚀 بدء تشغيل صفحة الطلبات...');
