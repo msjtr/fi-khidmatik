@@ -30,16 +30,16 @@
     </div>
 </div>
 
-<!-- سكربتات النظام -->
 <script type="module">
 
+// ✅ تأكد المسار صحيح حسب مشروعك
 import { generateInvoiceTemplate } from './js/print/template.js';
 import { printInvoice } from './js/print/print.service.js';
 import { generatePDF } from './js/print/pdf.service.js';
 import { generateImage } from './js/print/image.service.js';
 
 /* =============================
-   مثال بيانات (تتغير من نظامك)
+   بيانات الطلب (تجريبية)
 ============================= */
 const order = {
     orderNumber: "KF-1234",
@@ -62,21 +62,26 @@ const order = {
 /* =============================
    تحميل القالب
 ============================= */
-document.getElementById('invoiceContent').innerHTML = generateInvoiceTemplate(order);
+const invoiceEl = document.getElementById('invoiceContent');
+invoiceEl.innerHTML = generateInvoiceTemplate(order);
 
 /* =============================
-   أوامر الطباعة
+   أوامر الطباعة (مصححة)
 ============================= */
-window.handlePrint = () => {
-    printInvoice('invoiceContent');
+
+// 🖨️ طباعة
+window.handlePrint = async () => {
+    await printInvoice(invoiceEl);
 };
 
+// 📄 PDF
 window.handlePDF = async () => {
-    await generatePDF('invoiceContent', order);
+    await generatePDF(invoiceEl, order);
 };
 
+// 🖼️ صورة
 window.handleImage = async () => {
-    await generateImage('invoiceContent', order);
+    await generateImage(invoiceEl, order);
 };
 
 </script>
