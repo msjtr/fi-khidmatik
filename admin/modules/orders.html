@@ -50,10 +50,25 @@
 </div>
 </div>
 
-<script>
+<script type="module">
 
-let orders = []
+/* =============================
+   استيراد Firebase
+============================= */
+import {
+    loadOrders,
+    addOrder,
+    deleteOrder
+} from './js/firebase.js';
 
+/* =============================
+   متغيرات
+============================= */
+let orders = [];
+
+/* =============================
+   إضافة منتج
+============================= */
 function addProduct(){
 const row=document.createElement('div')
 row.className='product-row'
@@ -65,82 +80,109 @@ row.innerHTML=`
 document.getElementById('products').appendChild(row)
 }
 
-function openModal(){
+/* =============================
+   فتح/إغلاق مودال
+============================= */
+window.openModal = () => {
 document.getElementById('modal').classList.remove('hidden')
 }
 
-function closeModal(){
+window.closeModal = () => {
 document.getElementById('modal').classList.add('hidden')
 }
 
-document.getElementById('form').onsubmit=function(e){
-e.preventDefault()
+/* =============================
+   تحميل الطلبات من Firebase
+============================= */
+async function loadData(){
+orders = await loadOrders();
+render();
+}
 
-const items=[]
+/* =============================
+   حفظ الطلب
+============================= */
+document.getElementById('form').onsubmit = async function(e){
+e.preventDefault();
+
+const items=[];
 document.querySelectorAll('.product-row').forEach(r=>{
 items.push({
 name:r.querySelector('.name').value,
 price:parseFloat(r.querySelector('.price').value||0),
 quantity:parseInt(r.querySelector('.qty').value||0)
-})
-})
+});
+});
 
-let total=0
-items.forEach(i=> total += i.price*i.quantity)
+let total=0;
+items.forEach(i=> total += i.price*i.quantity);
 
-orders.push({
-id:Date.now().toString(),
-orderNumber:document.getElementById('orderNumber').value,
-customer:{name:document.getElementById('customerName').value},
+/* حفظ في Firebase */
+await addOrder({
+orderNumber: document.getElementById('orderNumber').value,
+customer: { name: document.getElementById('customerName').value },
 items,
-total
-})
+total,
+createdAt: new Date().toISOString()
+});
 
-closeModal()
-render()
-this.reset()
-document.getElementById('products').innerHTML=''
-}
+closeModal();
+this.reset();
+document.getElementById('products').innerHTML='';
 
-function render(){
-const el=document.getElementById('ordersContainer')
-
-if(!orders.length){
-el.innerHTML='لا يوجد طلبات'
-return
-}
-
-el.innerHTML=orders.map(o=>`
-<div class="bg-white p-4 mb-3 rounded shadow">
-<h3 class="font-bold text-blue-600">${o.orderNumber}</h3>
-<p>${o.customer.name}</p>
-<p class="text-green-600">${o.total} ريال</p>
-
-<div class="flex gap-2 mt-2">
-<button onclick="printOrder('${o.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">🖨️ طباعة</button>
-<button onclick="deleteOrder('${o.id}')" class="bg-red-500 text-white px-2 py-1 rounded">حذف</button>
-</div>
-</div>
-`).join('')
-}
-
-function deleteOrder(id){
-orders=orders.filter(o=>o.id!==id)
-render()
+await loadData();
 }
 
 /* =============================
-   ربط الطباعة المركزي
+   عرض الطلبات
 ============================= */
-function printOrder(id){
-const order = orders.find(o=>o.id===id)
-if(!order) return
+function render(){
+const el=document.getElementById('ordersContainer');
 
-localStorage.setItem('print_order', JSON.stringify(order))
-window.open('print.html','_blank')
+if(!orders.length){
+el.innerHTML='لا يوجد طلبات';
+return;
 }
 
-render()
+el.innerHTML = orders.map(o=>`
+<div class="bg-white p-4 mb-3 rounded shadow">
+<h3 class="font-bold text-blue-600">${o.orderNumber}</h3>
+<p>${o.customer?.name || ''}</p>
+<p class="text-green-600">${o.total || 0} ريال</p>
+
+<div class="flex gap-2 mt-2">
+<button onclick="printOrder('${o.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">🖨️ طباعة</button>
+<button onclick="deleteOrderHandler('${o.id}')" class="bg-red-500 text-white px-2 py-1 rounded">حذف</button>
+</div>
+</div>
+`).join('');
+}
+
+/* =============================
+   حذف طلب
+============================= */
+window.deleteOrderHandler = async (id) => {
+if(!confirm('تأكيد الحذف؟')) return;
+
+await deleteOrder(id);
+await loadData();
+}
+
+/* =============================
+   الطباعة (مربوطة)
+============================= */
+window.printOrder = (id) => {
+const order = orders.find(o=>o.id===id);
+if(!order) return;
+
+localStorage.setItem('print_order', JSON.stringify(order));
+window.open('print.html','_blank');
+}
+
+/* =============================
+   تشغيل الصفحة
+============================= */
+loadData();
 
 </script>
 
