@@ -5,10 +5,10 @@
     <title>فاتورة</title>
 
     <!-- التصميم -->
-    <link rel="stylesheet" href="css/design.css">
+    <link rel="stylesheet" href="./css/design.css">
 
     <!-- الطباعة -->
-    <link rel="stylesheet" href="css/print.css">
+    <link rel="stylesheet" href="./css/print.css">
 </head>
 
 <body>
@@ -32,7 +32,7 @@
 
 <script type="module">
 
-// ✅ تأكد المسار صحيح حسب مشروعك
+// ✅ المسارات الصحيحة (انتبه هنا)
 import { generateInvoiceTemplate } from './js/print/template.js';
 import { printInvoice } from './js/print/print.service.js';
 import { generatePDF } from './js/print/pdf.service.js';
@@ -63,24 +63,29 @@ const order = {
    تحميل القالب
 ============================= */
 const invoiceEl = document.getElementById('invoiceContent');
+
+// ✅ مهم: تأكد أنه يرجع HTML نصي
 invoiceEl.innerHTML = generateInvoiceTemplate(order);
 
 /* =============================
-   أوامر الطباعة (مصححة)
+   أوامر الطباعة (مصححة 100%)
 ============================= */
 
 // 🖨️ طباعة
 window.handlePrint = async () => {
+    if (!invoiceEl) return alert('❌ الفاتورة غير موجودة');
     await printInvoice(invoiceEl);
 };
 
 // 📄 PDF
 window.handlePDF = async () => {
+    if (!invoiceEl) return alert('❌ الفاتورة غير موجودة');
     await generatePDF(invoiceEl, order);
 };
 
 // 🖼️ صورة
 window.handleImage = async () => {
+    if (!invoiceEl) return alert('❌ الفاتورة غير موجودة');
     await generateImage(invoiceEl, order);
 };
 
