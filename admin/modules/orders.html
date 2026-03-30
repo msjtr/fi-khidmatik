@@ -1,190 +1,986 @@
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>إدارة الطلبات</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-.product-row{border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:8px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلبات - نظام متكامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { transition: all 0.2s ease; }
+        .modal { transition: opacity 0.3s ease; background-color: rgba(0,0,0,0.5); }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-block; }
+        .status-new { background: #dbeafe; color: #1e40af; }
+        .status-processing { background: #fef3c7; color: #b45309; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-review { background: #e9d5ff; color: #6b21a5; }
+        .status-refund { background: #fed7aa; color: #9a3412; }
+        .status-cancelled { background: #fee2e2; color: #b91c1c; }
+        .ql-editor { min-height: 120px; direction: rtl; text-align: right; font-size: 14px; }
+        .product-row { border: 1px solid #e5e7eb; transition: all 0.2s; margin-bottom: 12px; padding: 12px; border-radius: 8px; background: white; }
+        .product-row:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .payment-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .btn-icon { display: inline-flex; align-items: center; gap: 8px; }
+        .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1rem; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 12px 24px; border-radius: 9999px; z-index: 1000; display: none; }
+        #toast.success { background: #10b981; }
+        #toast.error { background: #ef4444; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* تنسيق الفاتورة */
+        .invoice-print {
+            direction: rtl;
+            padding: 20px;
+            max-width: 1100px;
+            margin: auto;
+            background: white;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .invoice-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        .invoice-number span {
+            background: #e0e7ff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        .invoice-parties {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        .invoice-from, .invoice-to {
+            flex: 1;
+            padding: 18px;
+            border-radius: 12px;
+        }
+        .invoice-from {
+            background: #fef9e3;
+            border-right: 4px solid #f59e0b;
+        }
+        .invoice-to {
+            background: #e0f2fe;
+            border-right: 4px solid #0284c7;
+        }
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        .products-table th {
+            background: #1e3a8a;
+            color: white;
+            padding: 12px 8px;
+            font-size: 14px;
+            border: 1px solid #2e4a9a;
+        }
+        .products-table td {
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+        .totals-wrapper {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        .grand-total h2 {
+            font-size: 20px;
+            color: #1e3a8a;
+            margin: 0;
+        }
+        .contact-bar {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .thanks {
+            text-align: center;
+            padding-top: 15px;
+            font-size: 14px;
+            color: #475569;
+            border-top: 1px solid #e2e8f0;
+        }
+        .invoice-buttons {
+            text-align: center;
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .invoice-buttons button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .invoice-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-pdf { background: #dc2626; color: white; }
+        .btn-png { background: #10b981; color: white; }
+        .btn-print { background: #2563eb; color: white; }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .loading-spinner-custom {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+    </style>
 </head>
+<body class="bg-gray-50 p-6 font-sans">
 
-<body class="bg-gray-100 p-6">
-
-<div class="max-w-5xl mx-auto">
-
-<div class="flex justify-between mb-6">
-<h1 class="text-2xl font-bold">إدارة الطلبات</h1>
-<button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded">طلب جديد</button>
+<div id="toast"></div>
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner-custom">
+        <div class="spinner"></div>
+        <p id="loadingMessage">جاري تحضير الفاتورة...</p>
+    </div>
 </div>
 
-<div id="ordersContainer"></div>
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800"><i class="fas fa-shopping-cart text-blue-600 ml-2"></i>إدارة الطلبات</h1>
+            <p class="text-gray-500 text-sm">إدارة الطلبات، المبيعات، والعملاء</p>
+        </div>
+        <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-lg btn-icon"><i class="fas fa-plus-circle"></i> طلب جديد</button>
+    </div>
 
+    <!-- فلترة -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-wrap gap-3 no-print">
+        <select id="filterStatus" class="border rounded-lg px-3 py-2 text-sm">
+            <option value="">جميع الحالات</option>
+            <option value="جديد">جديد</option><option value="تحت التنفيذ">تحت التنفيذ</option>
+            <option value="تم التنفيذ">تم التنفيذ</option><option value="تحت المراجعة">تحت المراجعة</option>
+            <option value="مسترجع">مسترجع</option><option value="ملغي">ملغي</option>
+        </select>
+        <input type="text" id="filterCustomer" placeholder="بحث باسم العميل" class="border rounded-lg px-3 py-2 text-sm w-48">
+        <input type="date" id="filterDateFrom" class="border rounded-lg px-3 py-2 text-sm">
+        <input type="date" id="filterDateTo" class="border rounded-lg px-3 py-2 text-sm">
+        <button id="applyFilters" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg">تطبيق</button>
+        <button id="resetFilters" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg">إعادة تعيين</button>
+        <button id="viewListBtn" class="bg-gray-200 p-2 rounded-lg"><i class="fas fa-list"></i></button>
+        <button id="viewGridBtn" class="bg-gray-200 p-2 rounded-lg"><i class="fas fa-th-large"></i></button>
+    </div>
+
+    <div id="ordersContainer" class="space-y-4"></div>
 </div>
 
-<!-- مودال -->
-<div id="modal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center">
-
-<div class="bg-white p-6 rounded w-full max-w-3xl">
-
-<h2 class="text-xl mb-4">طلب جديد</h2>
-
-<form id="form">
-
-<input id="orderNumber" placeholder="رقم الطلب" class="border p-2 w-full mb-2">
-<input id="customerName" placeholder="اسم العميل" class="border p-2 w-full mb-2">
-
-<div id="products"></div>
-
-<button type="button" onclick="addProduct()" class="bg-gray-200 px-3 py-1 mb-3">+ منتج</button>
-
-<div class="flex justify-end gap-2">
-<button type="button" onclick="closeModal()" class="border px-3 py-1">إلغاء</button>
-<button class="bg-blue-600 text-white px-3 py-1">حفظ</button>
+<!-- مودال الطلب الرئيسي (نفس الكود السابق) -->
+<div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
+    <!-- محتوى المودال كما هو في الكود الأصلي -->
+    <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between">
+            <h2 id="modalTitle" class="text-2xl font-bold">إضافة طلب جديد</h2>
+            <button id="closeModalBtn" class="text-gray-400 text-3xl">&times;</button>
+        </div>
+        <form id="orderForm" class="p-6">
+            <!-- نفس محتوى النموذج من الكود الأصلي -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div><label class="font-semibold">رقم الطلب</label><div class="flex gap-2"><span class="bg-gray-200 px-3 py-2 rounded">KF-</span><input type="text" id="orderNumber" class="flex-1 border rounded px-3 py-2"><button type="button" id="generateOrderNumber" class="bg-gray-200 px-3 rounded"><i class="fas fa-sync-alt"></i></button></div></div>
+                <div><label class="font-semibold">التاريخ</label><input type="date" id="orderDate" class="w-full border rounded px-3 py-2"></div>
+                <div class="md:col-span-2"><label class="font-semibold">الوقت</label><div class="flex gap-2"><select id="orderHour" class="border rounded px-3 py-2 w-28"></select><span>:</span><select id="orderMinute" class="border rounded px-3 py-2 w-28"></select><select id="orderAmPm" class="border rounded px-3 py-2 w-28"><option value="AM">صباحاً</option><option value="PM">مساءً</option></select></div></div>
+            </div>
+            <!-- باقي محتوى النموذج... (نفس الكود الأصلي) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div><label class="font-semibold">حالة الطلب</label><select id="orderStatus" class="w-full border rounded px-3 py-2"><option value="جديد">جديد</option><option value="تحت التنفيذ">تحت التنفيذ</option><option value="تم التنفيذ">تم التنفيذ</option><option value="تحت المراجعة">تحت المراجعة</option><option value="مسترجع">مسترجع</option><option value="ملغي">ملغي</option></select></div>
+                <div><label class="font-semibold">العميل</label><div class="flex gap-2"><select id="customerSelect" class="flex-1 border rounded px-3 py-2"></select><button type="button" id="quickAddCustomerBtn" class="bg-green-600 text-white px-3 rounded"><i class="fas fa-user-plus"></i></button></div></div>
+            </div>
+            <div class="mb-4"><label class="font-semibold">طريقة الدفع</label><div class="flex flex-wrap gap-2 my-2"><button type="button" data-payment="mada" class="payment-btn px-3 py-1 border rounded">مدى</button><button type="button" data-payment="mastercard" class="payment-btn px-3 py-1 border rounded">ماستركارد</button><button type="button" data-payment="visa" class="payment-btn px-3 py-1 border rounded">فيزا</button><button type="button" data-payment="stcpay" class="payment-btn px-3 py-1 border rounded">STCPay</button><button type="button" data-payment="tamara" class="payment-btn px-3 py-1 border rounded">تمارا</button><button type="button" data-payment="tabby" class="payment-btn px-3 py-1 border rounded">تابي</button><button type="button" data-payment="other" class="payment-btn px-3 py-1 border rounded">أخرى</button></div><input type="hidden" id="paymentMethod"><div id="approvalCodeField" class="hidden mt-2 p-2 bg-yellow-50 rounded"><label>رمز الموافقة <span id="approvalMethodLabel"></span></label><input type="text" id="approvalCode" class="w-full border rounded px-2 py-1"></div><div id="otherPaymentField" class="hidden mt-2"><input type="text" id="otherPaymentText" placeholder="طريقة دفع أخرى" class="w-full border rounded px-2 py-1"></div></div>
+            <div class="mb-4"><div class="flex justify-between mb-2"><label class="font-semibold">المنتجات</label><div class="flex gap-2"><button type="button" id="addFromInventoryBtn" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm">من المخزون</button><button type="button" id="addNewProductBtn" class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">منتج جديد</button></div></div><div id="productsContainer"></div></div>
+            <div class="grid grid-cols-2 gap-4 mb-4"><div><label class="font-semibold">الخصم</label><div class="flex gap-2"><input type="number" id="discountValue" class="w-32 border rounded px-2 py-1" value="0"><select id="discountType" class="border rounded px-2 py-1"><option value="fixed">قيمة</option><option value="percent">%</option></select></div></div><div><label class="font-semibold">الضريبة 15%</label><input type="text" id="taxAmount" readonly class="w-full bg-gray-100 border rounded px-2 py-1"></div></div>
+            <div class="bg-blue-50 p-4 rounded mb-4"><div class="flex justify-between"><span>المجموع الفرعي:</span><span id="subtotalDisplay">0 ريال</span></div><div class="flex justify-between"><span>الخصم:</span><span id="discountDisplay">0 ريال</span></div><div class="flex justify-between"><span>الضريبة:</span><span id="taxDisplay">0 ريال</span></div><div class="flex justify-between font-bold text-lg"><span>الإجمالي:</span><span id="totalDisplay">0 ريال</span></div></div>
+            <div class="flex justify-end gap-2"><button type="button" id="cancelOrderBtn" class="px-4 py-2 border rounded">إلغاء</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">حفظ الطلب</button></div>
+        </form>
+    </div>
 </div>
 
-</form>
-
-</div>
-</div>
+<!-- باقي المودالات (نفس الكود الأصلي) -->
+<div id="inventoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-xl max-w-2xl w-full"><div class="p-4 border-b"><h3>اختر منتج</h3><button id="closeInventoryModalBtn" class="float-left">&times;</button></div><div class="p-4"><input type="text" id="inventorySearch" placeholder="بحث..." class="w-full border rounded p-2 mb-2"><div id="inventoryList"></div></div></div></div>
+<div id="quickCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-xl max-w-lg w-full"><div class="p-4 border-b"><h3>إضافة عميل</h3><button id="closeQuickModalBtn" class="float-left">&times;</button></div><form id="quickCustomerForm" class="p-4"><div class="grid grid-cols-2 gap-2"><input type="text" id="quickName" placeholder="الاسم *" class="border rounded p-2 col-span-2"><input type="tel" id="quickPhone" placeholder="الجوال *" class="border rounded p-2"><input type="email" id="quickEmail" placeholder="البريد" class="border rounded p-2"><input type="text" id="quickCity" placeholder="المدينة" class="border rounded p-2"><input type="text" id="quickStreet" placeholder="الشارع" class="border rounded p-2"><input type="text" id="quickAdditionalNo" placeholder="رقم إضافي" class="border rounded p-2"><input type="text" id="quickPoBox" placeholder="صندوق بريد" class="border rounded p-2"></div><div class="flex justify-end gap-2 mt-4"><button type="button" id="cancelQuickBtn" class="px-3 py-1 border rounded">إلغاء</button><button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">حفظ</button></div></form></div></div>
+<div id="quickProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto"><div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"><div class="p-4 border-b"><h3>إضافة منتج جديد</h3><button id="closeQuickProductModalBtn" class="float-left">&times;</button></div><form id="quickProductForm" class="p-4"><div class="grid grid-cols-2 gap-2"><input type="text" id="quickProductName" placeholder="اسم المنتج *" class="border rounded p-2"><input type="text" id="quickProductBarcode" placeholder="باركود" readonly class="border rounded p-2 bg-gray-50"><input type="number" id="quickProductPrice" placeholder="السعر *" class="border rounded p-2" step="0.01"><input type="number" id="quickProductCost" placeholder="سعر التكلفة" class="border rounded p-2" step="0.01"><input type="number" id="quickProductQuantity" placeholder="الكمية *" class="border rounded p-2" value="1"><div class="col-span-2"><label>الصورة</label><div class="flex gap-2"><input type="url" id="quickProductImageUrl" placeholder="رابط الصورة" class="flex-1 border rounded p-2"><input type="file" id="quickProductImageFile" accept="image/*" class="border rounded p-2"></div><div id="imagePreviewQuick" class="mt-1 hidden"><img id="previewQuickImg" class="w-20 h-20 object-cover"></div></div><div class="col-span-2"><label>الوصف</label><div id="quickProductEditor" style="height: 120px;"></div><input type="hidden" id="quickProductDesc"></div></div><div class="mt-3"><label><input type="checkbox" id="saveToInventory" checked> حفظ في المخزون</label></div><div class="flex justify-end gap-2 mt-4"><button type="button" id="cancelQuickProductBtn" class="px-3 py-1 border rounded">إلغاء</button><button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">إضافة</button></div></form></div></div>
 
 <script type="module">
+    import { loadCustomers, addCustomer, loadProducts, addOrder, updateOrder, deleteOrder, updateProductStock, getOrdersWithDetails, addProduct } from '../../js/firebase.js';
 
-/* =============================
-   استيراد Firebase
-============================= */
-import {
-    loadOrders,
-    addOrder,
-    deleteOrder
-} from './js/firebase.js';
+    // ========== المتغيرات (نفس الكود الأصلي) ==========
+    let customers = [], products = [], orders = [], currentOrderId = null;
+    let selectedPaymentMethod = 'mada', currentView = 'list', quillEditor = null, currentProductRowTemp = null;
+    let currentFilters = { status: '', customer: '', dateFrom: '', dateTo: '' };
 
-/* =============================
-   متغيرات
-============================= */
-let orders = [];
+    // ========== دوال الفاتورة المتكاملة ==========
+    function showLoading(message = 'جاري تحضير الفاتورة...') {
+        document.getElementById('loadingMessage').textContent = message;
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+    
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+    
+    function generateFileName(order, extension) {
+        const customerName = order.customer?.name || 'عميل';
+        const orderNumber = order.orderNumber || '0000';
+        const date = new Date().toISOString().slice(0,10);
+        const cleanCustomerName = customerName.replace(/[\\/:*?"<>|]/g, '-');
+        return `فاتورة_${cleanCustomerName}_${orderNumber}_${date}.${extension}`;
+    }
+    
+    function formatDateInvoice(dateStr) {
+        if(!dateStr) return ''; 
+        const d = new Date(dateStr); 
+        if(isNaN(d.getTime())) return dateStr;
+        return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`; 
+    }
+    
+    function formatTimeInvoice(time24) { 
+        if(!time24) return ''; 
+        let [h,m] = time24.split(':'); 
+        let hour = parseInt(h); 
+        let ampm = hour >= 12 ? 'مساءً' : 'صباحاً'; 
+        hour = hour % 12 || 12; 
+        return `${hour.toString().padStart(2,'0')}:${m} ${ampm}`; 
+    }
+    
+    async function generateInvoiceHTML(order) {
+        const customer = customers.find(c => c.id === order.customerId) || {};
+        const items = order.items || [];
+        
+        let cartRows = '';
+        let subtotal = 0;
+        let totalDiscount = 0;
+        
+        for (let item of items) {
+            let price = parseFloat(item.price) || 0;
+            let qty = parseInt(item.quantity) || 1;
+            let discount = parseFloat(item.discount) || 0;
+            let itemTotal = (price * qty) - discount;
+            
+            subtotal += price * qty;
+            totalDiscount += discount;
+            
+            cartRows += `
+                <tr>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${escapeHtml(item.barcode || '-')}</td>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${qty}</td>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">${price.toFixed(2)}</td>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">${discount.toFixed(2)}</td>
+                    <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;"><strong>${itemTotal.toFixed(2)}</strong></td>
+                </tr>
+            `;
+        }
+        
+        let taxableAmount = subtotal - totalDiscount;
+        let tax = taxableAmount * 0.15;
+        let grandTotal = taxableAmount + tax;
+        
+        let displayDate = order.orderDate || '-';
+        if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            let parts = displayDate.split('-');
+            displayDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+        
+        return `
+            <div style="direction: rtl; padding: 30px; max-width: 1100px; margin: 0 auto; background: white; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
+                <div style="background: #1e293b; color: #e2e8f0; padding: 12px 25px; display: flex; justify-content: space-between; font-size: 12px; border-radius: 12px; margin-bottom: 25px;">
+                    <div>رقم شهادة العمل الحر: FL-765735204</div>
+                    <div>الرقم الضريبي: 312495447600003</div>
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <h1 style="font-size: 28px; color: #1e3a8a;">منصة في خدمتك</h1>
+                    <p style="color: #666;">نظام إدارة متكامل</p>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0;">
+                    <div style="font-size: 18px; font-weight: bold; color: #1e3a8a;">
+                        رقم الفاتورة: <span style="background: #e0e7ff; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: 8px;">${escapeHtml(order.orderNumber)}</span>
+                    </div>
+                    <div style="font-size: 14px; color: #475569;">
+                        التاريخ: ${displayDate} | ${formatTimeInvoice(order.orderTime)}
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 25px; margin-bottom: 25px;">
+                    <div style="flex: 1; padding: 18px; border-radius: 12px; background: #fef9e3; border-right: 4px solid #f59e0b;">
+                        <h3 style="font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">📌 مصدرة من</h3>
+                        <p style="font-size: 13px; line-height: 1.7; color: #334155;">
+                            <strong>منصة في خدمتك</strong><br>
+                            المملكة العربية السعودية<br>
+                            حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>
+                            الرقم الإضافي: 7718 - الرمز البريدي: 55431
+                        </p>
+                    </div>
+                    <div style="flex: 1; padding: 18px; border-radius: 12px; background: #e0f2fe; border-right: 4px solid #0284c7;">
+                        <h3 style="font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">📌 مصدرة إلى</h3>
+                        <p style="font-size: 13px; line-height: 1.7; color: #334155;">
+                            <strong>${escapeHtml(customer.name || '-')}</strong><br>
+                            المملكة العربية السعودية<br>
+                            ${escapeHtml(customer.city || '')} ${customer.street ? '- ' + escapeHtml(customer.street) : ''}<br>
+                            هاتف: ${escapeHtml(customer.phone) || '-'}<br>
+                            بريد: ${escapeHtml(customer.email) || 'غير مدخل'}
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background: #f1f5f9; padding: 12px 20px; border-radius: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+                    <span style="background: white; padding: 6px 15px; border-radius: 25px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">💳 طريقة الدفع: ${order.paymentMethodName || order.paymentMethod || '-'}</span>
+                    ${order.approvalCode ? `<span style="background: white; padding: 6px 15px; border-radius: 25px; font-size: 13px;">🔑 رمز الموافقة: ${escapeHtml(order.approvalCode)}</span>` : ''}
+                    <span style="background: white; padding: 6px 15px; border-radius: 25px; font-size: 13px;">🚚 حالة الشحن: ${order.shippingRequired ? 'يتطلب شحن' : 'لا يطلب شحن'}</span>
+                </div>
+                
+                <h3 style="margin: 15px 0 10px 0;">📦 تفاصيل الطلب</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                    <thead>
+                        <tr style="background: #1e3a8a; color: white;">
+                            <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: right;">اسم المنتج</th>
+                            <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: center;">الكود</th>
+                            <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: center;">الكمية</th>
+                            <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: left;">السعر (ريال)</th>
+                            <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: left;">الخصم (ريال)</th>
+                            <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: left;">الإجمالي (ريال)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${cartRows}</tbody>
+                </table>
+                
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 25px;">
+                    <div>
+                        <p style="margin: 6px 0;"><strong>المجموع الفرعي:</strong> ${subtotal.toFixed(2)} ريال</p>
+                        <p style="margin: 6px 0;"><strong>الخصم الكلي:</strong> ${totalDiscount.toFixed(2)} ريال</p>
+                        <p style="margin: 6px 0;"><strong>الضريبة (15%):</strong> ${tax.toFixed(2)} ريال</p>
+                    </div>
+                    <div style="text-align: center; padding: 0 20px; border-right: 1px solid #cbd5e1; border-left: 1px solid #cbd5e1;">
+                        <h2 style="font-size: 20px; color: #1e3a8a; margin: 0;">الإجمالي النهائي: ${grandTotal.toFixed(2)} ريال</h2>
+                    </div>
+                </div>
+                
+                <div style="background: #f1f5f9; padding: 12px; border-radius: 10px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 15px; font-size: 13px;">
+                    <span>📞 +966597771565</span>
+                    <span>✉️ info@fi-khidmatik.com</span>
+                    <span>🌐 www.khidmatik.com</span>
+                </div>
+                
+                <div style="text-align: center; padding-top: 15px; font-size: 14px; color: #475569; border-top: 1px solid #e2e8f0;">
+                    شكراً لتسوقكم معنا
+                </div>
+            </div>
+        `;
+    }
+    
+    async function waitForImages(element) {
+        const images = element.querySelectorAll('img');
+        await Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve;
+            });
+        }));
+    }
+    
+    async function saveAsPDF(order) {
+        showLoading('جاري تحضير ملف PDF...');
+        
+        try {
+            const html = await generateInvoiceHTML(order);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            await waitForImages(tempDiv);
+            
+            const canvas = await html2canvas(tempDiv, {
+                scale: 3,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                logging: false
+            });
+            
+            document.body.removeChild(tempDiv);
+            
+            const imgData = canvas.toDataURL("image/jpeg", 1.0);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            let heightLeft = imgHeight;
+            let position = 0;
+            
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+            
+            const fileName = generateFileName(order, 'pdf');
+            pdf.save(fileName);
+            
+            showToast(`✅ تم حفظ الفاتورة كـ PDF بنجاح\nالملف: ${fileName}`, 'success');
+        } catch (err) {
+            console.error('PDF error:', err);
+            showToast('❌ حدث خطأ في حفظ PDF', 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async function saveAsPNG(order) {
+        showLoading('جاري تحضير صورة PNG...');
+        
+        try {
+            const html = await generateInvoiceHTML(order);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            await waitForImages(tempDiv);
+            
+            const canvas = await html2canvas(tempDiv, {
+                scale: 3,
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+            
+            document.body.removeChild(tempDiv);
+            
+            const fileName = generateFileName(order, 'png');
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            showToast(`✅ تم حفظ الفاتورة كصورة PNG بنجاح\nالملف: ${fileName}`, 'success');
+        } catch (err) {
+            console.error('PNG error:', err);
+            showToast('❌ حدث خطأ في حفظ الصورة', 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async function printInvoice(order) {
+        showLoading('جاري تجهيز الفاتورة للطباعة...');
+        
+        try {
+            const html = await generateInvoiceHTML(order);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            await waitForImages(tempDiv);
+            
+            const canvas = await html2canvas(tempDiv, {
+                scale: 3,
+                useCORS: true,
+                backgroundColor: "#ffffff"
+            });
+            
+            document.body.removeChild(tempDiv);
+            
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const pages = [];
+            const pageHeightPx = (pageHeight * canvas.width) / pageWidth;
+            let currentPosition = 0;
+            
+            while (currentPosition < canvas.height) {
+                const pageCanvas = document.createElement('canvas');
+                const pageCtx = pageCanvas.getContext('2d');
+                const sliceHeight = Math.min(pageHeightPx, canvas.height - currentPosition);
+                
+                pageCanvas.width = canvas.width;
+                pageCanvas.height = sliceHeight;
+                
+                pageCtx.drawImage(
+                    canvas,
+                    0,
+                    currentPosition,
+                    canvas.width,
+                    sliceHeight,
+                    0,
+                    0,
+                    canvas.width,
+                    sliceHeight
+                );
+                
+                pages.push(pageCanvas.toDataURL("image/jpeg", 1.0));
+                currentPosition += sliceHeight;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>فاتورة ${order.orderNumber}</title>
+                    <style>
+                        body { margin: 0; padding: 0; direction: rtl; }
+                        img { width: 100%; display: block; page-break-after: always; }
+                        img:last-child { page-break-after: auto; }
+                        @page { size: A4; margin: 0; }
+                    </style>
+                </head>
+                <body>
+                    ${pages.map(p => `<img src="${p}" />`).join('')}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            
+            printWindow.onload = function () {
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            };
+            
+            hideLoading();
+            showToast(`✅ تم إرسال الفاتورة للطباعة`, 'success');
+        } catch (err) {
+            console.error('Print error:', err);
+            hideLoading();
+            showToast('❌ حدث خطأ في الطباعة', 'error');
+        }
+    }
+    
+    async function shareInvoice(order) {
+        if (!navigator.share) {
+            showToast('ميزة المشاركة غير مدعومة في هذا المتصفح', 'warning');
+            return;
+        }
+        
+        showLoading('جاري تجهيز الفاتورة للمشاركة...');
+        
+        try {
+            const html = await generateInvoiceHTML(order);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            await waitForImages(tempDiv);
+            
+            const canvas = await html2canvas(tempDiv, { scale: 2 });
+            document.body.removeChild(tempDiv);
+            
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const fileName = generateFileName(order, 'png');
+            const file = new File([blob], fileName, { type: 'image/png' });
+            
+            await navigator.share({
+                title: 'فاتورة',
+                text: `فاتورة العميل: ${order.customer?.name || ''}\nرقم الطلب: ${order.orderNumber}\nالتاريخ: ${formatDateInvoice(order.orderDate)}`,
+                files: [file]
+            });
+            
+            hideLoading();
+            showToast('✅ تم مشاركة الفاتورة بنجاح', 'success');
+        } catch (err) {
+            console.error('Share error:', err);
+            hideLoading();
+            if (err.name !== 'AbortError') {
+                showToast('❌ حدث خطأ في المشاركة', 'error');
+            }
+        }
+    }
 
-/* =============================
-   إضافة منتج
-============================= */
-function addProduct(){
-const row=document.createElement('div')
-row.className='product-row'
-row.innerHTML=`
-<input placeholder="اسم المنتج" class="name border p-1 w-full mb-1">
-<input type="number" placeholder="السعر" class="price border p-1 w-full mb-1">
-<input type="number" placeholder="الكمية" class="qty border p-1 w-full">
-`
-document.getElementById('products').appendChild(row)
-}
+    // باقي الدوال (نفس الكود الأصلي)
+    function escapeHtml(str) { 
+        if (str === undefined || str === null) return ''; 
+        if (typeof str === 'number') return str.toString();
+        return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]||m)); 
+    }
+    
+    function showToast(msg, type='success') { 
+        const t = document.getElementById('toast'); 
+        t.textContent = msg; 
+        t.className = `fixed top-5 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-full shadow-lg text-white z-50 ${type}`; 
+        t.style.display = 'block'; 
+        setTimeout(() => { t.style.display = 'none'; }, 3000); 
+    }
+    
+    // دوال تحميل البيانات (نفس الكود الأصلي)
+    async function loadCustomersList() { 
+        try {
+            customers = await loadCustomers(); 
+            customerSelect.innerHTML = '<option value="">اختر عميلاً</option>' + customers.map(c => `<option value="${c.id}">${escapeHtml(c.name)} - ${c.phone}</option>`).join('');
+        } catch(err) {
+            console.error('خطأ في تحميل العملاء:', err);
+            showToast('خطأ في تحميل العملاء', 'error');
+        }
+    }
+    
+    async function loadProductsList() { 
+        try {
+            products = await loadProducts(); 
+        } catch(err) {
+            console.error('خطأ في تحميل المنتجات:', err);
+            showToast('خطأ في تحميل المنتجات', 'error');
+        }
+    }
+    
+    async function loadData() { 
+        await Promise.all([loadCustomersList(), loadProductsList()]); 
+    }
+    
+    // دوال العرض والتحكم (نفس الكود الأصلي مع تعديل زر الطباعة)
+    async function renderOrders() {
+        ordersContainer.innerHTML = '<div class="loading-spinner"></div><div class="text-center text-gray-500">جاري تحميل الطلبات...</div>';
+        
+        try {
+            orders = await getOrdersWithDetails();
+            
+            if (!orders || orders.length === 0) { 
+                ordersContainer.innerHTML = '<div class="text-center py-12 text-gray-500">📭 لا توجد طلبات حالياً</div>'; 
+                return; 
+            }
+            
+            let filtered = orders.filter(o => {
+                if (currentFilters.status && o.status !== currentFilters.status) return false;
+                if (currentFilters.customer && !o.customer?.name?.toLowerCase().includes(currentFilters.customer.toLowerCase())) return false;
+                if (currentFilters.dateFrom && o.orderDate < currentFilters.dateFrom) return false;
+                if (currentFilters.dateTo && o.orderDate > currentFilters.dateTo) return false;
+                return true;
+            });
+            
+            if (filtered.length === 0) { 
+                ordersContainer.innerHTML = '<div class="text-center py-12 text-gray-500">🔍 لا توجد طلبات مطابقة للبحث</div>'; 
+                return; 
+            }
+            
+            const statusClass = (s) => ({ 
+                'جديد':'status-new','تحت التنفيذ':'status-processing','تم التنفيذ':'status-completed',
+                'تحت المراجعة':'status-review','مسترجع':'status-refund','ملغي':'status-cancelled' 
+            }[s] || 'status-new');
+            
+            const html = filtered.map(order => `
+                <div class="bg-white rounded-xl shadow-md p-4 border hover:shadow-lg transition">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                <h3 class="font-bold text-lg text-blue-600">${escapeHtml(order.orderNumber)}</h3>
+                                <span class="status-badge ${statusClass(order.status)}">${order.status}</span>
+                            </div>
+                            <p class="text-sm text-gray-500"><i class="far fa-calendar-alt ml-1"></i> ${formatDateInvoice(order.orderDate)} | ${formatTimeInvoice(order.orderTime)}</p>
+                            <p class="text-sm mt-1"><i class="fas fa-user ml-1"></i> ${escapeHtml(order.customer?.name || 'غير معروف')}</p>
+                            <p class="text-sm font-bold mt-1 text-green-600">${order.total || 0} ريال</p>
+                            <p class="text-xs text-gray-400 mt-1"><i class="fas fa-credit-card ml-1"></i> ${order.paymentMethodName || order.paymentMethod || 'غير محدد'}</p>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="editOrder('${order.id}')" class="text-blue-600 hover:text-blue-800 p-1"><i class="fas fa-edit"></i> تعديل</button>
+                            <select onchange="changeStatus('${order.id}', this.value)" class="text-sm border rounded px-2 py-1">
+                                <option value="جديد" ${order.status==='جديد'?'selected':''}>جديد</option>
+                                <option value="تحت التنفيذ" ${order.status==='تحت التنفيذ'?'selected':''}>تحت التنفيذ</option>
+                                <option value="تم التنفيذ" ${order.status==='تم التنفيذ'?'selected':''}>تم التنفيذ</option>
+                                <option value="تحت المراجعة" ${order.status==='تحت المراجعة'?'selected':''}>تحت المراجعة</option>
+                                <option value="مسترجع" ${order.status==='مسترجع'?'selected':''}>مسترجع</option>
+                                <option value="ملغي" ${order.status==='ملغي'?'selected':''}>ملغي</option>
+                            </select>
+                            <button onclick="printInvoiceHandler('${order.id}')" class="text-green-600 hover:text-green-800 p-1"><i class="fas fa-print"></i> طباعة</button>
+                            <button onclick="exportAsPDF('${order.id}')" class="text-red-600 hover:text-red-800 p-1"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button onclick="exportAsPNG('${order.id}')" class="text-purple-600 hover:text-purple-800 p-1"><i class="fas fa-image"></i> PNG</button>
+                            <button onclick="deleteOrderHandler('${order.id}')" class="text-red-600 hover:text-red-800 p-1"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-600 border-t pt-2">
+                        <strong>المنتجات:</strong> ${order.items.map(i => `${i.name || i.productDetails?.name} (${i.quantity}×${i.price})`).join('، ')}
+                    </div>
+                </div>
+            `).join('');
+            
+            ordersContainer.className = currentView === 'grid' ? 'orders-grid' : 'space-y-4';
+            ordersContainer.innerHTML = html;
+            
+        } catch (error) {
+            console.error('❌ خطأ في عرض الطلبات:', error);
+            ordersContainer.innerHTML = `<div class="text-center py-12 text-red-500">❌ حدث خطأ في تحميل الطلبات: ${error.message}</div>`;
+            showToast('خطأ في تحميل الطلبات', 'error');
+        }
+    }
+    
+    // دوال التصدير المحدثة
+    window.exportAsPDF = async (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (order) await saveAsPDF(order);
+    };
+    
+   
+    
+    // باقي الدوال (نفس الكود الأصلي)
+// إصلاح القوس الزائد
+window.exportAsPNG = async (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) await saveAsPNG(order);
+};
 
-/* =============================
-   فتح/إغلاق مودال
-============================= */
-window.openModal = () => {
-document.getElementById('modal').classList.remove('hidden')
-}
+// دالة تنسيق التاريخ
 
-window.closeModal = () => {
-document.getElementById('modal').classList.add('hidden')
-}
 
-/* =============================
-   تحميل الطلبات من Firebase
-============================= */
-async function loadData(){
-orders = await loadOrders();
-render();
-}
 
-/* =============================
-   حفظ الطلب
-============================= */
-document.getElementById('form').onsubmit = async function(e){
-e.preventDefault();
 
-const items=[];
-document.querySelectorAll('.product-row').forEach(r=>{
-items.push({
-name:r.querySelector('.name').value,
-price:parseFloat(r.querySelector('.price').value||0),
-quantity:parseInt(r.querySelector('.qty').value||0)
-});
-});
 
-let total=0;
-items.forEach(i=> total += i.price*i.quantity);
-
-/* حفظ في Firebase */
-await addOrder({
-orderNumber: document.getElementById('orderNumber').value,
-customer: { name: document.getElementById('customerName').value },
-items,
-total,
-createdAt: new Date().toISOString()
-});
-
-closeModal();
-this.reset();
-document.getElementById('products').innerHTML='';
-
-await loadData();
-}
-
-/* =============================
-   عرض الطلبات
-============================= */
-function render(){
-const el=document.getElementById('ordersContainer');
-
-if(!orders.length){
-el.innerHTML='لا يوجد طلبات';
-return;
-}
-
-el.innerHTML = orders.map(o=>`
-<div class="bg-white p-4 mb-3 rounded shadow">
-<h3 class="font-bold text-blue-600">${o.orderNumber}</h3>
-<p>${o.customer?.name || ''}</p>
-<p class="text-green-600">${o.total || 0} ريال</p>
-
-<div class="flex gap-2 mt-2">
-<button onclick="printOrder('${o.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">🖨️ طباعة</button>
-<button onclick="deleteOrderHandler('${o.id}')" class="bg-red-500 text-white px-2 py-1 rounded">حذف</button>
-</div>
-</div>
-`).join('');
-}
-
-/* =============================
-   حذف طلب
-============================= */
-window.deleteOrderHandler = async (id) => {
-if(!confirm('تأكيد الحذف؟')) return;
-
-await deleteOrder(id);
-await loadData();
-}
-
-/* =============================
-   الطباعة (مربوطة)
-============================= */
-window.printOrder = (id) => {
-const order = orders.find(o=>o.id===id);
-if(!order) return;
-
-localStorage.setItem('print_order', JSON.stringify(order));
-window.open('print.html','_blank');
-}
-
-/* =============================
-   تشغيل الصفحة
-============================= */
-loadData();
-
+    
+    // دوال التحكم (نفس الكود الأصلي)
+    function generateOrderNumber() { 
+        const d = new Date(); 
+        return `${d.getFullYear().toString().slice(-2)}${(d.getMonth()+1).toString().padStart(2,'0')}${d.getDate().toString().padStart(2,'0')}${Math.floor(Math.random()*1000).toString().padStart(4,'0')}`; 
+    }
+    
+    function populateTimeOptions() { 
+        for(let i=1;i<=12;i++) orderHourSelect.appendChild(new Option(i.toString().padStart(2,'0'), i)); 
+        for(let i=0;i<=59;i++) orderMinuteSelect.appendChild(new Option(i.toString().padStart(2,'0'), i)); 
+    }
+    
+    function setCurrentDate() { 
+        orderDateInput.value = new Date().toISOString().split('T')[0]; 
+    }
+    
+    function setCurrentTime() { 
+        const n=new Date(); 
+        let h=n.getHours(); 
+        const m=n.getMinutes(); 
+        const ap=h>=12?'PM':'AM'; 
+        h=h%12||12; 
+        orderHourSelect.value=h; 
+        orderMinuteSelect.value=m.toString().padStart(2,'0'); 
+        orderAmPmSelect.value=ap; 
+    }
+    
+    function get24HourTime() { 
+        let h=parseInt(orderHourSelect.value); 
+        const m=orderMinuteSelect.value; 
+        if(orderAmPmSelect.value==='PM' && h!==12) h+=12; 
+        if(orderAmPmSelect.value==='AM' && h===12) h=0; 
+        return `${h.toString().padStart(2,'0')}:${m}`; 
+    }
+    
+    function calculateTotals() {
+        let subtotal=0; 
+        document.querySelectorAll('.product-row').forEach(r=>{ 
+            const p=parseFloat(r.querySelector('.product-price')?.value)||0; 
+            const q=parseInt(r.querySelector('.product-quantity')?.value)||0; 
+            subtotal+=p*q; 
+        });
+        let d=parseFloat(discountValueInput.value)||0; 
+        if(discountTypeSelect.value==='percent') d=(subtotal*d)/100;
+        const ad=subtotal-d, tax=ad*0.15, total=ad+tax;
+        subtotalDisplay.innerText=subtotal.toFixed(2)+' ريال'; 
+        discountDisplay.innerText=d.toFixed(2)+' ريال'; 
+        taxDisplay.innerText=tax.toFixed(2)+' ريال'; 
+        totalDisplay.innerText=total.toFixed(2)+' ريال'; 
+        taxAmountInput.value=tax.toFixed(2);
+        return {subtotal,discount:d,tax,total};
+    }
+    
+    function updateTotals() { calculateTotals(); }
+    
+    function addProductRow(pd=null) {
+        const row=document.createElement('div'); row.className='product-row';
+        row.innerHTML=`<div class="grid grid-cols-7 gap-2"><input type="text" class="product-name border rounded p-1 col-span-2" value="${escapeHtml(pd?.name||'')}" placeholder="اسم المنتج"><input type="text" class="product-barcode border rounded p-1 bg-gray-50" readonly value="${escapeHtml(pd?.barcode||'')}"><input type="number" class="product-price border rounded p-1" step="0.01" value="${pd?.price||0}"><input type="number" class="product-quantity border rounded p-1" value="${pd?.quantity||1}" min="1"><input type="text" class="product-image border rounded p-1" placeholder="رابط الصورة" value="${escapeHtml(pd?.image||'')}"><button type="button" class="remove-product-btn text-red-600"><i class="fas fa-trash"></i></button></div><div class="mt-1"><div class="product-desc-editor" style="height:80px;"></div><input type="hidden" class="product-desc-hidden" value="${escapeHtml(pd?.description||'')}"></div><input type="hidden" class="product-id" value="${pd?.productId||''}">`;
+        productsContainer.appendChild(row);
+        const editor=row.querySelector('.product-desc-editor'), hidden=row.querySelector('.product-desc-hidden');
+        const quill=new Quill(editor,{theme:'snow',placeholder:'وصف...',modules:{toolbar:[['bold','italic','underline'],['link','image']]}});
+        if(hidden.value) quill.root.innerHTML=hidden.value;
+        quill.on('text-change',()=>{ hidden.value=quill.root.innerHTML; updateTotals(); });
+        row.querySelector('.product-price').addEventListener('input',updateTotals);
+        row.querySelector('.product-quantity').addEventListener('input',updateTotals);
+        row.querySelector('.remove-product-btn').onclick=()=>{ row.remove(); updateTotals(); };
+        updateTotals();
+        return row;
+    }
+    
+    function openInventoryModal() {
+        inventoryModal.classList.remove('hidden'); inventoryModal.classList.add('flex');
+        const search=inventorySearch.value.toLowerCase();
+        const filtered=products.filter(p=>p.name?.toLowerCase().includes(search));
+        inventoryList.innerHTML=filtered.map(p=>`<div class="p-2 border rounded cursor-pointer hover:bg-gray-50" onclick="window.selectFromInventory('${p.id}')"><div class="flex justify-between"><span>${escapeHtml(p.name)}</span><span>${p.price} ريال</span><span class="text-gray-400">مخزون:${p.stock}</span></div></div>`).join('');
+    }
+    
+    window.selectFromInventory=(id)=>{ const p=products.find(p=>p.id===id); if(p){ addProductRow({name:p.name,price:p.price,barcode:p.code,image:p.image,description:p.description,productId:p.id}); inventoryModal.classList.add('hidden'); } };
+    
+    function openQuickProductModal(row){ currentProductRowTemp=row; quickProductForm.reset(); quickProductBarcode.value=''; imagePreviewQuick.classList.add('hidden'); quickProductModal.classList.remove('hidden'); quickProductModal.classList.add('flex'); if(!quillEditor) quillEditor=new Quill('#quickProductEditor',{theme:'snow',placeholder:'وصف...',modules:{toolbar:[['bold','italic','underline'],['link','image']]}}); quickProductImageUrl.oninput=()=>{ if(quickProductImageUrl.value){ previewQuickImg.src=quickProductImageUrl.value; imagePreviewQuick.classList.remove('hidden'); } }; quickProductImageFile.onchange=(e)=>{ const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(ev)=>{ previewQuickImg.src=ev.target.result; imagePreviewQuick.classList.remove('hidden'); quickProductImageUrl.value=ev.target.result; }; r.readAsDataURL(f); } }; }
+    
+    function closeQuickProductModal(){ quickProductModal.classList.add('hidden'); quickProductModal.classList.remove('flex'); currentProductRowTemp=null; }
+    
+    async function saveQuickProduct(e){ e.preventDefault(); const name=quickProductName.value.trim(), price=parseFloat(quickProductPrice.value), cost=parseFloat(quickProductCost.value)||0, quantity=parseInt(quickProductQuantity.value), image=quickProductImageUrl.value.trim(), description=quillEditor?quillEditor.root.innerHTML:'', saveToInventory=saveToInventoryCheck.checked; if(!name||isNaN(price)||isNaN(quantity)||quantity<=0){ showToast('الاسم والسعر والكمية مطلوبة','error'); return; } if(price<cost){ showToast('سعر البيع أقل من التكلفة','error'); return; } const barcode=generateRandomCode(); let productId=null; if(saveToInventory){ try{ const np={name,price,cost,stock:0,image,description,code:barcode,createdAt:new Date().toISOString()}; const ref=await addProduct(np); productId=ref.id; await loadProductsList(); showToast('تم حفظ المنتج','success'); }catch(err){ showToast('خطأ في الحفظ','error'); return; } } if(currentProductRowTemp){ currentProductRowTemp.querySelector('.product-name').value=name; currentProductRowTemp.querySelector('.product-barcode').value=barcode; currentProductRowTemp.querySelector('.product-price').value=price; currentProductRowTemp.querySelector('.product-quantity').value=quantity; currentProductRowTemp.querySelector('.product-image').value=image; currentProductRowTemp.querySelector('.product-desc-hidden').value=description; const ed=currentProductRowTemp.querySelector('.product-desc-editor .ql-editor'); if(ed) ed.innerHTML=description; currentProductRowTemp.querySelector('.product-id').value=productId||''; updateTotals(); showToast('تم إضافة المنتج','success'); } closeQuickProductModal(); }
+    
+    function openQuickModal(){ quickModal.classList.remove('hidden'); quickModal.classList.add('flex'); quickForm.reset(); }
+    function closeQuickModal(){ quickModal.classList.add('hidden'); quickModal.classList.remove('flex'); }
+    
+    async function saveQuickCustomer(e){ e.preventDefault(); const name=quickName.value.trim(), phone=quickPhone.value.trim(); if(!name||!phone){ showToast('الاسم والجوال مطلوبان','error'); return; } await addCustomer({name,phone,email:quickEmail.value,city:quickCity.value,street:quickStreet.value,additionalNo:quickAdditionalNo.value,poBox:quickPoBox.value,createdAt:new Date().toISOString()}); closeQuickModal(); await loadCustomersList(); customerSelect.value=customers[customers.length-1]?.id||''; showToast('تم إضافة العميل','success'); }
+    
+    function setPaymentMethod(method){
+        selectedPaymentMethod=method; paymentMethodBtns.forEach(btn=>{ btn.classList.remove('bg-blue-600','text-white'); btn.classList.add('border-gray-300'); });
+        const active=document.querySelector(`.payment-btn[data-payment="${method}"]`); if(active){ active.classList.add('bg-blue-600','text-white'); active.classList.remove('border-gray-300'); }
+        if(method==='tamara'||method==='tabby'){ approvalMethodLabel.innerText=method==='tamara'?'تمارا':'تابي'; approvalCodeField.classList.remove('hidden'); otherPaymentField.classList.add('hidden'); }
+        else if(method==='other'){ approvalCodeField.classList.add('hidden'); otherPaymentField.classList.remove('hidden'); }
+        else{ approvalCodeField.classList.add('hidden'); otherPaymentField.classList.add('hidden'); }
+    }
+    
+    function resetForm(){
+        currentOrderId=null; productsContainer.innerHTML=''; addProductRow(); customerSelect.value=''; discountValueInput.value='0'; discountTypeSelect.value='fixed';
+        orderNumberInput.value=generateOrderNumber(); setCurrentDate(); setCurrentTime(); orderStatusSelect.value='جديد';
+        setPaymentMethod('mada'); approvalCodeInput.value=''; otherPaymentText.value=''; updateTotals();
+        document.getElementById('modalTitle').innerText='إضافة طلب جديد';
+    }
+    
+    function closeModal(){ orderModal.classList.add('hidden'); orderModal.classList.remove('flex'); resetForm(); }
+    
+    async function saveOrder(e){
+        e.preventDefault(); const customerId=customerSelect.value; if(!customerId){ showToast('اختر عميل','error'); return; }
+        const orderNumber=orderNumberInput.value.trim(); if(!orderNumber){ showToast('أدخل رقم الطلب','error'); return; }
+        const orderDate=orderDateInput.value, orderTime=get24HourTime(), status=orderStatusSelect.value;
+        let approvalCode=null, otherText=null;
+        if(selectedPaymentMethod==='tamara'||selectedPaymentMethod==='tabby'){ approvalCode=approvalCodeInput.value.trim(); if(!approvalCode){ showToast(`أدخل رمز الموافقة لـ ${selectedPaymentMethod==='tamara'?'تمارا':'تابي'}`,'error'); return; } }
+        if(selectedPaymentMethod==='other'){ otherText=otherPaymentText.value.trim(); if(!otherText){ showToast('أدخل طريقة الدفع','error'); return; } }
+        const items=[]; const rows=document.querySelectorAll('.product-row');
+        for(let r of rows){ const name=r.querySelector('.product-name').value.trim(); const price=parseFloat(r.querySelector('.product-price').value); const qty=parseInt(r.querySelector('.product-quantity').value); if(!name||isNaN(price)||isNaN(qty)||qty<=0){ showToast('جميع المنتجات يجب أن تحتوي على اسم وسعر وكمية','error'); return; } items.push({productId:r.querySelector('.product-id').value||null,name,price,quantity:qty,barcode:r.querySelector('.product-barcode').value,image:r.querySelector('.product-image').value,description:r.querySelector('.product-desc-hidden').value}); }
+        if(items.length===0){ showToast('أضف منتجاً واحداً على الأقل','error'); return; }
+        const {subtotal,discount,tax,total}=calculateTotals();
+        const orderData={orderNumber:`KF-${orderNumber}`,orderDate,orderTime,customerId,status,paymentMethod:selectedPaymentMethod,paymentMethodName:selectedPaymentMethod==='other'?otherText:(selectedPaymentMethod==='tamara'?'تمارا':(selectedPaymentMethod==='tabby'?'تابي':(selectedPaymentMethod==='mada'?'مدى':(selectedPaymentMethod==='mastercard'?'ماستركارد':(selectedPaymentMethod==='visa'?'فيزا':'STCPay'))))),approvalCode,otherPaymentText:otherText,items,subtotal,discount:parseFloat(discountValueInput.value)||0,discountType:discountTypeSelect.value,tax,total,updatedAt:new Date().toISOString()};
+        if(!currentOrderId) orderData.createdAt=new Date().toISOString();
+        try{
+            if(currentOrderId){ const old=orders.find(o=>o.id===currentOrderId); if(old?.items) for(let it of old.items) if(it.productId){ const p=products.find(pr=>pr.id===it.productId); if(p) await updateProductStock(it.productId,p.stock+it.quantity); } await updateOrder(currentOrderId,orderData); showToast('تم تعديل الطلب','success'); }
+            else{ await addOrder(orderData); showToast('تم إضافة الطلب','success'); }
+            for(let it of items) if(it.productId){ const p=products.find(pr=>pr.id===it.productId); if(p) await updateProductStock(it.productId,p.stock-it.quantity); }
+            closeModal(); await loadData(); await renderOrders();
+        }catch(err){ console.error(err); showToast('خطأ في الحفظ','error'); }
+    }
+    
+    function openModalForEdit(orderId){
+        const order=orders.find(o=>o.id===orderId); if(!order) return;
+        currentOrderId=orderId; document.getElementById('modalTitle').innerText='تعديل الطلب';
+        orderNumberInput.value=order.orderNumber.replace('KF-',''); orderDateInput.value=order.orderDate;
+        if(order.orderTime){ let [h,m]=order.orderTime.split(':'); let ap=parseInt(h)>=12?'PM':'AM'; let h12=parseInt(h)%12||12; orderHourSelect.value=h12; orderMinuteSelect.value=m; orderAmPmSelect.value=ap; }
+        orderStatusSelect.value=order.status; customerSelect.value=order.customerId;
+        setPaymentMethod(order.paymentMethod);
+        if(order.approvalCode) approvalCodeInput.value=order.approvalCode;
+        if(order.otherPaymentText) otherPaymentText.value=order.otherPaymentText;
+        discountValueInput.value=order.discount||0; discountTypeSelect.value=order.discountType||'fixed';
+        productsContainer.innerHTML='';
+        order.items.forEach(item=>addProductRow({name:item.name,price:item.price,quantity:item.quantity,barcode:item.barcode,image:item.image,description:item.description,productId:item.productId}));
+        updateTotals(); orderModal.classList.remove('hidden'); orderModal.classList.add('flex');
+    }
+    
+    window.editOrder=openModalForEdit;
+    window.changeStatus=async(id,st)=>{ try{ await updateOrder(id,{status:st}); await renderOrders(); showToast(`تم تغيير الحالة إلى ${st}`,'success'); }catch(e){ showToast('خطأ','error'); } };
+    window.deleteOrderHandler=async(id)=>{ if(!confirm('تأكيد الحذف؟')) return; try{ const ord=orders.find(o=>o.id===id); if(ord?.items) for(let it of ord.items) if(it.productId){ const p=products.find(pr=>pr.id===it.productId); if(p) await updateProductStock(it.productId,p.stock+it.quantity); } await deleteOrder(id); await renderOrders(); showToast('تم الحذف','success'); }catch(e){ showToast('خطأ','error'); } };
+    
+    // ربط الأحداث
+  const orderHourSelect = document.getElementById('orderHour');
+const orderMinuteSelect = document.getElementById('orderMinute');
+const orderAmPmSelect = document.getElementById('orderAmPm');
+const orderDateInput = document.getElementById('orderDate');
+const orderNumberInput = document.getElementById('orderNumber');
+const customerSelect = document.getElementById('customerSelect');
+const discountValueInput = document.getElementById('discountValue');
+const discountTypeSelect = document.getElementById('discountType');
+const taxAmountInput = document.getElementById('taxAmount');
+const subtotalDisplay = document.getElementById('subtotalDisplay');
+const discountDisplay = document.getElementById('discountDisplay');
+const taxDisplay = document.getElementById('taxDisplay');
+const totalDisplay = document.getElementById('totalDisplay');
+const productsContainer = document.getElementById('productsContainer');
+const orderModal = document.getElementById('orderModal');
+const quickModal = document.getElementById('quickCustomerModal');
+const quickForm = document.getElementById('quickCustomerForm');
+const quickProductForm = document.getElementById('quickProductForm');
+const paymentMethodBtns = document.querySelectorAll('.payment-btn');
+const approvalCodeInput = document.getElementById('approvalCode');
+const otherPaymentText = document.getElementById('otherPaymentText');
+const approvalCodeField = document.getElementById('approvalCodeField');
+const otherPaymentField = document.getElementById('otherPaymentField');
+const approvalMethodLabel = document.getElementById('approvalMethodLabel');
+const inventoryModal = document.getElementById('inventoryModal');
+const inventorySearch = document.getElementById('inventorySearch');
+const inventoryList = document.getElementById('inventoryList');
+const ordersContainer = document.getElementById('ordersContainer'); 
+    // بدء التشغيل
+    async function init() {
+        console.log('🚀 بدء تشغيل صفحة الطلبات...');
+        populateTimeOptions();
+        await loadData();
+        await renderOrders();
+        resetForm();
+        console.log('✅ تم تهيئة الصفحة بنجاح');
+    }
+    
+    init();
 </script>
-
 </body>
 </html>
