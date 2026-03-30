@@ -1,24 +1,28 @@
-import { savePDF } from './pdf.service.js';
-import { saveImage } from './image.service.js';
-import { printHTML } from './print.service.js';
+import { generatePDF } from './pdf.service.js';
+import { generateImage } from './image.service.js';
+import { printInvoice } from './print.service.js';
 
 export function handlePrint(type) {
 
-const el = document.getElementById('invoiceToPrint');
+    const el = document.getElementById('invoiceToPrint');
 
-if (!el) return alert('لا توجد فاتورة');
+    if (!el) {
+        alert('لا توجد فاتورة');
+        return;
+    }
 
-switch(type) {
+    switch(type) {
 
-case 'pdf':
-    return savePDF(el);
+        case 'pdf':
+            return generatePDF(el);
 
-case 'image':
-    return saveImage(el);
+        case 'image':
+            return generateImage(el);
 
-case 'print':
-    return printHTML(el);
+        case 'print':
+            return printInvoice(el);
 
-}
-
+        default:
+            console.warn('نوع غير معروف:', type);
+    }
 }
