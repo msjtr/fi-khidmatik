@@ -276,7 +276,6 @@ import { generateImage } from './js/print/image.service.js';
 
 /* =============================
    طباعة الطلب (مباشر داخل الصفحة)
-============================= */
 window.printInvoiceHandler = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
 
@@ -286,15 +285,14 @@ window.printInvoiceHandler = async (orderId) => {
     }
 
     try {
-        // إنشاء عنصر مؤقت للفاتورة
         const tempDiv = document.createElement('div');
+
         tempDiv.innerHTML = generateInvoiceTemplate({
             ...order,
             customer: order.customer || {},
             items: order.items || []
         });
 
-        // إخفاء العنصر خارج الشاشة
         tempDiv.style.position = 'fixed';
         tempDiv.style.top = '-9999px';
         tempDiv.style.right = '-9999px';
@@ -302,16 +300,8 @@ window.printInvoiceHandler = async (orderId) => {
 
         document.body.appendChild(tempDiv);
 
-        // 🖨️ طباعة مباشرة
-        await printInvoice(tempDiv);
+        await printInvoice(tempDiv.querySelector('.invoice-print') || tempDiv);
 
-        // 📄 (اختياري)
-        // await generatePDF(tempDiv, order);
-
-        // 🖼️ (اختياري)
-        // await generateImage(tempDiv, order);
-
-        // حذف العنصر بعد الطباعة
         document.body.removeChild(tempDiv);
 
     } catch (err) {
