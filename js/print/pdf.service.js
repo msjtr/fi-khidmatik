@@ -8,23 +8,45 @@ function sanitizeFileName(text = '') {
 
 export async function generatePDF(element, order) {
 
-    // ⏳ ننتظر ثبات التصميم
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // ⏳ انتظار ثبات التصميم
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    window.scrollTo(0, 0); // 🔥 مهم يمنع القص
 
     const canvas = await html2canvas(element, {
-        scale: 3,
+        scale: 2, // 🔥 أفضل توازن
         useCORS: true,
-        backgroundColor: "#ffffff"
+        backgroundColor: "#ffffff",
+        scrollY: -window.scrollY
     });
 
-    const img = canvas.toDataURL("image/jpeg", 1);
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
 
-    pdf.addImage(img, 'JPEG', 0, 0, 210, 297);
+    const pdf = new jsPDF('p', 'mm', 'a4');
 
-    // 🎯 اسم الملف الاحترافي
+    const pageWidth = 210;
+    const pageHeight = 297;
+
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // 🔥 تقسيم الصفحات
+    while (heightLeft > 0) {
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        if (heightLeft > 0) {
+            pdf.addPage();
+            position -= pageHeight;
+        }
+    }
+
+    // 🎯 اسم الملف
     const name = sanitizeFileName(order?.customer?.name || order?.customer || 'عميل');
     const number = sanitizeFileName(order?.orderNumber || '0000');
     const date = sanitizeFileName(order?.date || 'date');
