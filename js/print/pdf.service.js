@@ -1,25 +1,26 @@
 export async function printInvoice(element) {
 
     const win = window.open('', '_blank');
-
     const base = window.location.origin;
+
+    win.document.open();
 
     win.document.write(`
     <html dir="rtl">
     <head>
         <meta charset="UTF-8">
+        <title>فاتورة</title>
 
-        <!-- ربط CSS بشكل صحيح -->
+        <!-- CSS -->
         <link rel="stylesheet" href="${base}/css/design.css">
         <link rel="stylesheet" href="${base}/css/print.css">
-
-        <title>فاتورة</title>
 
         <style>
             body {
                 margin: 0;
                 padding: 20px;
                 background: #fff;
+                direction: rtl;
             }
         </style>
     </head>
@@ -32,10 +33,12 @@ export async function printInvoice(element) {
 
     win.document.close();
 
-    // ⏳ انتظار تحميل CSS
-    setTimeout(() => {
-        win.focus();
-        win.print();
-        win.close();
-    }, 700); // زودناها شوي عشان Vercel
+    // ⏳ ننتظر تحميل الصفحة + CSS فعلياً
+    win.onload = () => {
+        setTimeout(() => {
+            win.focus();
+            win.print();
+            win.close();
+        }, 300);
+    };
 }
