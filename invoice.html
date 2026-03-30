@@ -32,8 +32,7 @@
 
 <script type="module">
 
-// ✅ المسارات الصحيحة (انتبه هنا)
-import { generateInvoiceTemplate } from './js/print/template.js';
+import { buildInvoiceHTML } from './js/print/template.js';
 import { printInvoice } from './js/print/print.service.js';
 import { generatePDF } from './js/print/pdf.service.js';
 import { generateImage } from './js/print/image.service.js';
@@ -43,16 +42,20 @@ import { generateImage } from './js/print/image.service.js';
 ============================= */
 const order = {
     orderNumber: "KF-1234",
-    orderDate: "2026-01-01",
-    orderTime: "14:30",
-    paymentMethodName: "مدى",
+    date: "2026-01-01",
+    time: "14:30",
+    payment: "مدى",
+    shipping: "سمسا",
+
     customer: {
         name: "محمد الشمري",
         phone: "0500000000",
-        email: "test@email.com",
-        city: "تبوك",
-        street: "شارع الملك"
+        email: "test@email.com"
     },
+
+    city: "تبوك",
+    street: "شارع الملك",
+
     items: [
         { name: "منتج 1", price: 100, quantity: 1 },
         { name: "منتج 2", price: 50, quantity: 2 }
@@ -60,32 +63,48 @@ const order = {
 };
 
 /* =============================
-   تحميل القالب
+   تجهيز الفاتورة
 ============================= */
 const invoiceEl = document.getElementById('invoiceContent');
 
-// ✅ مهم: تأكد أنه يرجع HTML نصي
-invoiceEl.innerHTML = generateInvoiceTemplate(order);
+const cartRows = order.items.map(item => `
+<tr>
+    <td>${item.name}</td>
+    <td>-</td>
+    <td>-</td>
+    <td>${item.quantity}</td>
+    <td>${item.price}</td>
+    <td>0</td>
+    <td>${item.price * item.quantity}</td>
+</tr>
+`).join('');
+
+const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+const tax = subtotal * 0.15;
+const total = subtotal + tax;
+
+const totals = {
+    subtotal: subtotal.toFixed(2) + ' ريال',
+    discount: '0 ريال',
+    tax: tax.toFixed(2) + ' ريال',
+    total: total.toFixed(2) + ' ريال'
+};
+
+invoiceEl.innerHTML = buildInvoiceHTML(order, cartRows, totals);
 
 /* =============================
-   أوامر الطباعة (مصححة 100%)
+   أوامر الطباعة
 ============================= */
 
-// 🖨️ طباعة
 window.handlePrint = async () => {
-    if (!invoiceEl) return alert('❌ الفاتورة غير موجودة');
     await printInvoice(invoiceEl);
 };
 
-// 📄 PDF
 window.handlePDF = async () => {
-    if (!invoiceEl) return alert('❌ الفاتورة غير موجودة');
     await generatePDF(invoiceEl, order);
 };
 
-// 🖼️ صورة
 window.handleImage = async () => {
-    if (!invoiceEl) return alert('❌ الفاتورة غير موجودة');
     await generateImage(invoiceEl, order);
 };
 
