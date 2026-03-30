@@ -1,1 +1,21 @@
+@media print {
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
 
+    .buttons {
+        display: none !important;
+    }
+
+    .invoice {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
