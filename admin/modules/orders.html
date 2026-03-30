@@ -269,28 +269,46 @@
 import { buildInvoiceHTML } from '/js/print/template.js';
 import { printInvoice } from '/js/print/print.service.js';
 import { generateImage } from '/js/print/image.service.js';
+import { generatePDF } from '/js/print/pdf.service.js';
 /* =========================
    🧠 نظام الطباعة المركزي
 ========================= */
 
 function createInvoiceElement(order) {
+
     const wrapper = document.createElement('div');
 
-    wrapper.innerHTML = generateInvoiceTemplate(order);
+    const cartRows = order.items.map(item => `
+    <tr>
+        <td>${item.name || '-'}</td>
+        <td>${item.barcode || '-'}</td>
+        <td>-</td>
+        <td>${item.quantity}</td>
+        <td>${item.price}</td>
+        <td>0</td>
+        <td>${item.price * item.quantity}</td>
+    </tr>
+    `).join('');
+
+    const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const tax = subtotal * 0.15;
+    const total = subtotal + tax;
+
+    const totals = {
+        subtotal: subtotal.toFixed(2) + ' ريال',
+        discount: '0 ريال',
+        tax: tax.toFixed(2) + ' ريال',
+        total: total.toFixed(2) + ' ريال'
+    };
+
+    wrapper.innerHTML = buildInvoiceHTML(order, cartRows, totals);
+
     wrapper.style.position = 'fixed';
     wrapper.style.top = '-9999px';
-    wrapper.style.left = '-9999px';
-    wrapper.classList.add('print-wrapper');
 
     document.body.appendChild(wrapper);
 
-    return wrapper;
-}
-
-function removeInvoiceElement(el) {
-    if (el && el.parentNode) {
-        el.parentNode.removeChild(el);
-    }
+    return wrapper.firstElementChild;
 }
 
 /* =========================
