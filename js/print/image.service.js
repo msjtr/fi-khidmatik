@@ -2,31 +2,26 @@ function sanitizeFileName(text = '') {
     return text
         .toString()
         .trim()
-        .replace(/[^\w\u0600-\u06FF]+/g, '_') // يدعم العربي
+        .replace(/[^\w\u0600-\u06FF]+/g, '_')
         .replace(/_+/g, '_');
 }
 
 export async function generateImage(element, order) {
 
-    // ⏳ ننتظر عشان CSS يثبت
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // ⏳ انتظار استقرار التصميم
+    await new Promise(resolve => setTimeout(resolve, 400));
 
     const canvas = await html2canvas(element, {
-        scale: 3,
+        scale: 2, // 🔥 أفضل توازن (جودة + أداء)
         useCORS: true,
-        backgroundColor: "#ffffff"
+        backgroundColor: "#ffffff",
+        scrollY: -window.scrollY // 🔥 يمنع القص
     });
 
-    let quality = 0.9;
-    let data;
+    // 🎯 بدون ضغط مفرط
+    const data = canvas.toDataURL('image/jpeg', 0.95);
 
-    // 🎯 ضغط ذكي
-    do {
-        data = canvas.toDataURL('image/jpeg', quality);
-        quality -= 0.05;
-    } while (data.length > 300000 && quality > 0.3);
-
-    // 🎯 اسم الملف الاحترافي
+    // 🎯 اسم الملف
     const name = sanitizeFileName(order?.customer?.name || order?.customer || 'عميل');
     const number = sanitizeFileName(order?.orderNumber || '0000');
     const date = sanitizeFileName(order?.date || 'date');
