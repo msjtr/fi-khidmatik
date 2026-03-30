@@ -1,44 +1,35 @@
-export async function generatePDF(element) {
+function sanitizeFileName(text = '') {
+    return text
+        .toString()
+        .trim()
+        .replace(/[^\w\u0600-\u06FF]+/g, '_')
+        .replace(/_+/g, '_');
+}
 
-    const win = window.open('', '_blank');
-    const base = window.location.origin;
+export async function generatePDF(element, order) {
 
-    win.document.open();
+    // ⏳ ننتظر ثبات التصميم
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-    win.document.write(`
-    <html dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <title>فاتورة</title>
+    const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff"
+    });
 
-        <!-- CSS -->
-        <link rel="stylesheet" href="${base}/css/design.css">
-        <link rel="stylesheet" href="${base}/css/print.css">
+    const img = canvas.toDataURL("image/jpeg", 1);
 
-        <style>
-            body {
-                margin: 0;
-                padding: 20px;
-                background: #fff;
-                direction: rtl;
-            }
-        </style>
-    </head>
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
 
-    <body>
-        ${element.outerHTML}
-    </body>
-    </html>
-    `);
+    pdf.addImage(img, 'JPEG', 0, 0, 210, 297);
 
-    win.document.close();
+    // 🎯 اسم الملف الاحترافي
+    const name = sanitizeFileName(order?.customer?.name || order?.customer || 'عميل');
+    const number = sanitizeFileName(order?.orderNumber || '0000');
+    const date = sanitizeFileName(order?.date || 'date');
 
-    // ⏳ ننتظر تحميل الصفحة + CSS فعلياً
-    win.onload = () => {
-        setTimeout(() => {
-            win.focus();
-            win.print();
-            win.close();
-        }, 300);
-    };
+    const fileName = `${name}_${number}_${date}.pdf`;
+
+    pdf.save(fileName);
 }
