@@ -1,3 +1,13 @@
+function escapeHtml(text = '') {
+    return text.toString().replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[m]));
+}
+
 export function buildInvoiceHTML(order, cartRows, totals) {
 
 return `
