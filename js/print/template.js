@@ -13,14 +13,15 @@ return `
 <div class="logo-center">
     <img src="/images/logo.svg"
     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'logo-placeholder\\'>منصة في خدمتك</div>';">
+
 </div>
 
 <div class="invoice-header">
     <div class="invoice-number">
-        رقم الفاتورة: <span>${order.orderNumber}</span>
+        رقم الفاتورة: <span>${order?.orderNumber || '-'}</span>
     </div>
     <div class="invoice-date">
-        ${order.date} ${order.time || ''}
+        ${(order?.date || '-')} ${(order?.time || '')}
     </div>
 </div>
 
@@ -37,7 +38,7 @@ return `
 <div class="invoice-to">
 <h3>📌 مصدرة إلى</h3>
 <p>
-${order.customer || '-'}
+${order?.customer?.name || order?.customer || '-'}
 </p>
 </div>
 
@@ -56,7 +57,7 @@ ${order.customer || '-'}
 </tr>
 </thead>
 
-<tbody>${cartRows}</tbody>
+<tbody>${cartRows || ''}</tbody>
 
 </table>
 
@@ -68,13 +69,13 @@ ${order.customer || '-'}
 </div>
 
 <div class="totals-values">
-<p>${totals.subtotal}</p>
-<p>${totals.discount}</p>
-<p>${totals.tax}</p>
+<p>${totals?.subtotal || '0'}</p>
+<p>${totals?.discount || '0'}</p>
+<p>${totals?.tax || '0'}</p>
 </div>
 
 <div class="grand-total">
-<h2>${totals.total}</h2>
+<h2>${totals?.total || '0'}</h2>
 </div>
 </div>
 
