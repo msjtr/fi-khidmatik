@@ -271,6 +271,33 @@ import { printInvoice } from '/js/print/print.service.js';
 import { generatePDF } from '/js/print/pdf.service.js';
 import { generateImage } from '/js/print/image.service.js';
 
+/* =========================
+   🧠 نظام الطباعة المركزي
+========================= */
+
+function createInvoiceElement(order) {
+    const wrapper = document.createElement('div');
+
+    wrapper.innerHTML = generateInvoiceTemplate(order);
+    wrapper.style.position = 'fixed';
+    wrapper.style.top = '-9999px';
+    wrapper.style.left = '-9999px';
+    wrapper.classList.add('print-wrapper');
+
+    document.body.appendChild(wrapper);
+
+    return wrapper;
+}
+
+function removeInvoiceElement(el) {
+    if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+    }
+}
+
+/* =========================
+   🖨️ طباعة
+========================= */
 window.printInvoiceHandler = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
 
@@ -279,19 +306,68 @@ window.printInvoiceHandler = async (orderId) => {
         return;
     }
 
-    const tempDiv = document.createElement('div');
+    const el = createInvoiceElement(order);
 
-    tempDiv.innerHTML = generateInvoiceTemplate(order);
-    tempDiv.style.position = 'fixed';
-    tempDiv.style.top = '-9999px';
+    await printInvoice(el);
 
-    document.body.appendChild(tempDiv);
-
-    await printInvoice(tempDiv);
-
-    document.body.removeChild(tempDiv);
+    removeInvoiceElement(el);
 };
 
+/* =========================
+   📄 PDF
+========================= */
+window.exportAsPDF = async (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const el = createInvoiceElement(order);
+
+    await generatePDF(el, order);
+
+    removeInvoiceElement(el);
+};
+
+/* =========================
+   🖼️ صورة
+========================= */
+window.exportAsPNG = async (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const el = createInvoiceElement(order);
+
+    await generateImage(el, order);
+
+    removeInvoiceElement(el);
+};
+    
+/* =========================
+   🛠️ دوال مساعدة (مهم)
+========================= */
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.innerText = message;
+    toast.className = type;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
+}
+
+function escapeHtml(text = '') {
+    return text.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;',
+        '"': '&quot;', "'": '&#039;'
+    }[m]));
+}
+
+function formatDateInvoice(date) {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('ar-SA');
+}
+
+function formatTimeInvoice(time) {
+    return time || '';
+}
 
     
     // دوال تحميل البيانات (نفس الكود الأصلي)
@@ -631,6 +707,7 @@ const inventoryModal = document.getElementById('inventoryModal');
 const inventorySearch = document.getElementById('inventorySearch');
 const inventoryList = document.getElementById('inventoryList');
 const ordersContainer = document.getElementById('ordersContainer'); 
+const saveToInventoryCheck = document.getElementById('saveToInventory');
     // بدء التشغيل
     async function init() {
         console.log('🚀 بدء تشغيل صفحة الطلبات...');
