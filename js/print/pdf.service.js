@@ -1,36 +1,29 @@
 export async function generatePDF(element, order) {
 
-    const target = document.getElementById('invoiceToPrint');
-
-    window.scrollTo(0, 0);
-
-    const canvas = await html2canvas(target, {
+    const canvas = await html2canvas(element, {
         scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        scrollY: -window.scrollY,
-        windowWidth: target.scrollWidth,
-        windowHeight: target.scrollHeight
+        useCORS: true
     });
 
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const imgData = canvas.toDataURL('image/png');
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
 
-    const imgWidth = 210;
+    const pageWidth = 210;
+    const pageHeight = 297;
+
+    const imgWidth = pageWidth;
     const imgHeight = canvas.height * imgWidth / canvas.width;
 
-    let heightLeft = imgHeight;
-    let position = 0;
+    let y = 0;
 
-    while (heightLeft > 0) {
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= 297;
+    while (y < imgHeight) {
+        pdf.addImage(imgData, 'PNG', 0, -y, imgWidth, imgHeight);
+        y += pageHeight;
 
-        if (heightLeft > 0) {
+        if (y < imgHeight) {
             pdf.addPage();
-            position -= 297;
         }
     }
 
