@@ -96,9 +96,8 @@ invoiceEl.innerHTML = buildInvoiceHTML(order, cartRows, totals);
    أوامر الطباعة
 ============================= */
 
-window.handlePrint = async () => {
-    await printInvoice(invoiceEl);
-};
+const invoiceBox = document.querySelector('.invoice');
+await printInvoice(invoiceBox);
 
 window.handlePDF = async () => {
     await generatePDF(invoiceEl, order);
