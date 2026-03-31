@@ -8,7 +8,77 @@ export async function printInvoice(element) {
 
   const invoiceHTML = element.outerHTML;
 
-  let stylesHTML = '';
+  let stylesHTML = '';// js/print/print.service.js
+import { generatePDF, printElement } from './pdf.service.js';
+
+class PrintService {
+    constructor() {
+        this.printContainer = null;
+        this.init();
+    }
+    
+    init() {
+        // إنشاء حاوية الطباعة إذا لم تكن موجودة
+        if (!document.getElementById('print-container')) {
+            this.printContainer = document.createElement('div');
+            this.printContainer.id = 'print-container';
+            this.printContainer.style.position = 'absolute';
+            this.printContainer.style.left = '-9999px';
+            this.printContainer.style.top = '-9999px';
+            document.body.appendChild(this.printContainer);
+        } else {
+            this.printContainer = document.getElementById('print-container');
+        }
+    }
+    
+    /**
+     * طباعة فاتورة
+     */
+    async printInvoice(invoiceHTML, filename = 'invoice.pdf') {
+        try {
+            // تنظيف الحاوية
+            this.printContainer.innerHTML = '';
+            
+            // إضافة المحتوى
+            this.printContainer.innerHTML = invoiceHTML;
+            
+            // انتظار قليلاً للتأكد من تحميل المحتوى
+            await this.delay(100);
+            
+            // إنشاء PDF
+            await generatePDF(this.printContainer, filename);
+            
+            // تنظيف
+            this.printContainer.innerHTML = '';
+            
+            return true;
+        } catch (error) {
+            console.error('خطأ في طباعة الفاتورة:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * طباعة مباشرة
+     */
+    async directPrint(element) {
+        return await printElement(element);
+    }
+    
+    /**
+     * تأخير بسيط
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+// إنشاء نسخة واحدة من الخدمة
+const printService = new PrintService();
+
+// تصدير الخدمة والدوال
+export default printService;
+export { generatePDF, printElement };
   const styleNodes = document.querySelectorAll('link[rel="stylesheet"], style');
   styleNodes.forEach(style => {
     if (style.tagName === 'LINK' && style.href) {
