@@ -54,5 +54,5 @@ export async function printInvoice(element) {
   printWindow.focus();
 }
 
-// تصدير الدالة بشكل صريح
-export { printInvoice };
+// لا تحتاج لهذا السطر المكرر:
+// export { printInvoice };
