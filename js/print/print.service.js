@@ -1,14 +1,7 @@
-// print.service.js - خدمة الطباعة الأساسية
-
 export async function printInvoice(element) {
-  if (!element) {
-    console.error('❌ عنصر الفاتورة غير موجود');
-    return;
-  }
+  if (!element) return;
 
   const invoiceHTML = element.outerHTML;
-  
-  // جمع جميع الأنماط من الصفحة
   let stylesHTML = '';
   const styleNodes = document.querySelectorAll('link[rel="stylesheet"], style');
   styleNodes.forEach(style => {
