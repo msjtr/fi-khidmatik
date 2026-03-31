@@ -1,5 +1,4 @@
-// pdf.service.js - نسخة محسنة بالكامل مع معالجة اقتصاص المحتوى
-import { getBaseUrl } from './print.service.js';
+// pdf.service.js - نسخة مستقلة بدون استيراد من print.service.js
 
 export async function generatePDF(element, order) {
   if (!element) {
@@ -28,21 +27,19 @@ export async function generatePDF(element, order) {
     const originalWidth = cloneElement.scrollWidth;
     const originalHeight = cloneElement.scrollHeight;
     
-    // حساب أبعاد صفحة A4 بالبكسل (عند دقة 300 DPI)
-    const A4_WIDTH_MM = 210;
-    const A4_HEIGHT_MM = 297;
-    const DPI = 300;
-    const PX_PER_MM = DPI / 25.4;
+    // التأكد من وجود أبعاد صالحة
+    if (originalWidth === 0 || originalHeight === 0) {
+      throw new Error('لا يمكن حساب أبعاد الفاتورة');
+    }
     
-    const pdfWidth = A4_WIDTH_MM * PX_PER_MM;
-    const pdfHeight = A4_HEIGHT_MM * PX_PER_MM;
-    
-    // حساب مقياس التحويل
-    const scale = Math.min(pdfWidth / originalWidth, pdfHeight / originalHeight) * 0.95;
+    // حساب المقياس المناسب للحصول على جودة عالية
+    let scale = 3;
+    if (originalWidth > 1200) scale = 2.5;
+    if (originalWidth > 2000) scale = 2;
     
     // إنشاء canvas بجودة عالية
     const canvas = await html2canvas(cloneElement, {
-      scale: Math.max(3, scale * 2),
+      scale: scale,
       backgroundColor: '#ffffff',
       logging: false,
       useCORS: true,
@@ -70,27 +67,41 @@ export async function generatePDF(element, order) {
       format: 'a4'
     });
     
-    // حساب الإحداثيات لتوسيط المحتوى
-    const imgWidth = A4_WIDTH_MM;
+    // حساب الأبعاد لتناسب صفحة A4
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // حساب نسبة العرض والارتفاع
+    const imgWidth = pageWidth - 20; // هامش 10mm من كل جهة
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
     // تحويل canvas إلى صورة
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     
-    // إضافة الصورة إلى PDF
-    let heightLeft = imgHeight;
-    let position = 0;
-    
-    // إضافة الصفحة الأولى
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= (A4_HEIGHT_MM - 10);
-    
-    // إضافة صفحات إضافية إذا كان المحتوى أطول من صفحة واحدة
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= (A4_HEIGHT_MM - 10);
+    // إذا كان المحتوى أطول من صفحة واحدة
+    if (imgHeight > pageHeight - 20) {
+      // حساب عدد الصفحات المطلوبة
+      let heightLeft = imgHeight;
+      let position = 0;
+      let pageNum = 1;
+      
+      // إضافة الصفحة الأولى
+      pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20);
+      position -= (pageHeight - 20);
+      
+      // إضافة صفحات إضافية
+      while (heightLeft > 0) {
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
+        position -= (pageHeight - 20);
+        pageNum++;
+      }
+    } else {
+      // صفحة واحدة فقط
+      const yPosition = (pageHeight - imgHeight) / 2;
+      pdf.addImage(imgData, 'JPEG', 10, yPosition, imgWidth, imgHeight);
     }
     
     // حفظ الملف
@@ -103,7 +114,7 @@ export async function generatePDF(element, order) {
   } catch (error) {
     console.error('❌ خطأ في إنشاء PDF:', error);
     hideLoadingOverlay();
-    alert('حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
+    alert('حدث خطأ أثناء إنشاء ملف PDF: ' + error.message);
     throw error;
   }
 }
@@ -125,19 +136,41 @@ async function prepareCloneElement(element, order) {
   clone.style.padding = '20px';
   clone.style.backgroundColor = '#ffffff';
   clone.style.direction = 'rtl';
+  clone.style.fontFamily = "'Segoe UI', Tahoma, Arial, sans-serif";
   
   // إضافة أنماط مضمونة للجدول
   const tables = clone.querySelectorAll('.invoice-table');
   tables.forEach(table => {
     table.style.width = '100%';
     table.style.borderCollapse = 'collapse';
+    table.style.marginBottom = '20px';
   });
   
-  const cells = clone.querySelectorAll('.invoice-table td, .invoice-table th');
+  const headers = clone.querySelectorAll('.invoice-table th');
+  headers.forEach(header => {
+    header.style.border = '1px solid #ddd';
+    header.style.padding = '10px 8px';
+    header.style.textAlign = 'center';
+    header.style.backgroundColor = '#f0f0f0';
+    header.style.fontWeight = 'bold';
+  });
+  
+  const cells = clone.querySelectorAll('.invoice-table td');
   cells.forEach(cell => {
     cell.style.border = '1px solid #ddd';
-    cell.style.padding = '8px';
+    cell.style.padding = '8px 4px';
     cell.style.textAlign = 'center';
+  });
+  
+  // إضافة أنماط للإجماليات
+  const totals = clone.querySelectorAll('.totals');
+  totals.forEach(total => {
+    total.style.backgroundColor = '#f8f8f8';
+    total.style.padding = '10px 15px';
+    total.style.borderRadius = '8px';
+    total.style.width = '280px';
+    total.style.marginRight = 'auto';
+    total.style.marginLeft = '0';
   });
   
   return clone;
@@ -180,9 +213,9 @@ function showLoadingOverlay(message = 'جاري التحميل...') {
       direction: rtl;
     `;
     overlay.innerHTML = `
-      <div style="background: white; padding: 30px; border-radius: 15px; text-align: center;">
+      <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; min-width: 250px;">
         <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
-        <p id="loading-message" style="font-size: 16px; color: #333;">${message}</p>
+        <p id="loading-message" style="font-size: 16px; color: #333; margin: 0;">${message}</p>
         <style>
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -210,16 +243,38 @@ function hideLoadingOverlay() {
 }
 
 /**
- * توليد اسم الملف
+ * توليد اسم الملف مع دعم العربية
  */
 function generateFileName(order, ext) {
-  const customerName = (order.customer?.name || 'عميل')
-    .replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')
-    .substring(0, 30);
+  let customerName = 'عميل';
+  if (order.customer) {
+    if (typeof order.customer === 'object') {
+      customerName = order.customer.name || order.customer.customerName || 'عميل';
+    } else if (typeof order.customer === 'string') {
+      customerName = order.customer;
+    }
+  }
+  
+  // تنظيف الاسم من الرموز غير المسموحة مع الحفاظ على العربية
+  customerName = customerName.replace(/[^a-zA-Z0-9\u0600-\u06FF\-_]/g, '_').substring(0, 30);
+  
   const orderNum = (order.orderNumber || order.id || 'بدون_رقم')
-    .replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
-  const date = order.orderDate
-    ? new Date(order.orderDate).toISOString().slice(0, 10)
-    : new Date().toISOString().slice(0, 10);
+    .replace(/[^a-zA-Z0-9\u0600-\u06FF\-_]/g, '_');
+  
+  let date = '';
+  try {
+    if (order.orderDate) {
+      const d = new Date(order.orderDate);
+      if (!isNaN(d.getTime())) {
+        date = d.toISOString().slice(0, 10);
+      }
+    }
+    if (!date) {
+      date = new Date().toISOString().slice(0, 10);
+    }
+  } catch (e) {
+    date = new Date().toISOString().slice(0, 10);
+  }
+  
   return `فاتورة_${customerName}_${orderNum}_${date}.${ext}`;
 }
