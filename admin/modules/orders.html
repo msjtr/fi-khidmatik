@@ -265,15 +265,16 @@
     let currentFilters = { status: '', customer: '', dateFrom: '', dateTo: '' };
 
     // ========== دوال الفاتورة المتكاملة ==========
+import { buildInvoiceHTML } from '../../js/print/template.js';
+import { printInvoice } from '../../js/print/print.service.js';
+import { generateImage } from '../../js/print/image.service.js';
+import { generatePDF } from '../../js/print/pdf.service.js';
 
-import { buildInvoiceHTML } from '/js/print/template.js';
-import { printInvoice } from '/js/print/print.service.js';
-import { generateImage } from '/js/print/image.service.js';
-import {generatePDF } from '/js/print/pdf.service.js';
+
+    
 /* =========================
-   🧠 نظام الطباعة المركزي
+   🧠 إنشاء الفاتورة المؤقتة
 ========================= */
-
 function createInvoiceElement(order) {
 
     const wrapper = document.createElement('div');
@@ -303,8 +304,10 @@ function createInvoiceElement(order) {
 
     wrapper.innerHTML = buildInvoiceHTML(order, cartRows, totals);
 
+    // 🔥 تحسين مخفي بدون مشاكل
     wrapper.style.position = 'fixed';
     wrapper.style.top = '-9999px';
+    wrapper.style.left = '-9999px';
 
     document.body.appendChild(wrapper);
 
@@ -312,17 +315,29 @@ function createInvoiceElement(order) {
 }
 
 /* =========================
+   🧹 حذف الفاتورة
+========================= */
+function removeInvoiceElement(el) {
+    if (el && el.parentElement) {
+        el.parentElement.remove();
+    }
+}
+
+/* =========================
    🖨️ طباعة
 ========================= */
 window.printInvoiceHandler = async (orderId) => {
+
     const order = orders.find(o => o.id === orderId);
 
-    if (!order) {
-        showToast('❌ الطلب غير موجود', 'error');
+    if (!order || !order.items) {
+        showToast('❌ بيانات الطلب غير مكتملة', 'error');
         return;
     }
 
     const el = createInvoiceElement(order);
+
+    await new Promise(r => setTimeout(r, 200));
 
     await printInvoice(el);
 
@@ -333,10 +348,17 @@ window.printInvoiceHandler = async (orderId) => {
    📄 PDF
 ========================= */
 window.exportAsPDF = async (orderId) => {
+
     const order = orders.find(o => o.id === orderId);
-    if (!order) return;
+
+    if (!order || !order.items) {
+        showToast('❌ بيانات الطلب غير مكتملة', 'error');
+        return;
+    }
 
     const el = createInvoiceElement(order);
+
+    await new Promise(r => setTimeout(r, 200));
 
     await generatePDF(el, order);
 
@@ -347,10 +369,17 @@ window.exportAsPDF = async (orderId) => {
    🖼️ صورة
 ========================= */
 window.exportAsPNG = async (orderId) => {
+
     const order = orders.find(o => o.id === orderId);
-    if (!order) return;
+
+    if (!order || !order.items) {
+        showToast('❌ بيانات الطلب غير مكتملة', 'error');
+        return;
+    }
 
     const el = createInvoiceElement(order);
+
+    await new Promise(r => setTimeout(r, 200));
 
     await generateImage(el, order);
 
