@@ -1,6 +1,6 @@
 export async function generateImage(element, order) {
 
-    const target = document.getElementById('invoiceToPrint');
+    const target = element;
 
     window.scrollTo(0, 0);
 
@@ -8,7 +8,9 @@ export async function generateImage(element, order) {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        scrollY: -window.scrollY
+        scrollY: -window.scrollY,
+        windowWidth: target.scrollWidth,
+        windowHeight: target.scrollHeight
     });
 
     const data = canvas.toDataURL('image/jpeg', 0.95);
