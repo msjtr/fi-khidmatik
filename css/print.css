@@ -7,17 +7,16 @@
 
     html, body {
         width: 794px;
-        height: 1123px;
         margin: 0;
         padding: 0;
         background: #fff !important;
-        overflow: hidden;
+        overflow: visible;
     }
 
     /* 🔥 الفاتورة */
     .invoice {
         width: 794px;
-        height: 1123px;
+        min-height: 1123px;
         padding: 15px !important;
         margin: 0 !important;
         border-radius: 0 !important;
@@ -28,7 +27,7 @@
     .invoice-content {
         display: flex;
         flex-direction: column;
-        height: 100%;
+        min-height: 100%;
     }
 
     /* 🔥 الفوتر تحت */
@@ -52,9 +51,13 @@
         font-size: 11px;
     }
 
-    /* 🔥 منع التقسيم */
-    * {
-        page-break-inside: avoid !important;
+    /* 🔥 منع التقسيم بشكل ذكي */
+    .invoice,
+    .invoice-content,
+    .invoice-parties,
+    .totals-wrapper,
+    .contact-bar {
+        page-break-inside: avoid;
     }
 
     /* 🔥 إخفاء الأزرار */
