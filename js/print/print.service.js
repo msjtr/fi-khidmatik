@@ -2,17 +2,19 @@ export function printInvoice(element) {
 
     const win = window.open('', '_blank');
 
+    const base = window.location.origin;
+
     win.document.write(`
     <html dir="rtl">
     <head>
         <meta charset="UTF-8">
         <title>فاتورة</title>
 
-        <link rel="stylesheet" href="/css/design.css">
-        <link rel="stylesheet" href="/css/print.css">
+        <link rel="stylesheet" href="${base}/css/design.css">
+        <link rel="stylesheet" href="${base}/css/print.css">
     </head>
 
-    <body>
+    <body style="direction: rtl; margin:0;">
         ${element.outerHTML}
     </body>
     </html>
@@ -21,8 +23,10 @@ export function printInvoice(element) {
     win.document.close();
 
     win.onload = () => {
-        win.focus();
-        win.print();
-        win.close();
+        setTimeout(() => {
+            win.focus();
+            win.print();
+            win.close();
+        }, 300);
     };
 }
