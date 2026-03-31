@@ -29,7 +29,6 @@
 
     </div>
 </div>
-
 <script type="module">
 
 import { buildInvoiceHTML } from './js/print/template.js';
@@ -37,9 +36,7 @@ import { printInvoice } from './js/print/print.service.js';
 import { generatePDF } from './js/print/pdf.service.js';
 import { generateImage } from './js/print/image.service.js';
 
-/* =============================
-   بيانات الطلب (تجريبية)
-============================= */
+/* بيانات الطلب */
 const order = {
     orderNumber: "KF-1234",
     date: "2026-01-01",
@@ -62,9 +59,7 @@ const order = {
     ]
 };
 
-/* =============================
-   تجهيز الفاتورة
-============================= */
+/* تجهيز الفاتورة */
 const invoiceEl = document.getElementById('invoiceContent');
 
 const cartRows = order.items.map(item => `
@@ -92,22 +87,20 @@ const totals = {
 
 invoiceEl.innerHTML = buildInvoiceHTML(order, cartRows, totals);
 
-/* =============================
-   أوامر الطباعة
-============================= */
-
-const invoiceBox = document.querySelector('.invoice');
-await printInvoice(invoiceBox);
+/* أوامر الطباعة */
+window.handlePrint = async () => {
+    const invoiceBox = document.querySelector('.invoice');
+    await printInvoice(invoiceBox);
+};
 
 window.handlePDF = async () => {
-    await generatePDF(invoiceEl, order);
+    const invoiceBox = document.querySelector('.invoice');
+    await generatePDF(invoiceBox, order);
 };
 
 window.handleImage = async () => {
-    await generateImage(invoiceEl, order);
+    const invoiceBox = document.querySelector('.invoice');
+    await generateImage(invoiceBox, order);
 };
 
 </script>
-
-</body>
-</html>
