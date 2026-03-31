@@ -1,6 +1,5 @@
 // print.service.js
 export async function printInvoice(element) {
-  // نسخ العنصر لتجنب التأثير على الصفحة
   const clone = element.cloneNode(true);
   const printWindow = window.open('', '_blank');
   printWindow.document.write(`
@@ -14,8 +13,11 @@ export async function printInvoice(element) {
       <style>
         body { margin: 0; padding: 0; background: white; }
         .invoice-container { max-width: 100%; margin: 0; padding: 0; }
-        .invoice { padding: 0.5cm; }
+        .invoice { padding: 0.2in; margin: 0; }
         .buttons { display: none; }
+        /* منع القص */
+        .invoice-content { width: 100%; overflow: visible; }
+        @page { margin: 0.2in; }
       </style>
     </head>
     <body>
