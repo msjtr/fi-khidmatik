@@ -1,22 +1,12 @@
+// image.service.js
 export async function generateImage(element, order) {
-
-    const target = element;
-
-    window.scrollTo(0, 0);
-
-    const canvas = await html2canvas(target, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        scrollY: -window.scrollY,
-        windowWidth: target.scrollWidth,
-        windowHeight: target.scrollHeight
+    const canvas = await html2canvas(element, {
+        scale: 3,
+        backgroundColor: '#ffffff',
+        logging: false
     });
-
-    const data = canvas.toDataURL('image/jpeg', 0.95);
-
     const link = document.createElement('a');
-    link.href = data;
-    link.download = `invoice_${order?.orderNumber || 'file'}.jpg`;
+    link.download = `فاتورة_${order.orderNumber || order.id}.png`;
+    link.href = canvas.toDataURL('image/png');
     link.click();
 }
