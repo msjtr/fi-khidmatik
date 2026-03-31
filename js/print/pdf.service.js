@@ -1,6 +1,4 @@
 // js/print/pdf.service.js
-import jsPDF from 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-import html2canvas from 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
 
 /**
  * تحويل عنصر HTML إلى PDF
@@ -10,6 +8,15 @@ import html2canvas from 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.
  */
 export async function generatePDF(element, filename = 'document.pdf') {
     try {
+        // استيراد المكتبات ديناميكياً
+        const [html2canvas, jsPDF] = await Promise.all([
+            import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+            import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+        ]);
+        
+        const html2canvasModule = html2canvas.default || html2canvas;
+        const jsPDFModule = jsPDF.default || jsPDF;
+        
         // الحصول على العنصر
         const targetElement = typeof element === 'string' 
             ? document.getElementById(element) 
@@ -18,29 +25,29 @@ export async function generatePDF(element, filename = 'document.pdf') {
         if (!targetElement) {
             throw new Error('العنصر المطلوب غير موجود');
         }
-
-        // انتظار تحميل الصور والخطوط
-        await waitForImagesAndFonts(targetElement);
         
-        // إضافة كلاس خاص للطباعة مؤقتاً
+        // انتظار تحميل الصور
+        await waitForImages(targetElement);
+        
+        // إضافة كلاس خاص للطباعة
         targetElement.classList.add('pdf-printing');
         
         // إنشاء صورة من العنصر
-        const canvas = await html2canvas(targetElement, {
-            scale: 3,                    // دقة عالية
-            useCORS: true,               // دعم الصور من مصادر خارجية
+        const canvas = await html2canvasModule(targetElement, {
+            scale: 2,
+            useCORS: true,
             logging: false,
             windowWidth: targetElement.scrollWidth,
             windowHeight: targetElement.scrollHeight,
             backgroundColor: '#ffffff'
         });
         
-        // إزالة كلاس الطباعة المؤقت
+        // إزالة كلاس الطباعة
         targetElement.classList.remove('pdf-printing');
         
         // إعدادات PDF
         const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
+        const pdf = new jsPDFModule({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4'
@@ -53,25 +60,23 @@ export async function generatePDF(element, filename = 'document.pdf') {
         
         let heightLeft = imgHeight;
         let position = 0;
-        let pageNumber = 1;
         
         // إضافة الصفحة الأولى
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
         
-        // إضافة صفحات إضافية إذا كان المحتوى أطول من صفحة واحدة
+        // إضافة صفحات إضافية
         while (heightLeft > 0) {
             position = heightLeft - imgHeight;
             pdf.addPage();
             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pdfHeight;
-            pageNumber++;
         }
         
         // حفظ الملف
         pdf.save(filename);
         
-        return { success: true, pages: pageNumber };
+        return true;
         
     } catch (error) {
         console.error('خطأ في إنشاء PDF:', error);
@@ -80,11 +85,9 @@ export async function generatePDF(element, filename = 'document.pdf') {
 }
 
 /**
- * انتظار تحميل جميع الصور والخطوط
- * @param {HTMLElement} element
- * @returns {Promise<void>}
+ * انتظار تحميل جميع الصور
  */
-function waitForImagesAndFonts(element) {
+function waitForImages(element) {
     const images = Array.from(element.querySelectorAll('img'));
     const promises = images.map(img => {
         if (img.complete) return Promise.resolve();
@@ -93,18 +96,11 @@ function waitForImagesAndFonts(element) {
             img.onerror = resolve;
         });
     });
-    
-    // انتظار تحميل الخطوط (إذا كانت مخصصة)
-    if (document.fonts && document.fonts.ready) {
-        promises.push(document.fonts.ready);
-    }
-    
     return Promise.all(promises);
 }
 
 /**
  * طباعة عنصر مباشرة
- * @param {string|HTMLElement} element 
  */
 export async function printElement(element) {
     const targetElement = typeof element === 'string' 
@@ -115,9 +111,6 @@ export async function printElement(element) {
         throw new Error('العنصر المطلوب غير موجود');
     }
     
-    const originalTitle = document.title;
-    document.title = 'طباعة';
-    
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -125,22 +118,10 @@ export async function printElement(element) {
         <head>
             <title>طباعة</title>
             <style>
-                * {
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }
-                body {
-                    padding: 20px;
-                    font-family: Arial, sans-serif;
-                }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { padding: 20px; font-family: Arial, sans-serif; }
                 @media print {
-                    body {
-                        padding: 0;
-                    }
-                    .no-print {
-                        display: none;
-                    }
+                    body { padding: 0; }
                 }
             </style>
         </head>
@@ -152,11 +133,9 @@ export async function printElement(element) {
     
     printWindow.document.close();
     printWindow.print();
-    
-    document.title = originalTitle;
 }
 
-// تصدير افتراضي للاستخدام البديل
+// تصدير افتراضي للتوافق
 export default {
     generatePDF,
     printElement
