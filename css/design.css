@@ -29,6 +29,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
 }
 
+/* رأس الفاتورة */
 .invoice-header {
   display: flex;
   justify-content: space-between;
@@ -54,6 +55,7 @@ body {
   color: #1e40af;
 }
 
+/* أطراف الفاتورة (من وإلى) */
 .parties {
   display: flex;
   gap: 2rem;
@@ -83,6 +85,7 @@ body {
   font-size: 1rem;
 }
 
+/* طريقة الدفع والشحن */
 .payment-shipping {
   display: flex;
   justify-content: space-between;
@@ -94,6 +97,7 @@ body {
   gap: 1rem;
 }
 
+/* تاريخ ووقت الطلب */
 .date-time-box {
   display: flex;
   justify-content: space-between;
@@ -105,6 +109,7 @@ body {
   gap: 1rem;
 }
 
+/* جدول المنتجات */
 .invoice-table {
   width: 100%;
   border-collapse: collapse;
@@ -127,6 +132,7 @@ body {
   vertical-align: middle;
 }
 
+/* الإجماليات */
 .totals {
   background: #f8fafc;
   padding: 1rem 1.5rem;
@@ -152,6 +158,7 @@ body {
   padding-top: 0.5rem;
 }
 
+/* جهات الاتصال */
 .contact {
   text-align: center;
   background: #f1f5f9;
@@ -162,6 +169,7 @@ body {
   line-height: 1.6;
 }
 
+/* شكر */
 .thanks {
   text-align: center;
   font-size: 0.9rem;
@@ -171,6 +179,7 @@ body {
   margin-top: 0.5rem;
 }
 
+/* الأزرار */
 .buttons {
   display: flex;
   justify-content: center;
@@ -211,31 +220,135 @@ body {
   display: block;
 }
 
+/* ======================================== */
+/* تحسينات الطباعة - نسخة محسنة */
+/* ======================================== */
 @media print {
+  /* إعدادات الصفحة */
+  @page {
+    size: A4;
+    margin: 0.3cm;
+  }
+
+  /* إعادة تعيين الهوامش والخلفيات */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+
   body {
     background: white;
     margin: 0;
     padding: 0;
   }
+
+  /* حاوية الفاتورة */
   .invoice-container {
     margin: 0;
     padding: 0;
     box-shadow: none;
+    border: none;
+    border-radius: 0;
   }
+
   .invoice {
-    padding: 0.2in;
+    padding: 0.1in;
   }
-  .buttons, .no-print {
-    display: none !important;
-  }
-  .invoice-table th {
-    background: #ccc !important;
-    color: black !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .from, .to, .payment-shipping, .date-time-box, .totals, .contact {
+
+  /* منع كسر الصفحات داخل العناصر المهمة */
+  .invoice-header,
+  .parties,
+  .payment-shipping,
+  .date-time-box,
+  .invoice-table,
+  .totals,
+  .contact,
+  .thanks,
+  .from,
+  .to {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* منع كسر الصفحات داخل صفوف الجدول */
+  .invoice-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* تحسين تنسيق الجدول في الطباعة */
+  .invoice-table th {
+    background: #e0e0e0 !important;
+    color: black !important;
+    border: 1px solid #aaa;
+  }
+
+  .invoice-table td {
+    border: 1px solid #ccc;
+  }
+
+  /* تحسين تنسيق الإجماليات */
+  .totals {
+    background: #f8f8f8 !important;
+    border: 1px solid #ddd;
+  }
+
+  /* تحسين تنسيق الأطراف */
+  .from, .to {
+    background: #f8f8f8 !important;
+  }
+
+  .payment-shipping,
+  .date-time-box,
+  .contact {
+    background: #f8f8f8 !important;
+  }
+
+  /* إخفاء الأزرار */
+  .buttons,
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  /* منع اقتصاص المحتوى */
+  .invoice-content {
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  /* ضمان ظهور جميع النصوص */
+  * {
+    overflow: visible !important;
+  }
+}
+
+/* دعم الشاشات الصغيرة */
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+  
+  .invoice {
+    padding: 1rem;
+  }
+  
+  .parties {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .totals {
+    width: 100%;
+  }
+  
+  .invoice-table {
+    font-size: 0.75rem;
+  }
+  
+  .invoice-table th,
+  .invoice-table td {
+    padding: 0.4rem 0.2rem;
   }
 }
