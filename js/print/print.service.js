@@ -1,287 +1,225 @@
-export async function printInvoice(element) {
+// pdf.service.js - نسخة محسنة بالكامل مع معالجة اقتصاص المحتوى
+import { getBaseUrl } from './print.service.js';
+
+export async function generatePDF(element, order) {
   if (!element) {
     console.error('❌ عنصر الفاتورة غير موجود');
     return;
   }
 
-  // الحصول على HTML الكامل للعنصر
-  const invoiceHTML = element.outerHTML;
-  
-  // جمع جميع الأنماط من الصفحة مع معالجة المسارات
-  let stylesHTML = '';
-  const styleNodes = document.querySelectorAll('link[rel="stylesheet"], style');
-  
-  styleNodes.forEach(style => {
-    if (style.tagName === 'LINK' && style.href) {
-      // معالجة المسار وتحويله إلى مطلق
-      const absolutePath = getAbsolutePath(style.href);
-      stylesHTML += `<link rel="stylesheet" href="${absolutePath}" media="print">\n`;
-    } else if (style.tagName === 'STYLE') {
-      stylesHTML += `<style>${style.innerHTML}</style>\n`;
+  // إظهار مؤشر التحميل
+  showLoadingOverlay('جاري تحضير ملف PDF...');
+
+  try {
+    // انتظار استقرار المحتوى
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // إنشاء نسخة من العنصر للعمل عليها
+    const cloneElement = await prepareCloneElement(element, order);
+    
+    // إضافة العنصر إلى الصفحة مؤقتاً
+    document.body.appendChild(cloneElement);
+    
+    // انتظار تحميل الصور والخطوط
+    await waitForImages(cloneElement);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // حساب الأبعاد الحقيقية للعنصر
+    const originalWidth = cloneElement.scrollWidth;
+    const originalHeight = cloneElement.scrollHeight;
+    
+    // حساب أبعاد صفحة A4 بالبكسل (عند دقة 300 DPI)
+    const A4_WIDTH_MM = 210;
+    const A4_HEIGHT_MM = 297;
+    const DPI = 300;
+    const PX_PER_MM = DPI / 25.4;
+    
+    const pdfWidth = A4_WIDTH_MM * PX_PER_MM;
+    const pdfHeight = A4_HEIGHT_MM * PX_PER_MM;
+    
+    // حساب مقياس التحويل
+    const scale = Math.min(pdfWidth / originalWidth, pdfHeight / originalHeight) * 0.95;
+    
+    // إنشاء canvas بجودة عالية
+    const canvas = await html2canvas(cloneElement, {
+      scale: Math.max(3, scale * 2),
+      backgroundColor: '#ffffff',
+      logging: false,
+      useCORS: true,
+      allowTaint: false,
+      windowWidth: originalWidth,
+      windowHeight: originalHeight,
+      onclone: (clonedDoc, element) => {
+        // التأكد من تطبيق جميع الأنماط
+        const clonedInvoice = clonedDoc.querySelector('.invoice-wrapper, .invoice');
+        if (clonedInvoice) {
+          clonedInvoice.style.margin = '0';
+          clonedInvoice.style.padding = '20px';
+        }
+      }
+    });
+    
+    // إزالة العنصر المؤقت
+    cloneElement.remove();
+    
+    // إنشاء PDF باستخدام jsPDF
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    // حساب الإحداثيات لتوسيط المحتوى
+    const imgWidth = A4_WIDTH_MM;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // تحويل canvas إلى صورة
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    
+    // إضافة الصورة إلى PDF
+    let heightLeft = imgHeight;
+    let position = 0;
+    
+    // إضافة الصفحة الأولى
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= (A4_HEIGHT_MM - 10);
+    
+    // إضافة صفحات إضافية إذا كان المحتوى أطول من صفحة واحدة
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= (A4_HEIGHT_MM - 10);
     }
-  });
-
-  // أنماط إضافية لضمان عدم اقتصاص المحتوى
-  const extraStyles = `
-    <style>
-      /* إعادة تعيين الهوامش الأساسية */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      
-      /* إعدادات صفحة الطباعة */
-      @page {
-        size: A4;
-        margin: 0.3cm;
-      }
-      
-      /* تنسيق الجسم */
-      body {
-        margin: 0;
-        padding: 0.2in;
-        background: white;
-        direction: rtl;
-        font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-      }
-      
-      /* حاوية الفاتورة */
-      .invoice-wrapper,
-      .invoice-container,
-      .invoice {
-        margin: 0 auto !important;
-        padding: 0 !important;
-        max-width: 100% !important;
-        width: 100% !important;
-        box-shadow: none !important;
-        background: white !important;
-      }
-      
-      /* منع كسر الصفحات داخل العناصر المهمة */
-      .invoice-header,
-      .parties,
-      .payment-shipping,
-      .date-time-box,
-      .invoice-table,
-      .totals,
-      .contact,
-      .thanks,
-      .from,
-      .to {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      
-      /* منع كسر الصفوف في الجدول */
-      .invoice-table tr {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      
-      /* تنسيق الجدول */
-      .invoice-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 15px;
-      }
-      
-      .invoice-table th,
-      .invoice-table td {
-        border: 1px solid #ccc;
-        padding: 8px 4px;
-        text-align: center;
-        font-size: 12px;
-      }
-      
-      .invoice-table th {
-        background: #f0f0f0 !important;
-        color: black !important;
-        font-weight: bold;
-      }
-      
-      /* تنسيق الإجماليات */
-      .totals {
-        background: #f8f8f8 !important;
-        padding: 10px 15px;
-        border-radius: 8px;
-        width: 280px;
-        margin-right: auto;
-        margin-left: 0;
-        border: 1px solid #ddd;
-      }
-      
-      .totals .grand {
-        font-weight: bold;
-        border-top: 1px solid #ccc;
-        margin-top: 5px;
-        padding-top: 5px;
-      }
-      
-      /* إخفاء الأزرار */
-      .buttons,
-      .no-print,
-      button {
-        display: none !important;
-      }
-      
-      /* منع اقتصاص المحتوى */
-      .invoice-content {
-        overflow: visible !important;
-        width: 100% !important;
-      }
-      
-      /* ضمان ظهور جميع النصوص */
-      * {
-        overflow: visible !important;
-      }
-      
-      /* الألوان في الطباعة */
-      * {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        color-adjust: exact;
-      }
-    </style>
-  `;
-
-  // فتح نافذة الطباعة
-  const printWindow = window.open('', '_blank', 'width=900,height=700,toolbar=yes,scrollbars=yes,resizable=yes');
-  
-  if (!printWindow) {
-    alert('⚠️ يرجى السماح بفتح النوافذ المنبثقة لتتمكن من الطباعة');
-    return;
+    
+    // حفظ الملف
+    const fileName = generateFileName(order, 'pdf');
+    pdf.save(fileName);
+    
+    // إخفاء مؤشر التحميل
+    hideLoadingOverlay();
+    
+  } catch (error) {
+    console.error('❌ خطأ في إنشاء PDF:', error);
+    hideLoadingOverlay();
+    alert('حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
+    throw error;
   }
+}
 
-  // كتابة المحتوى في النافذة الجديدة
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html dir="rtl">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>فاتورة - طباعة</title>
-      ${stylesHTML}
-      ${extraStyles}
-      <base href="${getBaseUrl()}" target="_blank">
-    </head>
-    <body>
-      <div style="max-width: 1100px; margin: 0 auto; background: white;">
-        ${invoiceHTML}
-      </div>
-      <script>
-        // تأكيد تحميل جميع الصور والخطوط قبل الطباعة
-        window.onload = function() {
-          setTimeout(function() {
-            window.focus();
-            window.print();
-            window.onafterprint = function() {
-              window.close();
-            };
-          }, 800);
-        };
-        
-        setTimeout(function() {
-          if (!window.printed) {
-            window.print();
-            window.onafterprint = function() {
-              window.close();
-            };
+/**
+ * تحضير نسخة من العنصر للطباعة
+ */
+async function prepareCloneElement(element, order) {
+  const clone = element.cloneNode(true);
+  
+  // إضافة أنماط إضافية لضمان عدم الاقتصاص
+  clone.style.position = 'absolute';
+  clone.style.top = '-9999px';
+  clone.style.left = '-9999px';
+  clone.style.width = 'auto';
+  clone.style.minWidth = '800px';
+  clone.style.maxWidth = '1100px';
+  clone.style.margin = '0';
+  clone.style.padding = '20px';
+  clone.style.backgroundColor = '#ffffff';
+  clone.style.direction = 'rtl';
+  
+  // إضافة أنماط مضمونة للجدول
+  const tables = clone.querySelectorAll('.invoice-table');
+  tables.forEach(table => {
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+  });
+  
+  const cells = clone.querySelectorAll('.invoice-table td, .invoice-table th');
+  cells.forEach(cell => {
+    cell.style.border = '1px solid #ddd';
+    cell.style.padding = '8px';
+    cell.style.textAlign = 'center';
+  });
+  
+  return clone;
+}
+
+/**
+ * انتظار تحميل جميع الصور داخل العنصر
+ */
+async function waitForImages(element) {
+  const images = element.querySelectorAll('img');
+  const promises = Array.from(images).map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => {
+      img.onload = resolve;
+      img.onerror = resolve;
+    });
+  });
+  await Promise.all(promises);
+}
+
+/**
+ * عرض مؤشر التحميل
+ */
+function showLoadingOverlay(message = 'جاري التحميل...') {
+  let overlay = document.getElementById('pdf-loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'pdf-loading-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      direction: rtl;
+    `;
+    overlay.innerHTML = `
+      <div style="background: white; padding: 30px; border-radius: 15px; text-align: center;">
+        <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
+        <p id="loading-message" style="font-size: 16px; color: #333;">${message}</p>
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
-        }, 1500);
-      <\/script>
-    </body>
-    </html>
-  `);
-  
-  printWindow.document.close();
-  printWindow.focus();
+        </style>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  } else {
+    const msgEl = overlay.querySelector('#loading-message');
+    if (msgEl) msgEl.innerText = message;
+    overlay.style.display = 'flex';
+  }
 }
 
 /**
- * تحويل المسار النسبي إلى مسار مطلق
- * @param {string} path - المسار النسبي أو المطلق
- * @returns {string} - المسار المطلق
+ * إخفاء مؤشر التحميل
  */
-function getAbsolutePath(path) {
-  if (!path) return '';
-  
-  // إذا كان المسار مطلقاً بالفعل
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('//')) {
-    return path;
+function hideLoadingOverlay() {
+  const overlay = document.getElementById('pdf-loading-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
   }
-  
-  // إذا كان المسار يبدأ بـ data: أو blob:
-  if (path.startsWith('data:') || path.startsWith('blob:')) {
-    return path;
-  }
-  
-  // الحصول على المسار الأساسي للصفحة الحالية
-  const baseUrl = getBaseUrl();
-  
-  // إزالة ./ من بداية المسار
-  let cleanPath = path;
-  if (cleanPath.startsWith('./')) {
-    cleanPath = cleanPath.substring(2);
-  }
-  
-  // التعامل مع المسارات النسبية المتعددة ../
-  let relativePath = cleanPath;
-  let basePath = baseUrl;
-  
-  while (relativePath.startsWith('../')) {
-    // إزالة ../ من المسار
-    relativePath = relativePath.substring(3);
-    // إزالة المجلد الأخير من المسار الأساسي
-    const lastSlashIndex = basePath.lastIndexOf('/', basePath.length - 2);
-    if (lastSlashIndex > 0) {
-      basePath = basePath.substring(0, lastSlashIndex + 1);
-    }
-  }
-  
-  // دمج المسار الأساسي مع المسار النظيف
-  let absolutePath = basePath + relativePath;
-  
-  // تنظيف المسار من // المتكررة
-  absolutePath = absolutePath.replace(/([^:]\/)\/+/g, '$1');
-  
-  return absolutePath;
 }
 
 /**
- * الحصول على المسار الأساسي للصفحة الحالية
- * @returns {string} - المسار الأساسي (مثل: http://localhost:5500/fi-khidmatik/)
+ * توليد اسم الملف
  */
-function getBaseUrl() {
-  const currentUrl = window.location.href;
-  const lastSlashIndex = currentUrl.lastIndexOf('/');
-  let baseUrl = currentUrl.substring(0, lastSlashIndex + 1);
-  
-  // التأكد من أن المسار ينتهي بـ /
-  if (!baseUrl.endsWith('/')) {
-    baseUrl += '/';
-  }
-  
-  return baseUrl;
+function generateFileName(order, ext) {
+  const customerName = (order.customer?.name || 'عميل')
+    .replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')
+    .substring(0, 30);
+  const orderNum = (order.orderNumber || order.id || 'بدون_رقم')
+    .replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
+  const date = order.orderDate
+    ? new Date(order.orderDate).toISOString().slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
+  return `فاتورة_${customerName}_${orderNum}_${date}.${ext}`;
 }
-
-/**
- * دالة مساعدة للحصول على جميع مسارات CSS المستخدمة في الصفحة
- * يمكن استخدامها للتحقق من صحة المسارات
- */
-function getAllCSSPaths() {
-  const links = document.querySelectorAll('link[rel="stylesheet"]');
-  const paths = [];
-  links.forEach(link => {
-    if (link.href) {
-      paths.push({
-        original: link.href,
-        absolute: getAbsolutePath(link.href)
-      });
-    }
-  });
-  return paths;
-}
-
-// تصدير دوال إضافية للاستخدام في التصحيح
-export { getAbsolutePath, getBaseUrl, getAllCSSPaths };
