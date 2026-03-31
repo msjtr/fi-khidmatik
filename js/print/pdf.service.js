@@ -1,38 +1,43 @@
-export function generatePDF(element) {
+export async function generatePDF(element, order) {
 
-    const win = window.open('', '_blank');
+    const { jsPDF } = window.jspdf;
 
-    win.document.write(`
-    <html dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <title>فاتورة</title>
+    const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4'
+    });
 
-        <link rel="stylesheet" href="/css/design.css">
-        <link rel="stylesheet" href="/css/print.css">
+    // 👇 نحسب المقاسات الصح
+    const pageWidth = 210;
+    const pageHeight = 297;
 
-        <style>
-            @page {
-                size: A4;
-                margin: 10mm;
-            }
+    const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        scrollY: -window.scrollY
+    });
 
-            body {
-                margin: 0;
-            }
-        </style>
-    </head>
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
 
-    <body>
-        ${element.outerHTML}
-    </body>
-    </html>
-    `);
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    win.document.close();
+    let heightLeft = imgHeight;
+    let position = 0;
 
-    win.onload = () => {
-        win.focus();
-        win.print();
-    };
+    // 🔥 تقسيم احترافي بدون قص
+    while (heightLeft > 0) {
+
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+
+        heightLeft -= pageHeight;
+
+        if (heightLeft > 0) {
+            pdf.addPage();
+            position -= pageHeight;
+        }
+    }
+
+    pdf.save(`invoice_${order?.orderNumber || 'file'}.pdf`);
 }
