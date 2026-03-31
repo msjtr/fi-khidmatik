@@ -1,21 +1,102 @@
+/* =========================
+   🖨️ نسخة الطباعة الاحترافية
+========================= */
+
 @media print {
 
     @page {
         size: A4;
-        margin: 10mm;
+        margin: 8mm;
     }
 
-    body {
+    html, body {
         width: 210mm;
+        background: #fff !important;
+        font-size: 12px;
     }
 
+    /* 🔥 تصغير عام */
+    body {
+        zoom: 0.80;
+    }
+
+    /* 🔥 الفاتورة */
     .invoice {
+        width: 100% !important;
+        padding: 5px !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+
+    /* 🔥 الشعار */
+    .logo-center img {
+        max-height: 110px !important;
+        margin-bottom: 10px;
+    }
+
+    /* 🔥 الهيدر */
+    .invoice-header {
+        margin-bottom: 10px !important;
+    }
+
+    /* 🔥 الكروت */
+    .invoice-parties {
+        gap: 10px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .invoice-from,
+    .invoice-to {
+        padding: 10px !important;
+        font-size: 11px;
+    }
+
+    /* 🔥 الجدول */
+    .products-table th,
+    .products-table td {
+        padding: 6px !important;
+        font-size: 11px;
+    }
+
+    /* 🔥 الإجماليات */
+    .totals-wrapper {
+        padding: 10px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .grand-total h2 {
+        font-size: 16px !important;
+    }
+
+    /* 🔥 الفوتر */
+    .contact-bar {
+        padding: 8px !important;
+        font-size: 11px;
+    }
+
+    .thanks {
+        font-size: 11px;
+        margin-top: 5px;
+    }
+
+    /* 🔥 منع التقطيع */
+    .invoice,
+    .invoice-content,
+    .invoice-parties,
+    .totals-wrapper,
+    .contact-bar {
         page-break-inside: avoid;
     }
 
-    .totals-wrapper,
-    .contact-bar,
-    .thanks {
-        page-break-inside: avoid;
+    /* 🔥 إخفاء الأزرار */
+    .buttons {
+        display: none !important;
+    }
+
+    /* 🔥 الألوان */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 }
