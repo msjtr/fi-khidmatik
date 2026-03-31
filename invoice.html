@@ -8,24 +8,40 @@
     <link rel="stylesheet" href="./css/print.css" media="print">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* ضمان ظهور الفاتورة بالكامل */
+        .invoice {
+            background: white;
+        }
+        /* رسالة خطأ مؤقتة */
+        .error-message {
+            color: red;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 <div class="invoice-container">
     <div class="invoice">
-        <div class="invoice-content" id="invoiceContent"></div>
+        <div class="invoice-content" id="invoiceContent">
+            <div class="error-message">جاري تحميل الفاتورة...</div>
+        </div>
         <div class="buttons no-print">
-            <button class="btn-print" onclick="handlePrint()">🖨️ طباعة</button>
-            <button class="btn-pdf" onclick="handlePDF()">📄 PDF</button>
-            <button class="btn-png" onclick="handleImage()">🖼️ صورة</button>
+            <button class="btn-print" id="printBtn">🖨️ طباعة</button>
+            <button class="btn-pdf" id="pdfBtn">📄 PDF</button>
+            <button class="btn-png" id="imageBtn">🖼️ صورة</button>
         </div>
     </div>
 </div>
+
 <script type="module">
     import { buildInvoiceHTML } from './js/print/template.js';
     import { printInvoice } from './js/print/print.service.js';
     import { generatePDF } from './js/print/pdf.service.js';
     import { generateImage } from './js/print/image.service.js';
 
+    // بيانات الطلب
     const order = {
         id: "KF-2603290287",
         orderNumber: "KF-2603290287",
@@ -42,28 +58,111 @@
             address: "المملكة العربية السعودية"
         },
         items: [
-            { name: "منتج تجريبي", barcode: "PRD-001", description: "وصف المنتج", price: 1.00, quantity: 1 }
+            { 
+                name: "منتج تجريبي", 
+                barcode: "PRD-001", 
+                description: "وصف المنتج", 
+                price: 1.00, 
+                quantity: 1 
+            }
         ]
     };
 
+    // بناء صفوف المنتجات (7 أعمدة متطابقة مع template.js)
     const cartRows = order.items.map(item => `
-        <tr><td>${item.name}</td><td>${item.barcode}</td><td>${item.description}</td>
-        <td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>0</td><td>${(item.price * item.quantity).toFixed(2)}</td></tr>
+         <tr>
+             <td>${escapeHtml(item.name)}</td>
+             <td>${escapeHtml(item.barcode || '-')}</td>
+             <td>${escapeHtml(item.description || '-')}</td>
+             <td>${item.quantity}</td>
+             <td>${item.price.toFixed(2)}</td>
+             <td>0</td>
+             <td>${(item.price * item.quantity).toFixed(2)}</td>
+         </tr>
     `).join('');
-    const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+    // حساب الإجماليات
+    const subtotal = order.items.reduce((s, i) => s + (i.price * i.quantity), 0);
     const tax = subtotal * 0.15;
+    const total = subtotal + tax;
+
     const totals = {
         subtotal: subtotal.toFixed(2) + ' ريال',
         discount: '0 ريال',
         tax: tax.toFixed(2) + ' ريال',
-        total: (subtotal + tax).toFixed(2) + ' ريال'
+        total: total.toFixed(2) + ' ريال'
     };
-    document.getElementById('invoiceContent').innerHTML = buildInvoiceHTML(order, cartRows, totals);
-    document.title = `فاتورة - ${order.orderNumber}`;
 
-    window.handlePrint = async () => await printInvoice(document.querySelector('.invoice'));
-    window.handlePDF = async () => await generatePDF(document.querySelector('.invoice'), order);
-    window.handleImage = async () => await generateImage(document.querySelector('.invoice'), order);
+    // عرض الفاتورة
+    const invoiceContent = document.getElementById('invoiceContent');
+    try {
+        invoiceContent.innerHTML = buildInvoiceHTML(order, cartRows, totals);
+        document.title = `فاتورة - ${order.orderNumber}`;
+    } catch (error) {
+        console.error('خطأ في بناء الفاتورة:', error);
+        invoiceContent.innerHTML = '<div class="error-message">❌ حدث خطأ في عرض الفاتورة</div>';
+    }
+
+    // دالة مساعدة لتأمين النصوص
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // الحصول على عنصر الفاتورة
+    const invoiceElement = document.querySelector('.invoice');
+
+    // دوال الطباعة مع معالجة الأخطاء
+    window.handlePrint = async () => {
+        if (!invoiceElement) {
+            alert('عذراً، عنصر الفاتورة غير موجود');
+            return;
+        }
+        try {
+            await printInvoice(invoiceElement);
+        } catch (error) {
+            console.error('خطأ في الطباعة:', error);
+            alert('حدث خطأ أثناء الطباعة');
+        }
+    };
+
+    window.handlePDF = async () => {
+        if (!invoiceElement) {
+            alert('عذراً، عنصر الفاتورة غير موجود');
+            return;
+        }
+        try {
+            await generatePDF(invoiceElement, order);
+        } catch (error) {
+            console.error('خطأ في تصدير PDF:', error);
+            alert('حدث خطأ أثناء تصدير PDF');
+        }
+    };
+
+    window.handleImage = async () => {
+        if (!invoiceElement) {
+            alert('عذراً، عنصر الفاتورة غير موجود');
+            return;
+        }
+        try {
+            await generateImage(invoiceElement, order);
+        } catch (error) {
+            console.error('خطأ في تصدير الصورة:', error);
+            alert('حدث خطأ أثناء تصدير الصورة');
+        }
+    };
+
+    // ربط الأزرار (بديل عن onclick المباشر)
+    document.getElementById('printBtn')?.addEventListener('click', window.handlePrint);
+    document.getElementById('pdfBtn')?.addEventListener('click', window.handlePDF);
+    document.getElementById('imageBtn')?.addEventListener('click', window.handleImage);
+
+    console.log('✅ تم تحميل الفاتورة بنجاح');
 </script>
 </body>
 </html>
