@@ -1,33 +1,14 @@
-// js/print/pdf.service.js
-
-// تحميل المكتبات مباشرة
-const script1 = document.createElement('script');
-script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-document.head.appendChild(script1);
-
-const script2 = document.createElement('script');
-script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-document.head.appendChild(script2);
-
-// انتظار تحميل المكتبات
-function waitForLibraries() {
-    return new Promise((resolve) => {
-        const checkInterval = setInterval(() => {
-            if (window.html2canvas && window.jspdf) {
-                clearInterval(checkInterval);
-                resolve();
-            }
-        }, 100);
-    });
-}
+// fi-khidmatik/js/print/pdf.service.js
 
 /**
  * إنشاء PDF من عنصر HTML
+ * @param {string} elementId - id العنصر المراد تحويله
+ * @param {string} filename - اسم الملف
  */
 export async function generatePDF(elementId, filename = 'document.pdf') {
     try {
-        // انتظار تحميل المكتبات
-        await waitForLibraries();
+        // إظهار رسالة انتظار
+        showLoadingMessage('جاري تجهيز PDF...');
         
         // الحصول على العنصر
         const element = document.getElementById(elementId);
@@ -35,19 +16,40 @@ export async function generatePDF(elementId, filename = 'document.pdf') {
             throw new Error('العنصر غير موجود: ' + elementId);
         }
         
-        // إظهار رسالة للمستخدم
-        showLoadingMessage('جاري إنشاء PDF...');
+        // نسخ محتوى العنصر للحفاظ على التنسيق
+        const originalContent = element.cloneNode(true);
         
-        // تحويل العنصر إلى صورة
-        const canvas = await window.html2canvas(element, {
+        // إضافة تنسيقات إضافية للطباعة
+        originalContent.style.padding = '20px';
+        originalContent.style.backgroundColor = '#ffffff';
+        originalContent.style.width = '100%';
+        
+        // إنشاء حاوية مؤقتة
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.appendChild(originalContent);
+        document.body.appendChild(tempContainer);
+        
+        // انتظار تحميل الصور
+        await waitForImages(tempContainer);
+        
+        // استخدام html2canvas
+        const canvas = await html2canvas(tempContainer, {
             scale: 2,
             backgroundColor: '#ffffff',
             logging: false,
             useCORS: true
         });
         
-        // تحويل الصورة إلى PDF
+        // إزالة الحاوية المؤقتة
+        document.body.removeChild(tempContainer);
+        
+        // تحويل canvas إلى PDF
         const imgData = canvas.toDataURL('image/png');
+        
+        // إنشاء PDF
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
             orientation: 'portrait',
@@ -63,65 +65,93 @@ export async function generatePDF(elementId, filename = 'document.pdf') {
         // إضافة الصورة إلى PDF
         let heightLeft = imgHeight;
         let position = 0;
+        let pageNum = 1;
         
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
         
-        // إضافة صفحات إضافية إذا لزم الأمر
         while (heightLeft > 0) {
             position = heightLeft - imgHeight;
             pdf.addPage();
             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pdfHeight;
+            pageNum++;
         }
         
         // حفظ الملف
         pdf.save(filename);
         
-        // إخفاء رسالة التحميل
+        // إخفاء رسالة الانتظار
         hideLoadingMessage();
         
+        console.log('تم إنشاء PDF بنجاح، عدد الصفحات: ' + pageNum);
         return true;
         
     } catch (error) {
         console.error('خطأ في إنشاء PDF:', error);
         hideLoadingMessage();
         alert('حدث خطأ: ' + error.message);
-        throw error;
+        return false;
     }
 }
 
-// دالة لإظهار رسالة التحميل
+/**
+ * انتظار تحميل جميع الصور
+ */
+function waitForImages(container) {
+    const images = container.querySelectorAll('img');
+    const promises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+        });
+    });
+    return Promise.all(promises);
+}
+
+/**
+ * إظهار رسالة تحميل
+ */
 function showLoadingMessage(message) {
-    let loadingDiv = document.getElementById('pdf-loading');
+    let loadingDiv = document.getElementById('pdf-loading-message');
     if (!loadingDiv) {
         loadingDiv = document.createElement('div');
-        loadingDiv.id = 'pdf-loading';
+        loadingDiv.id = 'pdf-loading-message';
         loadingDiv.style.cssText = `
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 9999;
+            padding: 20px 30px;
+            border-radius: 12px;
+            z-index: 10000;
             font-family: Arial, sans-serif;
+            font-size: 16px;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            direction: rtl;
         `;
         document.body.appendChild(loadingDiv);
     }
-    loadingDiv.innerHTML = message + '<br><div style="margin-top:10px;">⏳</div>';
+    loadingDiv.innerHTML = `
+        <div style="margin-bottom: 10px;">${message}</div>
+        <div style="font-size: 24px;">⏳</div>
+    `;
     loadingDiv.style.display = 'block';
 }
 
-// دالة لإخفاء رسالة التحميل
+/**
+ * إخفاء رسالة التحميل
+ */
 function hideLoadingMessage() {
-    const loadingDiv = document.getElementById('pdf-loading');
+    const loadingDiv = document.getElementById('pdf-loading-message');
     if (loadingDiv) {
         loadingDiv.style.display = 'none';
     }
 }
 
+// تصدير افتراضي
 export default { generatePDF };
