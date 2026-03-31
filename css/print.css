@@ -1,4 +1,4 @@
-/* print.css - تحسين الطباعة */
+/* print.css */
 @media print {
   body {
     background: white;
@@ -9,9 +9,11 @@
     margin: 0;
     padding: 0;
     box-shadow: none;
+    max-width: 100%;
   }
   .invoice {
     padding: 0.2in;
+    margin: 0;
   }
   .buttons {
     display: none !important;
@@ -22,8 +24,20 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .from, .to, .payment-shipping, .totals, .contact {
+  .from, .to, .payment-shipping-date, .totals, .contact {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+  /* منع القص */
+  .invoice-content {
+    width: 100%;
+    overflow: visible;
+  }
+  table {
+    page-break-inside: avoid;
+  }
+  /* تحسين الهوامش */
+  @page {
+    margin: 0.5cm;
   }
 }
