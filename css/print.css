@@ -1,46 +1,29 @@
-/* print.css */
+/* print.css - تحسين الطباعة */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  
-  .invoice-print, .invoice-print * {
-    visibility: visible;
-  }
-  
-  .invoice-print {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
+  body {
+    background: white;
     margin: 0;
-    padding: 0.5cm;
+    padding: 0;
+  }
+  .invoice-container {
+    margin: 0;
+    padding: 0;
     box-shadow: none;
   }
-  
-  /* ضمان ظهور الألوان والخلفيات في الطباعة */
-  .invoice-from, .invoice-to, .payment-shipping, .totals-wrapper, .contact-bar {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
+  .invoice {
+    padding: 0.2in;
   }
-  
-  /* ضمان ظهور الشعار في الطباعة */
-  .company-logo {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-  
-  .no-print {
+  .buttons {
     display: none !important;
   }
-  
-  /* تحسين عرض الجدول في الطباعة */
-  .products-table {
-    page-break-inside: avoid;
+  .invoice-table th {
+    background: #ccc !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  
-  .products-table th {
-    background-color: #1e3a8a !important;
-    color: white !important;
+  .from, .to, .payment-shipping, .totals, .contact {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
