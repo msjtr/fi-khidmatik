@@ -1,24 +1,48 @@
-/* دعم الطباعة - إضافات مهمة */
+/* css/print.css */
 @media print {
-  body {
-    background: white;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .invoice-container {
-    box-shadow: none;
-    border: none;
-  }
-  
-  .invoice {
-    padding: 0;
-  }
-  
-  /* منع ظهور الخلفيات الملونة إن أمكن */
-  .from, .to, .payment-shipping, .date-time-box, .totals {
-    background-color: #f8f8f8 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
+    body {
+        background: white;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .invoice-container {
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .invoice {
+        padding: 0;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+    
+    .buttons {
+        display: none !important;
+    }
+    
+    .products-table th {
+        background: #1e3a8a !important;
+        color: white !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    .from-box, .to-box {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    .payment-badge, .tax-badge {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    @page {
+        size: A4;
+        margin: 1.5cm;
+    }
 }
