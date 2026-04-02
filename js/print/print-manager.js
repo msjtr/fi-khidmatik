@@ -6,6 +6,19 @@ import { generatePDF } from './pdf.service.js';
 import { generateImage } from './image.service.js';
 
 /**
+ * دالة لتأمين النصوص ومنع تنفيذ الأكواد الخبيثة
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
  * إنشاء عنصر مؤقت للفاتورة
  */
 function createTempElement(order, cartRows, totals) {
@@ -33,7 +46,7 @@ function prepareData(order) {
             <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)}</td>
             <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">0</td>
             <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;"><strong>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</strong></td>
-        </tr>
+         </tr>
     `).join('');
     
     const subtotal = order.items.reduce((s, i) => s + (i.price || 0) * (i.quantity || 0), 0);
@@ -56,16 +69,6 @@ function prepareData(order) {
     };
     
     return { cartRows, totals };
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
 }
 
 export async function printInvoiceHandler(order) {
