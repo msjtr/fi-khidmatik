@@ -12,20 +12,22 @@ export async function generateImage(element, order) {
         const originalElement = element.cloneNode(true);
         originalElement.style.padding = '20px';
         originalElement.style.backgroundColor = '#ffffff';
+        originalElement.style.margin = '0 auto';
+        originalElement.style.boxSizing = 'border-box';
+        originalElement.style.width = '100%';
+        originalElement.style.maxWidth = '1100px';
         
         // تحويل جميع الصور إلى Base64 لضمان ظهورها في الصورة
         const images = originalElement.querySelectorAll('img');
         for (const img of images) {
             if (img.src) {
                 try {
-                    // محاولة تحويل الصورة إلى Base64
                     const base64 = await convertImageToBase64(img.src);
                     if (base64) {
                         img.src = base64;
                     }
                 } catch (error) {
                     console.warn('فشل تحويل الصورة إلى Base64:', img.src, error);
-                    // في حالة فشل تحميل الشعار، استخدم الصورة الاحتياطية
                     if (img.src.includes('logo.svg') || img.src.includes('/images/')) {
                         const fallbackLogo = getFallbackLogo();
                         img.src = fallbackLogo;
@@ -40,19 +42,30 @@ export async function generateImage(element, order) {
         tempContainer.style.position = 'absolute';
         tempContainer.style.left = '-9999px';
         tempContainer.style.top = '0';
+        tempContainer.style.width = '1100px'; // عرض ثابت للحفاظ على التنسيق
+        tempContainer.style.backgroundColor = '#ffffff';
         tempContainer.appendChild(originalElement);
         document.body.appendChild(tempContainer);
         
+        // انتظار تحميل جميع الصور
         await waitForImages(tempContainer);
         
+        // انتظار إضافي لضمان اكتمال التحميل
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // حساب الأبعاد المناسبة
+        const containerWidth = tempContainer.offsetWidth;
+        const containerHeight = tempContainer.offsetHeight;
+        
         const canvas = await html2canvas(tempContainer, {
-            scale: 3,
+            scale: 3, // دقة عالية للصورة
             backgroundColor: '#ffffff',
             useCORS: true,
             allowTaint: false,
             logging: false,
+            windowWidth: containerWidth,
+            windowHeight: containerHeight,
             onclone: (clonedDoc, element) => {
-                // إصلاح أي مشاكل في SVG في النسخة المستنسخة
                 const clonedImages = element.querySelectorAll('img');
                 clonedImages.forEach(img => {
                     if (img.src && img.src.includes('data:image/svg')) {
@@ -66,16 +79,17 @@ export async function generateImage(element, order) {
         
         document.body.removeChild(tempContainer);
         
-        // حفظ الصورة
+        // حفظ الصورة بدقة عالية
         const fileName = `فاتورة_${order.orderNumber}_${new Date().toISOString().slice(0, 10)}.png`;
         const link = document.createElement('a');
         link.download = fileName;
-        link.href = canvas.toDataURL('image/png');
+        
+        // استخدام PNG عالي الجودة
+        const imageData = canvas.toDataURL('image/png');
+        link.href = imageData;
         link.click();
         
         hideLoadingMessage();
-        
-        // عرض رسالة نجاح
         showSuccessMessage('تم حفظ الصورة بنجاح');
         
         return true;
@@ -89,11 +103,10 @@ export async function generateImage(element, order) {
 }
 
 /**
- * تحويل الصورة إلى Base64
+ * تحويل الصورة إلى Base64 مع تحسين للصور الكبيرة
  */
 async function convertImageToBase64(url) {
     return new Promise((resolve, reject) => {
-        // إذا كانت الصورة بالفعل Base64
         if (url.startsWith('data:')) {
             resolve(url);
             return;
@@ -102,13 +115,30 @@ async function convertImageToBase64(url) {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
         
+        const timeout = setTimeout(() => {
+            reject(new Error('انتهى وقت تحميل الصورة'));
+        }, 10000);
+        
         img.onload = () => {
+            clearTimeout(timeout);
             try {
+                // الحفاظ على جودة الصورة الأصلية
+                let width = img.width;
+                let height = img.height;
+                
+                // تقليل الحجم فقط إذا كانت الصورة كبيرة جداً (أكثر من 1000px)
+                const maxSize = 1000;
+                if (width > maxSize || height > maxSize) {
+                    const ratio = Math.min(maxSize / width, maxSize / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                }
+                
                 const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
+                canvas.width = width;
+                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
+                ctx.drawImage(img, 0, 0, width, height);
                 const base64 = canvas.toDataURL('image/png');
                 resolve(base64);
             } catch (error) {
@@ -117,6 +147,7 @@ async function convertImageToBase64(url) {
         };
         
         img.onerror = () => {
+            clearTimeout(timeout);
             reject(new Error(`فشل تحميل الصورة: ${url}`));
         };
         
@@ -132,7 +163,7 @@ function getFallbackLogo() {
 }
 
 /**
- * انتظار تحميل جميع الصور بشكل صحيح
+ * انتظار تحميل جميع الصور بشكل صحيح مع مهلة زمنية
  */
 async function waitForImages(container) {
     const images = container.querySelectorAll('img');
@@ -146,7 +177,7 @@ async function waitForImages(container) {
             const timeout = setTimeout(() => {
                 console.warn('انتهاء وقت تحميل الصورة:', img.src);
                 resolve();
-            }, 5000);
+            }, 8000);
             
             img.onload = () => {
                 clearTimeout(timeout);
@@ -165,7 +196,7 @@ async function waitForImages(container) {
 }
 
 /**
- * عرض رسالة التحميل
+ * عرض رسالة التحميل مع مؤشر متحرك
  */
 function showLoadingMessage(message) {
     let loadingDiv = document.getElementById('image-loading-message');
@@ -187,11 +218,36 @@ function showLoadingMessage(message) {
             text-align: center;
             direction: rtl;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            min-width: 200px;
+            min-width: 250px;
         `;
         document.body.appendChild(loadingDiv);
     }
-    loadingDiv.innerHTML = `${message}<br><div style="margin-top:10px; font-size: 24px;">🖼️</div>`;
+    
+    // إضافة مؤشر تحميل متحرك
+    loadingDiv.innerHTML = `${message}<br><div style="margin-top:15px;"><div class="image-spinner"></div></div>`;
+    
+    // إضافة أنماط الـ spinner إذا لم تكن موجودة
+    if (!document.querySelector('#image-spinner-style')) {
+        const style = document.createElement('style');
+        style.id = 'image-spinner-style';
+        style.textContent = `
+            .image-spinner {
+                width: 40px;
+                height: 40px;
+                border: 3px solid #f3f3f3;
+                border-top: 3px solid #10b981;
+                border-radius: 50%;
+                animation: image-spin 0.8s linear infinite;
+                margin: 0 auto;
+            }
+            @keyframes image-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
     loadingDiv.style.display = 'block';
 }
 
@@ -206,7 +262,7 @@ function hideLoadingMessage() {
 }
 
 /**
- * عرض رسالة نجاح مؤقتة
+ * عرض رسالة نجاح مؤقتة مع تأثير حركي
  */
 function showSuccessMessage(message) {
     const successDiv = document.createElement('div');
@@ -216,21 +272,42 @@ function showSuccessMessage(message) {
         right: 20px;
         background: #10b981;
         color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
+        padding: 14px 24px;
+        border-radius: 12px;
         z-index: 10001;
         font-family: Arial, sans-serif;
         font-size: 14px;
         text-align: center;
         direction: rtl;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        animation: fadeInOut 3s ease-in-out;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     `;
-    successDiv.innerHTML = `✅ ${message}`;
+    successDiv.innerHTML = `<span style="font-size: 18px;">✅</span> ${message}`;
     document.body.appendChild(successDiv);
     
+    // إضافة أنماط الحركة إذا لم تكن موجودة
+    if (!document.querySelector('#animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'animation-style';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { opacity: 0; transform: translateX(50px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes fadeOut {
+                to { opacity: 0; visibility: hidden; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
     setTimeout(() => {
-        successDiv.remove();
+        if (successDiv && successDiv.parentNode) {
+            successDiv.remove();
+        }
     }, 3000);
 }
 
@@ -245,32 +322,25 @@ function showErrorMessage(message) {
         right: 20px;
         background: #ef4444;
         color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
+        padding: 14px 24px;
+        border-radius: 12px;
         z-index: 10001;
         font-family: Arial, sans-serif;
         font-size: 14px;
         text-align: center;
         direction: rtl;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        animation: fadeInOut 3s ease-in-out;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     `;
-    errorDiv.innerHTML = `❌ ${message}`;
+    errorDiv.innerHTML = `<span style="font-size: 18px;">❌</span> ${message}`;
     document.body.appendChild(errorDiv);
     
     setTimeout(() => {
-        errorDiv.remove();
+        if (errorDiv && errorDiv.parentNode) {
+            errorDiv.remove();
+        }
     }, 3000);
 }
-
-// إضافة أنماط CSS للرسائل المنبثقة
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeInOut {
-        0% { opacity: 0; transform: translateY(20px); }
-        15% { opacity: 1; transform: translateY(0); }
-        85% { opacity: 1; transform: translateY(0); }
-        100% { opacity: 0; transform: translateY(-20px); }
-    }
-`;
-document.head.appendChild(style);
