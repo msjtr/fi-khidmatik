@@ -37,6 +37,12 @@ function createTempElement(order, cartRows, totals) {
  * تجهيز بيانات الفاتورة (صفوف المنتجات والإجماليات)
  */
 function prepareData(order) {
+    // التحقق من وجود items
+    if (!order.items || !Array.isArray(order.items)) {
+        console.warn('لا توجد منتجات في الطلب');
+        order.items = [];
+    }
+    
     const cartRows = order.items.map(item => `
         <tr>
             <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
@@ -46,9 +52,10 @@ function prepareData(order) {
             <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)}</td>
             <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">0</td>
             <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;"><strong>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</strong></td>
-         </tr>
+        </tr>
     `).join('');
     
+    // حساب الإجماليات
     const subtotal = order.items.reduce((s, i) => s + (i.price || 0) * (i.quantity || 0), 0);
     const discount = order.discount || 0;
     let discountValue = discount;
@@ -71,53 +78,57 @@ function prepareData(order) {
     return { cartRows, totals };
 }
 
-export async function printInvoiceHandler(order) {
+/**
+ * التحقق من صحة بيانات الطلب قبل المعالجة
+ */
+function validateOrder(order) {
     if (!order) {
-        console.error('الطلب غير موجود');
-        return;
+        throw new Error('الطلب غير موجود');
     }
-    
+    if (!order.orderNumber) {
+        console.warn('رقم الطلب غير موجود');
+    }
+    if (!order.items || order.items.length === 0) {
+        console.warn('لا توجد منتجات في الطلب');
+    }
+    return true;
+}
+
+export async function printInvoiceHandler(order) {
     try {
+        validateOrder(order);
         const { cartRows, totals } = prepareData(order);
         const el = createTempElement(order, cartRows, totals);
         await printInvoice(el);
         el.parentElement?.remove();
     } catch (error) {
         console.error('خطأ في الطباعة:', error);
-        alert('حدث خطأ أثناء الطباعة');
+        alert(`حدث خطأ أثناء الطباعة: ${error.message}`);
     }
 }
 
 export async function exportAsPDF(order) {
-    if (!order) {
-        console.error('الطلب غير موجود');
-        return;
-    }
-    
     try {
+        validateOrder(order);
         const { cartRows, totals } = prepareData(order);
         const el = createTempElement(order, cartRows, totals);
         await generatePDF(el, order);
         el.parentElement?.remove();
     } catch (error) {
         console.error('خطأ في تصدير PDF:', error);
-        alert('حدث خطأ أثناء تصدير PDF');
+        alert(`حدث خطأ أثناء تصدير PDF: ${error.message}`);
     }
 }
 
 export async function exportAsImage(order) {
-    if (!order) {
-        console.error('الطلب غير موجود');
-        return;
-    }
-    
     try {
+        validateOrder(order);
         const { cartRows, totals } = prepareData(order);
         const el = createTempElement(order, cartRows, totals);
         await generateImage(el, order);
         el.parentElement?.remove();
     } catch (error) {
         console.error('خطأ في تصدير الصورة:', error);
-        alert('حدث خطأ أثناء تصدير الصورة');
+        alert(`حدث خطأ أثناء تصدير الصورة: ${error.message}`);
     }
 }
