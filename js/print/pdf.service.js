@@ -5,51 +5,34 @@ export async function generatePDF(element, order) {
         throw new Error('عنصر الفاتورة غير موجود');
     }
     
-    // إظهار رسالة انتظار
     showLoadingMessage('جاري إنشاء ملف PDF...');
     
     try {
-        // إنشاء نسخة مؤقتة من العنصر للحفاظ على التنسيق
         const originalElement = element.cloneNode(true);
-        
-        // إضافة تنسيقات إضافية
         originalElement.style.padding = '20px';
         originalElement.style.backgroundColor = '#ffffff';
-        originalElement.style.width = '100%';
         
-        // إنشاء حاوية مؤقتة
         const tempContainer = document.createElement('div');
         tempContainer.style.position = 'absolute';
         tempContainer.style.left = '-9999px';
         tempContainer.style.top = '0';
-        tempContainer.style.backgroundColor = '#ffffff';
         tempContainer.appendChild(originalElement);
         document.body.appendChild(tempContainer);
         
-        // انتظار تحميل الصور
         await waitForImages(tempContainer);
         
-        // استخدام html2canvas لتحويل العنصر إلى صورة
         const canvas = await html2canvas(tempContainer, {
             scale: 3,
             backgroundColor: '#ffffff',
             useCORS: true,
-            logging: false,
-            windowWidth: originalElement.scrollWidth,
-            windowHeight: originalElement.scrollHeight
+            logging: false
         });
         
-        // إزالة الحاوية المؤقتة
         document.body.removeChild(tempContainer);
         
-        // تحويل الصورة إلى PDF
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
+        const pdf = new jsPDF('p', 'mm', 'a4');
         
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -62,7 +45,6 @@ export async function generatePDF(element, order) {
         pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
         
-        // إضافة صفحات إضافية إذا كان المحتوى أطول
         while (heightLeft > 0) {
             position = heightLeft - imgHeight;
             pdf.addPage();
@@ -70,7 +52,6 @@ export async function generatePDF(element, order) {
             heightLeft -= pdfHeight;
         }
         
-        // حفظ الملف
         const fileName = `فاتورة_${order.orderNumber}_${new Date().toISOString().slice(0, 10)}.pdf`;
         pdf.save(fileName);
         
@@ -78,7 +59,7 @@ export async function generatePDF(element, order) {
         return true;
         
     } catch (error) {
-        console.error('خطأ في إنشاء PDF:', error);
+        console.error('خطأ في PDF:', error);
         hideLoadingMessage();
         throw error;
     }
@@ -115,7 +96,6 @@ function showLoadingMessage(message) {
             font-size: 16px;
             text-align: center;
             direction: rtl;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         `;
         document.body.appendChild(loadingDiv);
     }
