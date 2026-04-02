@@ -8,9 +8,30 @@ export async function generatePDF(element, order) {
     showLoadingMessage('جاري إنشاء ملف PDF...');
     
     try {
+        // إنشاء نسخة من العنصر
         const originalElement = element.cloneNode(true);
         originalElement.style.padding = '20px';
         originalElement.style.backgroundColor = '#ffffff';
+        originalElement.style.width = '800px';
+        
+        // تحويل الصورة إلى Base64 لضمان ظهورها في PDF
+        const images = originalElement.querySelectorAll('img');
+        for (const img of images) {
+            if (img.src && img.src.includes('logo.svg')) {
+                try {
+                    const response = await fetch(img.src);
+                    const blob = await response.blob();
+                    const base64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    });
+                    img.src = base64;
+                } catch (error) {
+                    console.warn('فشل تحويل الصورة إلى Base64:', error);
+                }
+            }
+        }
         
         const tempContainer = document.createElement('div');
         tempContainer.style.position = 'absolute';
@@ -25,6 +46,7 @@ export async function generatePDF(element, order) {
             scale: 3,
             backgroundColor: '#ffffff',
             useCORS: true,
+            allowTaint: false,
             logging: false
         });
         
@@ -68,10 +90,11 @@ export async function generatePDF(element, order) {
 function waitForImages(container) {
     const images = container.querySelectorAll('img');
     const promises = Array.from(images).map(img => {
-        if (img.complete) return Promise.resolve();
+        if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
         return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+            if (img.complete) resolve();
         });
     });
     return Promise.all(promises);
@@ -96,6 +119,7 @@ function showLoadingMessage(message) {
             font-size: 16px;
             text-align: center;
             direction: rtl;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         `;
         document.body.appendChild(loadingDiv);
     }
