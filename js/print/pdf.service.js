@@ -12,23 +12,28 @@ export async function generatePDF(element, order) {
         const originalElement = element.cloneNode(true);
         originalElement.style.padding = '20px';
         originalElement.style.backgroundColor = '#ffffff';
-        originalElement.style.width = '800px';
+        // إزالة العرض الثابت للحفاظ على التنسيق الأصلي
+        // originalElement.style.width = '800px'; // تم التعليق
         
-        // تحويل الصورة إلى Base64 لضمان ظهورها في PDF
+        // تحويل جميع الصور إلى Base64 لضمان ظهورها في PDF
         const images = originalElement.querySelectorAll('img');
         for (const img of images) {
-            if (img.src && img.src.includes('logo.svg')) {
+            if (img.src) {
                 try {
-                    const response = await fetch(img.src);
-                    const blob = await response.blob();
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(blob);
-                    });
-                    img.src = base64;
+                    // محاولة تحويل الصورة إلى Base64
+                    const base64 = await convertImageToBase64(img.src);
+                    if (base64) {
+                        img.src = base64;
+                    }
                 } catch (error) {
-                    console.warn('فشل تحويل الصورة إلى Base64:', error);
+                    console.warn('فشل تحويل الصورة إلى Base64:', img.src, error);
+                    // في حالة فشل تحميل الشعار، استخدم الصورة الاحتياطية
+                    if (img.src.includes('logo.svg') || img.src.includes('/images/')) {
+                        const fallbackLogo = getFallbackLogo();
+                        img.src = fallbackLogo;
+                        img.style.width = '50px';
+                        img.style.height = '50px';
+                    }
                 }
             }
         }
@@ -47,7 +52,17 @@ export async function generatePDF(element, order) {
             backgroundColor: '#ffffff',
             useCORS: true,
             allowTaint: false,
-            logging: false
+            logging: false,
+            onclone: (clonedDoc, element) => {
+                // إصلاح أي مشاكل في SVG في النسخة المستنسخة
+                const clonedImages = element.querySelectorAll('img');
+                clonedImages.forEach(img => {
+                    if (img.src && img.src.includes('data:image/svg')) {
+                        img.style.width = '50px';
+                        img.style.height = '50px';
+                    }
+                });
+            }
         });
         
         document.body.removeChild(tempContainer);
@@ -87,6 +102,52 @@ export async function generatePDF(element, order) {
     }
 }
 
+/**
+ * تحويل الصورة إلى Base64
+ */
+async function convertImageToBase64(url) {
+    return new Promise((resolve, reject) => {
+        // إذا كانت الصورة بالفعل Base64
+        if (url.startsWith('data:')) {
+            resolve(url);
+            return;
+        }
+        
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const base64 = canvas.toDataURL('image/png');
+                resolve(base64);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        img.onerror = () => {
+            reject(new Error(`فشل تحميل الصورة: ${url}`));
+        };
+        
+        img.src = url;
+    });
+}
+
+/**
+ * الحصول على صورة احتياطية (fallback) على شكل SVG
+ */
+function getFallbackLogo() {
+    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233b82f6'/%3E%3Ctext x='50' y='70' text-anchor='middle' fill='white' font-size='40' font-weight='bold'%3Eف%3C/text%3E%3C/svg%3E";
+}
+
+/**
+ * انتظار تحميل جميع الصور
+ */
 function waitForImages(container) {
     const images = container.querySelectorAll('img');
     const promises = Array.from(images).map(img => {
@@ -100,6 +161,9 @@ function waitForImages(container) {
     return Promise.all(promises);
 }
 
+/**
+ * عرض رسالة التحميل
+ */
 function showLoadingMessage(message) {
     let loadingDiv = document.getElementById('pdf-loading-message');
     if (!loadingDiv) {
@@ -123,10 +187,13 @@ function showLoadingMessage(message) {
         `;
         document.body.appendChild(loadingDiv);
     }
-    loadingDiv.innerHTML = `${message}<br><div style="margin-top:10px;">⏳</div>`;
+    loadingDiv.innerHTML = `${message}<br><div style="margin-top:10px;">⏳ جاري المعالجة...</div>`;
     loadingDiv.style.display = 'block';
 }
 
+/**
+ * إخفاء رسالة التحميل
+ */
 function hideLoadingMessage() {
     const loadingDiv = document.getElementById('pdf-loading-message');
     if (loadingDiv) {
