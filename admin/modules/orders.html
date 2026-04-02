@@ -22,7 +22,7 @@
         .product-row:hover { border-color: #3b82f6; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .payment-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
         .btn-icon { display: inline-flex; align-items: center; gap: 8px; }
-        .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1rem; }
+        .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem; }
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 12px 24px; border-radius: 9999px; z-index: 1000; display: none; }
         #toast.success { background: #10b981; }
         #toast.error { background: #ef4444; }
@@ -33,120 +33,246 @@
         .no-shipping-fields { background: #e0e7ff; padding: 15px; border-radius: 12px; margin-top: 10px; }
         .shipping-option { cursor: pointer; transition: all 0.2s; }
         .shipping-option:hover { transform: translateY(-2px); }
+        .order-card {
+            transition: all 0.3s ease;
+        }
+        .order-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .product-image-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .product-image-preview:hover {
+            opacity: 0.8;
+        }
+        .form-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .form-section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1f2937;
+            border-right: 3px solid #3b82f6;
+            padding-right: 10px;
+        }
     </style>
 </head>
-<body class="bg-gray-50 p-6 font-sans">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 font-sans">
 
 <div id="toast"></div>
 
 <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800"><i class="fas fa-shopping-cart text-blue-600 ml-2"></i>إدارة الطلبات</h1>
-            <p class="text-gray-500 text-sm">إدارة الطلبات، المبيعات، والعملاء</p>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-shopping-cart text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">إدارة الطلبات</h1>
+                <p class="text-gray-500 text-sm">إدارة الطلبات، المبيعات، والعملاء</p>
+            </div>
         </div>
-        <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-lg btn-icon"><i class="fas fa-plus-circle"></i> طلب جديد</button>
+        <button id="newOrderBtn" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl shadow-lg btn-icon transition-all duration-200">
+            <i class="fas fa-plus-circle"></i> طلب جديد
+        </button>
     </div>
 
     <!-- فلترة -->
-    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-wrap gap-3">
-        <select id="filterStatus" class="border rounded-lg px-3 py-2 text-sm">
-            <option value="">جميع الحالات</option>
-            <option value="جديد">جديد</option>
-            <option value="تحت التنفيذ">تحت التنفيذ</option>
-            <option value="تم التنفيذ">تم التنفيذ</option>
-            <option value="تحت المراجعة">تحت المراجعة</option>
-            <option value="مسترجع">مسترجع</option>
-            <option value="ملغي">ملغي</option>
-        </select>
-        <input type="text" id="filterCustomer" placeholder="بحث باسم العميل" class="border rounded-lg px-3 py-2 text-sm w-48">
-        <select id="filterShippingMethod" class="border rounded-lg px-3 py-2 text-sm">
-            <option value="">جميع طرق الاستلام</option>
-            <option value="pickup">استلام من المقر</option>
-            <option value="delivery">شحن منزلي</option>
-            <option value="noship">لا يتطلب شحن</option>
-        </select>
-        <input type="date" id="filterDateFrom" class="border rounded-lg px-3 py-2 text-sm">
-        <input type="date" id="filterDateTo" class="border rounded-lg px-3 py-2 text-sm">
-        <button id="applyFilters" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg">تطبيق</button>
-        <button id="resetFilters" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg">إعادة تعيين</button>
-        <button id="viewListBtn" class="bg-gray-200 p-2 rounded-lg"><i class="fas fa-list"></i></button>
-        <button id="viewGridBtn" class="bg-gray-200 p-2 rounded-lg"><i class="fas fa-th-large"></i></button>
+    <div class="bg-white rounded-2xl shadow-lg p-5 mb-8">
+        <div class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[150px]">
+                <label class="text-xs text-gray-500 mb-1 block">حالة الطلب</label>
+                <select id="filterStatus" class="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50">
+                    <option value="">جميع الحالات</option>
+                    <option value="جديد">جديد</option>
+                    <option value="تحت التنفيذ">تحت التنفيذ</option>
+                    <option value="تم التنفيذ">تم التنفيذ</option>
+                    <option value="تحت المراجعة">تحت المراجعة</option>
+                    <option value="مسترجع">مسترجع</option>
+                    <option value="ملغي">ملغي</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[150px]">
+                <label class="text-xs text-gray-500 mb-1 block">اسم العميل</label>
+                <input type="text" id="filterCustomer" placeholder="بحث..." class="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50">
+            </div>
+            <div class="flex-1 min-w-[150px]">
+                <label class="text-xs text-gray-500 mb-1 block">طريقة الاستلام</label>
+                <select id="filterShippingMethod" class="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50">
+                    <option value="">الكل</option>
+                    <option value="pickup">استلام من المقر</option>
+                    <option value="delivery">شحن منزلي</option>
+                    <option value="noship">لا يتطلب شحن</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[150px]">
+                <label class="text-xs text-gray-500 mb-1 block">من تاريخ</label>
+                <input type="date" id="filterDateFrom" class="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50">
+            </div>
+            <div class="flex-1 min-w-[150px]">
+                <label class="text-xs text-gray-500 mb-1 block">إلى تاريخ</label>
+                <input type="date" id="filterDateTo" class="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50">
+            </div>
+            <div class="flex gap-2">
+                <button id="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button id="resetFilters" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button id="viewListBtn" class="bg-gray-200 p-2 rounded-lg hover:bg-gray-300 transition"><i class="fas fa-list"></i></button>
+                <button id="viewGridBtn" class="bg-gray-200 p-2 rounded-lg hover:bg-gray-300 transition"><i class="fas fa-th-large"></i></button>
+            </div>
+        </div>
     </div>
 
     <div id="ordersContainer" class="space-y-4"></div>
 </div>
 
-<!-- مودال الطلب الرئيسي -->
+<!-- مودال الطلب الرئيسي - تصميم منظم -->
 <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between">
-            <h2 id="modalTitle" class="text-2xl font-bold">إضافة طلب جديد</h2>
-            <button id="closeModalBtn" class="text-gray-400 text-3xl hover:text-gray-600">&times;</button>
+    <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
+                <h2 id="modalTitle" class="text-2xl font-bold">إضافة طلب جديد</h2>
+            </div>
+            <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
         </div>
+        
         <form id="orderForm" class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div><label class="font-semibold">رقم الطلب</label><div class="flex gap-2"><span class="bg-gray-200 px-3 py-2 rounded">KF-</span><input type="text" id="orderNumber" class="flex-1 border rounded px-3 py-2"><button type="button" id="generateOrderNumber" class="bg-gray-200 px-3 rounded"><i class="fas fa-sync-alt"></i></button></div></div>
-                <div><label class="font-semibold">التاريخ</label><input type="date" id="orderDate" class="w-full border rounded px-3 py-2"></div>
-                <div class="md:col-span-2"><label class="font-semibold">الوقت</label><div class="flex gap-2"><select id="orderHour" class="border rounded px-3 py-2 w-28"></select><span>:</span><select id="orderMinute" class="border rounded px-3 py-2 w-28"></select><select id="orderAmPm" class="border rounded px-3 py-2 w-28"><option value="AM">صباحاً</option><option value="PM">مساءً</option></select></div></div>
+            <!-- القسم 1: معلومات أساسية -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-info-circle text-blue-600 ml-2"></i>معلومات أساسية
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">رقم الطلب</label>
+                        <div class="flex gap-2">
+                            <span class="bg-gray-200 px-3 py-2 rounded-lg text-sm">KF-</span>
+                            <input type="text" id="orderNumber" class="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <button type="button" id="generateOrderNumber" class="bg-gray-200 px-3 rounded-lg hover:bg-gray-300 transition">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">التاريخ</label>
+                        <input type="date" id="orderDate" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold mb-2">الوقت</label>
+                        <div class="flex gap-2 items-center">
+                            <select id="orderHour" class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"></select>
+                            <span class="text-xl">:</span>
+                            <select id="orderMinute" class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"></select>
+                            <select id="orderAmPm" class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                <option value="AM">صباحاً</option>
+                                <option value="PM">مساءً</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div><label class="font-semibold">حالة الطلب</label><select id="orderStatus" class="w-full border rounded px-3 py-2"><option value="جديد">جديد</option><option value="تحت التنفيذ">تحت التنفيذ</option><option value="تم التنفيذ">تم التنفيذ</option><option value="تحت المراجعة">تحت المراجعة</option><option value="مسترجع">مسترجع</option><option value="ملغي">ملغي</option></select></div>
-                <div><label class="font-semibold">العميل</label><div class="flex gap-2"><select id="customerSelect" class="flex-1 border rounded px-3 py-2"></select><button type="button" id="quickAddCustomerBtn" class="bg-green-600 text-white px-3 rounded"><i class="fas fa-user-plus"></i></button></div></div>
+
+            <!-- القسم 2: العميل والحالة -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-user text-blue-600 ml-2"></i>العميل والحالة
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">حالة الطلب</label>
+                        <select id="orderStatus" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="جديد">🆕 جديد</option>
+                            <option value="تحت التنفيذ">⚙️ تحت التنفيذ</option>
+                            <option value="تم التنفيذ">✅ تم التنفيذ</option>
+                            <option value="تحت المراجعة">🔍 تحت المراجعة</option>
+                            <option value="مسترجع">↩️ مسترجع</option>
+                            <option value="ملغي">❌ ملغي</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">اختر العميل</label>
+                        <div class="flex gap-2">
+                            <select id="customerSelect" class="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"></select>
+                            <button type="button" id="quickAddCustomerBtn" class="bg-green-600 text-white px-4 rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <!-- طريقة الاستلام - 3 خيارات -->
-            <div class="mb-4">
-                <label class="font-semibold block mb-3">طريقة الاستلام</label>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-orange-50">
+
+            <!-- القسم 3: طريقة الاستلام -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-truck text-blue-600 ml-2"></i>طريقة الاستلام
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-orange-50 transition-all">
                         <input type="radio" name="shippingMethod" value="pickup" checked> 
-                        <i class="fas fa-store text-orange-600 text-xl"></i>
+                        <i class="fas fa-store text-orange-600 text-2xl"></i>
                         <div>
-                            <div class="font-semibold">استلام من المقر</div>
-                            <div class="text-xs text-gray-500">استلام شخصي من مقر الشركة</div>
+                            <div class="font-semibold text-sm">استلام من المقر</div>
+                            <div class="text-xs text-gray-500">استلام شخصي</div>
                         </div>
                     </label>
-                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-green-50">
+                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-green-50 transition-all">
                         <input type="radio" name="shippingMethod" value="delivery"> 
-                        <i class="fas fa-truck text-blue-600 text-xl"></i>
+                        <i class="fas fa-truck text-blue-600 text-2xl"></i>
                         <div>
-                            <div class="font-semibold">شحن منزلي</div>
-                            <div class="text-xs text-gray-500">توصيل إلى عنوان العميل</div>
+                            <div class="font-semibold text-sm">شحن منزلي</div>
+                            <div class="text-xs text-gray-500">توصيل للمنزل</div>
                         </div>
                     </label>
-                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-purple-50">
+                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-purple-50 transition-all">
                         <input type="radio" name="shippingMethod" value="noship"> 
-                        <i class="fas fa-download text-purple-600 text-xl"></i>
+                        <i class="fas fa-download text-purple-600 text-2xl"></i>
                         <div>
-                            <div class="font-semibold">لا يتطلب شحن</div>
-                            <div class="text-xs text-gray-500">منتج رقمي / خدمة / استشارة</div>
+                            <div class="font-semibold text-sm">لا يتطلب شحن</div>
+                            <div class="text-xs text-gray-500">منتج رقمي / خدمة</div>
                         </div>
                     </label>
                 </div>
                 
                 <!-- استلام من المقر -->
-                <div id="pickupFields" class="pickup-fields mt-3">
-                    <p class="text-sm text-orange-700 mb-2"><i class="fas fa-map-marker-alt"></i> عنوان الاستلام:</p>
-                    <p class="text-sm"><strong>منصة في خدمتك</strong><br>المملكة العربية السعودية - حائل - حي النقرة<br>شارع سعد المشاط - مبنى 3085 - الرقم الإضافي: 7718<br>الرمز البريدي: 55431</p>
-                    <p class="text-xs text-gray-500 mt-2"><i class="fas fa-clock"></i> أوقات الاستلام: السبت - الأربعاء 9ص - 6م</p>
+                <div id="pickupFields" class="pickup-fields">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-map-marker-alt text-orange-600 text-xl mt-1"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-orange-800">عنوان الاستلام:</p>
+                            <p class="text-sm"><strong>منصة في خدمتك</strong><br>المملكة العربية السعودية - حائل - حي النقرة<br>شارع سعد المشاط - مبنى 3085 - الرقم الإضافي: 7718<br>الرمز البريدي: 55431</p>
+                            <p class="text-xs text-gray-500 mt-2"><i class="far fa-clock"></i> أوقات الاستلام: السبت - الأربعاء 9ص - 6م</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- شحن منزلي -->
-                <div id="deliveryFields" class="shipping-fields mt-3 hidden">
-                    <p class="text-sm text-green-700 mb-2"><i class="fas fa-truck"></i> بيانات الشحن (سيتم جلبها من بيانات العميل):</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-xs text-gray-600">المدينة</label><input type="text" id="deliveryCity" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
-                        <div><label class="text-xs text-gray-600">الشارع</label><input type="text" id="deliveryStreet" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
-                        <div><label class="text-xs text-gray-600">رقم إضافي</label><input type="text" id="deliveryAdditionalNo" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
-                        <div><label class="text-xs text-gray-600">صندوق بريد</label><input type="text" id="deliveryPoBox" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
-                        <div class="col-span-2"><label class="text-xs text-gray-600">رقم الجوال</label><input type="text" id="deliveryPhone" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
+                <div id="deliveryFields" class="shipping-fields hidden">
+                    <p class="text-sm text-green-700 mb-3 font-semibold"><i class="fas fa-truck"></i> بيانات الشحن:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label class="text-xs text-gray-600">المدينة</label><input type="text" id="deliveryCity" class="w-full border rounded-lg p-2 text-sm bg-gray-50" readonly></div>
+                        <div><label class="text-xs text-gray-600">الشارع</label><input type="text" id="deliveryStreet" class="w-full border rounded-lg p-2 text-sm bg-gray-50" readonly></div>
+                        <div><label class="text-xs text-gray-600">رقم إضافي</label><input type="text" id="deliveryAdditionalNo" class="w-full border rounded-lg p-2 text-sm bg-gray-50" readonly></div>
+                        <div><label class="text-xs text-gray-600">صندوق بريد</label><input type="text" id="deliveryPoBox" class="w-full border rounded-lg p-2 text-sm bg-gray-50" readonly></div>
+                        <div class="md:col-span-2"><label class="text-xs text-gray-600">رقم الجوال</label><input type="text" id="deliveryPhone" class="w-full border rounded-lg p-2 text-sm bg-gray-50" readonly></div>
                     </div>
                 </div>
                 
                 <!-- لا يتطلب شحن -->
-                <div id="noShipFields" class="no-shipping-fields mt-3 hidden">
+                <div id="noShipFields" class="no-shipping-fields hidden">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-cloud-download-alt text-purple-600 text-2xl"></i>
                         <div>
@@ -154,34 +280,186 @@
                             <p class="text-xs text-gray-600">سيتم إرسال تفاصيل المنتج/الخدمة عبر البريد الإلكتروني</p>
                         </div>
                     </div>
-                    <div class="mt-2">
+                    <div class="mt-3">
                         <label class="text-xs text-gray-600">بريد إضافي للإرسال (اختياري)</label>
-                        <input type="email" id="extraEmail" class="w-full border rounded p-2 text-sm" placeholder="بريد إلكتروني إضافي">
+                        <input type="email" id="extraEmail" class="w-full border rounded-lg p-2 text-sm" placeholder="بريد إلكتروني إضافي">
                     </div>
                 </div>
             </div>
-            
-            <div class="mb-4"><label class="font-semibold">طريقة الدفع</label><div class="flex flex-wrap gap-2 my-2"><button type="button" data-payment="mada" class="payment-btn px-3 py-1 border rounded">مدى</button><button type="button" data-payment="mastercard" class="payment-btn px-3 py-1 border rounded">ماستركارد</button><button type="button" data-payment="visa" class="payment-btn px-3 py-1 border rounded">فيزا</button><button type="button" data-payment="stcpay" class="payment-btn px-3 py-1 border rounded">STCPay</button><button type="button" data-payment="tamara" class="payment-btn px-3 py-1 border rounded">تمارا</button><button type="button" data-payment="tabby" class="payment-btn px-3 py-1 border rounded">تابي</button><button type="button" data-payment="other" class="payment-btn px-3 py-1 border rounded">أخرى</button></div><input type="hidden" id="paymentMethod"><div id="approvalCodeField" class="hidden mt-2 p-2 bg-yellow-50 rounded"><label>رمز الموافقة <span id="approvalMethodLabel"></span></label><input type="text" id="approvalCode" class="w-full border rounded px-2 py-1"></div><div id="otherPaymentField" class="hidden mt-2"><input type="text" id="otherPaymentText" placeholder="طريقة دفع أخرى" class="w-full border rounded px-2 py-1"></div></div>
-            
-            <div class="mb-4"><div class="flex justify-between mb-2"><label class="font-semibold">المنتجات</label><div class="flex gap-2"><button type="button" id="addFromInventoryBtn" class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm">من المخزون</button><button type="button" id="addNewProductBtn" class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">منتج جديد</button></div></div><div id="productsContainer"></div></div>
-            
-            <div class="grid grid-cols-2 gap-4 mb-4"><div><label class="font-semibold">الخصم</label><div class="flex gap-2"><input type="number" id="discountValue" class="w-32 border rounded px-2 py-1" value="0"><select id="discountType" class="border rounded px-2 py-1"><option value="fixed">قيمة</option><option value="percent">%</option></select></div></div><div><label class="font-semibold">الضريبة 15%</label><input type="text" id="taxAmount" readonly class="w-full bg-gray-100 border rounded px-2 py-1"></div></div>
-            
-            <div class="bg-blue-50 p-4 rounded mb-4"><div class="flex justify-between"><span>المجموع الفرعي:</span><span id="subtotalDisplay">0 ريال</span></div><div class="flex justify-between"><span>الخصم:</span><span id="discountDisplay">0 ريال</span></div><div class="flex justify-between"><span>الضريبة:</span><span id="taxDisplay">0 ريال</span></div><div class="flex justify-between font-bold text-lg"><span>الإجمالي:</span><span id="totalDisplay">0 ريال</span></div></div>
-            
-            <div class="flex justify-end gap-2"><button type="button" id="cancelOrderBtn" class="px-4 py-2 border rounded">إلغاء</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">حفظ الطلب</button></div>
+
+            <!-- القسم 4: طريقة الدفع -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-credit-card text-blue-600 ml-2"></i>طريقة الدفع
+                </div>
+                <div class="flex flex-wrap gap-2 my-2">
+                    <button type="button" data-payment="mada" class="payment-btn px-4 py-2 border rounded-lg transition-all">مدى</button>
+                    <button type="button" data-payment="mastercard" class="payment-btn px-4 py-2 border rounded-lg transition-all">ماستركارد</button>
+                    <button type="button" data-payment="visa" class="payment-btn px-4 py-2 border rounded-lg transition-all">فيزا</button>
+                    <button type="button" data-payment="stcpay" class="payment-btn px-4 py-2 border rounded-lg transition-all">STCPay</button>
+                    <button type="button" data-payment="tamara" class="payment-btn px-4 py-2 border rounded-lg transition-all">تمارا</button>
+                    <button type="button" data-payment="tabby" class="payment-btn px-4 py-2 border rounded-lg transition-all">تابي</button>
+                    <button type="button" data-payment="other" class="payment-btn px-4 py-2 border rounded-lg transition-all">أخرى</button>
+                </div>
+                <input type="hidden" id="paymentMethod">
+                <div id="approvalCodeField" class="hidden mt-3 p-3 bg-yellow-50 rounded-lg">
+                    <label class="text-sm font-semibold">رمز الموافقة <span id="approvalMethodLabel"></span></label>
+                    <input type="text" id="approvalCode" class="w-full border rounded-lg px-3 py-2 mt-1">
+                </div>
+                <div id="otherPaymentField" class="hidden mt-3">
+                    <input type="text" id="otherPaymentText" placeholder="طريقة دفع أخرى" class="w-full border rounded-lg px-3 py-2">
+                </div>
+            </div>
+
+            <!-- القسم 5: المنتجات -->
+            <div class="form-section">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="form-section-title mb-0">
+                        <i class="fas fa-boxes text-blue-600 ml-2"></i>المنتجات
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="addFromInventoryBtn" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-sm hover:bg-purple-200 transition">
+                            <i class="fas fa-database"></i> من المخزون
+                        </button>
+                        <button type="button" id="addNewProductBtn" class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm hover:bg-green-200 transition">
+                            <i class="fas fa-plus"></i> منتج جديد
+                        </button>
+                    </div>
+                </div>
+                <div id="productsContainer"></div>
+            </div>
+
+            <!-- القسم 6: الحسابات -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-calculator text-blue-600 ml-2"></i>الحسابات
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">الخصم</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="discountValue" class="w-32 border rounded-lg px-3 py-2 text-sm" value="0">
+                            <select id="discountType" class="border rounded-lg px-3 py-2 text-sm">
+                                <option value="fixed">قيمة</option>
+                                <option value="percent">%</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">الضريبة 15%</label>
+                        <input type="text" id="taxAmount" readonly class="w-full bg-gray-100 border rounded-lg px-3 py-2 text-sm">
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl mt-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm"><span>المجموع الفرعي:</span><span id="subtotalDisplay" class="font-semibold">0 ريال</span></div>
+                        <div class="flex justify-between text-sm"><span>الخصم:</span><span id="discountDisplay" class="font-semibold text-red-600">0 ريال</span></div>
+                        <div class="flex justify-between text-sm"><span>الضريبة:</span><span id="taxDisplay" class="font-semibold">0 ريال</span></div>
+                        <div class="border-t pt-2 mt-2 flex justify-between font-bold text-lg"><span>الإجمالي:</span><span id="totalDisplay" class="text-green-600">0 ريال</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t">
+                <button type="button" id="cancelOrderBtn" class="px-6 py-2 border rounded-xl hover:bg-gray-50 transition">إلغاء</button>
+                <button type="submit" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-md">
+                    <i class="fas fa-save ml-2"></i> حفظ الطلب
+                </button>
+            </div>
         </form>
     </div>
 </div>
 
-<!-- مودال المخزون -->
-<div id="inventoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-xl max-w-2xl w-full"><div class="p-4 border-b"><h3>اختر منتج</h3><button id="closeInventoryModalBtn" class="float-left text-2xl">&times;</button></div><div class="p-4"><input type="text" id="inventorySearch" placeholder="بحث..." class="w-full border rounded p-2 mb-2"><div id="inventoryList"></div></div></div></div>
+<!-- باقي المودالات -->
+<div id="inventoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-2xl w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-xl font-bold"><i class="fas fa-database text-purple-600 ml-2"></i>اختر منتج من المخزون</h3>
+            <button id="closeInventoryModalBtn" class="text-gray-400 text-2xl hover:text-gray-600">&times;</button>
+        </div>
+        <div class="p-4">
+            <input type="text" id="inventorySearch" placeholder="بحث باسم المنتج..." class="w-full border rounded-lg p-2 mb-3 focus:ring-2 focus:ring-purple-500">
+            <div id="inventoryList" class="max-h-96 overflow-y-auto space-y-2"></div>
+        </div>
+    </div>
+</div>
 
-<!-- مودال إضافة عميل سريع -->
-<div id="quickCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-xl max-w-lg w-full"><div class="p-4 border-b"><h3>إضافة عميل</h3><button id="closeQuickModalBtn" class="float-left text-2xl">&times;</button></div><form id="quickCustomerForm" class="p-4"><div class="grid grid-cols-2 gap-2"><input type="text" id="quickName" placeholder="الاسم *" class="border rounded p-2 col-span-2"><input type="tel" id="quickPhone" placeholder="الجوال *" class="border rounded p-2"><input type="email" id="quickEmail" placeholder="البريد" class="border rounded p-2"><input type="text" id="quickCity" placeholder="المدينة" class="border rounded p-2"><input type="text" id="quickStreet" placeholder="الشارع" class="border rounded p-2"><input type="text" id="quickAdditionalNo" placeholder="رقم إضافي" class="border rounded p-2"><input type="text" id="quickPoBox" placeholder="صندوق بريد" class="border rounded p-2"></div><div class="flex justify-end gap-2 mt-4"><button type="button" id="cancelQuickBtn" class="px-3 py-1 border rounded">إلغاء</button><button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">حفظ</button></div></form></div></div>
+<div id="quickCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-xl font-bold"><i class="fas fa-user-plus text-green-600 ml-2"></i>إضافة عميل جديد</h3>
+            <button id="closeQuickModalBtn" class="text-gray-400 text-2xl hover:text-gray-600">&times;</button>
+        </div>
+        <form id="quickCustomerForm" class="p-4">
+            <div class="space-y-3">
+                <input type="text" id="quickName" placeholder="الاسم *" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                <input type="tel" id="quickPhone" placeholder="الجوال *" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                <input type="email" id="quickEmail" placeholder="البريد الإلكتروني" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                <input type="text" id="quickCity" placeholder="المدينة" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                <input type="text" id="quickStreet" placeholder="الشارع" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                <input type="text" id="quickAdditionalNo" placeholder="رقم إضافي" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                <input type="text" id="quickPoBox" placeholder="صندوق بريد" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="flex justify-end gap-3 mt-4">
+                <button type="button" id="cancelQuickBtn" class="px-4 py-2 border rounded-lg hover:bg-gray-50">إلغاء</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">حفظ العميل</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-<!-- مودال إضافة منتج سريع -->
-<div id="quickProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto"><div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"><div class="p-4 border-b"><h3>إضافة منتج جديد</h3><button id="closeQuickProductModalBtn" class="float-left text-2xl">&times;</button></div><form id="quickProductForm" class="p-4"><div class="grid grid-cols-2 gap-2"><input type="text" id="quickProductName" placeholder="اسم المنتج *" class="border rounded p-2"><input type="text" id="quickProductBarcode" placeholder="باركود" readonly class="border rounded p-2 bg-gray-50"><input type="number" id="quickProductPrice" placeholder="السعر *" class="border rounded p-2" step="0.01"><input type="number" id="quickProductCost" placeholder="سعر التكلفة" class="border rounded p-2" step="0.01"><input type="number" id="quickProductQuantity" placeholder="الكمية *" class="border rounded p-2" value="1"><div class="col-span-2"><label>الصورة</label><input type="url" id="quickProductImageUrl" placeholder="رابط الصورة" class="w-full border rounded p-2"></div><div class="col-span-2"><label>الوصف</label><div id="quickProductEditor" style="height: 100px;"></div><input type="hidden" id="quickProductDesc"></div></div><div class="mt-3"><label><input type="checkbox" id="saveToInventory" checked> حفظ في المخزون</label></div><div class="flex justify-end gap-2 mt-4"><button type="button" id="cancelQuickProductBtn" class="px-3 py-1 border rounded">إلغاء</button><button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">إضافة</button></div></form></div></div>
+<div id="quickProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
+            <h3 class="text-xl font-bold"><i class="fas fa-box text-green-600 ml-2"></i>إضافة منتج جديد</h3>
+            <button id="closeQuickProductModalBtn" class="text-gray-400 text-2xl hover:text-gray-600">&times;</button>
+        </div>
+        <form id="quickProductForm" class="p-4">
+            <div class="space-y-3">
+                <input type="text" id="quickProductName" placeholder="اسم المنتج *" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500">
+                <input type="text" id="quickProductBarcode" placeholder="باركود" readonly class="w-full border rounded-lg p-2 bg-gray-50">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="quickProductPrice" placeholder="السعر *" class="border rounded-lg p-2 focus:ring-2 focus:ring-green-500" step="0.01">
+                    <input type="number" id="quickProductCost" placeholder="سعر التكلفة" class="border rounded-lg p-2 focus:ring-2 focus:ring-green-500" step="0.01">
+                </div>
+                <input type="number" id="quickProductQuantity" placeholder="الكمية *" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-green-500" value="1">
+                
+                <!-- صورة المنتج - رفع من الجهاز أو رابط -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2">صورة المنتج</label>
+                    <div class="flex flex-col gap-3">
+                        <div class="flex gap-2">
+                            <input type="file" id="productImageFile" accept="image/*" class="flex-1 border rounded-lg p-2 text-sm">
+                            <span class="text-gray-500 text-sm">أو</span>
+                        </div>
+                        <input type="url" id="quickProductImageUrl" placeholder="رابط الصورة" class="w-full border rounded-lg p-2 text-sm">
+                        <div id="imagePreviewContainer" class="hidden mt-2">
+                            <img id="imagePreview" class="w-24 h-24 object-cover rounded-lg border">
+                            <button type="button" id="removeImageBtn" class="text-red-600 text-sm mt-1">إزالة الصورة</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold mb-2">الوصف</label>
+                    <div id="quickProductEditor" style="height: 120px;"></div>
+                    <input type="hidden" id="quickProductDesc">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" id="saveToInventory" checked> 
+                    <span class="text-sm">حفظ المنتج في المخزون</span>
+                </label>
+            </div>
+            <div class="flex justify-end gap-3 mt-4 pt-3 border-t">
+                <button type="button" id="cancelQuickProductBtn" class="px-4 py-2 border rounded-lg hover:bg-gray-50">إلغاء</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">إضافة المنتج</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script type="module">
 // ========== استيراد Firebase ==========
@@ -189,9 +467,10 @@ import { loadCustomers, addCustomer, loadProducts, addOrder, updateOrder, delete
 
 // ========== المتغيرات ==========
 let customers = [], products = [], orders = [], currentOrderId = null;
-let selectedPaymentMethod = 'mada', currentView = 'list';
+let selectedPaymentMethod = 'mada', currentView = 'grid';
 let currentFilters = { status: '', customer: '', shippingMethod: '', dateFrom: '', dateTo: '' };
 let currentShippingMethod = 'pickup';
+let currentProductImageData = null;
 
 // ========== دوال مساعدة ==========
 function formatDate(dateStr) {
@@ -228,7 +507,7 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// ========== جلب بيانات العنوان من العميل ==========
+// ========== جلب بيانات العنوان ==========
 function updateDeliveryFieldsFromCustomer(customerId) {
     const customer = customers.find(c => c.id === customerId);
     if (customer) {
@@ -254,20 +533,16 @@ function toggleShippingMethod() {
     const deliveryDiv = document.getElementById('deliveryFields');
     const noShipDiv = document.getElementById('noShipFields');
     
-    // إخفاء الكل
     pickupDiv.classList.add('hidden');
     deliveryDiv.classList.add('hidden');
     noShipDiv.classList.add('hidden');
     
-    // إظهار المختار
     if (selected === 'pickup') {
         pickupDiv.classList.remove('hidden');
     } else if (selected === 'delivery') {
         deliveryDiv.classList.remove('hidden');
         const customerId = document.getElementById('customerSelect').value;
-        if (customerId) {
-            updateDeliveryFieldsFromCustomer(customerId);
-        }
+        if (customerId) updateDeliveryFieldsFromCustomer(customerId);
     } else if (selected === 'noship') {
         noShipDiv.classList.remove('hidden');
     }
@@ -279,11 +554,8 @@ async function loadCustomersList() {
         customers = await loadCustomers();
         const customerSelect = document.getElementById('customerSelect');
         customerSelect.innerHTML = '<option value="">اختر عميلاً</option>' + customers.map(c => `<option value="${c.id}">${escapeHtml(c.name)} - ${c.phone}</option>`).join('');
-        
         customerSelect.onchange = () => {
-            if (currentShippingMethod === 'delivery') {
-                updateDeliveryFieldsFromCustomer(customerSelect.value);
-            }
+            if (currentShippingMethod === 'delivery') updateDeliveryFieldsFromCustomer(customerSelect.value);
         };
     } catch (err) {
         console.error('خطأ في تحميل العملاء:', err);
@@ -304,7 +576,7 @@ async function loadData() {
     await Promise.all([loadCustomersList(), loadProductsList()]);
 }
 
-// ========== عرض الطلبات ==========
+// ========== عرض الطلبات بشكل جذاب ==========
 async function renderOrders() {
     const ordersContainer = document.getElementById('ordersContainer');
     ordersContainer.innerHTML = '<div class="loading-spinner"></div><div class="text-center text-gray-500">جاري تحميل الطلبات...</div>';
@@ -313,7 +585,7 @@ async function renderOrders() {
         orders = await getOrdersWithDetails();
         
         if (!orders || orders.length === 0) {
-            ordersContainer.innerHTML = '<div class="text-center py-12 text-gray-500">📭 لا توجد طلبات حالياً</div>';
+            ordersContainer.innerHTML = '<div class="text-center py-16 bg-white rounded-2xl shadow-md"><i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i><p class="text-gray-500">📭 لا توجد طلبات حالياً</p></div>';
             return;
         }
         
@@ -327,7 +599,7 @@ async function renderOrders() {
         });
         
         if (filtered.length === 0) {
-            ordersContainer.innerHTML = '<div class="text-center py-12 text-gray-500">🔍 لا توجد طلبات مطابقة للبحث</div>';
+            ordersContainer.innerHTML = '<div class="text-center py-16 bg-white rounded-2xl shadow-md"><i class="fas fa-search text-6xl text-gray-300 mb-4"></i><p class="text-gray-500">🔍 لا توجد طلبات مطابقة للبحث</p></div>';
             return;
         }
         
@@ -342,46 +614,76 @@ async function renderOrders() {
             return '<i class="fas fa-store text-orange-600"></i> استلام من المقر';
         };
         
+        const getStatusIcon = (status) => {
+            const icons = {
+                'جديد': '🆕', 'تحت التنفيذ': '⚙️', 'تم التنفيذ': '✅', 'تحت المراجعة': '🔍', 'مسترجع': '↩️', 'ملغي': '❌'
+            };
+            return icons[status] || '📋';
+        };
+        
         const html = filtered.map(order => `
-            <div class="bg-white rounded-xl shadow-md p-4 border hover:shadow-lg transition">
-                <div class="flex justify-between items-start flex-wrap gap-2">
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap mb-1">
-                            <h3 class="font-bold text-lg text-blue-600">${escapeHtml(order.orderNumber)}</h3>
-                            <span class="status-badge ${statusClass(order.status)}">${order.status}</span>
+            <div class="order-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-md">
+                                <i class="fas fa-receipt text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-blue-600">${escapeHtml(order.orderNumber)}</h3>
+                                <p class="text-xs text-gray-500"><i class="far fa-calendar-alt ml-1"></i> ${formatDate(order.orderDate)} | ${formatTime(order.orderTime)}</p>
+                            </div>
                         </div>
-                        <p class="text-sm text-gray-500"><i class="far fa-calendar-alt ml-1"></i> ${formatDate(order.orderDate)} | ${formatTime(order.orderTime)}</p>
-                        <p class="text-sm mt-1"><i class="fas fa-user ml-1"></i> ${escapeHtml(order.customer?.name || 'غير معروف')}</p>
-                        <p class="text-sm mt-1">${getShippingIcon(order.shippingMethod)}</p>
-                        <p class="text-sm font-bold mt-1 text-green-600">${(order.total || 0).toFixed(2)} ريال</p>
-                        <p class="text-xs text-gray-400 mt-1"><i class="fas fa-credit-card ml-1"></i> ${order.paymentMethodName || order.paymentMethod || 'غير محدد'}</p>
-                    </div>
-                    <div class="flex gap-2 flex-wrap">
-                        <button onclick="window.editOrder('${order.id}')" class="text-blue-600 hover:text-blue-800 p-1"><i class="fas fa-edit"></i> تعديل</button>
-                        <select onchange="window.changeStatus('${order.id}', this.value)" class="text-sm border rounded px-2 py-1">
-                            <option value="جديد" ${order.status === 'جديد' ? 'selected' : ''}>جديد</option>
-                            <option value="تحت التنفيذ" ${order.status === 'تحت التنفيذ' ? 'selected' : ''}>تحت التنفيذ</option>
-                            <option value="تم التنفيذ" ${order.status === 'تم التنفيذ' ? 'selected' : ''}>تم التنفيذ</option>
-                            <option value="تحت المراجعة" ${order.status === 'تحت المراجعة' ? 'selected' : ''}>تحت المراجعة</option>
-                            <option value="مسترجع" ${order.status === 'مسترجع' ? 'selected' : ''}>مسترجع</option>
-                            <option value="ملغي" ${order.status === 'ملغي' ? 'selected' : ''}>ملغي</option>
-                        </select>
-                        <button onclick="window.deleteOrderHandler('${order.id}')" class="text-red-600 hover:text-red-800 p-1"><i class="fas fa-trash"></i> حذف</button>
+                        <div class="flex items-center gap-2">
+                            <span class="status-badge ${statusClass(order.status)}">${getStatusIcon(order.status)} ${order.status}</span>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-3 text-sm text-gray-600 border-t pt-2">
-                    <strong>المنتجات:</strong> ${order.items.map(i => `${i.name || i.productDetails?.name} (${i.quantity}×${(i.price || 0).toFixed(2)})`).join('، ')}
+                
+                <div class="p-4">
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div class="flex items-center gap-2 text-sm">
+                            <i class="fas fa-user text-gray-400 w-5"></i>
+                            <span class="text-gray-700">${escapeHtml(order.customer?.name || 'غير معروف')}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <i class="fas fa-credit-card text-gray-400 w-5"></i>
+                            <span class="text-gray-700">${order.paymentMethodName || order.paymentMethod || 'غير محدد'}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            ${getShippingIcon(order.shippingMethod)}
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <i class="fas fa-money-bill-wave text-green-600 w-5"></i>
+                            <span class="font-bold text-green-600">${(order.total || 0).toFixed(2)} ريال</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-xl">
+                        <div class="font-semibold mb-2"><i class="fas fa-boxes ml-1"></i> المنتجات:</div>
+                        <div class="flex flex-wrap gap-2">
+                            ${order.items.slice(0, 3).map(i => `<span class="bg-white px-2 py-1 rounded-lg text-xs shadow-sm">${i.name || i.productDetails?.name} (${i.quantity})</span>`).join('')}
+                            ${order.items.length > 3 ? `<span class="bg-gray-200 px-2 py-1 rounded-lg text-xs">+${order.items.length - 3} أخرى</span>` : ''}
+                        </div>
+                    </div>
                 </div>
-                ${order.shippingMethod === 'delivery' && order.shippingAddress ? `
-                <div class="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                    <i class="fas fa-location-dot"></i> عنوان الشحن: ${order.shippingAddress.city || ''} ${order.shippingAddress.street || ''}
+                
+                <div class="border-t p-3 flex justify-end gap-2 bg-gray-50">
+                    <button onclick="window.editOrder('${order.id}')" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition">
+                        <i class="fas fa-edit"></i> تعديل
+                    </button>
+                    <select onchange="window.changeStatus('${order.id}', this.value)" class="text-sm border rounded-lg px-3 py-1 bg-white">
+                        <option value="جديد" ${order.status === 'جديد' ? 'selected' : ''}>🆕 جديد</option>
+                        <option value="تحت التنفيذ" ${order.status === 'تحت التنفيذ' ? 'selected' : ''}>⚙️ تحت التنفيذ</option>
+                        <option value="تم التنفيذ" ${order.status === 'تم التنفيذ' ? 'selected' : ''}>✅ تم التنفيذ</option>
+                        <option value="تحت المراجعة" ${order.status === 'تحت المراجعة' ? 'selected' : ''}>🔍 تحت المراجعة</option>
+                        <option value="مسترجع" ${order.status === 'مسترجع' ? 'selected' : ''}>↩️ مسترجع</option>
+                        <option value="ملغي" ${order.status === 'ملغي' ? 'selected' : ''}>❌ ملغي</option>
+                    </select>
+                    <button onclick="window.deleteOrderHandler('${order.id}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
-                ` : ''}
-                ${order.shippingMethod === 'noship' && order.extraEmail ? `
-                <div class="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                    <i class="fas fa-envelope"></i> بريد إضافي: ${order.extraEmail}
-                </div>
-                ` : ''}
             </div>
         `).join('');
         
@@ -412,8 +714,7 @@ function populateTimeOptions() {
 }
 
 function setCurrentDate() {
-    const dateInput = document.getElementById('orderDate');
-    dateInput.value = new Date().toISOString().split('T')[0];
+    document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
 }
 
 function setCurrentTime() {
@@ -452,32 +753,93 @@ function calculateTotals() {
     const discountType = document.getElementById('discountType');
     if (discountType.value === 'percent') d = (subtotal * d) / 100;
     const ad = subtotal - d, tax = ad * 0.15, total = ad + tax;
-    document.getElementById('subtotalDisplay').innerText = subtotal.toFixed(2) + ' ريال';
-    document.getElementById('discountDisplay').innerText = d.toFixed(2) + ' ريال';
-    document.getElementById('taxDisplay').innerText = tax.toFixed(2) + ' ريال';
-    document.getElementById('totalDisplay').innerText = total.toFixed(2) + ' ريال';
+    document.getElementById('subtotalDisplay').innerHTML = subtotal.toFixed(2) + ' ريال';
+    document.getElementById('discountDisplay').innerHTML = d.toFixed(2) + ' ريال';
+    document.getElementById('taxDisplay').innerHTML = tax.toFixed(2) + ' ريال';
+    document.getElementById('totalDisplay').innerHTML = total.toFixed(2) + ' ريال';
     document.getElementById('taxAmount').value = tax.toFixed(2);
     return { subtotal, discount: d, tax, total };
 }
 
 function updateTotals() { calculateTotals(); }
 
+// إضافة صف منتج مع دعم الصورة
 function addProductRow(pd = null) {
     const container = document.getElementById('productsContainer');
+    const rowId = 'product_row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const row = document.createElement('div');
     row.className = 'product-row';
-    row.innerHTML = `<div class="grid grid-cols-7 gap-2"><input type="text" class="product-name border rounded p-1 col-span-2" value="${escapeHtml(pd?.name || '')}" placeholder="اسم المنتج"><input type="text" class="product-barcode border rounded p-1 bg-gray-50" readonly value="${escapeHtml(pd?.barcode || '')}"><input type="number" class="product-price border rounded p-1" step="0.01" value="${pd?.price || 0}"><input type="number" class="product-quantity border rounded p-1" value="${pd?.quantity || 1}" min="1"><input type="text" class="product-image border rounded p-1" placeholder="رابط الصورة" value="${escapeHtml(pd?.image || '')}"><button type="button" class="remove-product-btn text-red-600"><i class="fas fa-trash"></i></button></div><div class="mt-1"><div class="product-desc-editor" style="height:80px;"></div><input type="hidden" class="product-desc-hidden" value="${escapeHtml(pd?.description || '')}"></div><input type="hidden" class="product-id" value="${pd?.productId || ''}">`;
+    row.id = rowId;
+    
+    const imageHtml = pd?.image ? `<img src="${pd.image}" class="product-image-preview" onclick="window.openImage('${pd.image}')">` : '<div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>';
+    
+    row.innerHTML = `
+        <div class="flex gap-3 flex-wrap md:flex-nowrap">
+            <div class="product-image-container w-20 h-20 flex-shrink-0">
+                ${imageHtml}
+                <input type="hidden" class="product-image" value="${escapeHtml(pd?.image || '')}">
+            </div>
+            <div class="flex-1 grid grid-cols-1 md:grid-cols-6 gap-2">
+                <input type="text" class="product-name border rounded-lg p-2 text-sm md:col-span-2" value="${escapeHtml(pd?.name || '')}" placeholder="اسم المنتج">
+                <input type="text" class="product-barcode border rounded-lg p-2 text-sm bg-gray-50" readonly value="${escapeHtml(pd?.barcode || '')}" placeholder="باركود">
+                <input type="number" class="product-price border rounded-lg p-2 text-sm" step="0.01" value="${pd?.price || 0}" placeholder="السعر">
+                <input type="number" class="product-quantity border rounded-lg p-2 text-sm" value="${pd?.quantity || 1}" min="1" placeholder="الكمية">
+                <button type="button" class="upload-image-btn bg-gray-100 text-gray-600 rounded-lg p-2 hover:bg-gray-200 transition"><i class="fas fa-camera"></i></button>
+                <button type="button" class="remove-product-btn text-red-600 rounded-lg p-2 hover:bg-red-50 transition"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+        <div class="mt-2">
+            <div class="product-desc-editor" style="height:80px;"></div>
+            <input type="hidden" class="product-desc-hidden" value="${escapeHtml(pd?.description || '')}">
+        </div>
+        <input type="hidden" class="product-id" value="${pd?.productId || ''}">
+    `;
+    
     container.appendChild(row);
-    const editor = row.querySelector('.product-desc-editor'), hidden = row.querySelector('.product-desc-hidden');
-    const quill = new Quill(editor, { theme: 'snow', placeholder: 'وصف...', modules: { toolbar: [['bold', 'italic', 'underline'], ['link', 'image']] } });
+    
+    // تهيئة محرر النص
+    const editor = row.querySelector('.product-desc-editor');
+    const hidden = row.querySelector('.product-desc-hidden');
+    const quill = new Quill(editor, { theme: 'snow', placeholder: 'وصف المنتج...', modules: { toolbar: [['bold', 'italic', 'underline'], ['link']] } });
     if (hidden.value) quill.root.innerHTML = hidden.value;
     quill.on('text-change', () => { hidden.value = quill.root.innerHTML; updateTotals(); });
+    
+    // أحداث
     row.querySelector('.product-price').addEventListener('input', updateTotals);
     row.querySelector('.product-quantity').addEventListener('input', updateTotals);
     row.querySelector('.remove-product-btn').onclick = () => { row.remove(); updateTotals(); };
+    
+    // رفع صورة للمنتج
+    const uploadBtn = row.querySelector('.upload-image-btn');
+    uploadBtn.onclick = () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const imgUrl = ev.target.result;
+                    row.querySelector('.product-image').value = imgUrl;
+                    const imgContainer = row.querySelector('.product-image-container');
+                    imgContainer.innerHTML = `<img src="${imgUrl}" class="product-image-preview" onclick="window.openImage('${imgUrl}')"><input type="hidden" class="product-image" value="${imgUrl}">`;
+                    updateTotals();
+                    showToast('تم إضافة الصورة', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        fileInput.click();
+    };
+    
     updateTotals();
     return row;
 }
+
+window.openImage = (url) => {
+    window.open(url, '_blank');
+};
 
 function openInventoryModal() {
     const modal = document.getElementById('inventoryModal');
@@ -488,7 +850,15 @@ function openInventoryModal() {
     const search = () => {
         const term = searchInput.value.toLowerCase();
         const filtered = products.filter(p => p.name?.toLowerCase().includes(term));
-        listDiv.innerHTML = filtered.map(p => `<div class="p-2 border rounded cursor-pointer hover:bg-gray-50" onclick="window.selectFromInventory('${p.id}')"><div class="flex justify-between"><span>${escapeHtml(p.name)}</span><span>${(p.price || 0).toFixed(2)} ريال</span><span class="text-gray-400">مخزون:${p.stock || 0}</span></div></div>`).join('');
+        listDiv.innerHTML = filtered.map(p => `
+            <div class="p-3 border rounded-xl cursor-pointer hover:bg-purple-50 transition flex items-center gap-3" onclick="window.selectFromInventory('${p.id}')">
+                ${p.image ? `<img src="${p.image}" class="w-12 h-12 object-cover rounded-lg">` : '<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-box text-gray-400"></i></div>'}
+                <div class="flex-1">
+                    <div class="font-semibold">${escapeHtml(p.name)}</div>
+                    <div class="text-sm text-gray-500">${(p.price || 0).toFixed(2)} ريال | مخزون: ${p.stock || 0}</div>
+                </div>
+            </div>
+        `).join('');
     };
     searchInput.oninput = search;
     search();
@@ -510,31 +880,93 @@ function openQuickProductModal(row) {
     document.getElementById('quickProductBarcode').value = generateRandomCode();
     document.getElementById('quickProductModal').classList.remove('hidden');
     document.getElementById('quickProductModal').classList.add('flex');
-    if (!window.quillEditor) window.quillEditor = new Quill('#quickProductEditor', { theme: 'snow', placeholder: 'وصف...', modules: { toolbar: [['bold', 'italic', 'underline'], ['link', 'image']] } });
+    document.getElementById('imagePreviewContainer').classList.add('hidden');
+    currentProductImageData = null;
+    
+    if (!window.quillEditor) {
+        window.quillEditor = new Quill('#quickProductEditor', { theme: 'snow', placeholder: 'وصف المنتج...', modules: { toolbar: [['bold', 'italic', 'underline'], ['link']] } });
+    }
+    
+    // معالجة رفع الصورة
+    const fileInput = document.getElementById('productImageFile');
+    const urlInput = document.getElementById('quickProductImageUrl');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImg = document.getElementById('imagePreview');
+    const removeBtn = document.getElementById('removeImageBtn');
+    
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                currentProductImageData = ev.target.result;
+                previewImg.src = currentProductImageData;
+                previewContainer.classList.remove('hidden');
+                urlInput.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    urlInput.oninput = () => {
+        if (urlInput.value) {
+            currentProductImageData = urlInput.value;
+            previewImg.src = currentProductImageData;
+            previewContainer.classList.remove('hidden');
+            fileInput.value = '';
+        }
+    };
+    
+    removeBtn.onclick = () => {
+        currentProductImageData = null;
+        previewContainer.classList.add('hidden');
+        fileInput.value = '';
+        urlInput.value = '';
+    };
 }
 
 function closeQuickProductModal() {
     document.getElementById('quickProductModal').classList.add('hidden');
     document.getElementById('quickProductModal').classList.remove('flex');
     currentProductRowTemp = null;
+    currentProductImageData = null;
 }
 
 async function saveQuickProduct(e) {
     e.preventDefault();
-    const name = document.getElementById('quickProductName').value.trim(), price = parseFloat(document.getElementById('quickProductPrice').value), cost = parseFloat(document.getElementById('quickProductCost').value) || 0, quantity = parseInt(document.getElementById('quickProductQuantity').value), image = document.getElementById('quickProductImageUrl').value.trim(), description = window.quillEditor ? window.quillEditor.root.innerHTML : '', saveToInventory = document.getElementById('saveToInventory').checked;
-    if (!name || isNaN(price) || isNaN(quantity) || quantity <= 0) { showToast('الاسم والسعر والكمية مطلوبة', 'error'); return; }
-    if (price < cost) { showToast('سعر البيع أقل من التكلفة', 'error'); return; }
+    const name = document.getElementById('quickProductName').value.trim();
+    const price = parseFloat(document.getElementById('quickProductPrice').value);
+    const cost = parseFloat(document.getElementById('quickProductCost').value) || 0;
+    const quantity = parseInt(document.getElementById('quickProductQuantity').value);
+    const image = currentProductImageData || '';
+    const description = window.quillEditor ? window.quillEditor.root.innerHTML : '';
+    const saveToInventory = document.getElementById('saveToInventory').checked;
+    
+    if (!name || isNaN(price) || isNaN(quantity) || quantity <= 0) {
+        showToast('الاسم والسعر والكمية مطلوبة', 'error');
+        return;
+    }
+    if (price < cost) {
+        showToast('سعر البيع أقل من التكلفة', 'error');
+        return;
+    }
+    
     const barcode = document.getElementById('quickProductBarcode').value;
     let productId = null;
+    
     if (saveToInventory) {
         try {
             const np = { name, price, cost, stock: 0, image, description, code: barcode, createdAt: new Date().toISOString() };
             const ref = await addProduct(np);
             productId = ref.id;
             await loadProductsList();
-            showToast('تم حفظ المنتج', 'success');
-        } catch (err) { showToast('خطأ في الحفظ', 'error'); return; }
+            showToast('تم حفظ المنتج في المخزون', 'success');
+        } catch (err) {
+            showToast('خطأ في الحفظ', 'error');
+            return;
+        }
     }
+    
     if (currentProductRowTemp) {
         currentProductRowTemp.querySelector('.product-name').value = name;
         currentProductRowTemp.querySelector('.product-barcode').value = barcode;
@@ -542,6 +974,15 @@ async function saveQuickProduct(e) {
         currentProductRowTemp.querySelector('.product-quantity').value = quantity;
         currentProductRowTemp.querySelector('.product-image').value = image;
         currentProductRowTemp.querySelector('.product-desc-hidden').value = description;
+        
+        // تحديث معاينة الصورة
+        const imgContainer = currentProductRowTemp.querySelector('.product-image-container');
+        if (image) {
+            imgContainer.innerHTML = `<img src="${image}" class="product-image-preview" onclick="window.openImage('${image}')"><input type="hidden" class="product-image" value="${image}">`;
+        } else {
+            imgContainer.innerHTML = '<div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div><input type="hidden" class="product-image" value="">';
+        }
+        
         const ed = currentProductRowTemp.querySelector('.product-desc-editor .ql-editor');
         if (ed) ed.innerHTML = description;
         currentProductRowTemp.querySelector('.product-id').value = productId || '';
@@ -564,9 +1005,21 @@ function closeQuickModal() {
 
 async function saveQuickCustomer(e) {
     e.preventDefault();
-    const name = document.getElementById('quickName').value.trim(), phone = document.getElementById('quickPhone').value.trim();
-    if (!name || !phone) { showToast('الاسم والجوال مطلوبان', 'error'); return; }
-    await addCustomer({ name, phone, email: document.getElementById('quickEmail').value, city: document.getElementById('quickCity').value, street: document.getElementById('quickStreet').value, additionalNo: document.getElementById('quickAdditionalNo').value, poBox: document.getElementById('quickPoBox').value, createdAt: new Date().toISOString() });
+    const name = document.getElementById('quickName').value.trim();
+    const phone = document.getElementById('quickPhone').value.trim();
+    if (!name || !phone) {
+        showToast('الاسم والجوال مطلوبان', 'error');
+        return;
+    }
+    await addCustomer({
+        name, phone,
+        email: document.getElementById('quickEmail').value,
+        city: document.getElementById('quickCity').value,
+        street: document.getElementById('quickStreet').value,
+        additionalNo: document.getElementById('quickAdditionalNo').value,
+        poBox: document.getElementById('quickPoBox').value,
+        createdAt: new Date().toISOString()
+    });
     closeQuickModal();
     await loadCustomersList();
     document.getElementById('customerSelect').value = customers[customers.length - 1]?.id || '';
@@ -576,15 +1029,29 @@ async function saveQuickCustomer(e) {
 function setPaymentMethod(method) {
     selectedPaymentMethod = method;
     const btns = document.querySelectorAll('.payment-btn');
-    btns.forEach(btn => { btn.classList.remove('bg-blue-600', 'text-white'); btn.classList.add('border-gray-300'); });
+    btns.forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-700');
+    });
     const active = document.querySelector(`.payment-btn[data-payment="${method}"]`);
-    if (active) { active.classList.add('bg-blue-600', 'text-white'); active.classList.remove('border-gray-300'); }
+    if (active) {
+        active.classList.add('bg-blue-600', 'text-white');
+        active.classList.remove('bg-white', 'text-gray-700');
+    }
     const approvalField = document.getElementById('approvalCodeField');
     const otherField = document.getElementById('otherPaymentField');
     const approvalLabel = document.getElementById('approvalMethodLabel');
-    if (method === 'tamara' || method === 'tabby') { approvalLabel.innerText = method === 'tamara' ? 'تمارا' : 'تابي'; approvalField.classList.remove('hidden'); otherField.classList.add('hidden'); }
-    else if (method === 'other') { approvalField.classList.add('hidden'); otherField.classList.remove('hidden'); }
-    else { approvalField.classList.add('hidden'); otherField.classList.add('hidden'); }
+    if (method === 'tamara' || method === 'tabby') {
+        approvalLabel.innerText = method === 'tamara' ? 'تمارا' : 'تابي';
+        approvalField.classList.remove('hidden');
+        otherField.classList.add('hidden');
+    } else if (method === 'other') {
+        approvalField.classList.add('hidden');
+        otherField.classList.remove('hidden');
+    } else {
+        approvalField.classList.add('hidden');
+        otherField.classList.add('hidden');
+    }
 }
 
 function resetForm() {
@@ -602,14 +1069,14 @@ function resetForm() {
     document.getElementById('approvalCode').value = '';
     document.getElementById('otherPaymentText').value = '';
     document.getElementById('extraEmail').value = '';
-    // إعادة تعيين طريقة الاستلام
+    
     document.querySelector('input[name="shippingMethod"][value="pickup"]').checked = true;
     currentShippingMethod = 'pickup';
     document.getElementById('pickupFields').classList.remove('hidden');
     document.getElementById('deliveryFields').classList.add('hidden');
     document.getElementById('noShipFields').classList.add('hidden');
     updateTotals();
-    document.getElementById('modalTitle').innerText = 'إضافة طلب جديد';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle ml-2"></i>إضافة طلب جديد';
 }
 
 function closeModal() {
@@ -626,19 +1093,24 @@ function openModal() {
 async function saveOrder(e) {
     e.preventDefault();
     const customerId = document.getElementById('customerSelect').value;
-    if (!customerId) { showToast('اختر عميل', 'error'); return; }
+    if (!customerId) {
+        showToast('اختر عميل', 'error');
+        return;
+    }
     const orderNumber = document.getElementById('orderNumber').value.trim();
-    if (!orderNumber) { showToast('أدخل رقم الطلب', 'error'); return; }
-    const orderDate = document.getElementById('orderDate').value, orderTime = get24HourTime(), status = document.getElementById('orderStatus').value;
+    if (!orderNumber) {
+        showToast('أدخل رقم الطلب', 'error');
+        return;
+    }
+    const orderDate = document.getElementById('orderDate').value;
+    const orderTime = get24HourTime();
+    const status = document.getElementById('orderStatus').value;
     
-    // الحصول على طريقة الاستلام
     const shippingMethod = document.querySelector('input[name="shippingMethod"]:checked').value;
     let shippingAddress = null;
     let extraEmail = null;
     
     if (shippingMethod === 'delivery') {
-        const customer = customers.find(c => c.id === customerId);
-        if (!customer) { showToast('بيانات العميل غير موجودة', 'error'); return; }
         shippingAddress = {
             city: document.getElementById('deliveryCity').value,
             street: document.getElementById('deliveryStreet').value,
@@ -651,8 +1123,20 @@ async function saveOrder(e) {
     }
     
     let approvalCode = null, otherText = null;
-    if (selectedPaymentMethod === 'tamara' || selectedPaymentMethod === 'tabby') { approvalCode = document.getElementById('approvalCode').value.trim(); if (!approvalCode) { showToast(`أدخل رمز الموافقة لـ ${selectedPaymentMethod === 'tamara' ? 'تمارا' : 'تابي'}`, 'error'); return; } }
-    if (selectedPaymentMethod === 'other') { otherText = document.getElementById('otherPaymentText').value.trim(); if (!otherText) { showToast('أدخل طريقة الدفع', 'error'); return; } }
+    if (selectedPaymentMethod === 'tamara' || selectedPaymentMethod === 'tabby') {
+        approvalCode = document.getElementById('approvalCode').value.trim();
+        if (!approvalCode) {
+            showToast(`أدخل رمز الموافقة لـ ${selectedPaymentMethod === 'tamara' ? 'تمارا' : 'تابي'}`, 'error');
+            return;
+        }
+    }
+    if (selectedPaymentMethod === 'other') {
+        otherText = document.getElementById('otherPaymentText').value.trim();
+        if (!otherText) {
+            showToast('أدخل طريقة الدفع', 'error');
+            return;
+        }
+    }
     
     const items = [];
     const rows = document.querySelectorAll('.product-row');
@@ -660,10 +1144,22 @@ async function saveOrder(e) {
         const name = r.querySelector('.product-name').value.trim();
         const price = parseFloat(r.querySelector('.product-price').value);
         const qty = parseInt(r.querySelector('.product-quantity').value);
-        if (!name || isNaN(price) || isNaN(qty) || qty <= 0) { showToast('جميع المنتجات يجب أن تحتوي على اسم وسعر وكمية', 'error'); return; }
-        items.push({ productId: r.querySelector('.product-id').value || null, name, price, quantity: qty, barcode: r.querySelector('.product-barcode').value, image: r.querySelector('.product-image').value, description: r.querySelector('.product-desc-hidden').value });
+        if (!name || isNaN(price) || isNaN(qty) || qty <= 0) {
+            showToast('جميع المنتجات يجب أن تحتوي على اسم وسعر وكمية', 'error');
+            return;
+        }
+        items.push({
+            productId: r.querySelector('.product-id').value || null,
+            name, price, quantity: qty,
+            barcode: r.querySelector('.product-barcode').value,
+            image: r.querySelector('.product-image').value,
+            description: r.querySelector('.product-desc-hidden').value
+        });
     }
-    if (items.length === 0) { showToast('أضف منتجاً واحداً على الأقل', 'error'); return; }
+    if (items.length === 0) {
+        showToast('أضف منتجاً واحداً على الأقل', 'error');
+        return;
+    }
     
     const { subtotal, discount, tax, total } = calculateTotals();
     const orderData = {
@@ -671,36 +1167,64 @@ async function saveOrder(e) {
         shippingMethod, shippingAddress, extraEmail,
         paymentMethod: selectedPaymentMethod,
         paymentMethodName: selectedPaymentMethod === 'other' ? otherText : (selectedPaymentMethod === 'tamara' ? 'تمارا' : (selectedPaymentMethod === 'tabby' ? 'تابي' : (selectedPaymentMethod === 'mada' ? 'مدى' : (selectedPaymentMethod === 'mastercard' ? 'ماستركارد' : (selectedPaymentMethod === 'visa' ? 'فيزا' : 'STCPay'))))),
-        approvalCode, otherPaymentText: otherText, items, subtotal, discount: parseFloat(document.getElementById('discountValue').value) || 0,
-        discountType: document.getElementById('discountType').value, tax, total, updatedAt: new Date().toISOString()
+        approvalCode, otherPaymentText: otherText, items, subtotal,
+        discount: parseFloat(document.getElementById('discountValue').value) || 0,
+        discountType: document.getElementById('discountType').value, tax, total,
+        updatedAt: new Date().toISOString()
     };
     if (!currentOrderId) orderData.createdAt = new Date().toISOString();
     
     try {
         if (currentOrderId) {
             const old = orders.find(o => o.id === currentOrderId);
-            if (old?.items) for (let it of old.items) if (it.productId) { const p = products.find(pr => pr.id === it.productId); if (p) await updateProductStock(it.productId, p.stock + it.quantity); }
+            if (old?.items) {
+                for (let it of old.items) {
+                    if (it.productId) {
+                        const p = products.find(pr => pr.id === it.productId);
+                        if (p) await updateProductStock(it.productId, p.stock + it.quantity);
+                    }
+                }
+            }
             await updateOrder(currentOrderId, orderData);
-            showToast('تم تعديل الطلب', 'success');
+            showToast('تم تعديل الطلب بنجاح', 'success');
         } else {
             await addOrder(orderData);
-            showToast('تم إضافة الطلب', 'success');
+            showToast('تم إضافة الطلب بنجاح', 'success');
         }
-        for (let it of items) if (it.productId) { const p = products.find(pr => pr.id === it.productId); if (p) await updateProductStock(it.productId, p.stock - it.quantity); }
+        for (let it of items) {
+            if (it.productId) {
+                const p = products.find(pr => pr.id === it.productId);
+                if (p) await updateProductStock(it.productId, p.stock - it.quantity);
+            }
+        }
         closeModal();
         await loadData();
         await renderOrders();
-    } catch (err) { console.error(err); showToast('خطأ في الحفظ', 'error'); }
+    } catch (err) {
+        console.error(err);
+        showToast('خطأ في الحفظ', 'error');
+    }
 }
 
+// ========== تعديل الطلب - جلب البيانات ==========
 function openModalForEdit(orderId) {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
+    
     currentOrderId = orderId;
-    document.getElementById('modalTitle').innerText = 'تعديل الطلب';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit ml-2"></i>تعديل الطلب';
     document.getElementById('orderNumber').value = order.orderNumber.replace('KF-', '');
     document.getElementById('orderDate').value = order.orderDate;
-    if (order.orderTime) { let [h, m] = order.orderTime.split(':'); let ap = parseInt(h) >= 12 ? 'PM' : 'AM'; let h12 = parseInt(h) % 12 || 12; document.getElementById('orderHour').value = h12; document.getElementById('orderMinute').value = m; document.getElementById('orderAmPm').value = ap; }
+    
+    if (order.orderTime) {
+        let [h, m] = order.orderTime.split(':');
+        let ap = parseInt(h) >= 12 ? 'PM' : 'AM';
+        let h12 = parseInt(h) % 12 || 12;
+        document.getElementById('orderHour').value = h12;
+        document.getElementById('orderMinute').value = m;
+        document.getElementById('orderAmPm').value = ap;
+    }
+    
     document.getElementById('orderStatus').value = order.status;
     document.getElementById('customerSelect').value = order.customerId;
     
@@ -740,16 +1264,55 @@ function openModalForEdit(orderId) {
     if (order.otherPaymentText) document.getElementById('otherPaymentText').value = order.otherPaymentText;
     document.getElementById('discountValue').value = order.discount || 0;
     document.getElementById('discountType').value = order.discountType || 'fixed';
+    
+    // إضافة المنتجات
     document.getElementById('productsContainer').innerHTML = '';
-    order.items.forEach(item => addProductRow({ name: item.name, price: item.price, quantity: item.quantity, barcode: item.barcode, image: item.image, description: item.description, productId: item.productId }));
+    order.items.forEach(item => {
+        addProductRow({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            barcode: item.barcode,
+            image: item.image,
+            description: item.description,
+            productId: item.productId
+        });
+    });
+    
     updateTotals();
     document.getElementById('orderModal').classList.remove('hidden');
     document.getElementById('orderModal').classList.add('flex');
 }
 
 window.editOrder = openModalForEdit;
-window.changeStatus = async (id, st) => { try { await updateOrder(id, { status: st }); await renderOrders(); showToast(`تم تغيير الحالة إلى ${st}`, 'success'); } catch (e) { showToast('خطأ', 'error'); } };
-window.deleteOrderHandler = async (id) => { if (!confirm('تأكيد الحذف؟')) return; try { const ord = orders.find(o => o.id === id); if (ord?.items) for (let it of ord.items) if (it.productId) { const p = products.find(pr => pr.id === it.productId); if (p) await updateProductStock(it.productId, p.stock + it.quantity); } await deleteOrder(id); await renderOrders(); showToast('تم الحذف', 'success'); } catch (e) { showToast('خطأ', 'error'); } };
+window.changeStatus = async (id, st) => {
+    try {
+        await updateOrder(id, { status: st });
+        await renderOrders();
+        showToast(`تم تغيير الحالة إلى ${st}`, 'success');
+    } catch (e) {
+        showToast('خطأ', 'error');
+    }
+};
+window.deleteOrderHandler = async (id) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
+    try {
+        const ord = orders.find(o => o.id === id);
+        if (ord?.items) {
+            for (let it of ord.items) {
+                if (it.productId) {
+                    const p = products.find(pr => pr.id === it.productId);
+                    if (p) await updateProductStock(it.productId, p.stock + it.quantity);
+                }
+            }
+        }
+        await deleteOrder(id);
+        await renderOrders();
+        showToast('تم حذف الطلب بنجاح', 'success');
+    } catch (e) {
+        showToast('خطأ في الحذف', 'error');
+    }
+};
 
 // ========== ربط الأحداث ==========
 function bindEvents() {
@@ -769,15 +1332,14 @@ function bindEvents() {
     document.getElementById('quickCustomerForm').onsubmit = saveQuickCustomer;
     document.getElementById('quickProductForm').onsubmit = saveQuickProduct;
     
-    // أحداث طريقة الاستلام
     document.querySelectorAll('input[name="shippingMethod"]').forEach(radio => {
         radio.onclick = toggleShippingMethod;
     });
-
+    
     document.querySelectorAll('.payment-btn').forEach(btn => {
         btn.onclick = () => setPaymentMethod(btn.dataset.payment);
     });
-
+    
     document.getElementById('applyFilters').onclick = () => {
         currentFilters.status = document.getElementById('filterStatus').value;
         currentFilters.customer = document.getElementById('filterCustomer').value;
@@ -786,7 +1348,7 @@ function bindEvents() {
         currentFilters.dateTo = document.getElementById('filterDateTo').value;
         renderOrders();
     };
-
+    
     document.getElementById('resetFilters').onclick = () => {
         document.getElementById('filterStatus').value = '';
         document.getElementById('filterCustomer').value = '';
@@ -796,7 +1358,7 @@ function bindEvents() {
         currentFilters = { status: '', customer: '', shippingMethod: '', dateFrom: '', dateTo: '' };
         renderOrders();
     };
-
+    
     document.getElementById('viewListBtn').onclick = () => { currentView = 'list'; renderOrders(); };
     document.getElementById('viewGridBtn').onclick = () => { currentView = 'grid'; renderOrders(); };
 }
