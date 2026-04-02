@@ -30,6 +30,9 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .shipping-fields { background: #f0fdf4; padding: 15px; border-radius: 12px; margin-top: 10px; }
         .pickup-fields { background: #fef3c7; padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .no-shipping-fields { background: #e0e7ff; padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .shipping-option { cursor: pointer; transition: all 0.2s; }
+        .shipping-option:hover { transform: translateY(-2px); }
     </style>
 </head>
 <body class="bg-gray-50 p-6 font-sans">
@@ -57,6 +60,12 @@
             <option value="ملغي">ملغي</option>
         </select>
         <input type="text" id="filterCustomer" placeholder="بحث باسم العميل" class="border rounded-lg px-3 py-2 text-sm w-48">
+        <select id="filterShippingMethod" class="border rounded-lg px-3 py-2 text-sm">
+            <option value="">جميع طرق الاستلام</option>
+            <option value="pickup">استلام من المقر</option>
+            <option value="delivery">شحن منزلي</option>
+            <option value="noship">لا يتطلب شحن</option>
+        </select>
         <input type="date" id="filterDateFrom" class="border rounded-lg px-3 py-2 text-sm">
         <input type="date" id="filterDateTo" class="border rounded-lg px-3 py-2 text-sm">
         <button id="applyFilters" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg">تطبيق</button>
@@ -87,21 +96,44 @@
                 <div><label class="font-semibold">العميل</label><div class="flex gap-2"><select id="customerSelect" class="flex-1 border rounded px-3 py-2"></select><button type="button" id="quickAddCustomerBtn" class="bg-green-600 text-white px-3 rounded"><i class="fas fa-user-plus"></i></button></div></div>
             </div>
             
-            <!-- طريقة الشحن -->
+            <!-- طريقة الاستلام - 3 خيارات -->
             <div class="mb-4">
-                <label class="font-semibold block mb-2">طريقة الاستلام</label>
-                <div class="flex gap-4">
-                    <label class="flex items-center gap-2"><input type="radio" name="shippingMethod" value="pickup" checked> <i class="fas fa-store text-orange-600"></i> استلام من المقر</label>
-                    <label class="flex items-center gap-2"><input type="radio" name="shippingMethod" value="delivery"> <i class="fas fa-truck text-blue-600"></i> شحن منزلي</label>
+                <label class="font-semibold block mb-3">طريقة الاستلام</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-orange-50">
+                        <input type="radio" name="shippingMethod" value="pickup" checked> 
+                        <i class="fas fa-store text-orange-600 text-xl"></i>
+                        <div>
+                            <div class="font-semibold">استلام من المقر</div>
+                            <div class="text-xs text-gray-500">استلام شخصي من مقر الشركة</div>
+                        </div>
+                    </label>
+                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-green-50">
+                        <input type="radio" name="shippingMethod" value="delivery"> 
+                        <i class="fas fa-truck text-blue-600 text-xl"></i>
+                        <div>
+                            <div class="font-semibold">شحن منزلي</div>
+                            <div class="text-xs text-gray-500">توصيل إلى عنوان العميل</div>
+                        </div>
+                    </label>
+                    <label class="shipping-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-purple-50">
+                        <input type="radio" name="shippingMethod" value="noship"> 
+                        <i class="fas fa-download text-purple-600 text-xl"></i>
+                        <div>
+                            <div class="font-semibold">لا يتطلب شحن</div>
+                            <div class="text-xs text-gray-500">منتج رقمي / خدمة / استشارة</div>
+                        </div>
+                    </label>
                 </div>
                 
-                <!-- حقل الاستلام من المقر -->
+                <!-- استلام من المقر -->
                 <div id="pickupFields" class="pickup-fields mt-3">
                     <p class="text-sm text-orange-700 mb-2"><i class="fas fa-map-marker-alt"></i> عنوان الاستلام:</p>
                     <p class="text-sm"><strong>منصة في خدمتك</strong><br>المملكة العربية السعودية - حائل - حي النقرة<br>شارع سعد المشاط - مبنى 3085 - الرقم الإضافي: 7718<br>الرمز البريدي: 55431</p>
+                    <p class="text-xs text-gray-500 mt-2"><i class="fas fa-clock"></i> أوقات الاستلام: السبت - الأربعاء 9ص - 6م</p>
                 </div>
                 
-                <!-- حقل الشحن المنزلي (بيانات العميل) -->
+                <!-- شحن منزلي -->
                 <div id="deliveryFields" class="shipping-fields mt-3 hidden">
                     <p class="text-sm text-green-700 mb-2"><i class="fas fa-truck"></i> بيانات الشحن (سيتم جلبها من بيانات العميل):</p>
                     <div class="grid grid-cols-2 gap-3">
@@ -110,6 +142,21 @@
                         <div><label class="text-xs text-gray-600">رقم إضافي</label><input type="text" id="deliveryAdditionalNo" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
                         <div><label class="text-xs text-gray-600">صندوق بريد</label><input type="text" id="deliveryPoBox" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
                         <div class="col-span-2"><label class="text-xs text-gray-600">رقم الجوال</label><input type="text" id="deliveryPhone" class="w-full border rounded p-2 text-sm bg-gray-50" readonly placeholder="اختر عميل أولاً"></div>
+                    </div>
+                </div>
+                
+                <!-- لا يتطلب شحن -->
+                <div id="noShipFields" class="no-shipping-fields mt-3 hidden">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-cloud-download-alt text-purple-600 text-2xl"></i>
+                        <div>
+                            <p class="text-sm text-purple-700 font-semibold">لا يتطلب هذا الطلب شحن</p>
+                            <p class="text-xs text-gray-600">سيتم إرسال تفاصيل المنتج/الخدمة عبر البريد الإلكتروني</p>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="text-xs text-gray-600">بريد إضافي للإرسال (اختياري)</label>
+                        <input type="email" id="extraEmail" class="w-full border rounded p-2 text-sm" placeholder="بريد إلكتروني إضافي">
                     </div>
                 </div>
             </div>
@@ -143,8 +190,8 @@ import { loadCustomers, addCustomer, loadProducts, addOrder, updateOrder, delete
 // ========== المتغيرات ==========
 let customers = [], products = [], orders = [], currentOrderId = null;
 let selectedPaymentMethod = 'mada', currentView = 'list';
-let currentFilters = { status: '', customer: '', dateFrom: '', dateTo: '' };
-let currentShippingMethod = 'pickup'; // pickup أو delivery
+let currentFilters = { status: '', customer: '', shippingMethod: '', dateFrom: '', dateTo: '' };
+let currentShippingMethod = 'pickup';
 
 // ========== دوال مساعدة ==========
 function formatDate(dateStr) {
@@ -199,24 +246,30 @@ function updateDeliveryFieldsFromCustomer(customerId) {
     }
 }
 
-// ========== تبديل طريقة الشحن ==========
+// ========== تبديل طريقة الاستلام ==========
 function toggleShippingMethod() {
     const selected = document.querySelector('input[name="shippingMethod"]:checked').value;
     currentShippingMethod = selected;
     const pickupDiv = document.getElementById('pickupFields');
     const deliveryDiv = document.getElementById('deliveryFields');
+    const noShipDiv = document.getElementById('noShipFields');
     
+    // إخفاء الكل
+    pickupDiv.classList.add('hidden');
+    deliveryDiv.classList.add('hidden');
+    noShipDiv.classList.add('hidden');
+    
+    // إظهار المختار
     if (selected === 'pickup') {
         pickupDiv.classList.remove('hidden');
-        deliveryDiv.classList.add('hidden');
-    } else {
-        pickupDiv.classList.add('hidden');
+    } else if (selected === 'delivery') {
         deliveryDiv.classList.remove('hidden');
-        // جلب بيانات العميل الحالي إذا وجد
         const customerId = document.getElementById('customerSelect').value;
         if (customerId) {
             updateDeliveryFieldsFromCustomer(customerId);
         }
+    } else if (selected === 'noship') {
+        noShipDiv.classList.remove('hidden');
     }
 }
 
@@ -227,7 +280,6 @@ async function loadCustomersList() {
         const customerSelect = document.getElementById('customerSelect');
         customerSelect.innerHTML = '<option value="">اختر عميلاً</option>' + customers.map(c => `<option value="${c.id}">${escapeHtml(c.name)} - ${c.phone}</option>`).join('');
         
-        // إضافة حدث عند تغيير العميل
         customerSelect.onchange = () => {
             if (currentShippingMethod === 'delivery') {
                 updateDeliveryFieldsFromCustomer(customerSelect.value);
@@ -268,6 +320,7 @@ async function renderOrders() {
         let filtered = orders.filter(o => {
             if (currentFilters.status && o.status !== currentFilters.status) return false;
             if (currentFilters.customer && !o.customer?.name?.toLowerCase().includes(currentFilters.customer.toLowerCase())) return false;
+            if (currentFilters.shippingMethod && o.shippingMethod !== currentFilters.shippingMethod) return false;
             if (currentFilters.dateFrom && o.orderDate < currentFilters.dateFrom) return false;
             if (currentFilters.dateTo && o.orderDate > currentFilters.dateTo) return false;
             return true;
@@ -283,7 +336,11 @@ async function renderOrders() {
             'تحت المراجعة': 'status-review', 'مسترجع': 'status-refund', 'ملغي': 'status-cancelled'
         }[s] || 'status-new');
         
-        const shippingIcon = (method) => method === 'delivery' ? '<i class="fas fa-truck text-blue-600"></i> شحن منزلي' : '<i class="fas fa-store text-orange-600"></i> استلام من المقر';
+        const getShippingIcon = (method) => {
+            if (method === 'delivery') return '<i class="fas fa-truck text-blue-600"></i> شحن منزلي';
+            if (method === 'noship') return '<i class="fas fa-download text-purple-600"></i> لا يتطلب شحن';
+            return '<i class="fas fa-store text-orange-600"></i> استلام من المقر';
+        };
         
         const html = filtered.map(order => `
             <div class="bg-white rounded-xl shadow-md p-4 border hover:shadow-lg transition">
@@ -295,7 +352,7 @@ async function renderOrders() {
                         </div>
                         <p class="text-sm text-gray-500"><i class="far fa-calendar-alt ml-1"></i> ${formatDate(order.orderDate)} | ${formatTime(order.orderTime)}</p>
                         <p class="text-sm mt-1"><i class="fas fa-user ml-1"></i> ${escapeHtml(order.customer?.name || 'غير معروف')}</p>
-                        <p class="text-sm mt-1">${shippingIcon(order.shippingMethod)}</p>
+                        <p class="text-sm mt-1">${getShippingIcon(order.shippingMethod)}</p>
                         <p class="text-sm font-bold mt-1 text-green-600">${(order.total || 0).toFixed(2)} ريال</p>
                         <p class="text-xs text-gray-400 mt-1"><i class="fas fa-credit-card ml-1"></i> ${order.paymentMethodName || order.paymentMethod || 'غير محدد'}</p>
                     </div>
@@ -317,7 +374,12 @@ async function renderOrders() {
                 </div>
                 ${order.shippingMethod === 'delivery' && order.shippingAddress ? `
                 <div class="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                    <i class="fas fa-location-dot"></i> عنوان الشحن: ${order.shippingAddress.city} - ${order.shippingAddress.street}
+                    <i class="fas fa-location-dot"></i> عنوان الشحن: ${order.shippingAddress.city || ''} ${order.shippingAddress.street || ''}
+                </div>
+                ` : ''}
+                ${order.shippingMethod === 'noship' && order.extraEmail ? `
+                <div class="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                    <i class="fas fa-envelope"></i> بريد إضافي: ${order.extraEmail}
                 </div>
                 ` : ''}
             </div>
@@ -539,11 +601,13 @@ function resetForm() {
     setPaymentMethod('mada');
     document.getElementById('approvalCode').value = '';
     document.getElementById('otherPaymentText').value = '';
-    // إعادة تعيين طريقة الشحن
+    document.getElementById('extraEmail').value = '';
+    // إعادة تعيين طريقة الاستلام
     document.querySelector('input[name="shippingMethod"][value="pickup"]').checked = true;
     currentShippingMethod = 'pickup';
     document.getElementById('pickupFields').classList.remove('hidden');
     document.getElementById('deliveryFields').classList.add('hidden');
+    document.getElementById('noShipFields').classList.add('hidden');
     updateTotals();
     document.getElementById('modalTitle').innerText = 'إضافة طلب جديد';
 }
@@ -567,9 +631,10 @@ async function saveOrder(e) {
     if (!orderNumber) { showToast('أدخل رقم الطلب', 'error'); return; }
     const orderDate = document.getElementById('orderDate').value, orderTime = get24HourTime(), status = document.getElementById('orderStatus').value;
     
-    // الحصول على طريقة الشحن
+    // الحصول على طريقة الاستلام
     const shippingMethod = document.querySelector('input[name="shippingMethod"]:checked').value;
     let shippingAddress = null;
+    let extraEmail = null;
     
     if (shippingMethod === 'delivery') {
         const customer = customers.find(c => c.id === customerId);
@@ -581,11 +646,8 @@ async function saveOrder(e) {
             poBox: document.getElementById('deliveryPoBox').value,
             phone: document.getElementById('deliveryPhone').value
         };
-        // التحقق من وجود العنوان
-        if (!shippingAddress.city && !shippingAddress.street) {
-            showToast('يرجى إكمال بيانات عنوان الشحن للعميل', 'error');
-            return;
-        }
+    } else if (shippingMethod === 'noship') {
+        extraEmail = document.getElementById('extraEmail').value.trim() || null;
     }
     
     let approvalCode = null, otherText = null;
@@ -606,7 +668,7 @@ async function saveOrder(e) {
     const { subtotal, discount, tax, total } = calculateTotals();
     const orderData = {
         orderNumber: `KF-${orderNumber}`, orderDate, orderTime, customerId, status,
-        shippingMethod, shippingAddress,
+        shippingMethod, shippingAddress, extraEmail,
         paymentMethod: selectedPaymentMethod,
         paymentMethodName: selectedPaymentMethod === 'other' ? otherText : (selectedPaymentMethod === 'tamara' ? 'تمارا' : (selectedPaymentMethod === 'tabby' ? 'تابي' : (selectedPaymentMethod === 'mada' ? 'مدى' : (selectedPaymentMethod === 'mastercard' ? 'ماستركارد' : (selectedPaymentMethod === 'visa' ? 'فيزا' : 'STCPay'))))),
         approvalCode, otherPaymentText: otherText, items, subtotal, discount: parseFloat(document.getElementById('discountValue').value) || 0,
@@ -642,12 +704,13 @@ function openModalForEdit(orderId) {
     document.getElementById('orderStatus').value = order.status;
     document.getElementById('customerSelect').value = order.customerId;
     
-    // استعادة طريقة الشحن
+    // استعادة طريقة الاستلام
     if (order.shippingMethod === 'delivery') {
         document.querySelector('input[name="shippingMethod"][value="delivery"]').checked = true;
         currentShippingMethod = 'delivery';
         document.getElementById('pickupFields').classList.add('hidden');
         document.getElementById('deliveryFields').classList.remove('hidden');
+        document.getElementById('noShipFields').classList.add('hidden');
         if (order.shippingAddress) {
             document.getElementById('deliveryCity').value = order.shippingAddress.city || '';
             document.getElementById('deliveryStreet').value = order.shippingAddress.street || '';
@@ -657,11 +720,19 @@ function openModalForEdit(orderId) {
         } else {
             updateDeliveryFieldsFromCustomer(order.customerId);
         }
+    } else if (order.shippingMethod === 'noship') {
+        document.querySelector('input[name="shippingMethod"][value="noship"]').checked = true;
+        currentShippingMethod = 'noship';
+        document.getElementById('pickupFields').classList.add('hidden');
+        document.getElementById('deliveryFields').classList.add('hidden');
+        document.getElementById('noShipFields').classList.remove('hidden');
+        document.getElementById('extraEmail').value = order.extraEmail || '';
     } else {
         document.querySelector('input[name="shippingMethod"][value="pickup"]').checked = true;
         currentShippingMethod = 'pickup';
         document.getElementById('pickupFields').classList.remove('hidden');
         document.getElementById('deliveryFields').classList.add('hidden');
+        document.getElementById('noShipFields').classList.add('hidden');
     }
     
     setPaymentMethod(order.paymentMethod);
@@ -698,7 +769,7 @@ function bindEvents() {
     document.getElementById('quickCustomerForm').onsubmit = saveQuickCustomer;
     document.getElementById('quickProductForm').onsubmit = saveQuickProduct;
     
-    // أحداث طريقة الشحن
+    // أحداث طريقة الاستلام
     document.querySelectorAll('input[name="shippingMethod"]').forEach(radio => {
         radio.onclick = toggleShippingMethod;
     });
@@ -710,6 +781,7 @@ function bindEvents() {
     document.getElementById('applyFilters').onclick = () => {
         currentFilters.status = document.getElementById('filterStatus').value;
         currentFilters.customer = document.getElementById('filterCustomer').value;
+        currentFilters.shippingMethod = document.getElementById('filterShippingMethod').value;
         currentFilters.dateFrom = document.getElementById('filterDateFrom').value;
         currentFilters.dateTo = document.getElementById('filterDateTo').value;
         renderOrders();
@@ -718,9 +790,10 @@ function bindEvents() {
     document.getElementById('resetFilters').onclick = () => {
         document.getElementById('filterStatus').value = '';
         document.getElementById('filterCustomer').value = '';
+        document.getElementById('filterShippingMethod').value = '';
         document.getElementById('filterDateFrom').value = '';
         document.getElementById('filterDateTo').value = '';
-        currentFilters = { status: '', customer: '', dateFrom: '', dateTo: '' };
+        currentFilters = { status: '', customer: '', shippingMethod: '', dateFrom: '', dateTo: '' };
         renderOrders();
     };
 
