@@ -2,204 +2,322 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>فاتورة إلكترونية</title>
 
 <style>
-body {
-  direction: rtl;
-  font-family: Arial;
-  margin: 20px;
+:root {
+  --primary: #1e3a8a;
+  --border: #dbe3ef;
+  --text: #0f172a;
+  --muted: #475569;
+  --surface: #ffffff;
+  --soft: #f8fafc;
 }
 
-/* الهيدر */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  direction: rtl;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  color: var(--text);
+  background: #fff;
+}
+
+.invoice-wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+}
+
 .invoice-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-meta {
+  text-align: left;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
 }
 
 .logo-circle {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logo-circle img {
-  width: 50px;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
 }
 
-.header-center {
-  text-align: center;
+.title-wrap {
   flex: 1;
+  text-align: center;
 }
 
 .invoice-title {
-  font-size: 26px;
-  font-weight: bold;
+  margin: 0;
+  font-size: 28px;
+  color: var(--primary);
 }
 
-.header-left {
-  text-align: left;
+.subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.separator {
+  border-top: 1px dashed var(--border);
+  margin: 14px 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 12px;
   font-size: 14px;
 }
 
-/* خطوط */
-.line {
-  border-top: 1px solid #000;
-  margin: 10px 0;
+.parties {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-/* صفوف */
-.row {
-  display: flex;
-  justify-content: space-between;
+.party-box {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--soft);
+  font-size: 14px;
+  line-height: 1.8;
 }
 
-/* جدول */
+.party-title {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.payment-line {
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  font-size: 14px;
 }
 
 th, td {
-  border: 1px solid #000;
-  padding: 6px;
+  border: 1px solid var(--border);
+  padding: 9px 7px;
   text-align: center;
 }
 
-img.product {
-  width: 40px;
-  height: 40px;
+th {
+  background: var(--primary);
+  color: #fff;
+}
+
+td:nth-child(3) {
+  text-align: right;
+}
+
+.product {
+  width: 38px;
+  height: 38px;
   object-fit: contain;
+}
+
+.summary {
+  width: min(100%, 340px);
+  margin-right: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--soft);
+  padding: 12px;
+  line-height: 1.9;
+  font-size: 14px;
+}
+
+.summary .grand {
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.center-text {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.thank-you {
+  text-align: center;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  body { padding: 10px; }
+  .invoice-wrapper { padding: 14px; }
+  .parties { grid-template-columns: 1fr; }
+  .invoice-title { font-size: 23px; }
+}
+
+@media print {
+  body {
+    padding: 0;
+  }
+
+  .invoice-wrapper {
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    max-width: none;
+  }
 }
 </style>
 </head>
 
 <body>
+<div class="invoice-wrapper">
+  <div class="invoice-header">
+    <div class="logo-circle">
+      <img src="logo.png" alt="شعار">
+    </div>
 
-<!-- الهيدر -->
-<div class="invoice-header">
+    <div class="title-wrap">
+      <h1 class="invoice-title">فاتورة إلكترونية</h1>
+      <div class="subtitle">منصة في خدمتك - وثيقة ضريبية مبسطة</div>
+    </div>
 
-  <div class="logo-circle">
-    <img src="logo.png">
+    <div class="header-meta">
+      رقم شهادة العمل الحر: FL-765735204<br>
+      الرقم الضريبي: 312495447600003
+    </div>
   </div>
 
-  <div class="header-center">
-    <div class="invoice-title">فاتورة إلكترونية</div>
+  <div class="separator"></div>
+
+  <div class="info-row">
+    <div class="pill">رقم الفاتورة: KF-001</div>
+    <div class="pill">التاريخ والوقت: 02/04/2026 - 10:30</div>
   </div>
 
-  <div class="header-left">
-    رقم شهادة العمل الحر: FL-765735204<br>
-    الرقم الضريبي: 312495447600003
+  <div class="separator"></div>
+
+  <div class="parties">
+    <div class="party-box">
+      <div class="party-title">مصدرة من:</div>
+      منصة في خدمتك<br>
+      المملكة العربية السعودية<br>
+      حائل - حي النقرة - شارع سعد المشاط<br>
+      رقم المبنى: 3085 - الرقم الإضافي: 7718<br>
+      الرمز البريدي: 55431
+    </div>
+
+    <div class="party-box">
+      <div class="party-title">مصدرة إلى:</div>
+      اسم العميل: __________<br>
+      الدولة: المملكة العربية السعودية<br>
+      المدينة: __________<br>
+      العنوان: __________<br>
+      رقم الجوال: __________<br>
+      البريد الإلكتروني: __________
+    </div>
   </div>
 
-</div>
+  <div class="separator"></div>
 
-<div class="line"></div>
+  <div id="paymentLine" class="payment-line"></div>
 
-<!-- معلومات -->
-<div class="row">
-  <div>رقم الفاتورة: KF-001</div>
-  <div>التاريخ والوقت: 02/04/2026 - 10:30</div>
-</div>
+  <div class="separator"></div>
 
-<div class="line"></div>
+  <table>
+    <tr>
+      <th>#</th>
+      <th>صورة</th>
+      <th>اسم المنتج</th>
+      <th>الكود</th>
+      <th>الكمية</th>
+      <th>السعر</th>
+      <th>الإجمالي</th>
+    </tr>
 
-<!-- الأطراف -->
-<div class="row">
+    <tr>
+      <td>1</td>
+      <td><img class="product" src="product.png" alt="صورة المنتج"></td>
+      <td>خدمة تصميم</td>
+      <td>PRD-001</td>
+      <td>1</td>
+      <td>500</td>
+      <td>500</td>
+    </tr>
+  </table>
 
-  <div>
-    <b>مصدرة من:</b><br>
-    منصة في خدمتك<br>
-    المملكة العربية السعودية<br>
-    حائل - حي النقرة - شارع سعد المشاط<br>
-    رقم المبنى: 3085 - الرقم الإضافي: 7718<br>
-    الرمز البريدي: 55431
+  <div class="separator"></div>
+
+  <div class="summary">
+    المجموع الفرعي: 500 ريال<br>
+    إجمالي الخصم: 0 ريال<br>
+    ضريبة القيمة المضافة (15%): 75 ريال<br>
+    <div class="grand">الإجمالي النهائي: 575 ريال</div>
   </div>
 
-  <div>
-    <b>مصدرة إلى:</b><br>
-    اسم العميل: __________<br>
-    الدولة: المملكة العربية السعودية<br>
-    المدينة: __________<br>
-    العنوان: __________<br>
-    رقم الجوال: __________<br>
-    البريد الإلكتروني: __________
+  <div class="separator"></div>
+
+  <div>الختم: (ختم إلكتروني / توقيع)</div>
+
+  <div class="separator"></div>
+
+  <div class="center-text">
+    هاتف: +966597771565 | البريد: info@fi-khidmatik.com | الموقع: www.khidmatik.com
   </div>
 
+  <div class="separator"></div>
+
+  <div class="center-text">
+    تعليمات: يتم إظهار رمز الموافقة فقط عند الدفع عبر (تمارا أو تابي)
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="thank-you">شكراً لتسوقكم معنا</div>
 </div>
-
-<div class="line"></div>
-
-<!-- الدفع -->
-<div id="paymentLine"></div>
-
-<div class="line"></div>
-
-<!-- الجدول -->
-<table>
-<tr>
-  <th>#</th>
-  <th>صورة</th>
-  <th>اسم المنتج</th>
-  <th>الكود</th>
-  <th>الكمية</th>
-  <th>السعر</th>
-  <th>الإجمالي</th>
-</tr>
-
-<tr>
-  <td>1</td>
-  <td><img class="product" src="product.png"></td>
-  <td>خدمة تصميم</td>
-  <td>PRD-001</td>
-  <td>1</td>
-  <td>500</td>
-  <td>500</td>
-</tr>
-
-</table>
-
-<div class="line"></div>
-
-<!-- الملخص -->
-<div>
-المجموع الفرعي: 500 ريال<br>
-إجمالي الخصم: 0 ريال<br>
-ضريبة القيمة المضافة (15%): 75 ريال<br>
-الإجمالي النهائي: 575 ريال
-</div>
-
-<div class="line"></div>
-
-<!-- الختم -->
-<div>الختم: (ختم إلكتروني / توقيع)</div>
-
-<div class="line"></div>
-
-<!-- التواصل -->
-<div>
-هاتف: +966597771565 | البريد: info@fi-khidmatik.com | الموقع: www.khidmatik.com
-</div>
-
-<div class="line"></div>
-
-<!-- التعليمات -->
-<div>
-تعليمات:
-يتم إظهار رمز الموافقة فقط عند الدفع عبر (تمارا أو تابي)
-</div>
-
-<div class="line"></div>
-
-<!-- الفوتر -->
-<div style="text-align:center;">شكراً لتسوقكم معنا</div>
 
 <script>
 const paymentMethod = "تمارا"; // تمارا / تابي / غيرها
@@ -208,7 +326,6 @@ const shipping = "شحن عادي";
 
 let approvalText = "";
 
-// تمارا + تابي
 if (paymentMethod === "تمارا" || paymentMethod === "تابي") {
   approvalText = ` | رمز الموافقة على الطلب في (${paymentMethod}): ${approvalCode}`;
 }
