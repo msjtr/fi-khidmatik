@@ -7,18 +7,11 @@ export async function printInvoice(element) {
     
     return new Promise((resolve, reject) => {
         try {
-            // حفظ المحتوى الأصلي
-            const originalTitle = document.title;
-            document.title = 'طباعة فاتورة';
-            
-            // فتح نافذة الطباعة
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
                 throw new Error('لا يمكن فتح نافذة الطباعة');
             }
             
-            // نسخ محتوى الفاتورة مع التنسيقات
-            const invoiceHTML = element.outerHTML;
             const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
             let stylesHTML = '';
             styles.forEach(style => {
@@ -29,36 +22,26 @@ export async function printInvoice(element) {
                 }
             });
             
-            // كتابة محتوى نافذة الطباعة
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html dir="rtl">
                 <head>
                     <meta charset="UTF-8">
-                    <title>فاتورة</title>
+                    <title>طباعة فاتورة</title>
                     ${stylesHTML}
                     <style>
-                        body {
-                            padding: 20px;
-                            margin: 0;
-                            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-                        }
-                        .buttons, .no-print {
-                            display: none !important;
-                        }
+                        body { padding: 20px; margin: 0; }
+                        .buttons, .no-print { display: none !important; }
                         @media print {
-                            body {
-                                padding: 0;
-                                margin: 0;
-                            }
+                            body { padding: 0; }
                         }
                     </style>
                 </head>
                 <body>
-                    ${invoiceHTML}
+                    ${element.outerHTML}
                     <div class="no-print" style="text-align: center; margin-top: 20px;">
-                        <button onclick="window.print()" style="padding: 10px 20px; margin: 10px;">طباعة</button>
-                        <button onclick="window.close()" style="padding: 10px 20px; margin: 10px;">إغلاق</button>
+                        <button onclick="window.print()">طباعة</button>
+                        <button onclick="window.close()">إغلاق</button>
                     </div>
                 </body>
                 </html>
@@ -66,7 +49,6 @@ export async function printInvoice(element) {
             
             printWindow.document.close();
             
-            // انتظار تحميل المحتوى ثم فتح الطباعة
             printWindow.onload = () => {
                 setTimeout(() => {
                     printWindow.focus();
@@ -74,9 +56,6 @@ export async function printInvoice(element) {
                     resolve(true);
                 }, 500);
             };
-            
-            // استعادة العنوان
-            document.title = originalTitle;
             
         } catch (error) {
             console.error('خطأ في الطباعة:', error);
