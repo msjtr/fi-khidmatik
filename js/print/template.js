@@ -1,6 +1,6 @@
 // js/print/template.js
 
-// دالة escapeHtml يجب أن تكون معرفة قبل استخدامها
+// دالة escapeHtml
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -37,15 +37,22 @@ export function buildInvoiceHTML(order, cartRows, totals) {
         total: totals?.total || '0 ريال'
     };
     
+    // مسار الشعار - تأكد من أن المسار صحيح بالنسبة لموقع ملف HTML
+    // إذا كان ملف HTML في مجلد root (نفس مستوى مجلد images)
+    const logoPath = './images/logo.svg';
+    // إذا كان ملف HTML في مجلد آخر، استخدم المسار المطلق أو المسار النسبي الصحيح
+    // const logoPath = '/images/logo.svg'; // مسار مطلق
+    
     return `
         <div class="invoice-header">
             <div class="logo">
                 <div class="logo-circle">
-                    <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="white" stroke-width="2" fill="none"/>
-                        <path d="M12 15V21" stroke="white" stroke-width="2"/>
-                        <path d="M7 12L5 13.5L12 18L19 13.5L17 12" stroke="white" stroke-width="2" fill="none"/>
-                    </svg>
+                    <img 
+                        src="${logoPath}" 
+                        alt="شعار منصة في خدمتك" 
+                        style="width: 50px; height: 50px; object-fit: contain;"
+                        onerror="this.onerror=null; this.parentElement.innerHTML='<svg width=\\'45\\' height=\\'45\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' xmlns=\\'http://www.w3.org/2000/svg\\'><path d=\\'M3 9L12 3L21 9L12 15L3 9Z\\' stroke=\\'white\\' stroke-width=\\'2\\' fill=\\'none\\'/><path d=\\'M12 15V21\\' stroke=\\'white\\' stroke-width=\\'2\\'/><path d=\\'M7 12L5 13.5L12 18L19 13.5L17 12\\' stroke=\\'white\\' stroke-width=\\'2\\' fill=\\'none\\'/></svg>';"
+                    />
                 </div>
                 <h1 class="company-name">منصة في خدمتك</h1>
                 <p class="company-sub">FI-KHIDMATIK</p>
@@ -136,5 +143,4 @@ export function buildInvoiceHTML(order, cartRows, totals) {
     `;
 }
 
-// تصدير الدالة المساعدة أيضاً إذا احتاجها أي ملف آخر
 export { escapeHtml };
