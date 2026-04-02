@@ -141,6 +141,9 @@
     </div>
 
     <button class="btn-checkout" onclick="checkout()">✅ تأكيد الطلب</button>
+    <a class="btn-checkout" href="invoice.html?v=20260402" style="display:block; text-align:center; text-decoration:none; margin-top:10px; background:#0f172a;">
+        👁️ معاينة الفاتورة مباشرة
+    </a>
 </div>
 
 <script src="js/cart.js"></script>
@@ -220,12 +223,12 @@
             cart = [];
             saveCart();
             renderCart();
-            setTimeout(() => { window.location.href = `invoice.html?orderId=${firebaseId}`; }, 1500);
+            setTimeout(() => { window.location.href = `invoice.html?orderId=${firebaseId}&v=20260402`; }, 1500);
         } catch (error) {
             console.error(error);
             showAlert('❌ فشل حفظ الطلب في قاعدة البيانات، سيتم حفظه محلياً فقط', 'error');
             localStorage.setItem('currentOrder', JSON.stringify(orderData));
-            setTimeout(() => { window.location.href = 'invoice.html'; }, 1500);
+            setTimeout(() => { window.location.href = 'invoice.html?v=20260402'; }, 1500);
         }
     };
 
