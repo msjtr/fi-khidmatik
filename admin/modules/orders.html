@@ -58,6 +58,10 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; margin: 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 p-6 font-sans">
@@ -150,7 +154,7 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// دالة buildInvoiceHTML
+// دالة buildInvoiceHTML - التصميم الجديد
 function buildInvoiceHTML(order, cartRows, totals) {
     let displayDate = order.orderDate || '-';
     if (displayDate && displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -177,91 +181,150 @@ function buildInvoiceHTML(order, cartRows, totals) {
     const logoPath = '/images/logo.svg';
     const fallbackLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233b82f6'/%3E%3Ctext x='50' y='70' text-anchor='middle' fill='white' font-size='40' font-weight='bold'%3Eف%3C/text%3E%3C/svg%3E";
     
+    const showApprovalCode = (order.paymentMethod === 'tamara' || order.paymentMethod === 'tabby');
+    const approvalCodeText = order.paymentMethod === 'tamara' ? 'تمارا' : (order.paymentMethod === 'tabby' ? 'تابي' : '');
+    
     return `
         <div style="direction: rtl; padding: 30px; max-width: 1100px; margin: 0 auto; background: white; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
-            <div style="background: #1e293b; color: #e2e8f0; padding: 12px 25px; display: flex; justify-content: space-between; font-size: 12px; border-radius: 12px; margin-bottom: 25px;">
-                <div>رقم شهادة العمل الحر: FL-765735204</div>
-                <div>الرقم الضريبي: 312495447600003</div>
-            </div>
             
-            <div style="text-align: center; margin-bottom: 25px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <!-- الهيدر (Header) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <img src="${logoPath}" alt="شعار منصة في خدمتك" style="width: 50px; height: 50px; object-fit: contain;" onerror="this.onerror=null; this.src='${fallbackLogo}';" />
                 </div>
-                <h1 style="font-size: 28px; color: #1e3a8a;">منصة في خدمتك</h1>
-                <p style="color: #666;">نظام إدارة متكامل</p>
+                <div style="text-align: center;">
+                    <h1 style="font-size: 28px; color: #1e3a8a; margin: 0;">فاتورة إلكترونية</h1>
+                    <p style="color: #666; margin: 5px 0 0;">ELECTRONIC INVOICE</p>
+                </div>
+                <div style="text-align: left;">
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 8px 16px; border-radius: 8px; font-size: 12px; margin-bottom: 5px;">
+                        رقم شهادة العمل الحر: FL-765735204
+                    </div>
+                    <div style="background: #1e293b; color: #e2e8f0; padding: 8px 16px; border-radius: 8px; font-size: 12px;">
+                        الرقم الضريبي: 312495447600003
+                    </div>
+                </div>
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0;">
-                <div style="font-size: 18px; font-weight: bold; color: #1e3a8a;">
-                    رقم الفاتورة: <span style="background: #e0e7ff; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: 8px;">${escapeHtml(order.orderNumber)}</span>
+            <!-- معلومات الفاتورة -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; gap: 10px;">
+                <div style="font-size: 16px; font-weight: bold; color: #1e3a8a;">
+                    رقم الفاتورة: <span style="background: #e0e7ff; padding: 4px 12px; border-radius: 20px; font-size: 14px;">${escapeHtml(order.orderNumber)}</span>
                 </div>
                 <div style="font-size: 14px; color: #475569;">
                     التاريخ: ${displayDate} | ${displayTime}
                 </div>
             </div>
             
-            <div style="display: flex; gap: 25px; margin-bottom: 25px;">
-                <div style="flex: 1; padding: 18px; border-radius: 12px; background: #fef9e3; border-right: 4px solid #f59e0b;">
-                    <h3 style="font-size: 16px; margin-bottom: 12px;">📌 مصدرة من</h3>
-                    <p style="font-size: 13px; line-height: 1.7;">
+            <!-- بيانات الأطراف (عمودين) -->
+            <div style="display: flex; gap: 25px; margin-bottom: 30px; flex-wrap: wrap;">
+                <div style="flex: 1; padding: 20px; border-radius: 12px; background: #f8fafc; border-right: 4px solid #f59e0b;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px; color: #f59e0b;">🔹 مصدرة من</h3>
+                    <p style="font-size: 13px; line-height: 1.8; margin: 0;">
                         <strong>منصة في خدمتك</strong><br>
                         المملكة العربية السعودية<br>
-                        حائل - حي النقرة - شارع سعد المشاط - مبنى 3085<br>
-                        الرقم الإضافي: 7718 - الرمز البريدي: 55431
+                        حائل - حي النقرة<br>
+                        شارع سعد المشاط - مبنى 3085<br>
+                        الرقم الإضافي: 7718<br>
+                        الرمز البريدي: 55431
                     </p>
                 </div>
-                <div style="flex: 1; padding: 18px; border-radius: 12px; background: #e0f2fe; border-right: 4px solid #0284c7;">
-                    <h3 style="font-size: 16px; margin-bottom: 12px;">📌 مصدرة إلى</h3>
-                    <p style="font-size: 13px; line-height: 1.7;">
+                <div style="flex: 1; padding: 20px; border-radius: 12px; background: #f8fafc; border-right: 4px solid #0284c7;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px; color: #0284c7;">🔹 مصدرة إلى</h3>
+                    <p style="font-size: 13px; line-height: 1.8; margin: 0;">
                         <strong>${escapeHtml(order.customer?.name || '-')}</strong><br>
                         المملكة العربية السعودية<br>
+                        ${escapeHtml(order.customer?.city || '-')}<br>
+                        ${escapeHtml(order.customer?.address || '-')}<br>
                         هاتف: ${escapeHtml(order.customer?.phone) || '-'}<br>
-                        بريد: ${escapeHtml(order.customer?.email) || 'غير مدخل'}<br>
-                        ${escapeHtml(order.customer?.address || '')}
+                        بريد: ${escapeHtml(order.customer?.email) || 'غير مدخل'}
                     </p>
                 </div>
             </div>
             
-            <div style="background: #f1f5f9; padding: 12px 20px; border-radius: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
-                <span style="background: white; padding: 6px 15px; border-radius: 25px; font-size: 13px;">💳 طريقة الدفع: ${escapeHtml(order.paymentMethodName || order.paymentMethod || '-')}</span>
-                ${order.approvalCode ? `<span style="background: white; padding: 6px 15px; border-radius: 25px; font-size: 13px;">🔑 رمز الموافقة: ${escapeHtml(order.approvalCode)}</span>` : ''}
+            <!-- الدفع والشحن -->
+            <div style="background: #f1f5f9; padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 30px;">
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <span style="background: white; padding: 8px 18px; border-radius: 25px; font-size: 13px;">💳 طريقة الدفع: ${escapeHtml(order.paymentMethodName || order.paymentMethod || '-')}</span>
+                    ${showApprovalCode && order.approvalCode ? `
+                    <span style="background: white; padding: 8px 18px; border-radius: 25px; font-size: 13px;">🔑 رمز الموافقة (${approvalCodeText}): ${escapeHtml(order.approvalCode)}</span>
+                    ` : ''}
+                    <span style="background: white; padding: 8px 18px; border-radius: 25px; font-size: 13px;">🚚 طريقة الشحن: ${order.shippingRequired ? 'شحن منزلي' : 'استلام شخصي'}</span>
+                </div>
             </div>
             
-            <h3 style="margin: 15px 0 10px 0;">📦 تفاصيل الطلب</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+            <!-- تفاصيل الطلب (الجدول) -->
+            <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e3a8a;">📦 تفاصيل الطلب</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
                 <thead>
                     <tr style="background: #1e3a8a; color: white;">
-                        <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: right;">اسم المنتج</th>
-                        <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: center;">الكود</th>
-                        <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: center;">الكمية</th>
-                        <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: left;">السعر (ريال)</th>
-                        <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: left;">الخصم (ريال)</th>
-                        <th style="padding: 12px 8px; border: 1px solid #2e4a9a; text-align: left;">الإجمالي (ريال)</th>
+                        <th style="padding: 12px 10px; border: 1px solid #2e4a9a; text-align: right;">اسم المنتج</th>
+                        <th style="padding: 12px 10px; border: 1px solid #2e4a9a; text-align: center;">صورة المنتج</th>
+                        <th style="padding: 12px 10px; border: 1px solid #2e4a9a; text-align: center;">كود المنتج</th>
+                        <th style="padding: 12px 10px; border: 1px solid #2e4a9a; text-align: center;">الكمية</th>
+                        <th style="padding: 12px 10px; border: 1px solid #2e4a9a; text-align: left;">السعر (ريال)</th>
                     </tr>
                 </thead>
-                <tbody>${cartRows || ''}</tbody>
+                <tbody>
+                    ${cartRows || ''}
+                </tbody>
             </table>
             
-            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 25px;">
-                <div>
-                    <p style="margin: 6px 0;"><strong>المجموع الفرعي:</strong> ${safeTotals.subtotal}</p>
-                    <p style="margin: 6px 0;"><strong>الخصم الكلي:</strong> ${safeTotals.discount}</p>
-                    <p style="margin: 6px 0;"><strong>الضريبة (15%):</strong> ${safeTotals.tax}</p>
-                </div>
-                <div style="text-align: center; padding: 0 20px;">
-                    <h2 style="font-size: 20px; color: #1e3a8a; margin: 0;">الإجمالي النهائي: ${safeTotals.total}</h2>
+            <!-- ملخص الفاتورة -->
+            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+                <div style="display: flex; justify-content: flex-end;">
+                    <div style="width: 300px;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span><strong>المجموع الإجمالي:</strong></span>
+                            <span>${safeTotals.subtotal}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span><strong>إجمالي الخصم:</strong></span>
+                            <span style="color: #ef4444;">- ${safeTotals.discount}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span><strong>ضريبة القيمة المضافة (15%):</strong></span>
+                            <span>${safeTotals.tax}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px 0; font-size: 18px; font-weight: bold;">
+                            <span><strong>الإجمالي النهائي:</strong></span>
+                            <span style="color: #1e3a8a;">${safeTotals.total}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div style="background: #f1f5f9; padding: 12px; border-radius: 10px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 15px; font-size: 13px;">
+            <!-- الختم والتوقيع -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: #fef9e3; border-radius: 12px; border-right: 4px solid #f59e0b;">
+                <div>
+                    <p style="margin: 0; font-size: 12px; color: #666;">ختم إلكتروني معتمد</p>
+                    <div style="margin-top: 10px;">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 80'%3E%3Crect x='10' y='10' width='180' height='60' rx='10' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-dasharray='5,5'/%3E%3Ctext x='100' y='45' text-anchor='middle' fill='%23f59e0b' font-size='14' font-weight='bold'%3Eختم إلكتروني معتمد من منصة في خدمتك%3C/text%3E%3C/svg%3E" alt="ختم إلكتروني" style="height: 50px;">
+                    </div>
+                </div>
+                <div style="text-align: left;">
+                    <p style="margin: 0; font-size: 12px; color: #666;">توقيع إلكتروني</p>
+                    <div style="margin-top: 10px; font-family: 'Segoe UI', cursive; font-size: 20px; color: #1e3a8a;">
+                        منصة في خدمتك
+                    </div>
+                </div>
+            </div>
+            
+            <!-- معلومات التواصل (سطر واحد) -->
+            <div style="background: #f1f5f9; padding: 15px 20px; border-radius: 12px; display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 20px;">
                 <span>📞 +966597771565</span>
                 <span>✉️ info@fi-khidmatik.com</span>
                 <span>🌐 www.khidmatik.com</span>
             </div>
             
-            <div style="text-align: center; padding-top: 15px; font-size: 14px; color: #475569; border-top: 1px solid #e2e8f0;">
-                شكراً لتسوقكم معنا
+            <!-- الفوتر وتعليمات الفاتورة -->
+            <div style="text-align: center; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+                <p style="font-size: 14px; color: #475569; margin: 0 0 5px;">
+                    🧾 هذه الفاتورة إلكترونية صادرة من منصة في خدمتك
+                </p>
+                <p style="font-size: 16px; color: #1e3a8a; font-weight: bold; margin: 10px 0 0;">
+                    شكراً لتسوقكم معنا 🤍
+                </p>
             </div>
         </div>
     `;
@@ -280,7 +343,7 @@ async function printInvoice(element) {
                 if (style.tagName === 'STYLE') stylesHTML += `<style>${style.innerHTML}</style>`;
                 else if (style.tagName === 'LINK' && style.href) stylesHTML += `<link rel="stylesheet" href="${style.href}">`;
             });
-            printWindow.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>طباعة فاتورة</title>${stylesHTML}</head><body>${element.outerHTML}</body></html>`);
+            printWindow.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>طباعة فاتورة</title>${stylesHTML}<style>body{padding:20px;margin:0}@media print{body{padding:0}}</style></head><body>${element.outerHTML}</body></html>`);
             printWindow.document.close();
             printWindow.onload = () => { setTimeout(() => { printWindow.focus(); printWindow.print(); resolve(true); }, 500); };
         } catch (error) { reject(error); }
@@ -393,13 +456,14 @@ async function saveAsPDF(order) {
         
         const cartRows = items.map(item => `
             <tr>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${escapeHtml(item.barcode || '-')}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${item.quantity || 0}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">0</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;"><strong>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</strong></td>
-            </tr>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">
+                    ${item.image ? `<img src="${item.image}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'">` : '<span style="color:#999;">-</span>'}
+                </td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">${escapeHtml(item.barcode || '-')}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">${item.quantity || 0}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)} ريال</td>
+            </table>
         `).join('');
         
         const subtotal = items.reduce((s, i) => s + (i.price || 0) * (i.quantity || 0), 0);
@@ -448,13 +512,14 @@ async function saveAsPNG(order) {
         
         const cartRows = items.map(item => `
             <tr>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${escapeHtml(item.barcode || '-')}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${item.quantity || 0}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">0</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;"><strong>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</strong></td>
-            </tr>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">
+                    ${item.image ? `<img src="${item.image}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'">` : '<span style="color:#999;">-</span>'}
+                </td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">${escapeHtml(item.barcode || '-')}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">${item.quantity || 0}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)} ريال</td>
+            </table>
         `).join('');
         
         const subtotal = items.reduce((s, i) => s + (i.price || 0) * (i.quantity || 0), 0);
@@ -503,12 +568,13 @@ async function printInvoiceHandler(order) {
         
         const cartRows = items.map(item => `
             <tr>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${escapeHtml(item.barcode || '-')}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: center;">${item.quantity || 0}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)}</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;">0</td>
-                <td style="padding: 10px 8px; border: 1px solid #e2e8f0; text-align: left;"><strong>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</strong></td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: right;">${escapeHtml(item.name || '-')}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">
+                    ${item.image ? `<img src="${item.image}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'">` : '<span style="color:#999;">-</span>'}
+                </td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">${escapeHtml(item.barcode || '-')}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: center;">${item.quantity || 0}</td>
+                <td style="padding: 12px 10px; border: 1px solid #e2e8f0; text-align: left;">${(item.price || 0).toFixed(2)} ريال</td>
             </tr>
         `).join('');
         
