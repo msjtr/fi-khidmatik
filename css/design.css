@@ -1,220 +1,25 @@
-/* أنماط الشعار - تصميم احترافي وإبداعي */
-.invoice-header {
-    text-align: center;
-    margin-bottom: 40px;
-    position: relative;
-}
-
-/* إضافة تأثير زخرفي خلف الشعار */
-.invoice-header::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #e2e8f0, #3b82f6, #e2e8f0, transparent);
-    transform: translateY(-50%);
-    z-index: 0;
-}
-
-.logo {
-    display: inline-block;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-    background: white;
-    padding: 0 30px;
-}
-
-/* تأثير حركي للشعار عند التمرير (للعرض على الشاشة) */
-.logo-circle {
-    width: 90px;
-    height: 90px;
-    background: linear-gradient(135deg, #1e3a8a, #3b82f6, #60a5fa);
-    background-size: 200% 200%;
-    border-radius: 50%;
-    margin: 0 auto 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 4px rgba(59,130,246,0.1);
-    overflow: hidden;
-    transition: all 0.3s ease;
-    animation: gradientShift 4s ease infinite;
-}
-
-/* تأثير حركي للخلفية المتدرجة */
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* تأثير hover للشعار (للعرض على الشاشة فقط) */
-@media (hover: hover) {
-    .logo-circle:hover {
-        transform: scale(1.05);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.2), 0 0 0 6px rgba(59,130,246,0.15);
-    }
-}
-
-.logo-circle img {
-    width: 55px;
-    height: 55px;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-    transition: transform 0.3s ease;
-}
-
-.logo-circle:hover img {
-    transform: scale(1.02);
-}
-
-.company-name {
-    font-size: 32px;
-    color: #1e3a8a;
-    margin: 0;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: none;
-}
-
-.company-sub {
-    color: #3b82f6;
-    margin: 8px 0 0;
-    font-size: 14px;
-    letter-spacing: 2px;
-    font-weight: 500;
-    text-transform: uppercase;
-    position: relative;
-    display: inline-block;
-}
-
-.company-sub::before,
-.company-sub::after {
-    content: '✦';
-    color: #3b82f6;
-    font-size: 10px;
-    margin: 0 8px;
-    opacity: 0.6;
-}
-
-.divider {
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, #1e3a8a, #3b82f6, #60a5fa, #3b82f6, #1e3a8a);
-    margin: 15px auto 0;
-    border-radius: 3px;
-    position: relative;
-}
-
-.divider::before,
-.divider::after {
-    content: '●';
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 8px;
-    color: #3b82f6;
-}
-
-.divider::before {
-    left: -15px;
-}
-
-.divider::after {
-    right: -15px;
-}
-
-/* دعم الطباعة - الحفاظ على الألوان والجودة */
+/* إصلاح مشاكل الطباعة للشعار */
 @media print {
-    .invoice-header {
-        margin-bottom: 30px;
-    }
-    
-    .invoice-header::before {
-        display: none;
-    }
-    
-    .logo {
-        background: transparent;
-        padding: 0;
-    }
-    
-    .logo-circle {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, #1e3a8a, #3b82f6) !important;
-        animation: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-    }
-    
-    .logo-circle img {
-        width: 50px;
-        height: 50px;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-        filter: none;
-    }
-    
-    .company-name {
-        font-size: 28px;
-        background: none;
-        -webkit-text-fill-color: #1e3a8a;
-        color: #1e3a8a !important;
-        print-color-adjust: exact;
-    }
-    
-    .company-sub {
-        color: #3b82f6 !important;
-        print-color-adjust: exact;
-    }
-    
-    .company-sub::before,
-    .company-sub::after {
-        display: none;
-    }
-    
-    .divider {
-        width: 60px;
-        margin: 12px auto 0;
-        print-color-adjust: exact;
-    }
-    
-    .divider::before,
-    .divider::after {
-        display: none;
-    }
-}
 
-/* دعم الشاشات الصغيرة (Responsive) */
-@media (max-width: 640px) {
-    .logo-circle {
-        width: 70px;
-        height: 70px;
-    }
-    
-    .logo-circle img {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .company-name {
-        font-size: 24px;
-    }
-    
-    .company-sub {
-        font-size: 11px;
-    }
-    
-    .divider {
-        width: 50px;
-    }
+  .logo-circle {
+    background: #1e3a8a !important;
+    animation: none !important;
+    overflow: visible !important;
+  }
+
+  .logo-circle img {
+    display: block !important;
+    max-width: 90% !important;
+    max-height: 90% !important;
+    filter: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .company-name {
+    background: none !important;
+    -webkit-text-fill-color: #1e3a8a !important;
+    color: #1e3a8a !important;
+  }
+
 }
