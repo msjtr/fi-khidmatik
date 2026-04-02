@@ -1,9 +1,14 @@
-```html
 <!DOCTYPE html>
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
 <title>فاتورة إلكترونية</title>
+
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- PNG -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <style>
 body {
@@ -12,7 +17,6 @@ body {
   margin: 20px;
 }
 
-/* الهيدر */
 .invoice-header {
   display: flex;
   justify-content: space-between;
@@ -23,21 +27,17 @@ body {
 .logo-circle {
   width: 80px;
   height: 80px;
-  background: #1e3a8a; /* 🔥 ثابت للطباعة */
+  background: #1e3a8a;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 .logo-circle img {
   width: 50px;
-  height: auto;
-  display: block;
 }
 
-/* النص */
 .header-center {
   text-align: center;
   flex: 1;
@@ -53,20 +53,17 @@ body {
   font-size: 14px;
 }
 
-/* خطوط */
 .line {
   border-top: 1px solid #000;
   margin: 10px 0;
 }
 
-/* صفوف */
 .row {
   display: flex;
   justify-content: space-between;
   gap: 20px;
 }
 
-/* جدول */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -81,199 +78,186 @@ th, td {
 
 img.product {
   width: 40px;
-  height: auto;
-  object-fit: contain;
-  display: block;
 }
 
-/* 🔥 إصلاح الطباعة */
 @media print {
-
-  body {
-    margin: 0;
-    padding: 10px;
-  }
-
-  img {
-    max-width: 100%;
-    height: auto;
-    page-break-inside: avoid;
-    display: block;
-  }
-
-  table {
-    page-break-inside: auto;
-  }
-
-  tr {
-    page-break-inside: avoid;
-  }
-
-  .row {
-    break-inside: avoid;
-  }
-
+  body { margin: 0; }
+  button { display:none; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- الهيدر -->
-<div class="invoice-header">
+<div id="invoice"></div>
 
-  <div class="logo-circle">
-    <img src="./logo.png">
-  </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-  <div class="header-center">
-    <div class="invoice-title">فاتورة إلكترونية</div>
-  </div>
-
-  <div class="header-left">
-    رقم شهادة العمل الحر: FL-765735204<br>
-    الرقم الضريبي: 312495447600003
-  </div>
-
-</div>
-
-<div class="line"></div>
-
-<!-- معلومات -->
-<div class="row">
-  <div>رقم الفاتورة: KF-001</div>
-  <div>التاريخ والوقت: 02/04/2026 - 10:30</div>
-</div>
-
-<div class="line"></div>
-
-<!-- الأطراف -->
-<div class="row">
-
-  <div>
-    <b>مصدرة من:</b><br>
-    منصة في خدمتك<br>
-    المملكة العربية السعودية<br>
-    حائل - حي النقرة - شارع سعد المشاط<br>
-    رقم المبنى: 3085 - الرقم الإضافي: 7718<br>
-    الرمز البريدي: 55431
-  </div>
-
-  <div>
-    <b>مصدرة إلى:</b><br>
-    اسم العميل: __________<br>
-    الدولة: المملكة العربية السعودية<br>
-    المدينة: __________<br>
-    العنوان: __________<br>
-    رقم الجوال: __________<br>
-    البريد الإلكتروني: __________
-  </div>
-
-</div>
-
-<div class="line"></div>
-
-<!-- الدفع -->
-<div id="paymentLine"></div>
-
-<div class="line"></div>
-
-<!-- الجدول -->
-<table>
-<tr>
-  <th>#</th>
-  <th>صورة</th>
-  <th>اسم المنتج</th>
-  <th>الكود</th>
-  <th>الكمية</th>
-  <th>السعر</th>
-  <th>الإجمالي</th>
-</tr>
-
-<tr>
-  <td>1</td>
-  <td><img class="product" src="./product.png"></td>
-  <td>خدمة تصميم</td>
-  <td>PRD-001</td>
-  <td>1</td>
-  <td>500</td>
-  <td>500</td>
-</tr>
-
-</table>
-
-<div class="line"></div>
-
-<!-- الملخص -->
-<div>
-المجموع الفرعي: 500 ريال<br>
-إجمالي الخصم: 0 ريال<br>
-ضريبة القيمة المضافة (15%): 75 ريال<br>
-الإجمالي النهائي: 575 ريال
-</div>
-
-<div class="line"></div>
-
-<!-- الختم -->
-<div>الختم: (ختم إلكتروني / توقيع)</div>
-
-<div class="line"></div>
-
-<!-- التواصل -->
-<div>
-هاتف: +966597771565 | البريد: info@fi-khidmatik.com | الموقع: www.khidmatik.com
-</div>
-
-<div class="line"></div>
-
-<!-- التعليمات -->
-<div>
-تعليمات:
-يتم إظهار رمز الموافقة فقط عند الدفع عبر (تمارا أو تابي)
-</div>
-
-<div class="line"></div>
-
-<!-- الفوتر -->
-<div style="text-align:center;">شكراً لتسوقكم معنا</div>
-
-<script>
-// 🔥 انتظار تحميل الصور قبل الطباعة
-window.onload = function () {
-  const imgs = document.images;
-  let loaded = 0;
-
-  for (let img of imgs) {
-    if (img.complete) loaded++;
-    else {
-      img.onload = () => {
-        loaded++;
-        if (loaded === imgs.length) ready();
-      };
-    }
-  }
-
-  if (loaded === imgs.length) ready();
-
-  function ready() {
-    console.log("جاهز للطباعة");
-  }
+// Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+  authDomain: "msjt301-974bb.firebaseapp.com",
+  projectId: "msjt301-974bb",
+  storageBucket: "msjt301-974bb.firebasestorage.app",
+  messagingSenderId: "186209858482",
+  appId: "1:186209858482:web:186ca610780799ef562aab"
 };
 
-const paymentMethod = "تمارا";
-const approvalCode = "123456";
-const shipping = "شحن عادي";
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-let approvalText = "";
+// ================= params =================
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("id");
+const auto = params.get("auto");
 
-if (paymentMethod === "تمارا" || paymentMethod === "تابي") {
-  approvalText = ` | رمز الموافقة على الطلب في (${paymentMethod}): ${approvalCode}`;
+// ================= تحميل البيانات =================
+async function loadInvoice() {
+
+  const orderSnap = await getDoc(doc(db, "orders", orderId));
+  if (!orderSnap.exists()) {
+    document.body.innerHTML = "الطلب غير موجود";
+    return;
+  }
+
+  const order = orderSnap.data();
+
+  const customersSnap = await getDocs(collection(db, "customers"));
+  const productsSnap = await getDocs(collection(db, "products"));
+
+  const customers = Object.fromEntries(customersSnap.docs.map(d => [d.id, d.data()]));
+  const products = Object.fromEntries(productsSnap.docs.map(d => [d.id, d.data()]));
+
+  const customer = customers[order.customerId] || {};
+
+  let rows = "";
+  let subtotal = 0;
+
+  order.items?.forEach((item, i) => {
+    const product = products[item.productId] || {};
+    const total = item.qty * item.price;
+    subtotal += total;
+
+    rows += `
+      <tr>
+        <td>${i+1}</td>
+        <td><img class="product" src="${product.image || './product.png'}"></td>
+        <td>${product.name || "-"}</td>
+        <td>${product.code || "-"}</td>
+        <td>${item.qty}</td>
+        <td>${item.price}</td>
+        <td>${total}</td>
+      </tr>
+    `;
+  });
+
+  const tax = subtotal * 0.15;
+  const finalTotal = subtotal + tax;
+
+  document.getElementById("invoice").innerHTML = `
+  <div class="invoice-container">
+
+  <div class="invoice-header">
+    <div class="logo-circle"><img src="./logo.png"></div>
+    <div class="header-center"><div class="invoice-title">فاتورة إلكترونية</div></div>
+    <div class="header-left">
+      رقم شهادة العمل الحر: FL-765735204<br>
+      الرقم الضريبي: 312495447600003
+    </div>
+  </div>
+
+  <div class="line"></div>
+
+  <div class="row">
+    <div>رقم الفاتورة: ${orderId}</div>
+    <div>التاريخ: ${order.date || "-"}</div>
+  </div>
+
+  <div class="line"></div>
+
+  <div class="row">
+    <div>
+      <b>مصدرة من:</b><br>
+      منصة في خدمتك
+    </div>
+
+    <div>
+      <b>مصدرة إلى:</b><br>
+      ${customer.name || "-"}<br>
+      ${customer.phone || "-"}
+    </div>
+  </div>
+
+  <div class="line"></div>
+
+  <div id="paymentLine">
+    الدفع: ${order.paymentMethod || "-"}
+  </div>
+
+  <div class="line"></div>
+
+  <table>
+    <tr>
+      <th>#</th>
+      <th>صورة</th>
+      <th>اسم المنتج</th>
+      <th>الكود</th>
+      <th>الكمية</th>
+      <th>السعر</th>
+      <th>الإجمالي</th>
+    </tr>
+    ${rows}
+  </table>
+
+  <div class="line"></div>
+
+  <div>
+    المجموع: ${subtotal}<br>
+    الضريبة: ${tax.toFixed(2)}<br>
+    الإجمالي: ${finalTotal.toFixed(2)}
+  </div>
+
+  </div>
+  `;
+
+  runAutoAction();
 }
 
-document.getElementById("paymentLine").innerText =
-  `طريقة الدفع: ${paymentMethod}${approvalText} | طريقة الشحن: ${shipping}`;
+// ================= تنفيذ تلقائي =================
+function runAutoAction() {
+
+  setTimeout(() => {
+
+    if (auto === "print") {
+      window.print();
+    }
+
+    if (auto === "pdf") {
+      html2pdf().from(document.body).save(`invoice_${orderId}.pdf`);
+    }
+
+    if (auto === "png") {
+      html2canvas(document.body).then(canvas => {
+        const link = document.createElement("a");
+        link.download = `invoice_${orderId}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+  }, 500);
+}
+
+loadInvoice();
 </script>
 
 </body>
 </html>
-```
