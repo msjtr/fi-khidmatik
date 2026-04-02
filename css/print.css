@@ -14,6 +14,8 @@
     overflow: visible !important;
     direction: rtl;
     font-family: Arial, sans-serif;
+
+    /* 🔥 أهم سطر للألوان */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -21,11 +23,12 @@
   /* ================= الحاوية ================= */
   .invoice,
   .invoice-container {
-    width: 794px !important;
+    width: 794px !important; /* A4 */
     margin: auto !important;
     padding: 10px !important;
     background: #fff !important;
     box-shadow: none !important;
+    border-radius: 0 !important;
     overflow: visible !important;
   }
 
@@ -41,6 +44,8 @@
     max-width: 100% !important;
     height: auto !important;
     display: block !important;
+
+    /* 🔥 منع تقطيع الصور */
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
@@ -64,10 +69,12 @@
     page-break-inside: auto !important;
   }
 
+  /* 🔥 تكرار الهيدر */
   thead {
-    display: table-header-group; /* 🔥 تكرار الهيدر */
+    display: table-header-group;
   }
 
+  /* 🔥 تكرار الفوتر */
   tfoot {
     display: table-footer-group;
   }
@@ -89,7 +96,10 @@
   .totals,
   .footer,
   .info-card,
-  .section {
+  .section,
+  .summary,
+  .stamp,
+  .contact {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
@@ -100,10 +110,17 @@
     break-inside: avoid !important;
   }
 
-  /* ================= تحسين الفواصل ================= */
+  /* ================= الخطوط ================= */
   .line {
     border-top: 1px solid #000 !important;
     margin: 10px 0 !important;
+  }
+
+  /* 🔥 مهم: منع الصفحة الفاضية */
+  body::after {
+    content: "";
+    display: block;
+    height: 0;
   }
 
 }
