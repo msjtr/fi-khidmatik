@@ -36,15 +36,8 @@ export function buildInvoiceHTML(order, cartRows, totals) {
         total: totals?.total || '0 ريال'
     };
     
-    // مسار الشعار على Vercel - جرب أحد هذه المسارات
-    // الخيار 1: مسار نسبي
-    const logoPath = './images/logo.svg';
-    
-    // الخيار 2: مسار مطلق من جذر الموقع
-    // const logoPath = '/images/logo.svg';
-    
-    // الخيار 3: المسار الكامل للموقع
-    // const logoPath = 'https://fi-khidmatik-olive.vercel.app/images/logo.svg';
+    // رابط الشعار المباشر
+    const logoPath = 'https://fi-khidmatik-olive.vercel.app/images/logo.svg';
     
     return `
         <div class="invoice-header">
@@ -55,9 +48,8 @@ export function buildInvoiceHTML(order, cartRows, totals) {
                         alt="شعار منصة في خدمتك" 
                         style="width: 50px; height: 50px; object-fit: contain;"
                         crossorigin="anonymous"
-                        onerror="this.onerror=null; this.src='/images/logo.svg';"
-                        onerror="this.onerror=null; this.src='https://fi-khidmatik-olive.vercel.app/images/logo.svg';"
-                        onerror="this.onerror=null; this.parentElement.innerHTML='<svg width=\\'45\\' height=\\'45\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' xmlns=\\'http://www.w3.org/2000/svg\\'><path d=\\'M3 9L12 3L21 9L12 15L3 9Z\\' stroke=\\'white\\' stroke-width=\\'2\\' fill=\\'none\\'/><path d=\\'M12 15V21\\' stroke=\\'white\\' stroke-width=\\'2\\'/><path d=\\'M7 12L5 13.5L12 18L19 13.5L17 12\\' stroke=\\'white\\' stroke-width=\\'2\\' fill=\\'none\\'/></svg>';"
+                        referrerpolicy="no-referrer"
+                        onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'color: white; font-size: 32px; font-weight: bold;\\'>ف</span>';"
                     />
                 </div>
                 <h1 class="company-name">منصة في خدمتك</h1>
