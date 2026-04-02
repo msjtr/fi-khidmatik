@@ -1,30 +1,88 @@
-/* حل قص الصفحة */
-html, body {
+```css
+/* ================= RESET للطباعة ================= */
+@media print {
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
     height: auto !important;
     overflow: visible !important;
-}
+    direction: rtl;
+    font-family: Arial, sans-serif;
+  }
 
-/* إصلاح الجدول */
-.products-table {
-    page-break-inside: auto;
-}
+  /* ================= الحاوية ================= */
+  .invoice,
+  .invoice-container {
+    width: 794px !important; /* A4 */
+    margin: auto !important;
+    padding: 10px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
 
-.products-table tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
-}
+  /* ================= إخفاء الأزرار ================= */
+  .no-print,
+  button,
+  .buttons {
+    display: none !important;
+  }
 
-.products-table td,
-.products-table th {
-    page-break-inside: auto;
-}
-
-/* إصلاح الصور */
-img {
+  /* ================= الصور ================= */
+  img {
     max-width: 100% !important;
     height: auto !important;
-    display: block;
-    page-break-inside: avoid;
+    display: block !important;
+    page-break-inside: avoid !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  /* شعار */
+  .logo-circle {
+    background: #1e3a8a !important;
+    overflow: visible !important;
+  }
+
+  .logo-circle img {
+    width: 50px !important;
+    height: auto !important;
+  }
+
+  /* ================= الجدول ================= */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  td, th {
+    border: 1px solid #000 !important;
+    padding: 6px !important;
+    text-align: center !important;
+  }
+
+  /* ================= منع القص ================= */
+  .row,
+  .invoice-header,
+  .totals,
+  .footer,
+  .info-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
 }
+```
