@@ -17,11 +17,15 @@ body {
   margin: 20px;
 }
 
+.invoice-container {
+  width: 794px;
+  margin: auto;
+}
+
 .invoice-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .logo-circle {
@@ -48,11 +52,6 @@ body {
   font-weight: bold;
 }
 
-.header-left {
-  text-align: left;
-  font-size: 14px;
-}
-
 .line {
   border-top: 1px solid #000;
   margin: 10px 0;
@@ -61,13 +60,11 @@ body {
 .row {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
 }
 
 th, td {
@@ -82,7 +79,6 @@ img.product {
 
 @media print {
   body { margin: 0; }
-  button { display:none; }
 }
 </style>
 </head>
@@ -101,7 +97,6 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
   authDomain: "msjt301-974bb.firebaseapp.com",
@@ -119,12 +114,21 @@ const params = new URLSearchParams(window.location.search);
 const orderId = params.get("id");
 const auto = params.get("auto");
 
+// 🔥 حل مشكلة المسارات
+const BASE_PATH = window.location.origin + window.location.pathname.replace("print.html","");
+
 // ================= تحميل البيانات =================
 async function loadInvoice() {
 
+  if (!orderId) {
+    document.body.innerHTML = "❌ لا يوجد رقم طلب";
+    return;
+  }
+
   const orderSnap = await getDoc(doc(db, "orders", orderId));
+
   if (!orderSnap.exists()) {
-    document.body.innerHTML = "الطلب غير موجود";
+    document.body.innerHTML = "❌ الطلب غير موجود";
     return;
   }
 
@@ -149,7 +153,7 @@ async function loadInvoice() {
     rows += `
       <tr>
         <td>${i+1}</td>
-        <td><img class="product" src="${product.image || './product.png'}"></td>
+        <td><img class="product" src="${product.image || BASE_PATH + 'product.png'}"></td>
         <td>${product.name || "-"}</td>
         <td>${product.code || "-"}</td>
         <td>${item.qty}</td>
@@ -166,10 +170,15 @@ async function loadInvoice() {
   <div class="invoice-container">
 
   <div class="invoice-header">
-    <div class="logo-circle"><img src="./logo.png"></div>
-    <div class="header-center"><div class="invoice-title">فاتورة إلكترونية</div></div>
-    <div class="header-left">
-      رقم شهادة العمل الحر: FL-765735204<br>
+    <div class="logo-circle">
+      <img src="${BASE_PATH}logo.png">
+    </div>
+
+    <div class="header-center">
+      <div class="invoice-title">فاتورة إلكترونية</div>
+    </div>
+
+    <div>
       الرقم الضريبي: 312495447600003
     </div>
   </div>
@@ -184,22 +193,8 @@ async function loadInvoice() {
   <div class="line"></div>
 
   <div class="row">
-    <div>
-      <b>مصدرة من:</b><br>
-      منصة في خدمتك
-    </div>
-
-    <div>
-      <b>مصدرة إلى:</b><br>
-      ${customer.name || "-"}<br>
-      ${customer.phone || "-"}
-    </div>
-  </div>
-
-  <div class="line"></div>
-
-  <div id="paymentLine">
-    الدفع: ${order.paymentMethod || "-"}
+    <div>من: منصة في خدمتك</div>
+    <div>إلى: ${customer.name || "-"}</div>
   </div>
 
   <div class="line"></div>
@@ -209,7 +204,6 @@ async function loadInvoice() {
       <th>#</th>
       <th>صورة</th>
       <th>اسم المنتج</th>
-      <th>الكود</th>
       <th>الكمية</th>
       <th>السعر</th>
       <th>الإجمالي</th>
@@ -228,11 +222,32 @@ async function loadInvoice() {
   </div>
   `;
 
-  runAutoAction();
+  waitAndRun();
 }
 
-// ================= تنفيذ تلقائي =================
-function runAutoAction() {
+// 🔥 انتظار الصور قبل التنفيذ
+function waitAndRun() {
+  const imgs = document.images;
+  let loaded = 0;
+
+  for (let img of imgs) {
+    if (img.complete) loaded++;
+    else {
+      img.onload = () => check();
+      img.onerror = () => check();
+    }
+  }
+
+  function check() {
+    loaded++;
+    if (loaded === imgs.length) runAuto();
+  }
+
+  if (loaded === imgs.length) runAuto();
+}
+
+// ================= تنفيذ =================
+function runAuto() {
 
   setTimeout(() => {
 
@@ -253,7 +268,7 @@ function runAutoAction() {
       });
     }
 
-  }, 500);
+  }, 400);
 }
 
 loadInvoice();
