@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>طباعة فاتورة</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<style>
+body {
+  direction: rtl;
+  font-family: Arial;
+  margin: 0;
+}
+
+.container {
+  width: 794px;
+  margin: auto;
+  padding: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 6px;
+  text-align: center;
+}
+
+@media print {
+  button { display:none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="invoice"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+// Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+  authDomain: "msjt301-974bb.firebaseapp.com",
+  projectId: "msjt301-974bb",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// params
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+const auto = params.get("auto");
+
+// تحميل الطلب
+async function load() {
+
+  const snap = await getDoc(doc(db, "orders", id));
+
+  if (!snap.exists()) {
+    document.body.innerHTML = "❌ الطلب غير موجود";
+    return;
+  }
+
+  const order = snap.data();
+
+  let rows = "";
+  let total = 0;
+
+  order.items?.forEach((item, i) => {
+    const t = item.qty * item.price;
+    total += t;
+
+    rows += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${item.name || "-"}</td>
+        <td>${item.qty}</td>
+        <td>${item.price}</td>
+        <td>${t}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("invoice").innerHTML = `
+    <h2>فاتورة</h2>
+    <p>رقم: ${id}</p>
+
+    <table>
+      <tr>
+        <th>#</th>
+        <th>المنتج</th>
+        <th>الكمية</th>
+        <th>السعر</th>
+        <th>الإجمالي</th>
+      </tr>
+      ${rows}
+    </table>
+
+    <h3>الإجمالي: ${total}</h3>
+  `;
+
+  run();
+}
+
+// تنفيذ تلقائي
+function run() {
+  setTimeout(() => {
+
+    if (auto === "print") window.print();
+
+    if (auto === "pdf") {
+      html2pdf().from(document.body).save(`invoice_${id}.pdf`);
+    }
+
+    if (auto === "png") {
+      html2canvas(document.body).then(canvas => {
+        const link = document.createElement("a");
+        link.download = `invoice_${id}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+  }, 300);
+}
+
+load();
+</script>
+
+</body>
+</html>
