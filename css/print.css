@@ -1,4 +1,3 @@
-```css
 /* ================= RESET للطباعة ================= */
 @media print {
 
@@ -15,12 +14,14 @@
     overflow: visible !important;
     direction: rtl;
     font-family: Arial, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   /* ================= الحاوية ================= */
   .invoice,
   .invoice-container {
-    width: 794px !important; /* A4 */
+    width: 794px !important;
     margin: auto !important;
     padding: 10px !important;
     background: #fff !important;
@@ -28,7 +29,7 @@
     overflow: visible !important;
   }
 
-  /* ================= إخفاء الأزرار ================= */
+  /* ================= إخفاء العناصر ================= */
   .no-print,
   button,
   .buttons {
@@ -41,14 +42,14 @@
     height: auto !important;
     display: block !important;
     page-break-inside: avoid !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    break-inside: avoid !important;
   }
 
-  /* شعار */
+  /* الشعار */
   .logo-circle {
     background: #1e3a8a !important;
     overflow: visible !important;
+    print-color-adjust: exact;
   }
 
   .logo-circle img {
@@ -56,11 +57,19 @@
     height: auto !important;
   }
 
-  /* ================= الجدول ================= */
+  /* ================= الجداول ================= */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
     page-break-inside: auto !important;
+  }
+
+  thead {
+    display: table-header-group; /* 🔥 تكرار الهيدر */
+  }
+
+  tfoot {
+    display: table-footer-group;
   }
 
   tr {
@@ -79,10 +88,22 @@
   .invoice-header,
   .totals,
   .footer,
-  .info-card {
+  .info-card,
+  .section {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
+  /* ================= تحسين النص ================= */
+  h1, h2, h3, h4, p {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* ================= تحسين الفواصل ================= */
+  .line {
+    border-top: 1px solid #000 !important;
+    margin: 10px 0 !important;
+  }
+
 }
-```
