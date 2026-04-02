@@ -1,4 +1,3 @@
-```javascript
 // js/print/print-manager.js
 
 import { buildInvoiceHTML } from './template.js';
@@ -6,7 +5,6 @@ import { printInvoice } from './print.service.js';
 import { generatePDF } from './pdf.service.js';
 import { generateImage } from './image.service.js';
 
-/* حماية النص */
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -28,6 +26,7 @@ function createTempElement(order, cartRows, totals) {
     container.style.left = '-9999px';
     container.style.opacity = '0';
     container.style.pointerEvents = 'none';
+    container.style.width = '794px';
 
     document.body.appendChild(container);
 
@@ -37,6 +36,13 @@ function createTempElement(order, cartRows, totals) {
     };
 }
 
+/* تنظيف */
+function cleanup(container) {
+    if (container && container.parentNode) {
+        container.parentNode.removeChild(container);
+    }
+}
+
 /* تجهيز البيانات */
 function prepareData(order) {
 
@@ -44,111 +50,114 @@ function prepareData(order) {
         order.items = [];
     }
 
-    const cartRows = order.items.map(item => `
-        <tr>
-            <td>${escapeHtml(item.name || '-')}</td>
-            <td>${escapeHtml(item.barcode || '-')}</td>
-            <td>${escapeHtml(item.description || '-')}</td>
-            <td>${item.quantity || 0}</td>
-            <td>${(item.price || 0).toFixed(2)}</td>
-            <td>0</td>
-            <td><strong>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</strong></td>
-        </tr>
-    `).join('');
+    const cartRows = order.items.map(item => {
+        const name = escapeHtml(item.name || '-');
+
+        let image = '<span>-</span>';
+        if (item.image) {
+            image = `<img src="${escapeHtml(item.image)}" style="width:40px;height:40px;object-fit:cover;">`;
+        }
+
+        return `
+            <tr>
+                <td>${name}</td>
+                <td>${image}</td>
+                <td>${escapeHtml(item.barcode || '-')}</td>
+                <td>${item.quantity || 0}</td>
+                <td>${(item.price || 0).toFixed(2)} ريال</td>
+            </tr>
+        `;
+    }).join('');
 
     const subtotal = order.items.reduce((s, i) => s + (i.price || 0) * (i.quantity || 0), 0);
 
-    let discountValue = order.discount || 0;
+    let discount = order.discount || 0;
 
-    if (order.discountType === 'percent' && discountValue > 0) {
-        discountValue = (subtotal * discountValue) / 100;
+    if (order.discountType === 'percent') {
+        discount = (subtotal * discount) / 100;
     }
 
-    const afterDiscount = subtotal - discountValue;
-    const tax = afterDiscount * 0.15;
-    const total = afterDiscount + tax;
+    const after = subtotal - discount;
+    const tax = after * 0.15;
+    const total = after + tax;
 
     return {
         cartRows,
         totals: {
             subtotal: subtotal.toFixed(2) + ' ريال',
-            discount: discountValue.toFixed(2) + ' ريال',
+            discount: discount.toFixed(2) + ' ريال',
             tax: tax.toFixed(2) + ' ريال',
             total: total.toFixed(2) + ' ريال'
         }
     };
 }
 
-/* تحقق */
-function validateOrder(order) {
-    if (!order) throw new Error('الطلب غير موجود');
-    return true;
+/* رسائل */
+function showErrorToast(msg) {
+    alert(msg);
 }
 
-/* تنظيف آمن */
-function cleanup(container) {
-    if (container && container.parentNode) {
-        container.parentNode.removeChild(container);
-    }
-}
-
-/* طباعة */
+/* ================= 🖨️ طباعة محلية ================= */
 export async function printInvoiceHandler(order) {
     let temp;
 
     try {
-        validateOrder(order);
-
         const { cartRows, totals } = prepareData(order);
         temp = createTempElement(order, cartRows, totals);
 
-        await printInvoice(temp.element);
+        await printInvoice(temp.element, "print");
 
-    } catch (error) {
-        console.error(error);
-        alert('خطأ في الطباعة');
+    } catch (e) {
+        console.error(e);
+        showErrorToast('خطأ في الطباعة');
     } finally {
         cleanup(temp?.container);
     }
 }
 
-/* PDF */
+/* ================= 📄 PDF محلي ================= */
 export async function exportAsPDF(order) {
     let temp;
 
     try {
-        validateOrder(order);
-
         const { cartRows, totals } = prepareData(order);
         temp = createTempElement(order, cartRows, totals);
 
-        await generatePDF(temp.element, order);
+        await printInvoice(temp.element, "pdf");
 
-    } catch (error) {
-        console.error(error);
-        alert('خطأ في PDF');
+    } catch (e) {
+        console.error(e);
+        showErrorToast('خطأ في PDF');
     } finally {
         cleanup(temp?.container);
     }
 }
 
-/* صورة */
+/* ================= 🖼️ صورة محلية ================= */
 export async function exportAsImage(order) {
     let temp;
 
     try {
-        validateOrder(order);
-
         const { cartRows, totals } = prepareData(order);
         temp = createTempElement(order, cartRows, totals);
 
-        await generateImage(temp.element, order);
+        await printInvoice(temp.element, "png");
 
-    } catch (error) {
-        console.error(error);
-        alert('خطأ في الصورة');
+    } catch (e) {
+        console.error(e);
+        showErrorToast('خطأ في الصورة');
     } finally {
         cleanup(temp?.container);
     }
 }
-```
+
+/* ================= 🌐 طباعة مركزية ================= */
+export function centralPrint(orderId, type = "print") {
+    try {
+        const url = `print.html?id=${orderId}&auto=${type}`;
+        window.open(url, "_blank");
+    } catch (e) {
+        console.error(e);
+        alert('خطأ في الطباعة المركزية');
+    }
+}
