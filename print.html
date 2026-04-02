@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فاتورة إلكترونية - منصة في خدمتك</title>
     
-    <!-- المكتبات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
         * {
@@ -38,7 +36,6 @@
             background: white;
         }
         
-        /* الهيدر */
         .invoice-header {
             display: flex;
             justify-content: space-between;
@@ -106,13 +103,11 @@
             margin-bottom: 8px;
         }
         
-        /* الخط الفاصل */
         .divider {
             border-top: 2px solid #e2e8f0;
             margin: 20px 0;
         }
         
-        /* معلومات الفاتورة */
         .invoice-info {
             display: flex;
             justify-content: space-between;
@@ -138,7 +133,6 @@
             font-size: 14px;
         }
         
-        /* بيانات الأطراف */
         .parties-info {
             display: flex;
             gap: 25px;
@@ -170,16 +164,11 @@
             gap: 8px;
         }
         
-        .party-title i {
-            font-size: 20px;
-        }
-        
         .party-content {
             font-size: 13px;
             line-height: 1.8;
         }
         
-        /* طريقة الدفع والشحن */
         .payment-shipping {
             background: #f1f5f9;
             padding: 15px 20px;
@@ -202,7 +191,6 @@
             gap: 8px;
         }
         
-        /* جدول المنتجات */
         .products-table {
             width: 100%;
             border-collapse: collapse;
@@ -222,14 +210,6 @@
             font-weight: bold;
         }
         
-        .product-image {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        
-        /* ملخص الفاتورة */
         .summary {
             background: #f8fafc;
             padding: 20px;
@@ -260,7 +240,6 @@
             padding-top: 12px;
         }
         
-        /* الفوتر */
         .footer {
             text-align: center;
             padding-top: 20px;
@@ -279,7 +258,6 @@
             font-weight: bold;
         }
         
-        /* أزرار التحكم */
         .action-buttons {
             position: fixed;
             bottom: 20px;
@@ -310,66 +288,23 @@
             box-shadow: 0 6px 16px rgba(0,0,0,0.2);
         }
         
-        .btn-print {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .btn-pdf {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn-png {
-            background: #8b5cf6;
-            color: white;
-        }
-        
-        .btn-close {
-            background: #64748b;
-            color: white;
-        }
+        .btn-print { background: #3b82f6; color: white; }
+        .btn-pdf { background: #ef4444; color: white; }
+        .btn-png { background: #8b5cf6; color: white; }
+        .btn-close { background: #64748b; color: white; }
         
         @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            
-            .action-buttons {
-                display: none;
-            }
-            
-            .invoice-wrapper {
-                box-shadow: none;
-                border-radius: 0;
-            }
-            
-            .invoice-container {
-                padding: 20px;
-            }
+            body { background: white; padding: 0; margin: 0; }
+            .action-buttons { display: none; }
+            .invoice-wrapper { box-shadow: none; border-radius: 0; }
+            .invoice-container { padding: 20px; }
         }
         
         @media (max-width: 768px) {
-            .invoice-container {
-                padding: 20px;
-            }
-            
-            .summary-box {
-                width: 100%;
-            }
-            
-            .products-table th,
-            .products-table td {
-                padding: 8px 5px;
-                font-size: 12px;
-            }
-            
-            .action-btn {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
+            .invoice-container { padding: 20px; }
+            .summary-box { width: 100%; }
+            .products-table th, .products-table td { padding: 8px 5px; font-size: 12px; }
+            .action-btn { padding: 8px 16px; font-size: 12px; }
         }
         
         .loading {
@@ -391,20 +326,11 @@
 
 <div id="loading" class="loading">⏳ جاري تحميل بيانات الفاتورة...</div>
 <div id="invoiceWrapper" style="display: none;"></div>
-
 <div class="action-buttons" id="actionButtons" style="display: none;">
-    <button class="action-btn btn-print" onclick="handlePrint()">
-        🖨️ طباعة
-    </button>
-    <button class="action-btn btn-pdf" onclick="handlePDF()">
-        📄 تحميل PDF
-    </button>
-    <button class="action-btn btn-png" onclick="handlePNG()">
-        🖼️ تحميل صورة
-    </button>
-    <button class="action-btn btn-close" onclick="window.close()">
-        ✖️ إغلاق
-    </button>
+    <button class="action-btn btn-print" onclick="handlePrint()">🖨️ طباعة</button>
+    <button class="action-btn btn-pdf" onclick="handlePDF()">📄 PDF</button>
+    <button class="action-btn btn-png" onclick="handlePNG()">🖼️ صورة</button>
+    <button class="action-btn btn-close" onclick="window.close()">✖️ إغلاق</button>
 </div>
 
 <script type="module">
@@ -417,33 +343,28 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// إعداد Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
     projectId: "msjt301-974bb",
-    storageBucket: "msjt301-974bb.firebasestorage.app",
-    messagingSenderId: "186209858482",
-    appId: "1:186209858482:web:186ca610780799ef562aab"
+    storageBucket: "msjt301-974bb.firebasestorage.app"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// جلب المعاملات
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get("id");
 const autoAction = params.get("auto");
 
-// دوال مساعدة
 function escapeHtml(str) {
     if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
 }
 
 function formatDate(dateStr) {
@@ -453,16 +374,6 @@ function formatDate(dateStr) {
     return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
 }
 
-function formatTime(time24) {
-    if (!time24) return '-';
-    let [h, m] = time24.split(':');
-    let hour = parseInt(h);
-    let ampm = hour >= 12 ? 'مساءً' : 'صباحاً';
-    hour = hour % 12 || 12;
-    return `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
-}
-
-// تحميل بيانات الفاتورة
 async function loadInvoice() {
     const loadingDiv = document.getElementById('loading');
     const wrapperDiv = document.getElementById('invoiceWrapper');
@@ -473,9 +384,7 @@ async function loadInvoice() {
     }
     
     try {
-        // جلب بيانات الطلب
         const orderSnap = await getDoc(doc(db, "orders", orderId));
-        
         if (!orderSnap.exists()) {
             loadingDiv.innerHTML = '<div class="error">❌ الطلب غير موجود</div>';
             return;
@@ -483,41 +392,23 @@ async function loadInvoice() {
         
         const order = { id: orderSnap.id, ...orderSnap.data() };
         
-        // جلب بيانات العملاء
         const customersSnap = await getDocs(collection(db, "customers"));
         const customers = {};
-        customersSnap.forEach(doc => {
-            customers[doc.id] = doc.data();
-        });
-        
-        // جلب بيانات المنتجات
-        const productsSnap = await getDocs(collection(db, "products"));
-        const products = {};
-        productsSnap.forEach(doc => {
-            products[doc.id] = doc.data();
-        });
+        customersSnap.forEach(doc => { customers[doc.id] = doc.data(); });
         
         const customer = customers[order.customerId] || {};
         
-        // تجهيز صفوف المنتجات
         let rows = '';
         let subtotal = 0;
         
         if (order.items && order.items.length > 0) {
             order.items.forEach((item, index) => {
-                const product = products[item.productId] || {};
                 const itemTotal = (item.price || 0) * (item.quantity || 0);
                 subtotal += itemTotal;
-                
                 rows += `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>
-                            ${item.image || product.image ? 
-                                `<img src="${escapeHtml(item.image || product.image)}" class="product-image" onerror="this.style.display='none'">` : 
-                                '<span style="color:#999;">-</span>'}
-                        </td>
-                        <td style="text-align:right;">${escapeHtml(item.name || product.name || '-')}</td>
+                        <td style="text-align:right;">${escapeHtml(item.name || '-')}</td>
                         <td>${item.quantity || 0}</td>
                         <td>${((item.price || 0)).toFixed(2)}</td>
                         <td>${itemTotal.toFixed(2)}</td>
@@ -526,7 +417,6 @@ async function loadInvoice() {
             });
         }
         
-        // حساب الضريبة والإجمالي
         let discountValue = order.discount || 0;
         if (order.discountType === 'percent' && discountValue > 0) {
             discountValue = (subtotal * discountValue) / 100;
@@ -535,158 +425,58 @@ async function loadInvoice() {
         const tax = afterDiscount * 0.15;
         const total = afterDiscount + tax;
         
-        // تحديد طريقة الشحن
-        const shippingMethods = {
-            'pickup': '🏪 استلام من المقر',
-            'delivery': '🚚 شحن منزلي',
-            'noship': '📥 لا يتطلب شحن'
-        };
-        const shippingText = shippingMethods[order.shippingMethod] || 'غير محدد';
-        
-        // أيقونات طريقة الدفع
-        const paymentIcons = {
-            'mada': '💳 مدى',
-            'mastercard': '💳 ماستركارد',
-            'visa': '💳 فيزا',
-            'stcpay': '📱 STCPay',
-            'tamara': '🏷️ تمارا',
-            'tabby': '🐱 تابي',
-            'other': '💰 أخرى'
-        };
-        const paymentText = order.paymentMethodName || paymentIcons[order.paymentMethod] || order.paymentMethod || 'غير محدد';
-        
-        // الشعار
         const logoBase64 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233b82f6'/%3E%3Ctext x='50' y='70' text-anchor='middle' fill='white' font-size='40' font-weight='bold'%3Eف%3C/text%3E%3C/svg%3E";
         
-        // إنشاء HTML الفاتورة
-        const invoiceHTML = `
-            <div class="invoice-container">
-                <!-- الهيدر -->
-                <div class="invoice-header">
-                    <div class="logo-section">
-                        <div class="logo-circle">
-                            <img src="${logoBase64}" alt="شعار المنصة">
-                        </div>
-                        <div class="logo-text">
-                            <h2>منصة في خدمتك</h2>
-                            <p>Fi Khidmatik Platform</p>
-                        </div>
-                    </div>
-                    
-                    <div class="header-center">
-                        <div class="invoice-title">فاتورة إلكترونية</div>
-                        <div style="font-size:12px; color:#666;">ELECTRONIC INVOICE</div>
-                    </div>
-                    
-                    <div class="tax-info">
-                        <div class="tax-card">📄 رقم شهادة العمل الحر: FL-765735204</div>
-                        <div class="tax-card">🏷️ الرقم الضريبي: 312495447600003</div>
-                    </div>
-                </div>
-                
-                <div class="divider"></div>
-                
-                <!-- معلومات الفاتورة -->
-                <div class="invoice-info">
-                    <div class="invoice-number">
-                        رقم الفاتورة: <span>${escapeHtml(order.orderNumber || order.id)}</span>
-                    </div>
-                    <div>
-                        📅 التاريخ: ${formatDate(order.orderDate)} | ${formatTime(order.orderTime)}
-                    </div>
-                </div>
-                
-                <div class="divider"></div>
-                
-                <!-- بيانات الأطراف -->
-                <div class="parties-info">
-                    <div class="party-card seller">
-                        <div class="party-title">
-                            <i>🏢</i> مصدرة من
-                        </div>
-                        <div class="party-content">
-                            <strong>منصة في خدمتك</strong><br>
-                            المملكة العربية السعودية<br>
-                            حائل - حي النقرة<br>
-                            شارع سعد المشاط - مبنى 3085<br>
-                            الرقم الإضافي: 7718<br>
-                            الرمز البريدي: 55431
-                        </div>
-                    </div>
-                    
-                    <div class="party-card buyer">
-                        <div class="party-title">
-                            <i>👤</i> مصدرة إلى
-                        </div>
-                        <div class="party-content">
-                            <strong>${escapeHtml(customer.name || '-')}</strong><br>
-                            ${escapeHtml(customer.city || '-')}<br>
-                            ${escapeHtml(customer.street || '-')}<br>
-                            هاتف: ${escapeHtml(customer.phone || '-')}<br>
-                            بريد: ${escapeHtml(customer.email || 'غير مدخل')}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- الدفع والشحن -->
-                <div class="payment-shipping">
-                    <span class="badge">💳 طريقة الدفع: ${paymentText}</span>
-                    <span class="badge">${shippingText}</span>
-                </div>
-                
-                <!-- جدول المنتجات -->
-                <table class="products-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>صورة</th>
-                            <th>اسم المنتج</th>
-                            <th>الكمية</th>
-                            <th>السعر (ريال)</th>
-                            <th>الإجمالي (ريال)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows || '<tr><td colspan="6" style="text-align:center;">لا توجد منتجات</td></tr>'}
-                    </tbody>
-                </table>
-                
-                <!-- ملخص الفاتورة -->
-                <div class="summary">
-                    <div class="summary-content">
-                        <div class="summary-box">
-                            <div class="summary-row">
-                                <span>المجموع الفرعي:</span>
-                                <span>${subtotal.toFixed(2)} ريال</span>
-                            </div>
-                            <div class="summary-row">
-                                <span>الخصم:</span>
-                                <span style="color:#ef4444;">- ${discountValue.toFixed(2)} ريال</span>
-                            </div>
-                            <div class="summary-row">
-                                <span>ضريبة القيمة المضافة (15%):</span>
-                                <span>${tax.toFixed(2)} ريال</span>
-                            </div>
-                            <div class="summary-row total">
-                                <span>الإجمالي النهائي:</span>
-                                <span style="color:#1e3a8a;">${total.toFixed(2)} ريال</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- الفوتر -->
-                <div class="footer">
-                    <p>🧾 هذه الفاتورة إلكترونية صادرة من منصة في خدمتك</p>
-                    <p class="thanks">شكراً لتسوقكم معنا 🤍</p>
-                </div>
-            </div>
-        `;
-        
-        // عرض الفاتورة
         wrapperDiv.innerHTML = `
             <div class="invoice-wrapper">
-                ${invoiceHTML}
+                <div class="invoice-container">
+                    <div class="invoice-header">
+                        <div class="logo-section">
+                            <div class="logo-circle"><img src="${logoBase64}"></div>
+                            <div class="logo-text"><h2>منصة في خدمتك</h2><p>Fi Khidmatik Platform</p></div>
+                        </div>
+                        <div class="header-center">
+                            <div class="invoice-title">فاتورة إلكترونية</div>
+                        </div>
+                        <div class="tax-info">
+                            <div class="tax-card">📄 رقم شهادة العمل الحر: FL-765735204</div>
+                            <div class="tax-card">🏷️ الرقم الضريبي: 312495447600003</div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="invoice-info">
+                        <div class="invoice-number">رقم الفاتورة: <span>${escapeHtml(order.orderNumber || order.id)}</span></div>
+                        <div>📅 التاريخ: ${formatDate(order.orderDate)}</div>
+                    </div>
+                    <div class="parties-info">
+                        <div class="party-card seller">
+                            <div class="party-title">🏢 مصدرة من</div>
+                            <div class="party-content"><strong>منصة في خدمتك</strong><br>المملكة العربية السعودية<br>حائل - حي النقرة</div>
+                        </div>
+                        <div class="party-card buyer">
+                            <div class="party-title">👤 مصدرة إلى</div>
+                            <div class="party-content"><strong>${escapeHtml(customer.name || '-')}</strong><br>${escapeHtml(customer.city || '-')}<br>هاتف: ${escapeHtml(customer.phone || '-')}</div>
+                        </div>
+                    </div>
+                    <table class="products-table">
+                        <thead><tr><th>#</th><th>اسم المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                        <tbody>${rows || '<tr><td colspan="5">لا توجد منتجات</td></tr>'}</tbody>
+                    </table>
+                    <div class="summary">
+                        <div class="summary-content">
+                            <div class="summary-box">
+                                <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
+                                <div class="summary-row"><span>الخصم:</span><span style="color:#ef4444;">- ${discountValue.toFixed(2)} ريال</span></div>
+                                <div class="summary-row"><span>الضريبة 15%:</span><span>${tax.toFixed(2)} ريال</span></div>
+                                <div class="summary-row total"><span>الإجمالي:</span><span style="color:#1e3a8a;">${total.toFixed(2)} ريال</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>🧾 هذه الفاتورة إلكترونية صادرة من منصة في خدمتك</p>
+                        <p class="thanks">شكراً لتسوقكم معنا 🤍</p>
+                    </div>
+                </div>
             </div>
         `;
         
@@ -694,62 +484,31 @@ async function loadInvoice() {
         wrapperDiv.style.display = 'block';
         document.getElementById('actionButtons').style.display = 'flex';
         
-        // التنفيذ التلقائي
-        if (autoAction) {
-            setTimeout(() => {
-                if (autoAction === 'print') handlePrint();
-                else if (autoAction === 'pdf') handlePDF();
-                else if (autoAction === 'png') handlePNG();
-            }, 500);
-        }
+        if (autoAction === 'print') setTimeout(() => window.print(), 500);
+        else if (autoAction === 'pdf') setTimeout(() => handlePDF(), 500);
+        else if (autoAction === 'png') setTimeout(() => handlePNG(), 500);
         
     } catch (error) {
-        console.error('خطأ:', error);
-        document.getElementById('loading').innerHTML = `<div class="error">❌ خطأ في تحميل البيانات: ${error.message}</div>`;
+        loadingDiv.innerHTML = `<div class="error">❌ خطأ: ${error.message}</div>`;
     }
 }
 
-// دوال التحكم
-window.handlePrint = function() {
-    window.print();
-};
-
-window.handlePDF = async function() {
+window.handlePrint = () => window.print();
+window.handlePDF = async () => {
     const element = document.querySelector('.invoice-wrapper');
-    if (!element) return;
-    
-    try {
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `فاتورة_${orderId}_${new Date().toISOString().slice(0, 10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        await html2pdf().set(opt).from(element).save();
-    } catch (error) {
-        console.error('PDF error:', error);
-        alert('حدث خطأ في إنشاء PDF');
-    }
+    if (element) await html2pdf().from(element).save(`فاتورة_${orderId}.pdf`);
 };
-
-window.handlePNG = async function() {
+window.handlePNG = async () => {
     const element = document.querySelector('.invoice-wrapper');
-    if (!element) return;
-    
-    try {
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+    if (element) {
+        const canvas = await html2canvas(element);
         const link = document.createElement('a');
-        link.download = `فاتورة_${orderId}_${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.download = `فاتورة_${orderId}.png`;
+        link.href = canvas.toDataURL();
         link.click();
-    } catch (error) {
-        console.error('PNG error:', error);
-        alert('حدث خطأ في إنشاء الصورة');
     }
 };
 
-// بدء التحميل
 loadInvoice();
 </script>
 </body>
