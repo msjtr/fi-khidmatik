@@ -1,5 +1,16 @@
 // js/print/template.js
 
+// دالة escapeHtml يجب أن تكون معرفة قبل استخدامها
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 export function buildInvoiceHTML(order, cartRows, totals) {
     // تنسيق التاريخ
     let displayDate = order.orderDate || '-';
@@ -17,6 +28,14 @@ export function buildInvoiceHTML(order, cartRows, totals) {
         hour = hour % 12 || 12;
         displayTime = `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
     }
+    
+    // التأكد من وجود totals
+    const safeTotals = {
+        subtotal: totals?.subtotal || '0 ريال',
+        discount: totals?.discount || '0 ريال',
+        tax: totals?.tax || '0 ريال',
+        total: totals?.total || '0 ريال'
+    };
     
     return `
         <div class="invoice-header">
@@ -65,13 +84,13 @@ export function buildInvoiceHTML(order, cartRows, totals) {
                     المملكة العربية السعودية<br>
                     هاتف: ${escapeHtml(order.customer?.phone) || '-'}<br>
                     بريد: ${escapeHtml(order.customer?.email) || 'غير مدخل'}<br>
-                    ${escapeHtml(order.customer?.address) || ''}
+                    ${escapeHtml(order.customer?.address || '')}
                 </p>
             </div>
         </div>
         
         <div class="payment-info">
-            <span class="payment-badge">💳 طريقة الدفع: ${order.paymentMethodName || order.paymentMethod || '-'}</span>
+            <span class="payment-badge">💳 طريقة الدفع: ${escapeHtml(order.paymentMethodName || order.paymentMethod || '-')}</span>
             ${order.approvalCode ? `<span class="payment-badge">🔑 رمز الموافقة: ${escapeHtml(order.approvalCode)}</span>` : ''}
             ${order.shippingService ? `<span class="payment-badge">🚚 خدمة الشحن: ${escapeHtml(order.shippingService)}</span>` : ''}
         </div>
@@ -90,18 +109,18 @@ export function buildInvoiceHTML(order, cartRows, totals) {
                 </tr>
             </thead>
             <tbody>
-                ${cartRows}
+                ${cartRows || ''}
             </tbody>
         </table>
         
         <div class="totals">
             <div class="totals-left">
-                <p><strong>المجموع الفرعي:</strong> ${totals.subtotal}</p>
-                <p><strong>الخصم الكلي:</strong> ${totals.discount}</p>
-                <p><strong>الضريبة (15%):</strong> ${totals.tax}</p>
+                <p><strong>المجموع الفرعي:</strong> ${safeTotals.subtotal}</p>
+                <p><strong>الخصم الكلي:</strong> ${safeTotals.discount}</p>
+                <p><strong>الضريبة (15%):</strong> ${safeTotals.tax}</p>
             </div>
             <div class="totals-center">
-                <h2>الإجمالي النهائي: ${totals.total}</h2>
+                <h2>الإجمالي النهائي: ${safeTotals.total}</h2>
             </div>
         </div>
         
@@ -117,12 +136,5 @@ export function buildInvoiceHTML(order, cartRows, totals) {
     `;
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
+// تصدير الدالة المساعدة أيضاً إذا احتاجها أي ملف آخر
+export { escapeHtml };
