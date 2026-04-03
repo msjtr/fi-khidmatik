@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>فاتورة خدماتي - نسخة معتمدة</title>
+    <title>الفاتورة الضريبية - خدماتي</title>
     <style>
         * {
             margin: 0;
@@ -12,48 +12,45 @@
         }
 
         body {
-            background: #eef2f5;
+            background: #e2e8f0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Segoe UI', 'Cairo', 'Tahoma', sans-serif;
-            padding: 16px;
+            font-family: 'Cairo', 'Segoe UI', 'Tahoma', sans-serif;
+            padding: 20px;
         }
 
-        /* حاوية الفاتورة - عرض مطابق لـ A4 */
-        .invoice-container {
+        /* حاوية الفاتورة - عرض A4 */
+        .invoice-paper {
             max-width: 210mm;
             width: 100%;
-            margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+            border-radius: 16px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.15);
             overflow: hidden;
         }
 
-        /* المحتوى الرئيسي مع هوامش داخلية آمنة للطباعة */
-        .invoice-content {
-            background: white;
-            padding: 12mm 15mm 12mm 15mm;
-            position: relative;
+        /* المحتوى الداخلي بهوامش آمنة للطباعة */
+        .invoice-body {
+            padding: 12mm 18mm 15mm 18mm;
         }
 
-        /* ضبط الطباعة - منع القص وضمان صفحة واحدة */
+        /* إعدادات الطباعة - صفحة واحدة بدون اقتصاص */
         @media print {
             body {
                 background: white;
                 padding: 0;
                 margin: 0;
             }
-            .invoice-container {
+            .invoice-paper {
                 box-shadow: none;
                 border-radius: 0;
                 max-width: 100%;
                 margin: 0;
             }
-            .invoice-content {
-                padding: 12mm 15mm 12mm 15mm;
+            .invoice-body {
+                padding: 12mm 18mm 12mm 18mm;
                 page-break-after: avoid;
                 page-break-inside: avoid;
                 break-inside: avoid;
@@ -62,257 +59,198 @@
                 size: A4;
                 margin: 0mm;
             }
-            .no-print {
-                display: none;
-            }
         }
 
-        /* الرأس */
-        .header {
+        /* خطوط عربية واضحة */
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
+        /* تنسيق الرأس */
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a2c3e;
+        }
+        .logo-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #1a2c3e;
+            letter-spacing: -0.5px;
+        }
+        .logo-sub {
+            font-size: 13px;
+            color: #4a627a;
+            margin-top: 4px;
+        }
+
+        /* قسم البنود المالية */
+        .financial-section {
+            margin: 20px 0 20px 0;
+        }
+        .finance-item {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            border-bottom: 2px solid #1e3a5f;
-            padding-bottom: 20px;
-            margin-bottom: 22px;
+            align-items: baseline;
+            padding: 12px 0;
+            border-bottom: 1px dashed #d4dfed;
+            font-size: 16px;
         }
-        .brand h2 {
-            font-size: 28px;
-            color: #1e3a5f;
-            font-weight: 800;
-            letter-spacing: -0.3px;
+        .finance-label {
+            font-weight: 500;
+            color: #2c3e50;
         }
-        .brand p {
-            color: #2c5282;
-            font-size: 13px;
-            margin-top: 5px;
-        }
-        .invoice-meta {
-            background: #f8fafc;
-            padding: 8px 16px;
-            border-radius: 14px;
-            text-align: left;
-            font-size: 13px;
-            border: 1px solid #e2edf2;
-        }
-        .invoice-meta p {
-            line-height: 1.5;
+        .finance-amount {
+            font-weight: 600;
             color: #1e293b;
         }
-
-        /* معلومات إضافية */
-        .info-row {
-            background: #f9f9fc;
-            border-radius: 16px;
-            padding: 14px 18px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            border: 1px solid #e2e8f0;
-            font-size: 13px;
+        .discount-row .finance-amount {
+            color: #b91c1c;
         }
-        .info-block span {
-            font-weight: 700;
-            color: #0f3b5c;
+        .tax-row .finance-amount {
+            color: #2b7a3e;
         }
-
-        /* ملخص الحساب - دقيق بالأرقام المطلوبة */
-        .summary-details {
-            background: #ffffff;
-            border: 1px solid #dce5ef;
-            border-radius: 24px;
-            padding: 6px 0 10px 0;
-            margin-bottom: 28px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 22px;
-            border-bottom: 1px solid #ecf3f9;
-            font-size: 15px;
-            align-items: baseline;
-        }
-        .summary-item:last-of-type {
+        .total-row {
+            border-top: 2px solid #1a2c3e;
             border-bottom: none;
-        }
-        .summary-item.total-grand {
-            border-top: 2px solid #1e3a5f;
             margin-top: 8px;
             padding-top: 16px;
             font-weight: 800;
             font-size: 18px;
-            color: #0b3b5f;
-            background: #fefce8;
-            border-radius: 0 0 20px 20px;
         }
-        .discount-value {
-            color: #b91c1c;
-            font-weight: 600;
+        .total-row .finance-label {
+            font-weight: 800;
+            color: #0c4a6e;
         }
-        .tax-value {
-            color: #2d6a4f;
-            font-weight: 600;
+        .total-row .finance-amount {
+            font-weight: 800;
+            color: #0c4a6e;
+            font-size: 19px;
         }
-        .label-note {
+        .tax-note {
             font-size: 12px;
             color: #4b5563;
-        }
-        .sub-text {
-            font-size: 12px;
-            color: #2c3e66;
-            margin-top: 6px;
-            text-align: center;
             background: #f1f5f9;
-            padding: 8px;
-            border-radius: 40px;
-            margin: 12px 20px 0 20px;
+            padding: 6px 12px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 12px;
         }
 
-        /* تعليمات الفاتورة الكاملة (من الصورتين) */
-        .terms-full {
-            background: #fefce8;
-            padding: 18px 20px;
-            border-radius: 20px;
-            margin: 20px 0 18px;
+        /* تعليمات الفاتورة (النص الكامل من الصور) */
+        .terms-box {
+            background: #fef9e6;
+            border-right: 5px solid #ca8a04;
+            padding: 16px 18px;
+            margin: 25px 0 20px;
+            border-radius: 12px;
+        }
+        .terms-title {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: #854d0e;
+        }
+        .terms-text {
             font-size: 12.5px;
             line-height: 1.7;
-            color: #2d3a3f;
-            border-right: 5px solid #ca8a04;
+            color: #2c3e2f;
         }
-        .terms-full p {
-            margin-bottom: 10px;
-        }
-        .terms-full .extra-clause {
-            font-weight: 500;
+        .extra-clause {
             background: #fff3cd;
-            padding: 6px 10px;
-            border-radius: 14px;
-            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
-        /* تذييل جهات الاتصال */
-        .footer-contact {
+        /* تذييل الاتصال والشكر */
+        .contact-footer {
             text-align: center;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid #dce5ef;
-            font-size: 12px;
-            color: #1e293b;
+            margin-top: 25px;
+            padding-top: 18px;
+            border-top: 1px solid #e2e8f0;
         }
-        .contact-links {
-            background: #f1f5f9;
+        .contact-line {
+            background: #f8fafc;
             display: inline-block;
-            padding: 8px 18px;
-            border-radius: 50px;
+            padding: 8px 16px;
+            border-radius: 40px;
             font-family: monospace;
+            font-size: 11px;
             direction: ltr;
-            font-size: 11.5px;
-            letter-spacing: 0.3px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
-        .thankyou {
+        .thanks {
             font-weight: 600;
             color: #1e3a5f;
-            margin-top: 8px;
+            margin: 8px 0 5px;
             font-size: 13px;
         }
-        .electronic-badge {
-            background: #e6f7ec;
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 30px;
+        .electronic-note {
             font-size: 11px;
-            margin-top: 6px;
-        }
-
-        /* ضبط عدم الخروج عن الصفحة */
-        .invoice-content {
-            overflow: visible;
-        }
-        @media print {
-            .summary-details, .terms-full, .footer-contact {
-                break-inside: avoid;
-            }
+            color: #5a6e7c;
         }
     </style>
 </head>
 <body>
-<div class="invoice-container">
-    <div class="invoice-content">
+<div class="invoice-paper">
+    <div class="invoice-body">
         <!-- رأس الفاتورة -->
-        <div class="header">
-            <div class="brand">
-                <h2>خدماتي</h2>
-                <p>khidmatik | حلول ذكية ومتكاملة</p>
-                <div style="margin-top:6px;"><span style="background:#eef2ff; padding:2px 10px; border-radius:30px; font-size:11px;">فاتورة ضريبية - الكترونية</span></div>
-            </div>
-            <div class="invoice-meta">
-                <p><strong>رقم الفاتورة:</strong> INV-2404-1192</p>
-                <p><strong>تاريخ الإصدار:</strong> 04 أبريل 2026</p>
-                <p><strong>نوع الفاتورة:</strong> قيمة مضافة (15%)</p>
-            </div>
+        <div class="invoice-header">
+            <div class="logo-title">خدماتي</div>
+            <div class="logo-sub">khidmatik | فاتورة ضريبية</div>
         </div>
 
-        <!-- بيانات العميل / مرجع -->
-        <div class="info-row">
-            <div class="info-block"><span>العميل:</span> شركة التقنية المتقدمة - رقم ضريبي: 3102456789</div>
-            <div class="info-block"><span>السجل التجاري:</span> 1010234567</div>
-            <div class="info-block"><span>طريقة السداد:</span> تحويل بنكي / بطاقة</div>
+        <!-- قسم المبالغ حسب المحتوى الأصلي -->
+        <div class="financial-section">
+            <!-- المجموع الفرعي - مذكور في الصورة الأولى -->
+            <div class="finance-item">
+                <span class="finance-label">المجموع الفرعي</span>
+                <span class="finance-amount">2,500.00 ر.س</span>
+            </div>
+            <!-- إجمالي الخصم -->
+            <div class="finance-item discount-row">
+                <span class="finance-label">إجمالي الخصم</span>
+                <span class="finance-amount">- 750.00 ر.س</span>
+            </div>
+            <!-- المبلغ بعد الخصم (يُستخدم لحساب الضريبة) -->
+            <div class="finance-item">
+                <span class="finance-label">المبلغ بعد الخصم</span>
+                <span class="finance-amount">1,750.00 ر.س</span>
+            </div>
+            <!-- ضريبة القيمة المضافة (15%) -->
+            <div class="finance-item tax-row">
+                <span class="finance-label">ضريبة القيمة المضافة (15%)</span>
+                <span class="finance-amount">262.50 ر.س</span>
+            </div>
+            <!-- الإجمالي النهائي شامل الضريبة -->
+            <div class="finance-item total-row">
+                <span class="finance-label">الإجمالي النهائي شامل الضريبة</span>
+                <span class="finance-amount">2,012.50 ر.س</span>
+            </div>
+            <div class="tax-note">✔ تم احتساب الضريبة بنسبة 15% على المبلغ بعد الخصم (1,750 × 15% = 262.50)</div>
         </div>
 
-        <!-- ملخص الحساب الكامل وفق الأرقام من الصور -->
-        <div class="summary-details">
-            <div class="summary-item">
-                <span>المجموع الفرعي (قبل الخصم)</span>
-                <span>2,500.00 ر.س</span>
+        <!-- تعليمات الفاتورة (نص دقيق من الصور) -->
+        <div class="terms-box">
+            <div class="terms-title">📄 تعليمات الفاتورة والشروط</div>
+            <div class="terms-text">
+                تخضع هذه الفاتورة لكامل الشروط والأحكام، المعرفة وتعد اعتمادها أو سداد أي مبلغ بموجبها إقرارا صريحا ونهائيا بالموافقة على جميع بنودها دون أي تحفظ مع إقرار العميل بمسؤولية عن الاطلاع عليها.
             </div>
-            <div class="summary-item">
-                <span>إجمالي الخصم</span>
-                <span class="discount-value">- 750.00 ر.س</span>
-            </div>
-            <div class="summary-item">
-                <span>المبلغ بعد الخصم (وعاء الضريبة)</span>
-                <span>1,750.00 ر.س</span>
-            </div>
-            <div class="summary-item">
-                <span>ضريبة القيمة المضافة (15%)</span>
-                <span class="tax-value">+ 262.50 ر.س</span>
-            </div>
-            <div class="summary-item total-grand">
-                <span>الإجمالي النهائي شامل الضريبة</span>
-                <span style="font-weight:900;">2,012.50 ر.س</span>
-            </div>
-            <div class="sub-text">
-                ※ تم احتساب الضريبة بنسبة 15% على المبلغ بعد الخصم (1,750 × 0.15 = 262.50)
-            </div>
-        </div>
-
-        <!-- تعليمات الفاتورة والشروط كاملة (من الصورة الثانية مع العبارات الإضافية) -->
-        <div class="terms-full">
-            <p><strong>تعليمات الفاتورة والشروط</strong><br>
-            تخضع هذه الفاتورة لكامل الشروط والأحكام، المعرفة وتعد اعتمادها أو سداد أي مبلغ بموجبها إقرارا صريحا ونهائيا بالموافقة على جميع بنودها دون أي تحفظ مع إقرار العميل بمسؤولية عن الاطلاع عليها.</p>
             <div class="extra-clause">
-                📌 اقرأ الإضافي أمر أن العمل بالاطلاع على جميع الشروط التجارية والمالية وأتحمل المسؤولية الكاملة. الضريبية محسوبة بنسبة 15% على المبلغ بعد الخصم.
+                ⚠ اقرأ الإضافي أمر أن العمل بالاطلاع على جميع الشروط التجارية والمالية وأتحمل المسؤولية الكاملة الضريبية محسوبة بنسبة 15% على المبلغ بعد الخصم.
             </div>
-            <p style="margin-top: 10px;">تعتمد هذه الفاتورة كوثيقة رسمية ملزمة، وأي نزاع يحكم وفق الأنظمة التجارية بالمملكة العربية السعودية.</p>
         </div>
 
-        <!-- جهات الاتصال وتذييل الشكر -->
-        <div class="footer-contact">
-            <div class="contact-links">
-                📧 info@fi-khidmatik.com &nbsp;|&nbsp; 🌐 www.khidmatik.com &nbsp;|&nbsp; 📞 966545312021 &nbsp;|&nbsp; 📞 96654534051317
+        <!-- معلومات الاتصال + الشكر والتذييل -->
+        <div class="contact-footer">
+            <div class="contact-line">
+                📧 info@fi-khidmatik.com | www.khidmatik.com | 📞 966545312021 | 📞 96654534051317
             </div>
-            <div class="thankyou">شكراً لتسوقكم معنا!</div>
-            <div class="electronic-badge">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
-            <p style="font-size: 10px; margin-top: 12px; color: #5a6e7c;">جميع الحقوق محفوظة © خدماتي 2026</p>
+            <div class="thanks">شكراً لتسوقكم معنا!</div>
+            <div class="electronic-note">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
         </div>
-
-        <!-- عنصر إضافي لضمان عدم القص في الطباعة -->
-        <div style="clear: both; height: 1px;"></div>
     </div>
 </div>
 </body>
