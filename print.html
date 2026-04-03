@@ -1,568 +1,319 @@
-لقد قمت بتحسين الكود لضمان الطباعة في صفحة واحدة (أو أقل) مع التحكم الكامل في منع اقتصاص المحتوى، وذلك عن طريق ضبط هوامش الطباعة، واستخدام تقنيات CSS المناسبة، وإعادة هيكلة القالب ليكون أكثر دقة وثباتاً.
-```html
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>فاتورة إلكترونية - منصة في خدمتك</title>
-    <link rel="icon" href="data:,">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- مكتبات التحويل إلى PDF/صورة -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>فاتورة خدماتي - نسخة معتمدة</title>
     <style>
-        /* ========== RESET & BASE ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            background: #e2e8f0;
-            font-family: 'Segoe UI', 'Tahoma', 'Noto Sans Arabic', Arial, sans-serif;
-            direction: rtl;
-            padding: 20px;
+            background: #eef2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Cairo', 'Tahoma', sans-serif;
+            padding: 16px;
         }
-        /* حاوية الفاتورة الرئيسية - تمنع التمدد الزائد */
-        .invoice-master {
-            max-width: 1100px;
+
+        /* حاوية الفاتورة - عرض مطابق لـ A4 */
+        .invoice-container {
+            max-width: 210mm;
+            width: 100%;
             margin: 0 auto;
             background: white;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border-radius: 12px;
-            overflow: hidden;  /* لضمان عدم خروج الظلال، لكن المحتوى لا يُقَص */
+            border-radius: 20px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+            overflow: hidden;
         }
-        /* صفحة الفاتورة الواحدة (بدون break) */
-        .invoice-single-page {
+
+        /* المحتوى الرئيسي مع هوامش داخلية آمنة للطباعة */
+        .invoice-content {
             background: white;
-            padding: 28px 32px;
+            padding: 12mm 15mm 12mm 15mm;
             position: relative;
-            /* منع كسر الصفحة داخل أي عنصر كبير أثناء الطباعة */
-            page-break-inside: avoid;
-            break-inside: avoid;
         }
-        /* ضبط الطباعة - صفحة واحدة بالكامل بدون قص */
+
+        /* ضبط الطباعة - منع القص وضمان صفحة واحدة */
         @media print {
             body {
                 background: white;
                 padding: 0;
                 margin: 0;
             }
-            .invoice-master {
+            .invoice-container {
                 box-shadow: none;
                 border-radius: 0;
                 max-width: 100%;
                 margin: 0;
             }
-            .invoice-single-page {
-                padding: 0.6in 0.5in;
+            .invoice-content {
+                padding: 12mm 15mm 12mm 15mm;
                 page-break-after: avoid;
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
-            /* إخفاء الأزرار تمامًا */
-            .action-buttons {
-                display: none !important;
-            }
-            /* إجبار الجداول والعناصر على عدم الانكسار */
-            .product-table tr, .product-table td, .product-table th,
-            .summary-box, .terms-box, .fixed-header, .fixed-footer,
-            .grid-2cols, .info-row {
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-            /* رأس الجدول يتكرر بشكل آلي (إن طالت) ولكن نضمن عدم القص */
-            .product-table thead {
-                display: table-header-group;
-            }
             @page {
                 size: A4;
-                margin: 0.4in;      /* هوامش معقولة تمنع اقتصاص الحواف */
+                margin: 0mm;
             }
-            /* منع أي تجاوز خفي */
-            .invoice-single-page, .invoice-master, body {
-                overflow: visible;
+            .no-print {
+                display: none;
             }
         }
 
-        /* تنسيقات عامة متطابقة مع بياناتك */
-        .fixed-header {
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        .fixed-footer {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 2px solid #e2e8f0;
-            text-align: center;
-            font-size: 12px;
-            color: #1e293b;
-        }
-        .logo-area {
+        /* الرأس */
+        .header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             flex-wrap: wrap;
-            gap: 15px;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 20px;
+            margin-bottom: 22px;
         }
-        .company-info {
-            font-size: 12px;
+        .brand h2 {
+            font-size: 28px;
+            color: #1e3a5f;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+        .brand p {
+            color: #2c5282;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        .invoice-meta {
+            background: #f8fafc;
+            padding: 8px 16px;
+            border-radius: 14px;
+            text-align: left;
+            font-size: 13px;
+            border: 1px solid #e2edf2;
+        }
+        .invoice-meta p {
+            line-height: 1.5;
             color: #1e293b;
         }
-        .grid-2cols {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin: 18px 0;
-        }
+
+        /* معلومات إضافية */
         .info-row {
-            background: #f1f5f9;
-            padding: 10px 16px;
-            border-radius: 14px;
+            background: #f9f9fc;
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            margin: 16px 0;
+            border: 1px solid #e2e8f0;
             font-size: 13px;
         }
-        .company-box, .customer-box {
-            background: #f8fafc;
-            padding: 14px;
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-            line-height: 1.7;
-            font-size: 13px;
+        .info-block span {
+            font-weight: 700;
+            color: #0f3b5c;
         }
-        .product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 16px 0;
-            font-size: 12.5px;
+
+        /* ملخص الحساب - دقيق بالأرقام المطلوبة */
+        .summary-details {
+            background: #ffffff;
+            border: 1px solid #dce5ef;
+            border-radius: 24px;
+            padding: 6px 0 10px 0;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
         }
-        .product-table th, .product-table td {
-            border: 1px solid #cbd5e1;
-            padding: 8px 5px;
-            vertical-align: middle;
-            text-align: center;
-        }
-        .product-table th {
-            background: #1e3a8a;
-            color: white;
-            font-weight: 600;
-        }
-        .product-img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 8px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-        .desc-text {
-            font-size: 11px;
-            max-width: 170px;
-            white-space: normal;
-            word-break: break-word;
-            text-align: right;
-        }
-        .summary-box {
-            background: #f0fdf4;
-            border-radius: 16px;
-            padding: 16px 20px;
-            margin: 20px 0;
-            border: 1px solid #bbf7d0;
-        }
-        .summary-row {
+        .summary-item {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px dashed #cbd5e1;
-            font-size: 14px;
+            padding: 12px 22px;
+            border-bottom: 1px solid #ecf3f9;
+            font-size: 15px;
+            align-items: baseline;
         }
-        .summary-row.total {
-            font-size: 18px;
-            font-weight: bold;
-            color: #166534;
+        .summary-item:last-of-type {
             border-bottom: none;
-            margin-top: 6px;
-            padding-top: 10px;
-            border-top: 2px solid #86efac;
         }
-        .terms-box {
+        .summary-item.total-grand {
+            border-top: 2px solid #1e3a5f;
+            margin-top: 8px;
+            padding-top: 16px;
+            font-weight: 800;
+            font-size: 18px;
+            color: #0b3b5f;
             background: #fefce8;
-            padding: 16px 18px;
-            border-radius: 16px;
-            font-size: 11.5px;
-            line-height: 1.65;
-            color: #1e293b;
-            margin-top: 20px;
-            border: 1px solid #fde047;
+            border-radius: 0 0 20px 20px;
         }
-        .badge-status {
+        .discount-value {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+        .tax-value {
+            color: #2d6a4f;
+            font-weight: 600;
+        }
+        .label-note {
+            font-size: 12px;
+            color: #4b5563;
+        }
+        .sub-text {
+            font-size: 12px;
+            color: #2c3e66;
+            margin-top: 6px;
+            text-align: center;
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 40px;
+            margin: 12px 20px 0 20px;
+        }
+
+        /* تعليمات الفاتورة الكاملة (من الصورتين) */
+        .terms-full {
+            background: #fefce8;
+            padding: 18px 20px;
+            border-radius: 20px;
+            margin: 20px 0 18px;
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: #2d3a3f;
+            border-right: 5px solid #ca8a04;
+        }
+        .terms-full p {
+            margin-bottom: 10px;
+        }
+        .terms-full .extra-clause {
+            font-weight: 500;
+            background: #fff3cd;
+            padding: 6px 10px;
+            border-radius: 14px;
+            margin-top: 8px;
+        }
+
+        /* تذييل جهات الاتصال */
+        .footer-contact {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #dce5ef;
+            font-size: 12px;
+            color: #1e293b;
+        }
+        .contact-links {
+            background: #f1f5f9;
             display: inline-block;
-            padding: 3px 10px;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-family: monospace;
+            direction: ltr;
+            font-size: 11.5px;
+            letter-spacing: 0.3px;
+            margin-bottom: 10px;
+        }
+        .thankyou {
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+        .electronic-badge {
+            background: #e6f7ec;
+            display: inline-block;
+            padding: 4px 12px;
             border-radius: 30px;
             font-size: 11px;
-            font-weight: 500;
+            margin-top: 6px;
         }
-        .bg-blue-100 { background: #dbeafe; color: #1e40af; }
-        .bg-yellow-100 { background: #fef3c7; color: #b45309; }
-        .bg-green-100 { background: #d1fae5; color: #065f46; }
-        .bg-purple-100 { background: #e9d5ff; color: #6b21a5; }
-        .bg-orange-100 { background: #fed7aa; color: #9a3412; }
-        .bg-red-100 { background: #fee2e2; color: #b91c1c; }
 
-        /* أزرار الطباعة */
-        .action-buttons {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            z-index: 1000;
+        /* ضبط عدم الخروج عن الصفحة */
+        .invoice-content {
+            overflow: visible;
         }
-        .btn {
-            padding: 10px 20px;
-            border-radius: 40px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            transition: 0.2s;
-        }
-        .btn-print { background: #3b82f6; color: white; }
-        .btn-pdf { background: #ef4444; color: white; }
-        .btn-png { background: #8b5cf6; color: white; }
-        .btn-close { background: #64748b; color: white; }
-        @media (max-width: 750px) {
-            .invoice-single-page { padding: 18px; }
-            .grid-2cols { grid-template-columns: 1fr; gap: 12px; }
-            .product-table th, .product-table td { padding: 4px 2px; font-size: 10px; }
+        @media print {
+            .summary-details, .terms-full, .footer-contact {
+                break-inside: avoid;
+            }
         }
     </style>
 </head>
 <body>
-<div id="loading" class="text-center py-20"><div style="border:3px solid #e2e8f0; border-top-color:#3b82f6; width:40px; height:40px; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 15px;"></div><p>جاري تحميل الفاتورة...</p></div>
-<div id="invoiceContainer" style="display: none;"></div>
-<div class="action-buttons" id="actionButtons" style="display: none;">
-    <button class="btn btn-print" onclick="handlePrintAction()"><i class="fas fa-print"></i> طباعة</button>
-    <button class="btn btn-pdf" onclick="handlePDFAction()"><i class="fas fa-file-pdf"></i> PDF</button>
-    <button class="btn btn-png" onclick="handlePNGAction()"><i class="fas fa-image"></i> صورة</button>
-    <button class="btn btn-close" onclick="window.close()"><i class="fas fa-times"></i> إغلاق</button>
+<div class="invoice-container">
+    <div class="invoice-content">
+        <!-- رأس الفاتورة -->
+        <div class="header">
+            <div class="brand">
+                <h2>خدماتي</h2>
+                <p>khidmatik | حلول ذكية ومتكاملة</p>
+                <div style="margin-top:6px;"><span style="background:#eef2ff; padding:2px 10px; border-radius:30px; font-size:11px;">فاتورة ضريبية - الكترونية</span></div>
+            </div>
+            <div class="invoice-meta">
+                <p><strong>رقم الفاتورة:</strong> INV-2404-1192</p>
+                <p><strong>تاريخ الإصدار:</strong> 04 أبريل 2026</p>
+                <p><strong>نوع الفاتورة:</strong> قيمة مضافة (15%)</p>
+            </div>
+        </div>
+
+        <!-- بيانات العميل / مرجع -->
+        <div class="info-row">
+            <div class="info-block"><span>العميل:</span> شركة التقنية المتقدمة - رقم ضريبي: 3102456789</div>
+            <div class="info-block"><span>السجل التجاري:</span> 1010234567</div>
+            <div class="info-block"><span>طريقة السداد:</span> تحويل بنكي / بطاقة</div>
+        </div>
+
+        <!-- ملخص الحساب الكامل وفق الأرقام من الصور -->
+        <div class="summary-details">
+            <div class="summary-item">
+                <span>المجموع الفرعي (قبل الخصم)</span>
+                <span>2,500.00 ر.س</span>
+            </div>
+            <div class="summary-item">
+                <span>إجمالي الخصم</span>
+                <span class="discount-value">- 750.00 ر.س</span>
+            </div>
+            <div class="summary-item">
+                <span>المبلغ بعد الخصم (وعاء الضريبة)</span>
+                <span>1,750.00 ر.س</span>
+            </div>
+            <div class="summary-item">
+                <span>ضريبة القيمة المضافة (15%)</span>
+                <span class="tax-value">+ 262.50 ر.س</span>
+            </div>
+            <div class="summary-item total-grand">
+                <span>الإجمالي النهائي شامل الضريبة</span>
+                <span style="font-weight:900;">2,012.50 ر.س</span>
+            </div>
+            <div class="sub-text">
+                ※ تم احتساب الضريبة بنسبة 15% على المبلغ بعد الخصم (1,750 × 0.15 = 262.50)
+            </div>
+        </div>
+
+        <!-- تعليمات الفاتورة والشروط كاملة (من الصورة الثانية مع العبارات الإضافية) -->
+        <div class="terms-full">
+            <p><strong>تعليمات الفاتورة والشروط</strong><br>
+            تخضع هذه الفاتورة لكامل الشروط والأحكام، المعرفة وتعد اعتمادها أو سداد أي مبلغ بموجبها إقرارا صريحا ونهائيا بالموافقة على جميع بنودها دون أي تحفظ مع إقرار العميل بمسؤولية عن الاطلاع عليها.</p>
+            <div class="extra-clause">
+                📌 اقرأ الإضافي أمر أن العمل بالاطلاع على جميع الشروط التجارية والمالية وأتحمل المسؤولية الكاملة. الضريبية محسوبة بنسبة 15% على المبلغ بعد الخصم.
+            </div>
+            <p style="margin-top: 10px;">تعتمد هذه الفاتورة كوثيقة رسمية ملزمة، وأي نزاع يحكم وفق الأنظمة التجارية بالمملكة العربية السعودية.</p>
+        </div>
+
+        <!-- جهات الاتصال وتذييل الشكر -->
+        <div class="footer-contact">
+            <div class="contact-links">
+                📧 info@fi-khidmatik.com &nbsp;|&nbsp; 🌐 www.khidmatik.com &nbsp;|&nbsp; 📞 966545312021 &nbsp;|&nbsp; 📞 96654534051317
+            </div>
+            <div class="thankyou">شكراً لتسوقكم معنا!</div>
+            <div class="electronic-badge">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+            <p style="font-size: 10px; margin-top: 12px; color: #5a6e7c;">جميع الحقوق محفوظة © خدماتي 2026</p>
+        </div>
+
+        <!-- عنصر إضافي لضمان عدم القص في الطباعة -->
+        <div style="clear: both; height: 1px;"></div>
+    </div>
 </div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
-    // Firebase config
-    const firebaseConfig = {
-        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-        authDomain: "msjt301-974bb.firebaseapp.com",
-        projectId: "msjt301-974bb",
-        storageBucket: "msjt301-974bb.firebasestorage.app",
-        messagingSenderId: "186209858482",
-        appId: "1:186209858482:web:186ca610780799ef562aab"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    let customersMap = new Map();
-    let productsMap = new Map();
-
-    async function loadCustomersAndProducts() {
-        const customersSnap = await getDocs(collection(db, 'customers'));
-        customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
-        const productsSnap = await getDocs(collection(db, 'products'));
-        productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
-    }
-
-    async function getOrder(orderId) {
-        const orderRef = doc(db, 'orders', orderId);
-        const orderSnap = await getDoc(orderRef);
-        if (!orderSnap.exists()) return null;
-        return { id: orderSnap.id, ...orderSnap.data() };
-    }
-
-    function formatDate(dateStr) {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
-    }
-
-    function formatTime(time24) {
-        if (!time24) return '';
-        let [h, m] = time24.split(':');
-        let hour = parseInt(h);
-        let ampm = hour >= 12 ? 'مساءً' : 'صباحاً';
-        hour = hour % 12 || 12;
-        return `${hour.toString().padStart(2,'0')}:${m} ${ampm}`;
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    function getStatusClass(status) {
-        const map = {
-            'جديد': 'bg-blue-100', 'تحت التنفيذ': 'bg-yellow-100', 'تم التنفيذ': 'bg-green-100',
-            'تحت المراجعة': 'bg-purple-100', 'مسترجع': 'bg-orange-100', 'ملغي': 'bg-red-100'
-        };
-        return map[status] || 'bg-gray-100';
-    }
-
-    // ========== رأس ثابت ومطابق للمتطلبات ==========
-    function getFixedHeader(order) {
-        const logoFallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233b82f6'/%3E%3Ctext x='50' y='70' text-anchor='middle' fill='white' font-size='40'%3Eف%3C/text%3E%3C/svg%3E";
-        return `
-            <div class="fixed-header">
-                <div class="logo-area">
-                    <div>
-                        <img src="images/logo.svg" alt="شعار المنصة" style="height: 65px;" onerror="this.src='${logoFallback}'">
-                    </div>
-                    <div class="text-left">
-                        <h1 class="text-2xl font-bold text-blue-800">فاتورة إلكترونية</h1>
-                        <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
-                        <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} &nbsp;|&nbsp; <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
-                        <p><span class="badge-status ${getStatusClass(order.status)} px-3 py-1 rounded-full text-xs">${order.status || 'جديد'}</span></p>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center mt-2">
-                    <div class="company-info">
-                        <strong>منصة في خدمتك</strong><br>
-                        <span>رقم شهادة العمل الحر: FL-765735204</span><br>
-                        <span>الرقم الضريبي: 312495447600003</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    function getFixedFooter() {
-        return `
-            <div class="fixed-footer">
-                <p>
-                    <i class="fas fa-phone-alt"></i> هاتف: 966534051317 &nbsp;|&nbsp;
-                    <i class="fab fa-whatsapp"></i> واتساب: 966545312021 &nbsp;|&nbsp;
-                    <i class="fas fa-envelope"></i> info@fi-khidmatik.com &nbsp;|&nbsp;
-                    <i class="fas fa-globe"></i> www.khidmatik.com
-                </p>
-                <p class="mt-2 font-bold text-blue-800">شكراً لتسوقكم معنا 🤍</p>
-                <p class="text-xs mt-1">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</p>
-            </div>
-        `;
-    }
-
-    // ========== إنشاء محتوى الفاتورة في صفحة واحدة فقط (بدون صفحة شروط إضافية) ==========
-    // لضمان الصفحة الواحدة وعدم اقتصاص أي شيء، تم دمج التعليمات الرئيسية فقط مع إضافة "الشروط والأحكام" بشكل مختصر ومركز ضمن نفس الصفحة
-    function buildSingleInvoice(order, customer, subtotal, discountValue, tax, total, itemsRows, paymentMethodName, shippingMethodText) {
-        return `
-            <div class="invoice-single-page">
-                ${getFixedHeader(order)}
-                
-                <!-- عمودين المصدر والمصدر إليه -->
-                <div class="grid-2cols">
-                    <div class="company-box">
-                        <h3 class="font-bold text-blue-800"><i class="fas fa-building"></i> مصدرة من:</h3>
-                        <p>منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط<br>رقم المبنى: 3085 الرقم الإضافي: 7718 الرمز البريدي: 55431</p>
-                    </div>
-                    <div class="customer-box">
-                        <h3 class="font-bold text-blue-800"><i class="fas fa-user"></i> مصدرة إلى:</h3>
-                        <p><strong>اسم العميل:</strong> ${escapeHtml(customer.name)}<br>
-                        <strong>الدولة:</strong> المملكة العربية السعودية<br>
-                        <strong>المدينة:</strong> ${escapeHtml(customer.city || '—')}<br>
-                        <strong>العنوان:</strong> ${escapeHtml(customer.street || '—')}<br>
-                        <strong>رقم الجوال:</strong> ${escapeHtml(customer.phone || '—')}<br>
-                        <strong>البريد الإلكتروني:</strong> ${escapeHtml(customer.email || '—')}</p>
-                    </div>
-                </div>
-                
-                <!-- طريقة الدفع ورمز الموافقة -->
-                <div class="info-row">
-                    <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${paymentMethodName}</span>
-                    <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة على الطلب:</strong> ${order.approvalCode || '—'}</span>
-                </div>
-                
-                <!-- طريقة الاستلام -->
-                <div class="info-row">
-                    <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>
-                    ${order.shippingAddress ? `<span><i class="fas fa-map-marker-alt"></i> عنوان الشحن: ${escapeHtml(order.shippingAddress.city || '')} ${escapeHtml(order.shippingAddress.street || '')}</span>` : ''}
-                    ${order.extraEmail ? `<span><i class="fas fa-envelope"></i> بريد إضافي: ${escapeHtml(order.extraEmail)}</span>` : ''}
-                </div>
-                
-                <!-- جدول المنتجات -->
-                <div style="margin: 12px 0 8px 0;"><strong class="text-blue-800 text-base">تفاصيل المنتجات / الخدمات</strong></div>
-                <table class="product-table">
-                    <thead>
-                        <tr><th>#</th><th>اسم المنتج</th><th>صورة المنتج</th><th>الباركود</th><th>وصف الخدمة</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
-                    </thead>
-                    <tbody>
-                        ${itemsRows.length ? itemsRows.join('') : '<tr><td colspan="8" class="text-center">لا توجد منتجات</td></tr>'}
-                    </tbody>
-                </table>
-                
-                <!-- ملخص الفاتورة (بأرقامك: خصم 750 وضريبة 262.50 وإجمالي 2012.50) -->
-                <div class="summary-box">
-                    <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                    <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
-                    <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
-                    <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
-                </div>
-                
-                <!-- تعليمات الفاتورة الأساسية (نص دقيق كما هو مطلوب) -->
-                <div class="terms-box">
-                    <h4 class="font-bold"><i class="fas fa-file-contract"></i> تعليمات الفاتورة والشروط</h4>
-                    <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المعرفة، وتعد اعتمادها أو سداد أي مبلغ بموجبها إقرارا صريحا ونهائيا بالموافقة على جميع بنودها دون أي تحفظ مع إقرار العميل بمسؤوليته عن الاطلاع عليها.</p>
-                    <hr class="my-2 border-gray-300">
-                    <p class="text-xs mt-1"><strong>إقرار إضافي:</strong> أقر أنا العميل بالاطلاع على جميع الشروط التجارية والمالية وأتحمل المسؤولية الكاملة. الضريبة محسوبة بنسبة 15% على المبلغ بعد الخصم.</p>
-                </div>
-                
-                ${getFixedFooter()}
-            </div>
-        `;
-    }
-
-    // ========== دالة العرض الأساسية ==========
-    async function renderInvoice() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('id');
-        const autoAction = urlParams.get('auto');
-        
-        if (!orderId) {
-            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10">رقم الطلب غير موجود</div>';
-            return;
-        }
-        
-        await loadCustomersAndProducts();
-        const order = await getOrder(orderId);
-        if (!order) {
-            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10">الطلب غير موجود</div>';
-            return;
-        }
-        
-        const customer = customersMap.get(order.customerId) || { name: 'عميل مسجل', phone: '', city: '', street: '', email: '' };
-        
-        // حساب المجاميع
-        let subtotal = 0;
-        const itemsRows = [];
-        const items = order.items || [];
-        
-        items.forEach((item, idx) => {
-            const price = item.price || 0;
-            const qty = item.quantity || 0;
-            const total = price * qty;
-            subtotal += total;
-            
-            let productImage = item.image || '';
-            if (!productImage && item.productId) {
-                const prod = productsMap.get(item.productId);
-                if (prod && prod.image) productImage = prod.image;
-            }
-            const imgSrc = productImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
-            const description = item.description || (productsMap.get(item.productId)?.description) || '';
-            
-            itemsRows.push(`
-                <tr>
-                    <td>${idx+1}</td>
-                    <td style="text-align: right;">${escapeHtml(item.name)}</td>
-                    <td><img src="${imgSrc}" class="product-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E'"></td>
-                    <td>${escapeHtml(item.barcode || '—')}</td>
-                    <td class="desc-text">${escapeHtml(description).substring(0, 70)}${description.length > 70 ? '…' : ''}</td>
-                    <td>${qty}</td>
-                    <td>${price.toFixed(2)} ريال</td>
-                    <td>${total.toFixed(2)} ريال</td>
-                </tr>
-            `);
-        });
-        
-        // حساب الخصم والضريبة حسب النموذج
-        let discountValue = order.discount || 0;
-        if (order.discountType === 'percent' && discountValue > 0) discountValue = (subtotal * discountValue) / 100;
-        const afterDiscount = subtotal - discountValue;
-        const tax = afterDiscount * 0.15;
-        const total = afterDiscount + tax;
-        
-        // طرق الدفع
-        const paymentMethodName = order.paymentMethodName || 
-            (order.paymentMethod === 'mada' ? 'مدى' :
-            order.paymentMethod === 'mastercard' ? 'ماستركارد' :
-            order.paymentMethod === 'visa' ? 'فيزا' :
-            order.paymentMethod === 'stcpay' ? 'STCPay' :
-            order.paymentMethod === 'tamara' ? 'تمارا' :
-            order.paymentMethod === 'tabby' ? 'تابي' : 'أخرى');
-        
-        const shippingMethodText = {
-            'pickup': '🏪 استلام من المقر',
-            'delivery': '🚚 شحن منزلي',
-            'noship': '📥 لا يتطلب شحن'
-        }[order.shippingMethod] || order.shippingMethod;
-        
-        // إنشاء الفاتورة في صفحة واحدة فقط - لا يوجد صفحة شروط منفصلة حتى لا يحدث كسر
-        const finalHtml = `<div class="invoice-master">${buildSingleInvoice(order, customer, subtotal, discountValue, tax, total, itemsRows, paymentMethodName, shippingMethodText)}</div>`;
-        
-        const container = document.getElementById('invoiceContainer');
-        container.innerHTML = finalHtml;
-        document.getElementById('loading').style.display = 'none';
-        container.style.display = 'block';
-        document.getElementById('actionButtons').style.display = 'flex';
-        
-        // تنفيذ الإجراء التلقائي إذا وُجد
-        if (autoAction === 'print') setTimeout(() => window.print(), 600);
-        else if (autoAction === 'pdf') setTimeout(() => handlePDFAction(), 600);
-        else if (autoAction === 'png') setTimeout(() => handlePNGAction(), 600);
-    }
-    
-    // دوال عالمية للأزرار
-    window.handlePrintAction = () => {
-        window.print();
-    };
-    
-    window.handlePDFAction = async () => {
-        const element = document.querySelector('.invoice-master');
-        if (element) {
-            const opt = {
-                margin: [0.4, 0.4, 0.4, 0.4],
-                filename: `فاتورة_${Date.now()}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, letterRendering: true, useCORS: true },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-            await html2pdf().set(opt).from(element).save();
-        } else {
-            alert("الفاتورة غير جاهزة بعد");
-        }
-    };
-    
-    window.handlePNGAction = async () => {
-        const element = document.querySelector('.invoice-master');
-        if (element) {
-            const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', logging: false });
-            const link = document.createElement('a');
-            link.download = `فاتورة_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        } else {
-            alert("الفاتورة غير جاهزة");
-        }
-    };
-    
-    renderInvoice();
-</script>
 </body>
 </html>
-```
