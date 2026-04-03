@@ -1,742 +1,235 @@
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>فاتورة إلكترونية - منصة في خدمتك</title>
-    <link rel="icon" href="data:,">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #e2e8f0;
-            font-family: 'Segoe UI', Tahoma, 'Noto Sans Arabic', Arial, sans-serif;
-            direction: rtl;
-            padding: 20px;
-        }
-        /* حاوية الفاتورة */
-        .invoice-wrapper {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border-radius: 16px;
-            overflow: visible;
-        }
-        .invoice-container {
-            padding: 35px 40px;
-            background: white;
-            position: relative;
-        }
-        /* تنسيق الطباعة - رأس وتذييل ثابتان في كل صفحة */
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .invoice-wrapper {
-                box-shadow: none;
-                border-radius: 0;
-                max-width: 100%;
-                margin: 0;
-                overflow: visible;
-            }
-            .invoice-container {
-                padding: 0.6in 0.5in;
-                overflow: visible;
-            }
-            .action-buttons {
-                display: none;
-            }
-            /* فصل صفحة الأحكام */
-            .terms-page {
-                page-break-before: always;
-                margin-top: 0;
-            }
-            /* منع الكسر داخل العناصر الرئيسية */
-            .product-table tr, .product-table td, .product-table th,
-            .info-row, .summary-box, .company-box, .customer-box,
-            .terms-box {
-                page-break-inside: avoid;
-            }
-            /* تكرار رأس الجدول */
-            .product-table thead {
-                display: table-header-group;
-            }
-            /* إعدادات الهامش لاستيعاب الرأس والتذييل الثابتين */
-            @page {
-                size: A4;
-                margin: 1.2in 0.5in 0.9in 0.5in;
-            }
-            /* الرأس الثابت في أعلى كل صفحة */
-            .print-header {
-                position: fixed;
-                top: 0;
-                right: 0;
-                left: 0;
-                background: white;
-                padding: 8px 0.5in;
-                border-bottom: 2px solid #e2e8f0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                z-index: 100;
-                font-size: 12px;
-            }
-            /* التذييل الثابت في أسفل كل صفحة */
-            .print-footer {
-                position: fixed;
-                bottom: 0;
-                right: 0;
-                left: 0;
-                background: white;
-                padding: 6px 0.5in;
-                border-top: 1px solid #e2e8f0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-size: 10px;
-                color: #475569;
-                z-index: 100;
-            }
-            /* ترقيم الصفحات أسفل اليمين */
-            .page-numbers {
-                direction: ltr;
-                text-align: right;
-            }
-            .print-footer .page-numbers {
-                margin-right: auto;
-            }
-            /* إخفاء الرأس والتذييل العادي في الشاشة، وإظهارهما في الطباعة */
-            .print-header, .print-footer {
-                display: none;
-            }
-            body.print-mode .print-header,
-            body.print-mode .print-footer {
-                display: flex;
-            }
-            /* تجنب تداخل المحتوى مع الرأس والتذييل الثابتين */
-            .invoice-container {
-                margin-top: 0;
-                margin-bottom: 0;
-            }
-        }
-        /* أنماط عامة */
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .grid-2cols {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin: 25px 0;
-        }
-        .info-row {
-            background: #f1f5f9;
-            padding: 12px 20px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #1e3a8a;
-            border-right: 4px solid #3b82f6;
-            padding-right: 12px;
-            margin: 30px 0 15px 0;
-        }
-        .company-box, .customer-box {
-            background: #f8fafc;
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            line-height: 1.6;
-        }
-        .product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 13px;
-        }
-        .product-table th, .product-table td {
-            border: 1px solid #cbd5e1;
-            padding: 10px 6px;
-            vertical-align: middle;
-            text-align: center;
-        }
-        .product-table th {
-            background: #1e3a8a;
-            color: white;
-            font-weight: 600;
-        }
-        .product-img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-        }
-        .desc-text {
-            font-size: 12px;
-            max-width: 180px;
-            white-space: normal;
-            word-break: break-word;
-            text-align: right;
-        }
-        .summary-box {
-            background: #f0fdf4;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 25px 0;
-            border: 1px solid #bbf7d0;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #cbd5e1;
-        }
-        .summary-row.total {
-            font-size: 18px;
-            font-weight: bold;
-            color: #166534;
-            border-bottom: none;
-            margin-top: 8px;
-            padding-top: 12px;
-            border-top: 2px solid #86efac;
-        }
-        .terms-box {
-            background: #fefce8;
-            padding: 20px;
-            border-radius: 16px;
-            font-size: 12px;
-            line-height: 1.6;
-            color: #1e293b;
-            margin-top: 30px;
-            border: 1px solid #fde047;
-        }
-        .terms-box h4 {
-            font-size: 16px;
-            margin-bottom: 12px;
-            color: #854d0e;
-        }
-        .terms-box ol {
-            padding-right: 20px;
-            margin: 10px 0;
-        }
-        .terms-box li {
-            margin-bottom: 6px;
-        }
-        .footer-note {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            font-size: 12px;
-            color: #475569;
-        }
-        .badge-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .terms-page {
-            page-break-before: always;
-            margin-top: 0;
-        }
-        .action-buttons {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            z-index: 1000;
-        }
-        .btn {
-            padding: 10px 20px;
-            border-radius: 40px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            transition: 0.2s;
-        }
-        .btn-print { background: #3b82f6; color: white; }
-        .btn-pdf { background: #ef4444; color: white; }
-        .btn-png { background: #8b5cf6; color: white; }
-        .btn-close { background: #64748b; color: white; }
-        @media (max-width: 750px) {
-            .invoice-container { padding: 20px; }
-            .grid-2cols { grid-template-columns: 1fr; gap: 15px; }
-            .product-table th, .product-table td { padding: 6px 3px; font-size: 11px; }
-            .desc-text { max-width: 120px; }
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .spinner {
-            border: 3px solid #e2e8f0;
-            border-top-color: #3b82f6;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-        /* تحسين الصور */
-        .product-img {
-            max-width: 45px;
-            max-height: 45px;
-        }
-        /* تنسيق عمودي متساوٍ */
-        .grid-2cols > div {
-            break-inside: avoid;
-        }
-    </style>
-</head>
-<body>
-<div id="loading" class="text-center py-20">
-    <div class="spinner"></div>
-    <p>جاري تحميل الفاتورة...</p>
-</div>
-<div id="invoiceWrapper" style="display: none;"></div>
-<div class="action-buttons" id="actionButtons" style="display: none;">
-    <button class="btn btn-print" onclick="handlePrintWithHeader()"><i class="fas fa-print"></i> طباعة</button>
-    <button class="btn btn-pdf" onclick="handlePDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-    <button class="btn btn-png" onclick="handlePNG()"><i class="fas fa-image"></i> صورة</button>
-    <button class="btn btn-close" onclick="closeInvoiceWindow()"><i class="fas fa-times"></i> إغلاق</button>
-</div>
+<!-- ================= صفحة الشروط 1 ================= -->
+<div class="page-break"></div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+<h3>الشروط والأحكام والتعليمات</h3>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-        authDomain: "msjt301-974bb.firebaseapp.com",
-        projectId: "msjt301-974bb",
-        storageBucket: "msjt301-974bb.firebasestorage.app",
-        messagingSenderId: "186209858482",
-        appId: "1:186209858482:web:186ca610780799ef562aab"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<p>
+يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.
+</p>
 
-    let customersMap = new Map();
-    let productsMap = new Map();
+<h4>أولاً: صلاحية العرض والتنفيذ</h4>
 
-    async function loadCustomersAndProducts() {
-        try {
-            const [customersSnap, productsSnap] = await Promise.all([
-                getDocs(collection(db, 'customers')),
-                getDocs(collection(db, 'products'))
-            ]);
-            customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
-            productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
-        } catch (err) {
-            console.warn("خطأ في تحميل البيانات:", err);
-        }
-    }
+<p>
+1. مدة صلاحية العرض<br>
+يكون هذا عرض السعر / الفاتورة صالحًا لمدة ثلاثة (3) أيام عمل فقط من تاريخ إصداره، ويُعد لاغيًا تلقائيًا بعد انتهاء هذه المدة دون الحاجة إلى إشعار مسبق، ولا يترتب على مقدم الخدمة أي التزام بعد ذلك.<br><br>
 
-    async function getOrder(orderId) {
-        const orderRef = doc(db, 'orders', orderId);
-        const orderSnap = await getDoc(orderRef);
-        if (!orderSnap.exists()) return null;
-        return { id: orderSnap.id, ...orderSnap.data() };
-    }
+2. بدء التنفيذ<br>
+تبدأ أعمال التنفيذ بعد استلام الدفعة المقدمة المتفق عليها، واستلام جميع المتطلبات والمعلومات اللازمة من العميل بشكل كامل وواضح.<br><br>
 
-    function formatDate(dateStr) {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
-    }
+3. مدة التنفيذ<br>
+تُحتسب مدة التنفيذ من تاريخ اكتمال استلام جميع المتطلبات، ولا يُعتد بأي مدة يترتب عليها تأخير بسبب العميل أو أي طرف خارجي.<br><br>
 
-    function formatTime(time24) {
-        if (!time24) return '';
-        let [h, m] = time24.split(':');
-        let hour = parseInt(h);
-        let ampm = hour >= 12 ? 'مساءً' : 'صباحاً';
-        hour = hour % 12 || 12;
-        return `${hour.toString().padStart(2,'0')}:${m} ${ampm}`;
-    }
+4. التأخير<br>
+لا يتحمل مقدم الخدمة أي مسؤولية عن أي تأخير ناتج عن ظروف خارجة عن إرادته، أو عن أطراف ثالثة، أو عن تأخر العميل في تزويد المتطلبات.<br><br>
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
+5. الموافقات الخارجية<br>
+تخضع جميع الموافقات أو التراخيص الصادرة من الجهات الحكومية أو الجهات الخارجية لسياسات تلك الجهات، ولا يضمن مقدم الخدمة الحصول عليها بأي حال من الأحوال.
+</p>
 
-    function getStatusBadgeClass(status) {
-        const map = {
-            'جديد': 'bg-blue-100 text-blue-800',
-            'تحت التنفيذ': 'bg-yellow-100 text-yellow-800',
-            'تم التنفيذ': 'bg-green-100 text-green-800',
-            'تحت المراجعة': 'bg-purple-100 text-purple-800',
-            'مسترجع': 'bg-orange-100 text-orange-800',
-            'ملغي': 'bg-red-100 text-red-800'
-        };
-        return map[status] || 'bg-gray-100 text-gray-800';
-    }
+<h4>ثانياً: التكاليف والمسؤوليات المالية</h4>
 
-    // دالة لجلب صورة المنتج مع دعم المسار النسبي أو المطلق
-    function getSafeImageUrl(item, productId) {
-        let imgUrl = '';
-        if (item.image && item.image.trim() !== "") {
-            imgUrl = item.image;
-        } else if (productId && productsMap.has(productId)) {
-            const prod = productsMap.get(productId);
-            if (prod.image && prod.image.trim() !== "") imgUrl = prod.image;
-        }
-        if (imgUrl && (imgUrl.startsWith('http') || imgUrl.startsWith('data:') || imgUrl.startsWith('/'))) {
-            return imgUrl;
-        }
-        // صورة افتراضية لمنتج
-        return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2240%22%3E📦%3C/text%3E%3C/svg%3E';
-    }
+<p>
+6. الرسوم الخارجية<br>
+لا تشمل قيمة هذا عرض السعر / الفاتورة أي رسوم أو تكاليف خاصة بالجهات الخارجية مثل السيرفرات أو النطاقات أو التراخيص أو الرسوم الحكومية أو بوابات الدفع أو أي مزود خدمة طرف ثالث، ما لم يتم النص على خلاف ذلك بشكل صريح.<br><br>
 
-    async function renderInvoice() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('id');
-        const autoAction = urlParams.get('auto');
-        
-        if (!orderId) {
-            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10"><i class="fas fa-exclamation-triangle text-4xl mb-3"></i><br>رقم الطلب غير موجود</div>';
-            return;
-        }
-        
-        await loadCustomersAndProducts();
-        const order = await getOrder(orderId);
-        if (!order) {
-            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10"><i class="fas fa-times-circle text-4xl mb-3"></i><br>الطلب غير موجود</div>';
-            return;
-        }
-        
-        const customer = customersMap.get(order.customerId) || { name: 'غير معروف', phone: '', city: '', street: '', email: '' };
-        
-        let subtotal = 0;
-        const itemsRows = [];
-        const items = order.items || [];
-        for (const [idx, item] of items.entries()) {
-            const price = parseFloat(item.price || 0);
-            const qty = parseFloat(item.quantity || 0);
-            const total = price * qty;
-            subtotal += total;
-            const productId = item.productId || null;
-            const imgSrc = getSafeImageUrl(item, productId);
-            const description = item.description || (productId && productsMap.get(productId)?.description) || '';
-            itemsRows.push(`
-                <tr>
-                    <td>${idx+1}</td>
-                    <td style="text-align: right;">${escapeHtml(item.name)}</td>
-                    <td><img src="${imgSrc}" class="product-img" alt="صورة المنتج" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f1f5f9%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3E🖼️%3C/text%3E%3C/svg%3E'"></td>
-                    <td>${escapeHtml(item.barcode || '—')}</td>
-                    <td class="desc-text">${escapeHtml(description).substring(0, 80)}${description.length > 80 ? '…' : ''}</td>
-                    <td>${qty}</td>
-                    <td>${price.toFixed(2)} ريال</td>
-                    <td>${total.toFixed(2)} ريال</td>
-                </tr>
-            `);
-        }
-        
-        let discountValue = parseFloat(order.discount || 0);
-        if (order.discountType === 'percent' && discountValue > 0) discountValue = (subtotal * discountValue) / 100;
-        const afterDiscount = subtotal - discountValue;
-        const tax = afterDiscount * 0.15;
-        const total = afterDiscount + tax;
-        
-        const paymentMethodName = order.paymentMethodName || 
-            (order.paymentMethod === 'mada' ? 'مدى' :
-            order.paymentMethod === 'mastercard' ? 'ماستركارد' :
-            order.paymentMethod === 'visa' ? 'فيزا' :
-            order.paymentMethod === 'stcpay' ? 'STCPay' :
-            order.paymentMethod === 'tamara' ? 'تمارا' :
-            order.paymentMethod === 'tabby' ? 'تابي' : 'أخرى');
-        
-        const shippingMethodText = {
-            'pickup': '🏪 استلام من المقر',
-            'delivery': '🚚 شحن منزلي',
-            'noship': '📥 لا يتطلب شحن'
-        }[order.shippingMethod] || order.shippingMethod || 'غير محدد';
-        
-        // الشعار من المسار المطلوب images/logo.svg
-        const logoUrl = 'images/logo.svg';
-        
-        // بناء الفاتورة الكاملة مع رأس وتذييل ثابتين للطباعة
-        const html = `
-        <div class="invoice-wrapper" id="mainInvoice">
-            <!-- الرأس الثابت الذي يظهر في كل صفحة مطبوعة -->
-            <div class="print-header" style="display: none;">
-                <div class="flex-between" style="width: 100%;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="${logoUrl}" alt="شعار المنصة" style="height: 45px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 80%22%3E%3Crect width=%22200%22 height=%2280%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-weight=%22bold%22 dy=%22.3em%22%3Eفي خدمتك%3C/text%3E%3C/svg%3E'">
-                        <div>
-                            <strong>منصة في خدمتك</strong><br>
-                            <span style="font-size: 9px;">رقم شهادة العمل الحر: FL-765735204</span><br>
-                            <span style="font-size: 9px;">الرقم الضريبي: 312495447600003</span>
-                        </div>
-                    </div>
-                    <div style="text-align: left;">
-                        <div>فاتورة رقم: ${escapeHtml(order.orderNumber || order.id)}</div>
-                        <div>التاريخ: ${formatDate(order.orderDate)}</div>
-                    </div>
-                </div>
-            </div>
-            <!-- التذييل الثابت في كل صفحة مطبوعة مع ترقيم الصفحات أسفل اليمين -->
-            <div class="print-footer" style="display: none;">
-                <div style="display: flex; justify-content: space-between; width: 100%;">
-                    <div>
-                        <span>هاتف: 966534051317</span> | <span>الواتساب: 966545312021</span> | 
-                        <span>البريد: info@fi-khidmatik.com</span> | <span>www.khidmatik.com</span>
-                    </div>
-                    <div class="page-numbers">
-                        الصفحة <span class="pageNumber"></span> / <span class="totalPages"></span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- محتوى الفاتورة الرئيسي (الصفحة الأولى) -->
-            <div class="invoice-container">
-                <!-- رأس الفاتورة المرئي (يظهر فقط في الشاشة وأول صفحة مطبوعة) -->
-                <div class="flex-between" style="margin-bottom: 20px;">
-                    <div>
-                        <img src="${logoUrl}" alt="شعار المنصة" style="height: 70px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 80%22%3E%3Crect width=%22200%22 height=%2280%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-weight=%22bold%22 dy=%22.3em%22%3Eفي خدمتك%3C/text%3E%3C/svg%3E'">
-                        <div class="mt-2"><strong>منصة في خدمتك</strong><br><span class="text-xs">رقم شهادة العمل الحر: FL-765735204</span><br><span class="text-xs">الرقم الضريبي: 312495447600003</span></div>
-                    </div>
-                    <div class="text-left">
-                        <h1 class="text-2xl font-bold text-blue-800">فاتورة إلكترونية</h1>
-                        <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
-                        <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} &nbsp;|&nbsp; <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
-                        <p><span class="badge-status ${getStatusBadgeClass(order.status)} px-3 py-1 rounded-full text-xs">${order.status || 'جديد'}</span></p>
-                    </div>
-                </div>
-                
-                <!-- عمودين: مصدرة من / مصدرة إلى -->
-                <div class="grid-2cols">
-                    <div class="company-box">
-                        <h3 class="font-bold text-blue-800"><i class="fas fa-building"></i> مصدرة من:</h3>
-                        <p>منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط<br>رقم المبنى: 3085 الرقم الإضافي: 7718 الرمز البريدي: 55431</p>
-                    </div>
-                    <div class="customer-box">
-                        <h3 class="font-bold text-blue-800"><i class="fas fa-user"></i> مصدرة إلى:</h3>
-                        <p><strong>العميل:</strong> ${escapeHtml(customer.name)}<br>
-                        <strong>الدولة:</strong> المملكة العربية السعودية<br>
-                        <strong>المدينة:</strong> ${escapeHtml(customer.city || '—')}<br>
-                        <strong>العنوان:</strong> ${escapeHtml(customer.street || '—')}<br>
-                        <strong>الجوال:</strong> ${escapeHtml(customer.phone || '—')}<br>
-                        <strong>البريد الإلكتروني:</strong> ${escapeHtml(customer.email || '—')}</p>
-                    </div>
-                </div>
-                
-                <!-- طريقة الدفع ورمز الموافقة في سطر واحد -->
-                <div class="info-row">
-                    <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${paymentMethodName}</span>
-                    <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة على الطلب:</strong> ${order.approvalCode || '—'}</span>
-                </div>
-                
-                <!-- طريقة الاستلام -->
-                <div class="info-row">
-                    <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>
-                    ${order.shippingAddress ? `<span><i class="fas fa-map-marker-alt"></i> عنوان الشحن: ${escapeHtml(order.shippingAddress.city || '')} ${escapeHtml(order.shippingAddress.street || '')}</span>` : ''}
-                    ${order.extraEmail ? `<span><i class="fas fa-envelope"></i> بريد إضافي: ${escapeHtml(order.extraEmail)}</span>` : ''}
-                </div>
-                
-                <!-- جدول المنتجات -->
-                <div class="section-title">تفاصيل المنتجات / الخدمات</div>
-                <table class="product-table">
-                    <thead>
-                        <tr><th>#</th><th>اسم المنتج</th><th>صورة المنتج</th><th>الباركود</th><th>وصف الخدمة</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
-                    </thead>
-                    <tbody>
-                        ${itemsRows.length ? itemsRows.join('') : '<tr><td colspan="8" class="text-center">لا توجد منتجات</td></tr>'}
-                    </tbody>
-                </table>
-                
-                <!-- ملخص الفاتورة -->
-                <div class="summary-box">
-                    <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                    <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
-                    <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
-                    <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
-                </div>
-                
-                <!-- تعليمات الفاتورة -->
-                <div class="terms-box">
-                    <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
-                    <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها.</p>
-                </div>
-                
-                <!-- معلومات التواصل وشكر (تظهر في نهاية كل صفحة فعلية لكن التذييل الثابت يغطيها) -->
-                <div class="footer-note">
-                    <p>هاتف: 966534051317 &nbsp;|&nbsp; الواتس اب: 966545312021 &nbsp;|&nbsp; البريد الإلكتروني: info@fi-khidmatik.com &nbsp;|&nbsp; الموقع الإلكتروني: www.khidmatik.com</p>
-                    <p class="mt-2 font-bold text-blue-800">شكراً لتسوقكم معنا 🤍</p>
-                    <p class="text-xs">هذه الفاتورة إلكترونية صادرة من منصة في خدمتك - نسخة معتمدة قانونياً</p>
-                </div>
-            </div>
-            
-            <!-- صفحة مستقلة للشروط والأحكام -->
-            <div class="invoice-container terms-page">
-                <div class="terms-box" style="margin-top:0;">
-                    <h4><i class="fas fa-gavel"></i> الشروط والأحكام والتعليمات</h4>
-                    <p>يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.</p>
-                    <ol style="margin-top: 15px;">
-                        <li><strong>مدة صلاحية العرض:</strong> 3 أيام عمل فقط من تاريخ الإصدار.</li>
-                        <li><strong>بدء التنفيذ:</strong> بعد استلام الدفعة المقدمة والمتطلبات.</li>
-                        <li><strong>مدة التنفيذ:</strong> تحتسب من تاريخ اكتمال المتطلبات.</li>
-                        <li><strong>التأخير:</strong> لا مسؤولية على مقدم الخدمة عن تأخير خارج الإرادة.</li>
-                        <li><strong>الموافقات الخارجية:</strong> تخضع لسياسات الجهات المختصة.</li>
-                        <li><strong>الرسوم الخارجية:</strong> لا تشمل رسوم السيرفرات أو النطاقات أو التراخيص.</li>
-                        <li><strong>خدمات الطرف الثالث:</strong> يتحمل العميل مسؤولية أدائها.</li>
-                        <li><strong>المدفوعات الخارجية:</strong> غير قابلة للاسترجاع.</li>
-                        <li><strong>الدفع نيابة عن العميل:</strong> يُعد دينًا مستحقًا.</li>
-                        <li><strong>الضريبة:</strong> جميع الأسعار لا تشمل ضريبة القيمة المضافة (تضاف 15%).</li>
-                        <li><strong>نطاق التسليم:</strong> حسب النطاق المحدد فقط.</li>
-                        <li><strong>المنتج النهائي:</strong> لا يشمل الملفات المفتوحة أو الكود المصدري.</li>
-                        <li><strong>الكود المصدري:</strong> ملك حصري لمقدم الخدمة.</li>
-                        <li><strong>نقل الملكية:</strong> باتفاق مستقل ومقابل مالي.</li>
-                        <li><strong>عدم طلب التسليم:</strong> لا يلتزم بتسليم المخرجات.</li>
-                        <li><strong>حق إعادة الاستخدام:</strong> يحتفظ مقدم الخدمة به.</li>
-                        <li><strong>نظام الدفع:</strong> وفق الآلية المتفق عليها.</li>
-                        <li><strong>تأخر السداد:</strong> يوقف العمل فورًا.</li>
-                        <li><strong>عدم الاسترجاع:</strong> لا يحق المطالبة باسترجاع أي مبلغ بعد البدء.</li>
-                        <li><strong>إيقاف المشروع من مقدم الخدمة:</strong> في حال المخالفة.</li>
-                        <li><strong>احتساب الأعمال:</strong> حسب نسبة الإنجاز.</li>
-                        <li><strong>الرسوم الإدارية:</strong> 20% على الأعمال المنفذة.</li>
-                        <li><strong>الضمان:</strong> حسب الخطة التشغيلية.</li>
-                        <li><strong>نطاق الضمان:</strong> الأخطاء الفنية الناتجة عن مقدم الخدمة.</li>
-                        <li><strong>الاستثناءات:</strong> لا يشمل سوء الاستخدام أو تعديلات العميل.</li>
-                        <li><strong>انتهاء العلاقة:</strong> بعد التسليم النهائي.</li>
-                        <li><strong>المسؤولية بعد التسليم:</strong> لا يتحمل مقدم الخدمة مسؤولية لاحقة.</li>
-                        <li><strong>التشغيل:</strong> العميل يتحمل مسؤولية التشغيل.</li>
-                        <li><strong>البيانات:</strong> العميل مسؤول عن النسخ الاحتياطية.</li>
-                        <li><strong>براءة الذمة:</strong> لا مسؤولية عن خدمات الأطراف الثالثة.</li>
-                        <li><strong>وسائل التواصل:</strong> المعتمدة فقط.</li>
-                        <li><strong>التفويض:</strong> إشعار رسمي مسبق.</li>
-                        <li><strong>النسخ الإلكترونية:</strong> معتمدة قانونيًا.</li>
-                        <li><strong>طبيعة العلاقة:</strong> علاقة تعاقدية مستقلة.</li>
-                        <li><strong>كامل الاتفاق:</strong> يلغي أي اتفاقات سابقة.</li>
-                        <li><strong>الأخطاء غير المقصودة:</strong> لا تؤثر على صحة باقي البنود.</li>
-                        <li><strong>عدم التنازل:</strong> عدم استخدام الحق لا يعتبر تنازلاً.</li>
-                        <li><strong>اللغة المعتمدة:</strong> العربية.</li>
-                        <li><strong>حل النزاعات:</strong> وديًا أولاً.</li>
-                        <li><strong>الجهة المختصة:</strong> يحددها مقدم الخدمة.</li>
-                        <li><strong>القوة القاهرة:</strong> لا مسؤولية عن التأخير بسبب ظروف خارجة.</li>
-                        <li><strong>السرية:</strong> الالتزام بعدم الإفصاح.</li>
-                        <li><strong>التعديلات خارج النطاق:</strong> بعرض وسعر مستقل.</li>
-                        <li><strong>التوقف المؤقت:</strong> عند عدم تجاوب العميل.</li>
-                        <li><strong>الاستلام الحكمي:</strong> بعد 7 أيام من التسليم دون اعتراض.</li>
-                        <li><strong>الاعتراض:</strong> كتابي خلال 7 أيام.</li>
-                        <li><strong>المدفوعات الخارجية:</strong> لا تُعد مستحقة لمقدم الخدمة.</li>
-                        <li><strong>المدفوعات بالنيابة:</strong> تُحتسب ضمن التكاليف.</li>
-                        <li><strong>تفسير البنود:</strong> بما يحقق الغرض منها.</li>
-                        <li><strong>حق رفض الخدمة:</strong> محفوظ لمقدم الخدمة.</li>
-                        <li><strong>التنازل عن المطالبات:</strong> بما يتجاوز قيمة الفاتورة.</li>
-                        <li><strong>حدود المسؤولية:</strong> لا تتجاوز المبلغ المدفوع.</li>
-                        <li><strong>الاستخدام غير المشروع:</strong> يتحمله العميل.</li>
-                        <li><strong>الملكية الفكرية:</strong> محفوظة لمقدم الخدمة.</li>
-                        <li><strong>تحديث الشروط:</strong> تسري على الأعمال الجديدة.</li>
-                        <li><strong>استقلالية البنود:</strong> لا يؤثر بطلان بند على الآخرين.</li>
-                        <li><strong>الشروط الإضافية والملحقات:</strong> توثق في ملحق مستقل.</li>
-                    </ol>
-                    <p class="mt-3"><strong>الإقرار:</strong> أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
-                </div>
-                <div class="footer-note" style="border: none; margin-top: 20px;">
-                    <p>هذه الفاتورة إلكترونية صادرة من منصة في خدمتك - نسخة معتمدة قانونياً</p>
-                </div>
-            </div>
-        </div>
-        `;
-        
-        const wrapper = document.getElementById('invoiceWrapper');
-        wrapper.innerHTML = html;
-        document.getElementById('loading').style.display = 'none';
-        wrapper.style.display = 'block';
-        document.getElementById('actionButtons').style.display = 'flex';
-        
-        if (autoAction === 'print') setTimeout(() => handlePrintWithHeader(), 600);
-        else if (autoAction === 'pdf') setTimeout(() => handlePDF(), 600);
-        else if (autoAction === 'png') setTimeout(() => handlePNG(), 600);
-    }
-    
-    // دالة الطباعة مع إظهار الرأس والتذييل الثابت
-    window.handlePrintWithHeader = () => {
-        const headers = document.querySelectorAll('.print-header, .print-footer');
-        headers.forEach(el => el.style.display = 'flex');
-        window.print();
-        setTimeout(() => {
-            headers.forEach(el => el.style.display = 'none');
-        }, 500);
-    };
-    
-    window.handlePDF = async () => {
-        const element = document.querySelector('.invoice-wrapper');
-        if (element) {
-            try {
-                const headers = document.querySelectorAll('.print-header, .print-footer');
-                headers.forEach(el => el.style.display = 'flex');
-                const opt = {
-                    margin: [0.6, 0.5, 0.6, 0.5],
-                    filename: `فاتورة_${Date.now()}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, letterRendering: true, useCORS: true },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                };
-                await html2pdf().set(opt).from(element).save();
-                headers.forEach(el => el.style.display = 'none');
-            } catch (err) {
-                console.error("PDF error:", err);
-                alert("حدث خطأ أثناء إنشاء PDF");
-            }
-        }
-    };
-    
-    window.handlePNG = async () => {
-        const element = document.querySelector('.invoice-wrapper');
-        if (element) {
-            try {
-                const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
-                const link = document.createElement('a');
-                link.download = `فاتورة_${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            } catch (err) {
-                alert("خطأ في حفظ الصورة");
-            }
-        }
-    };
-    
-    window.closeInvoiceWindow = () => {
-        if (window.close) window.close();
-        else alert("يمكنك إغلاق النافذة يدويًا");
-    };
-    
-    renderInvoice();
-</script>
-</body>
-</html>
+7. خدمات الطرف الثالث<br>
+أي خدمات يتم تقديمها من خلال أطراف ثالثة تخضع لسياسات تلك الجهات، ولا يتحمل مقدم الخدمة أي مسؤولية عن أدائها أو جودتها أو توقفها أو تعديل سياساتها.<br><br>
+
+8. المدفوعات الخارجية<br>
+جميع المبالغ التي يتم دفعها إلى جهات خارجية سواء بشكل مباشر من قبل العميل أو من خلال مقدم الخدمة لا يمكن استرجاعها تحت أي ظرف.<br><br>
+
+9. الدفع نيابة عن العميل<br>
+في حال قيام مقدم الخدمة بسداد أي مبالغ نيابة عن العميل فإن تلك المبالغ تُعد دينًا مستحقًا على العميل ويلتزم بسدادها عند الطلب ولا تدخل ضمن أي تسوية أو استرجاع.<br><br>
+
+10. الضريبة<br>
+جميع الأسعار المذكورة لا تشمل ضريبة القيمة المضافة ويتم إضافتها وفق الأنظمة المعمول بها.
+</p>
+
+<h4>ثالثاً: التسليم والملكية</h4>
+
+<p>
+11. نطاق التسليم<br>
+يتم تنفيذ وتسليم الأعمال وفق النطاق المحدد في هذا عرض السعر / الفاتورة فقط ولا يشمل أي أعمال إضافية غير مذكورة.<br><br>
+
+12. المنتج النهائي<br>
+يقتصر التسليم على المنتج النهائي الجاهز للاستخدام ولا يشمل الملفات المفتوحة أو الكود المصدري أو أي مواد إنتاج داخلية.<br><br>
+
+13. الكود المصدري<br>
+يبقى الكود المصدري ملكًا حصريًا لمقدم الخدمة ولا يتم تسليمه إلا بموجب اتفاق مستقل ومقابل مالي يتم تحديده بشكل منفصل.<br><br>
+
+14. نقل الملكية<br>
+لا يتم نقل ملكية أي من الأعمال أو المواد أو المخرجات إلا بعد اتفاق مكتوب وصريح وسداد كامل المقابل المالي الخاص بنقل الملكية.<br><br>
+
+15. عدم طلب التسليم<br>
+في حال عدم طلب العميل نقل الملكية أو تسليم المخرجات وفق ما سبق لا يلتزم مقدم الخدمة بتسليم أي أعمال أو ملفات.<br><br>
+
+16. حق إعادة الاستخدام<br>
+يحتفظ مقدم الخدمة بحقه الكامل في إعادة استخدام أو تطوير أو الاستفادة من الأعمال المنفذة بأي شكل من الأشكال ما لم يتم الاتفاق على خلاف ذلك كتابةً.
+</p>
+
+<h4>رابعاً: الدفعات والاسترجاع</h4>
+
+<p>
+17. نظام الدفع<br>
+يتم سداد قيمة هذا عرض السعر / الفاتورة وفق الآلية المتفق عليها بين الطرفين سواء دفعة واحدة أو على دفعات.<br><br>
+
+18. تأخر السداد<br>
+يحق لمقدم الخدمة إيقاف العمل بشكل فوري في حال تأخر العميل عن سداد أي دفعة مستحقة.<br><br>
+
+19. عدم الاسترجاع<br>
+لا يحق للعميل المطالبة باسترجاع أي مبلغ مالي بعد بدء التنفيذ أو في حال الانسحاب أو عدم استكمال المشروع لأي سبب كان.<br><br>
+
+20. إيقاف المشروع من مقدم الخدمة<br>
+يحق لمقدم الخدمة إيقاف المشروع في حال مخالفة العميل لأي من الشروط أو عدم التزامه بالمتطلبات أو السداد.<br><br>
+
+21. احتساب الأعمال<br>
+يتم احتساب قيمة الأعمال المنفذة بناءً على نسبة الإنجاز الفعلية حتى تاريخ الإيقاف.<br><br>
+
+22. الرسوم الإدارية<br>
+تُضاف رسوم تشغيلية وإدارية بنسبة 20% على قيمة الأعمال المنفذة.
+</p>
+
+<h4>خامساً: الضمان</h4>
+
+<p>
+23. الضمان<br>
+يتم تحديد الضمان إن وجد وفق الخطة التشغيلية للمشروع وطبيعته.<br><br>
+
+24. نطاق الضمان<br>
+يقتصر الضمان على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط.<br><br>
+
+25. الاستثناءات<br>
+لا يشمل الضمان أي مشاكل ناتجة عن عوامل خارجية أو سوء استخدام أو تعديلات من طرف العميل أو طرف ثالث.
+</p>
+
+<h4>سادساً: انتهاء العلاقة والمسؤولية</h4>
+
+<p>
+26. انتهاء العلاقة<br>
+تنتهي العلاقة التعاقدية بين الطرفين فور تسليم المشروع وفق النطاق المتفق عليه.<br><br>
+
+27. المسؤولية بعد التسليم<br>
+لا يتحمل مقدم الخدمة أي مسؤولية لاحقة عن المشروع بعد التسليم.<br><br>
+
+28. التشغيل<br>
+يتحمل العميل المسؤولية الكاملة عن تشغيل المشروع وإدارته.<br><br>
+
+29. البيانات<br>
+يتحمل العميل مسؤولية حفظ النسخ الاحتياطية للبيانات.<br><br>
+
+30. براءة الذمة<br>
+لا يتحمل مقدم الخدمة أي مسؤولية عن أي خدمات مقدمة من أطراف ثالثة أو توقفها.
+</p>
+
+<!-- ================= صفحة الشروط 2 ================= -->
+<div class="page-break"></div>
+
+<h4>سابعاً: التواصل والتنفيذ</h4>
+
+<p>
+31. وسائل التواصل<br>
+تُعتمد وسائل التواصل الرسمية المسجلة فقط كقنوات معتمدة بين الطرفين.<br><br>
+
+32. التفويض<br>
+يلتزم العميل بإشعار مقدم الخدمة رسميًا في حال تفويض أي شخص للتواصل نيابة عنه.<br><br>
+
+33. النسخ الإلكترونية<br>
+تُعتبر جميع النسخ الإلكترونية من هذا عرض السعر / الفاتورة بما في ذلك المرسلة عبر البريد الإلكتروني أو وسائل التواصل نسخًا معتمدة ولها نفس القوة القانونية.
+</p>
+
+<h4>ثامناً: البنود القانونية</h4>
+
+<p>
+34. طبيعة العلاقة<br>
+تُعد العلاقة بين الطرفين علاقة تعاقدية مستقلة ولا تُنشئ أي شراكة أو وكالة أو تمثيل قانوني.<br><br>
+
+35. كامل الاتفاق<br>
+يمثل هذا المستند كامل الاتفاق بين الطرفين ويلغي أي اتفاقات أو تفاهمات سابقة سواء كانت شفهية أو مكتوبة.<br><br>
+
+36. الأخطاء غير المقصودة<br>
+في حال وجود أي خطأ غير مقصود في الصياغة فإنه لا يؤثر على صحة باقي البنود وتبقى سارية وملزمة.<br><br>
+
+37. عدم التنازل<br>
+عدم استخدام مقدم الخدمة لأي من حقوقه لا يُعد تنازلًا عنها ويحتفظ بحقه في استخدامها في أي وقت لاحق.<br><br>
+
+38. اللغة المعتمدة<br>
+في حال ترجمة هذا المستند إلى أي لغة أخرى تُعتمد النسخة العربية في التفسير.
+</p>
+
+<h4>تاسعاً: النزاعات</h4>
+
+<p>
+39. حل النزاعات<br>
+يتم السعي لحل أي نزاع ينشأ بين الطرفين بشكل ودي خلال مدة مناسبة من تاريخ الإشعار.<br><br>
+
+40. الجهة المختصة<br>
+في حال عدم التوصل إلى حل يحق لمقدم الخدمة تحديد الجهة القضائية أو التحكيمية المختصة.
+</p>
+
+<h4>عاشراً: البنود المتقدمة</h4>
+
+<p>
+41. القوة القاهرة<br>
+لا يتحمل مقدم الخدمة أي مسؤولية عن التأخير أو عدم التنفيذ الناتج عن ظروف خارجة عن الإرادة.<br><br>
+
+42. السرية<br>
+يلتزم الطرفان بالمحافظة على سرية المعلومات وعدم الإفصاح عنها لأي طرف ثالث دون موافقة خطية.<br><br>
+
+43. التعديلات خارج النطاق<br>
+أي طلبات أو تعديلات خارج نطاق هذا المستند يتم تنفيذها بموجب عرض وسعر مستقل.<br><br>
+
+44. التوقف المؤقت<br>
+يحق لمقدم الخدمة إيقاف المشروع مؤقتًا في حال عدم تجاوب العميل أو عدم توفير المتطلبات.<br><br>
+
+45. الاستلام الحكمي<br>
+يُعد المشروع مستلمًا ومقبولًا من قبل العميل بعد مضي سبعة أيام من تاريخ تسليمه في حال عدم تقديم اعتراض رسمي.<br><br>
+
+46. الاعتراض<br>
+يجب على العميل تقديم أي اعتراض بشكل مكتوب وواضح خلال مدة سبعة أيام من تاريخ التسليم.
+</p>
+
+<h4>حادي عشر: البنود المالية والقانونية المتقدمة</h4>
+
+<p>
+47. المدفوعات الخارجية<br>
+لا تُعد أي مبالغ تُدفع لجهات خارجية مستحقة لمقدم الخدمة ولا يحق المطالبة بها أو استرجاعها.<br><br>
+
+48. المدفوعات بالنيابة<br>
+تُحتسب أي مدفوعات يقوم بها مقدم الخدمة نيابة عن العميل ضمن تكاليف المشروع ويلتزم العميل بسدادها.<br><br>
+
+49. تفسير البنود<br>
+يتم تفسير بنود هذا المستند بما يحقق الغرض منها وبما يحفظ حقوق مقدم الخدمة.<br><br>
+
+50. حق رفض الخدمة<br>
+يحتفظ مقدم الخدمة بحقه في رفض تقديم الخدمة أو إيقافها في أي مرحلة مع احتساب الأعمال المنفذة.
+</p>
+
+<h4>ثاني عشر: الحماية القانونية</h4>
+
+<p>
+51. التنازل عن المطالبات<br>
+يتنازل العميل عن أي مطالبات أو تعويضات تتجاوز قيمة هذا عرض السعر / الفاتورة.<br><br>
+
+52. حدود المسؤولية<br>
+لا تتجاوز مسؤولية مقدم الخدمة في جميع الأحوال إجمالي المبلغ المدفوع من قبل العميل.<br><br>
+
+53. الاستخدام غير المشروع<br>
+لا يتحمل مقدم الخدمة أي مسؤولية عن استخدام العميل للمخرجات بشكل مخالف للأنظمة.<br><br>
+
+54. الملكية الفكرية<br>
+تبقى جميع حقوق الملكية الفكرية محفوظة لمقدم الخدمة ما لم يتم الاتفاق على نقلها بشكل مكتوب.<br><br>
+
+55. تحديث الشروط<br>
+يحق لمقدم الخدمة تحديث أو تعديل هذه الشروط مستقبلاً وتسري على الأعمال الجديدة.<br><br>
+
+56. استقلالية البنود<br>
+يتم تفسير كل بند من بنود هذا المستند بشكل مستقل دون التأثير على بقية البنود.<br><br>
+
+57. الشروط الإضافية والملحقات<br>
+في حال وجود أي شروط أو طلبات أو متطلبات إضافية من قبل العميل سواء كانت فنية أو تشغيلية أو مالية أو تنظيمية ولم تكن ضمن نطاق هذا عرض السعر / الفاتورة فإنه يتم توثيقها حصراً في ملحق اتفاق مستقل يتم إعداده واعتماده من قبل الطرفين بشكل خطي ورسمي، ولا تُعد تلك الشروط أو الطلبات الإضافية جزءًا من هذا المستند ولا يترتب عليها أي تعديل أو تأثير على أي من بنوده ما لم يتم النص على ذلك صراحةً وبشكل مكتوب في ذلك الملحق، كما لا يُعتد بأي اتفاقات أو تفاهمات أو مراسلات سواء كانت شفهية أو غير موثقة ما لم يتم تضمينها في ملحق رسمي معتمد.
+</p>
+
+<p>
+<strong>الإقرار</strong><br>
+أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.
+</p>
