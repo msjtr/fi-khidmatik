@@ -10,25 +10,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background: #e2e8f0;
             font-family: 'Segoe UI', Tahoma, 'Noto Sans Arabic', Arial, sans-serif;
             direction: rtl;
             padding: 20px;
         }
+        /* حاوية الفاتورة - عرض مناسب */
         .invoice-wrapper {
             max-width: 1100px;
             margin: 0 auto;
             background: white;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             border-radius: 16px;
-            overflow: hidden;
+            overflow: visible; /* تجنب القص */
         }
         .invoice-container {
             padding: 35px 40px;
             background: white;
+            position: relative;
         }
+        /* تنسيق الطباعة المتقدم - بدون قص */
         @media print {
             body {
                 background: white;
@@ -40,25 +47,71 @@
                 border-radius: 0;
                 max-width: 100%;
                 margin: 0;
+                overflow: visible;
             }
             .invoice-container {
                 padding: 0.7in;
+                overflow: visible;
+                page-break-after: avoid;
+                page-break-inside: avoid;
             }
             .action-buttons {
                 display: none;
             }
+            /* فصل صفحة الأحكام */
             .terms-page {
                 page-break-before: always;
+                margin-top: 0;
             }
-            .product-table tr, .product-table td, .product-table th {
+            /* منع الكسر داخل الصفوف والعناصر */
+            .product-table tr, .product-table td, .product-table th,
+            .info-row, .summary-box, .company-box, .customer-box,
+            .terms-box {
                 page-break-inside: avoid;
             }
+            /* تكرار رأس الجدول في كل صفحة */
             .product-table thead {
                 display: table-header-group;
             }
+            /* رأس ثابت في كل صفحة (شعار ومعلومات الفاتورة الأساسية) */
+            .print-header {
+                position: fixed;
+                top: 0;
+                right: 0;
+                left: 0;
+                background: white;
+                padding: 10px 0.7in;
+                border-bottom: 2px solid #e2e8f0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 100;
+            }
+            /* تذييل ثابت في كل صفحة */
+            .print-footer {
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                left: 0;
+                background: white;
+                padding: 8px 0.7in;
+                border-top: 1px solid #e2e8f0;
+                text-align: center;
+                font-size: 10px;
+                color: #475569;
+                z-index: 100;
+            }
+            /* إزالة الرأس الثابت من الصفحة الأولى لعدم التداخل مع الرأس الأصلي؟ الأفضل جعل الرأس الأصلي يظهر فقط في أول صفحة، لكننا سنستخدم رأس ثابت متكرر */
+            /* لضمان عدم ازدواجية الرأس في الصفحة الأولى، نخفي الرأس الثابت مؤقتًا؟ لا، سيكون الرأس الثابت هو نفسه في كل الصفحات */
+            /* ولكن الرأس الأصلي في HTML سيظهر فقط في أول صفحة، لذا سنخفي الرأس الثابت للصفحة الأولى باستخدام CSS؟ صعب.
+               بدلاً من ذلك، سنقوم بإزالة الرأس الثابت والاعتماد على تكرار العناصر عبر CSS Grid؟ 
+               حل أفضل: استخدام @top-center و @bottom-center لكنه لا يدعم HTML معقد. 
+               لذلك سأعتمد على تكرار رأس وتذييل بسيط عبر خاصية content، وسيتم عرض معلومات الفاتورة الأساسية في الرأس الثابت دون تكرار.
+            */
+            /* إعدادات الصفحة مع ترقيم */
             @page {
                 size: A4;
-                margin: 0.6in;
+                margin: 1.2in 0.6in 0.8in 0.6in; /* أعلى وأسفل لاستيعاب الرأس والتذييل الثابتين */
             }
             @page :after {
                 content: counter(page) " / " counter(pages);
@@ -66,16 +119,24 @@
                 color: #64748b;
                 text-align: center;
                 width: 100%;
-                margin-top: 20px;
+                position: fixed;
+                bottom: 15px;
             }
-            .info-section, .summary-box, .terms-box {
-                page-break-inside: avoid;
+            /* تجنب تداخل المحتوى مع الرأس والتذييل الثابت */
+            .invoice-container {
+                margin-top: 60px;
+                margin-bottom: 40px;
             }
-            img {
-                max-width: 100%;
-                page-break-inside: avoid;
+            /* إخفاء الرأس الثابت في الشاشة العادية */
+            .print-header, .print-footer {
+                display: none;
+            }
+            body.print-mode .print-header,
+            body.print-mode .print-footer {
+                display: flex;
             }
         }
+        /* أنماط عامة */
         .flex-between {
             display: flex;
             justify-content: space-between;
@@ -207,7 +268,7 @@
         }
         .terms-page {
             page-break-before: always;
-            margin-top: 40px;
+            margin-top: 0;
         }
         .action-buttons {
             position: fixed;
@@ -251,6 +312,15 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
+        /* تحسين الصور */
+        .product-img {
+            max-width: 45px;
+            max-height: 45px;
+        }
+        /* تجنب القص */
+        .invoice-container, .invoice-wrapper {
+            overflow: visible;
+        }
     </style>
 </head>
 <body>
@@ -260,7 +330,7 @@
 </div>
 <div id="invoiceWrapper" style="display: none;"></div>
 <div class="action-buttons" id="actionButtons" style="display: none;">
-    <button class="btn btn-print" onclick="handlePrint()"><i class="fas fa-print"></i> طباعة</button>
+    <button class="btn btn-print" onclick="handlePrintWithHeader()"><i class="fas fa-print"></i> طباعة</button>
     <button class="btn btn-pdf" onclick="handlePDF()"><i class="fas fa-file-pdf"></i> PDF</button>
     <button class="btn btn-png" onclick="handlePNG()"><i class="fas fa-image"></i> صورة</button>
     <button class="btn btn-close" onclick="closeInvoiceWindow()"><i class="fas fa-times"></i> إغلاق</button>
@@ -293,7 +363,7 @@
             customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
             productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
         } catch (err) {
-            console.warn("خطأ في تحميل البيانات التكميلية:", err);
+            console.warn("خطأ في تحميل البيانات:", err);
         }
     }
 
@@ -342,13 +412,21 @@
         return map[status] || 'bg-gray-100 text-gray-800';
     }
 
+    // تحسين جلب الصورة: دعم روابط Firebase Storage التامة
     function getSafeImageUrl(item, productId) {
-        if (item.image && item.image.trim() !== "") return item.image;
-        if (productId && productsMap.has(productId)) {
+        let imgUrl = '';
+        if (item.image && item.image.trim() !== "") {
+            imgUrl = item.image;
+        } else if (productId && productsMap.has(productId)) {
             const prod = productsMap.get(productId);
-            if (prod.image && prod.image.trim() !== "") return prod.image;
+            if (prod.image && prod.image.trim() !== "") imgUrl = prod.image;
         }
-        return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
+        // إذا كان الرابط من Firebase Storage قد لا يعمل بسبب CORS أو auth، نستخدم صورة افتراضية عالية الجودة
+        if (imgUrl && (imgUrl.startsWith('http') || imgUrl.startsWith('data:'))) {
+            return imgUrl;
+        }
+        // صورة افتراضية تعرض أيقونة المنتج
+        return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2240%22%3E📦%3C/text%3E%3C/svg%3E';
     }
 
     async function renderInvoice() {
@@ -364,7 +442,7 @@
         await loadCustomersAndProducts();
         const order = await getOrder(orderId);
         if (!order) {
-            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10"><i class="fas fa-times-circle text-4xl mb-3"></i><br>الطلب غير موجود أو تم حذفه</div>';
+            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10"><i class="fas fa-times-circle text-4xl mb-3"></i><br>الطلب غير موجود</div>';
             return;
         }
         
@@ -373,7 +451,7 @@
         let subtotal = 0;
         const itemsRows = [];
         const items = order.items || [];
-        items.forEach((item, idx) => {
+        for (const [idx, item] of items.entries()) {
             const price = parseFloat(item.price || 0);
             const qty = parseFloat(item.quantity || 0);
             const total = price * qty;
@@ -385,7 +463,7 @@
                 <tr>
                     <td>${idx+1}</td>
                     <td style="text-align: right;">${escapeHtml(item.name)}</td>
-                    <td><img src="${imgSrc}" class="product-img" alt="صورة المنتج" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3E%3C/text%3E%3C/svg%3E'"></td>
+                    <td><img src="${imgSrc}" class="product-img" alt="صورة المنتج" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f1f5f9%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3E🖼️%3C/text%3E%3C/svg%3E'"></td>
                     <td>${escapeHtml(item.barcode || '—')}</td>
                     <td class="desc-text">${escapeHtml(description).substring(0, 80)}${description.length > 80 ? '…' : ''}</td>
                     <td>${qty}</td>
@@ -393,7 +471,7 @@
                     <td>${total.toFixed(2)} ريال</td>
                 </tr>
             `);
-        });
+        }
         
         let discountValue = parseFloat(order.discount || 0);
         if (order.discountType === 'percent' && discountValue > 0) discountValue = (subtotal * discountValue) / 100;
@@ -415,14 +493,33 @@
             'noship': '📥 لا يتطلب شحن'
         }[order.shippingMethod] || order.shippingMethod || 'غير محدد';
         
-        const logoPlaceholder = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 80%22%3E%3Crect width=%22200%22 height=%2280%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-weight=%22bold%22 dy=%22.3em%22%3Eفي خدمتك%3C/text%3E%3C/svg%3E';
+        // شعار عالي الجودة (رابط افتراضي لكن قابل للتعديل)
+        const logoUrl = 'https://via.placeholder.com/150x60/3b82f6/white?text=%D9%81%D9%8A%20%D8%AE%D8%AF%D9%85%D8%AA%D9%83';
         
+        // بناء الفاتورة الكاملة مع رأس وتذييل ثابت للطباعة (سيتم إضافتها عبر CSS)
         const html = `
-        <div class="invoice-wrapper">
+        <div class="invoice-wrapper" id="mainInvoice">
+            <!-- رأس متكرر للطباعة سيظهر عبر @media print -->
+            <div class="print-header" style="display: none;">
+                <div>
+                    <img src="${logoUrl}" alt="شعار" style="height: 40px;" onerror="this.style.display='none'">
+                    <span class="font-bold">منصة في خدمتك</span>
+                </div>
+                <div>
+                    <span>فاتورة: ${escapeHtml(order.orderNumber || order.id)}</span>
+                    <span style="margin-right: 15px;">تاريخ: ${formatDate(order.orderDate)}</span>
+                </div>
+            </div>
+            <div class="print-footer" style="display: none;">
+                <span>هاتف: 966555698774 | البريد: info@fi-khidmatik.com | www.khidmatik.com</span>
+                <span style="margin-right: 15px;">الصفحة <span class="pageNumber"></span> / <span class="totalPages"></span></span>
+            </div>
+            
             <div class="invoice-container">
+                <!-- رأس الفاتورة الرئيسي (يظهر في أول صفحة فقط) -->
                 <div class="flex-between">
                     <div>
-                        <img src="${logoPlaceholder}" alt="شعار المنصة" style="height: 70px;" onerror="this.style.display='none'">
+                        <img src="${logoUrl}" alt="شعار المنصة" style="height: 70px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 80%22%3E%3Crect width=%22200%22 height=%2280%22 fill=%22%233b82f6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22 font-weight=%22bold%22 dy=%22.3em%22%3Eفي خدمتك%3C/text%3E%3C/svg%3E'">
                         <div class="mt-2"><strong>منصة في خدمتك</strong><br><span class="text-xs">رقم شهادة العمل الحر: FL-765735204</span><br><span class="text-xs">الرقم الضريبي: 312495447600003</span></div>
                     </div>
                     <div class="text-left">
@@ -477,17 +574,13 @@
                     <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
                 </div>
                 
-                <div class="terms-box">
-                    <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
-                    <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها.</p>
-                </div>
-                
                 <div class="footer-note">
                     <p><i class="fas fa-phone-alt"></i> هاتف: 966555698774 &nbsp;|&nbsp; <i class="fas fa-envelope"></i> info@fi-khidmatik.com &nbsp;|&nbsp; <i class="fas fa-globe"></i> www.khidmatik.com</p>
                     <p class="mt-2 font-bold text-blue-800">شكراً لتسوقكم معنا 🤍</p>
                 </div>
             </div>
             
+            <!-- صفحة مستقلة للشروط والأحكام -->
             <div class="invoice-container terms-page">
                 <div class="terms-box" style="margin-top:0;">
                     <h4><i class="fas fa-gavel"></i> الشروط والأحكام التفصيلية</h4>
@@ -566,17 +659,28 @@
         wrapper.style.display = 'block';
         document.getElementById('actionButtons').style.display = 'flex';
         
-        if (autoAction === 'print') setTimeout(() => window.print(), 600);
+        if (autoAction === 'print') setTimeout(() => handlePrintWithHeader(), 600);
         else if (autoAction === 'pdf') setTimeout(() => handlePDF(), 600);
         else if (autoAction === 'png') setTimeout(() => handlePNG(), 600);
     }
     
-    window.handlePrint = () => window.print();
+    // دالة الطباعة مع إظهار الرأس والتذييل الثابت
+    window.handlePrintWithHeader = () => {
+        const headers = document.querySelectorAll('.print-header, .print-footer');
+        headers.forEach(el => el.style.display = 'flex');
+        window.print();
+        setTimeout(() => {
+            headers.forEach(el => el.style.display = 'none');
+        }, 500);
+    };
     
     window.handlePDF = async () => {
         const element = document.querySelector('.invoice-wrapper');
         if (element) {
             try {
+                // إظهار الرأس والتذييل مؤقتًا للـ PDF
+                const headers = document.querySelectorAll('.print-header, .print-footer');
+                headers.forEach(el => el.style.display = 'flex');
                 const opt = {
                     margin: [0.5, 0.5, 0.5, 0.5],
                     filename: `فاتورة_${Date.now()}.pdf`,
@@ -585,9 +689,10 @@
                     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
                 };
                 await html2pdf().set(opt).from(element).save();
+                headers.forEach(el => el.style.display = 'none');
             } catch (err) {
                 console.error("PDF error:", err);
-                alert("حدث خطأ أثناء إنشاء PDF، يرجى المحاولة مرة أخرى.");
+                alert("حدث خطأ أثناء إنشاء PDF");
             }
         }
     };
@@ -602,31 +707,14 @@
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             } catch (err) {
-                console.error("PNG error:", err);
-                alert("حدث خطأ أثناء حفظ الصورة.");
+                alert("خطأ في حفظ الصورة");
             }
         }
     };
     
     window.closeInvoiceWindow = () => {
-        // محاولة إغلاق النافذة الحالية (تعمل في المتصفحات العادية)
-        if (window.close) {
-            window.close();
-        }
-        // إذا لم يتم الإغلاق (مثل WebView) نحاول إرسال إشارة للتطبيق
-        try {
-            // محاولة استدعاء جافاسكريبت خاص بالتطبيق (إذا كان متاحًا)
-            if (window.AndroidBridge && typeof window.AndroidBridge.closeActivity === 'function') {
-                window.AndroidBridge.closeActivity();
-            } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.closeInvoice) {
-                window.webkit.messageHandlers.closeInvoice.postMessage({});
-            } else {
-                // عرض رسالة للمستخدم
-                alert("لا يمكن إغلاق هذه النافذة تلقائياً، يمكنك إغلاقها يدوياً.");
-            }
-        } catch(e) {
-            console.warn("Close fallback:", e);
-        }
+        if (window.close) window.close();
+        else alert("يمكنك إغلاق النافذة يدويًا");
     };
     
     renderInvoice();
