@@ -409,17 +409,37 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // دوال مساعدة
-window.printOrder = function(orderId) {
-    window.open(`/print.html?id=${orderId}&auto=print`, "_blank");
+// أضف هذه الدالة أولاً
+async function getCollection(name) {
+    const snap = await getDocs(collection(db, name));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ثم تأكد أن الدوال التالية موجودة بعدها
+const loadProducts = () => getCollection('products');
+const addProduct = (data) => addDoc(collection(db, 'products'), data);
+const updateProductStock = (id, newStock) => updateDoc(doc(db, 'products', id), { stock: newStock });
+
+const loadOrders = () => getCollection('orders');
+const addOrder = (data) => addDoc(collection(db, 'orders'), data);
+const updateOrder = (id, data) => updateDoc(doc(db, 'orders', id), data);
+const deleteOrder = (id) => deleteDoc(doc(db, 'orders', id));
+
+const getOrdersWithDetails = async () => {
+    const orders = await getCollection('orders');
+    const customers = await getCollection('customers');
+    const products = await getCollection('products');
+    const customersMap = Object.fromEntries(customers.map(c => [c.id, c]));
+    const productsMap = Object.fromEntries(products.map(p => [p.id, p]));
+    return orders.map(order => ({
+        ...order,
+        customer: customersMap[order.customerId] || { name: 'غير معروف' },
+        items: order.items?.map(item => ({ ...item, productDetails: productsMap[item.productId] || null })) || []
+    }));
 };
 
-window.printOrderPDF = function(orderId) {
-    window.open(`/print.html?id=${orderId}&auto=pdf`, "_blank");
-};
-
-window.printOrderPNG = function(orderId) {
-    window.open(`/print.html?id=${orderId}&auto=png`, "_blank");
-};
+const loadCustomers = () => getCollection('customers');
+const addCustomer = (data) => addDoc(collection(db, 'customers'), data);
 // المنتجات
 const loadProducts = () => getCollection('products');
 const addProduct = (data) => addDoc(collection(db, 'products'), data);
