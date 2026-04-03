@@ -29,7 +29,7 @@
             margin: 0 auto;
         }
 
-        /* كل صفحة فاتورة منفصلة */
+        /* كل صفحة فاتورة منفصلة - منع الانقسام الداخلي */
         .invoice-page {
             background: white;
             border-radius: 16px;
@@ -38,13 +38,39 @@
             page-break-after: always;
             break-after: page;
             position: relative;
+            /* منع انقسام محتوى الصفحة داخلياً */
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .invoice-content {
             padding: 35px 40px;
+            /* منع انقسام العناصر داخل المحتوى */
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
-        /* إعدادات الطباعة */
+        /* منع انقسام العناصر الرئيسية */
+        .invoice-header,
+        .two-columns,
+        .info-card,
+        .info-row,
+        .section-title,
+        .product-table,
+        .summary-box,
+        .terms-box,
+        .footer-static {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* منع انقسام صفوف الجدول */
+        .product-table tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* إعدادات الطباعة - هوامش مضبوطة */
         @media print {
             body {
                 background: white;
@@ -57,29 +83,38 @@
                 margin: 0;
                 page-break-after: always;
                 break-after: page;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             .invoice-content {
-                padding: 0.7in;
+                /* هوامش داخلية مضبوطة (1.2 سم من كل جهة) */
+                padding: 0.9cm 1.2cm !important;
             }
             .action-buttons {
                 display: none;
             }
             @page {
                 size: A4;
-                margin: 0.6in;
+                /* هوامش الصفحة الرسمية: 1.5 سم علوي وسفلي، 1.2 سم يمين ويسار */
+                margin: 1.5cm 1.2cm;
             }
+            /* إضافة ترقيم الصفحات */
             @page :after {
                 content: counter(page) " / " counter(pages);
                 font-size: 10px;
                 color: #94a3b8;
                 text-align: center;
                 width: 100%;
-                margin-top: 20px;
+                margin-top: 15px;
+            }
+            /* إخفاء أي عناصر عائمة قد تسبب انقسام */
+            .no-break {
+                break-inside: avoid;
+                page-break-inside: avoid;
             }
         }
 
         /* ========== القوالب الثابتة ========== */
-        /* الرأس الثابت (يظهر في كل الصفحات) */
         .invoice-header {
             margin-bottom: 25px;
             padding-bottom: 20px;
@@ -315,6 +350,18 @@
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        /* ضمان عدم انقسام الجدول عبر الصفحات */
+        table, tbody, tr, td, th {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        
+        /* منع انقسام العناصر الكبيرة */
+        .no-page-break {
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
     </style>
 </head>
@@ -552,13 +599,17 @@
         `;
     }
 
-    // ========== تقسيم المنتجات إلى صفحات (كل 6 منتجات صفحة) ==========
-    function splitProductsIntoPages(productsArray, itemsPerPage = 6) {
+    // ========== تقسيم المنتجات إلى صفحات (كل 5 منتجات صفحة - أقل قليلاً لضمان عدم الانقسام) ==========
+    function splitProductsIntoPages(productsArray, itemsPerPage = 5) {
         const pages = [];
+        if (!productsArray.length) {
+            pages.push([]);
+            return pages;
+        }
         for (let i = 0; i < productsArray.length; i += itemsPerPage) {
             pages.push(productsArray.slice(i, i + itemsPerPage));
         }
-        return pages.length ? pages : [[]];
+        return pages;
     }
 
     async function renderInvoice() {
@@ -635,8 +686,8 @@
             'noship': '📥 لا يتطلب شحن'
         }[order.shippingMethod] || order.shippingMethod || 'استلام من المقر';
         
-        // تقسيم المنتجات إلى صفحات (كل صفحة 6 منتجات)
-        const productPages = splitProductsIntoPages(allItemsRows, 6);
+        // تقسيم المنتجات إلى صفحات (كل صفحة 5 منتجات لضمان عدم الانقسام مع الهوامش)
+        const productPages = splitProductsIntoPages(allItemsRows, 5);
         const totalPages = productPages.length;
         
         let container = document.getElementById('invoiceContainer');
