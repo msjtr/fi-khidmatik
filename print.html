@@ -8,63 +8,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 40px 20px;
         }
-        
         .invoice-container {
             max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             overflow: hidden;
-            animation: slideIn 0.5s ease-out;
         }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
         .invoice-header {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
-        .invoice-header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        
-        .invoice-header p {
-            font-size: 14px;
-            opacity: 0.9;
-            margin: 5px 0;
-        }
-        
-        .invoice-body {
-            padding: 30px;
-        }
-        
+        .invoice-header h1 { font-size: 32px; margin-bottom: 10px; }
+        .invoice-header p { font-size: 14px; opacity: 0.9; margin: 5px 0; }
+        .invoice-body { padding: 30px; }
         .info-section {
             background: #f8fafc;
             border-radius: 12px;
@@ -75,12 +42,7 @@
             flex-wrap: wrap;
             gap: 20px;
         }
-        
-        .info-box {
-            flex: 1;
-            min-width: 200px;
-        }
-        
+        .info-box { flex: 1; min-width: 200px; }
         .info-box h3 {
             color: #1e3a8a;
             font-size: 16px;
@@ -88,52 +50,35 @@
             border-right: 3px solid #3b82f6;
             padding-right: 10px;
         }
-        
-        .info-box p {
-            font-size: 14px;
-            margin: 5px 0;
-            color: #334155;
-        }
-        
+        .info-box p { font-size: 14px; margin: 5px 0; color: #334155; }
         .items-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 25px;
         }
-        
         .items-table th {
             background: #f1f5f9;
             padding: 12px;
             text-align: center;
-            font-weight: 600;
-            color: #1e293b;
             border-bottom: 2px solid #e2e8f0;
         }
-        
         .items-table td {
             padding: 12px;
             text-align: center;
             border-bottom: 1px solid #e2e8f0;
         }
-        
-        .items-table tr:hover {
-            background: #f8fafc;
-        }
-        
         .totals-section {
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border-radius: 12px;
             padding: 20px;
             margin-top: 20px;
         }
-        
         .totals-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             font-size: 14px;
         }
-        
         .totals-row.total {
             border-top: 2px solid #86efac;
             margin-top: 10px;
@@ -142,7 +87,6 @@
             font-weight: bold;
             color: #166534;
         }
-        
         .payment-info {
             background: #fef3c7;
             border-radius: 12px;
@@ -150,11 +94,9 @@
             margin-top: 20px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
             flex-wrap: wrap;
             gap: 10px;
         }
-        
         .footer {
             background: #f8fafc;
             padding: 20px;
@@ -163,7 +105,6 @@
             font-size: 12px;
             border-top: 1px solid #e2e8f0;
         }
-        
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -172,7 +113,6 @@
             background: white;
             border-top: 1px solid #e2e8f0;
         }
-        
         .btn {
             padding: 12px 24px;
             border: none;
@@ -185,27 +125,10 @@
             align-items: center;
             gap: 8px;
         }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-        }
-        
-        .btn-secondary {
-            background: #64748b;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #475569;
-            transform: translateY(-2px);
-        }
-        
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59,130,246,0.3); }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; transform: translateY(-2px); }
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -213,39 +136,10 @@
             font-size: 12px;
             font-weight: 500;
         }
-        
         .status-new { background: #dbeafe; color: #1e40af; }
         .status-processing { background: #fef3c7; color: #b45309; }
         .status-completed { background: #d1fae5; color: #065f46; }
-        
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            .action-buttons, .no-print {
-                display: none !important;
-            }
-            .invoice-container {
-                box-shadow: none;
-                border-radius: 0;
-            }
-            .invoice-header {
-                background: #1e3a8a;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .totals-section, .payment-info {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-        }
-        
+        .loading { text-align: center; padding: 40px; }
         .spinner {
             border: 3px solid #f3f3f3;
             border-top: 3px solid #3b82f6;
@@ -255,58 +149,14 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-message {
-            text-align: center;
-            padding: 40px;
-            color: #dc2626;
-        }
-        
-        input, select {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 14px;
-        }
-        
-        .search-box {
-            margin-bottom: 20px;
-        }
-        
-        .order-selector {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .order-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .order-item {
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .order-item:hover {
-            background: #f1f5f9;
-            transform: translateX(-5px);
-        }
-        
-        .order-item.selected {
-            background: #dbeafe;
-            border-color: #3b82f6;
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { text-align: center; padding: 40px; color: #dc2626; }
+        @media print {
+            body { background: white; padding: 0; }
+            .action-buttons, .no-print { display: none !important; }
+            .invoice-container { box-shadow: none; border-radius: 0; }
+            .invoice-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .totals-section, .payment-info { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -317,11 +167,10 @@
             <p>منصة في خدمتك - المملكة العربية السعودية - حائل</p>
             <p>الرقم الضريبي: 312495447600003</p>
         </div>
-        
         <div id="content">
             <div class="loading">
                 <div class="spinner"></div>
-                <p>جاري تحميل البيانات...</p>
+                <p>جاري تحميل بيانات الفاتورة...</p>
             </div>
         </div>
     </div>
@@ -342,24 +191,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        let orders = [];
         let customers = [];
         let products = [];
 
         async function loadData() {
             try {
-                const ordersSnap = await getDocs(collection(db, 'orders'));
                 const customersSnap = await getDocs(collection(db, 'customers'));
                 const productsSnap = await getDocs(collection(db, 'products'));
-                
-                orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 customers = customersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
                 return true;
             } catch (error) {
-                console.error('خطأ في تحميل البيانات:', error);
+                console.error('خطأ:', error);
                 return false;
+            }
+        }
+
+        async function loadOrder(orderId) {
+            try {
+                const orderDoc = await getDoc(doc(db, 'orders', orderId));
+                if (!orderDoc.exists()) return null;
+                return { id: orderDoc.id, ...orderDoc.data() };
+            } catch (error) {
+                console.error('خطأ في جلب الطلب:', error);
+                return null;
             }
         }
 
@@ -376,11 +231,6 @@
         function getCustomerCity(customerId) {
             const customer = customers.find(c => c.id === customerId);
             return customer ? customer.city : '';
-        }
-
-        function getProductName(productId) {
-            const product = products.find(p => p.id === productId);
-            return product ? product.name : 'منتج غير معروف';
         }
 
         function formatDate(dateStr) {
@@ -410,12 +260,8 @@
 
         function getStatusIcon(status) {
             const icons = {
-                'جديد': '🆕',
-                'تحت التنفيذ': '⚙️',
-                'تم التنفيذ': '✅',
-                'تحت المراجعة': '🔍',
-                'مسترجع': '↩️',
-                'ملغي': '❌'
+                'جديد': '🆕', 'تحت التنفيذ': '⚙️', 'تم التنفيذ': '✅',
+                'تحت المراجعة': '🔍', 'مسترجع': '↩️', 'ملغي': '❌'
             };
             return icons[status] || '📋';
         }
@@ -429,15 +275,27 @@
             return methods[method] || method;
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
         function renderInvoice(order) {
-            if (!order) return '<div class="error-message"><i class="fas fa-exclamation-circle fa-3x"></i><p>الطلب غير موجود</p></div>';
+            if (!order) {
+                return '<div class="error-message"><i class="fas fa-exclamation-circle fa-3x"></i><p>الطلب غير موجود</p></div>';
+            }
             
             let subtotal = 0;
             const itemsRows = [];
-            
             const items = order.items || [];
+            
             items.forEach((item, index) => {
-                const itemName = item.name || getProductName(item.productId);
+                const itemName = item.name;
                 const itemPrice = item.price || 0;
                 const itemQuantity = item.quantity || 0;
                 const itemTotal = itemPrice * itemQuantity;
@@ -545,139 +403,65 @@
                     <p>هذه الفاتورة إلكترونية ولا تحتاج توقيع</p>
                     <p style="margin-top: 10px;">
                         <i class="fas fa-phone"></i> 0540000000 |
-                        <i class="fas fa-envelope"></i> info@example.com |
-                        <i class="fas fa-globe"></i> www.example.com
+                        <i class="fas fa-envelope"></i> info@example.com
                     </p>
                 </div>
             `;
         }
 
-        function renderOrderSelector() {
-            if (orders.length === 0) {
-                return `
-                    <div class="error-message">
-                        <i class="fas fa-inbox fa-3x"></i>
-                        <p>لا توجد طلبات لعرضها</p>
-                    </div>
-                `;
-            }
+        async function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let orderId = urlParams.get('order');
             
-            // ترتيب الطلبات من الأحدث إلى الأقدم
-            const sortedOrders = [...orders].sort((a, b) => {
-                const dateA = new Date(a.orderDate + ' ' + (a.orderTime || '00:00'));
-                const dateB = new Date(b.orderDate + ' ' + (b.orderTime || '00:00'));
-                return dateB - dateA;
-            });
-            
-            return `
-                <div class="order-selector">
-                    <div class="search-box">
-                        <input type="text" id="searchOrder" placeholder="🔍 بحث برقم الطلب أو اسم العميل..." class="w-full">
-                    </div>
-                    <div class="order-list" id="orderList">
-                        ${sortedOrders.map(order => `
-                            <div class="order-item" data-order-id="${order.id}" onclick="selectOrder('${order.id}')">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <strong>${escapeHtml(order.orderNumber || order.id.slice(0, 8))}</strong>
-                                        <span class="status-badge ${getStatusClass(order.status)}" style="margin-right: 10px;">${order.status}</span>
-                                    </div>
-                                    <div style="color: #166534; font-weight: bold;">${(order.total || 0).toFixed(2)} ريال</div>
-                                </div>
-                                <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
-                                    ${formatDate(order.orderDate)} | ${getCustomerName(order.customerId)} | ${getShippingMethodText(order.shippingMethod)}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <div id="invoiceDisplay"></div>
-            `;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        window.selectOrder = async function(orderId) {
-            // إزالة التحديد السابق
-            document.querySelectorAll('.order-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // تحديد العنصر الحالي
-            const selectedItem = document.querySelector(`.order-item[data-order-id="${orderId}"]`);
-            if (selectedItem) {
-                selectedItem.classList.add('selected');
-            }
-            
-            // عرض الفاتورة
-            const order = orders.find(o => o.id === orderId);
-            const invoiceDisplay = document.getElementById('invoiceDisplay');
-            if (invoiceDisplay && order) {
-                invoiceDisplay.innerHTML = renderInvoice(order);
-                // التمرير إلى الفاتورة
-                invoiceDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        };
-
-        function setupSearch() {
-            const searchInput = document.getElementById('searchOrder');
-            if (!searchInput) return;
-            
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                const orderItems = document.querySelectorAll('.order-item');
-                
-                orderItems.forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    if (text.includes(searchTerm)) {
-                        item.style.display = '';
-                    } else {
-                        item.style.display = 'none';
+            // إذا لم يوجد orderId في الرابط، حاول استقباله عبر postMessage
+            if (!orderId) {
+                window.addEventListener('message', async (event) => {
+                    if (event.data && event.data.type === 'PRINT_ORDER') {
+                        orderId = event.data.orderId;
+                        if (orderId) {
+                            await loadAndDisplay(orderId);
+                        }
                     }
                 });
-            });
-        }
-
-        async function init() {
-            const content = document.getElementById('content');
-            const success = await loadData();
-            
-            if (!success) {
-                content.innerHTML = `
+                document.getElementById('content').innerHTML = `
                     <div class="error-message">
-                        <i class="fas fa-database fa-3x"></i>
-                        <p>حدث خطأ في الاتصال بقاعدة البيانات</p>
-                        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">
-                            <i class="fas fa-sync-alt"></i> إعادة المحاولة
+                        <i class="fas fa-info-circle fa-3x"></i>
+                        <p>يرجى اختيار طلب للطباعة من صفحة إدارة الطلبات</p>
+                        <button onclick="window.close()" class="btn btn-primary" style="margin-top: 20px;">
+                            <i class="fas fa-times"></i> إغلاق
                         </button>
                     </div>
                 `;
                 return;
             }
             
-            content.innerHTML = renderOrderSelector();
-            setupSearch();
+            await loadAndDisplay(orderId);
+        }
+        
+        async function loadAndDisplay(orderId) {
+            const content = document.getElementById('content');
+            await loadData();
+            const order = await loadOrder(orderId);
             
-            // إذا كان هناك طلبات، حدد أول طلب
-            if (orders.length > 0) {
-                const firstOrderId = orders[0].id;
-                const firstItem = document.querySelector(`.order-item[data-order-id="${firstOrderId}"]`);
-                if (firstItem) {
-                    firstItem.classList.add('selected');
-                    const invoiceDisplay = document.getElementById('invoiceDisplay');
-                    if (invoiceDisplay) {
-                        invoiceDisplay.innerHTML = renderInvoice(orders[0]);
-                    }
-                }
+            if (!order) {
+                content.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                        <p>الطلب غير موجود أو تم حذفه</p>
+                        <button onclick="window.close()" class="btn btn-primary" style="margin-top: 20px;">
+                            <i class="fas fa-times"></i> إغلاق
+                        </button>
+                    </div>
+                `;
+                return;
             }
+            
+            content.innerHTML = renderInvoice(order);
+            
+            // طباعة تلقائية بعد التحميل
+            setTimeout(() => {
+                window.print();
+            }, 500);
         }
         
         init();
@@ -687,8 +471,8 @@
         <button onclick="window.print()" class="btn btn-primary">
             <i class="fas fa-print"></i> طباعة الفاتورة
         </button>
-        <button onclick="location.reload()" class="btn btn-secondary">
-            <i class="fas fa-sync-alt"></i> تحديث
+        <button onclick="window.close()" class="btn btn-secondary">
+            <i class="fas fa-times"></i> إغلاق
         </button>
     </div>
 </body>
