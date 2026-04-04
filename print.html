@@ -31,18 +31,20 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding-top: 20mm;
+            /* الهوامش المتناسقة لجميع الصفحات */
+            padding-top: 12mm;      /* تم التقليل من 20mm إلى 12mm */
             padding-left: 15mm;
             padding-right: 15mm;
             position: relative;
         }
         
         .page-inner-content { flex: 1; }
+        /* الهامش السفلي الثابت 25mm */
         .bottom-spacer { height: 25mm; width: 100%; flex-shrink: 0; }
         
         .page-number {
             position: absolute;
-            bottom: 10mm;
+            bottom: 8mm;
             left: 15mm;
             font-size: 10px;
             color: #1e293b;
@@ -55,12 +57,12 @@
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .page { box-shadow: none; margin: 0; page-break-after: always; min-height: 297mm; }
-            .page-content-wrapper { padding-top: 20mm; padding-left: 15mm; padding-right: 15mm; }
+            .page-content-wrapper { padding-top: 12mm; padding-left: 15mm; padding-right: 15mm; }
             .action-buttons { display: none; }
             @page { size: A4; margin: 0; }
         }
         
-        /* تنسيقات ثابتة */
+        /* تنسيقات ثابتة - بدون أي هوامش إضافية */
         .logo-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 12px; border-bottom: 2px solid #1e3a5f; padding-bottom: 8px; }
         .logo-area img { max-height: 65px; width: auto; object-fit: contain; }
         .logo-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #1e3a5f, #3b82f6); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
@@ -148,11 +150,18 @@
     let productsMap = new Map();
     let currentFileName = "";
     
-    // أبعاد A4 بالبكسل (عند 96 DPI تقريباً، 1mm = 3.7795px)
-    const MAX_PAGE_HEIGHT_PX = 297 * 3.779527559; // 1122.52px (ارتفاع الصفحة الكامل)
-    const TOP_MARGIN_PX = 20 * 3.779527559;      // 75.59px
-    const BOTTOM_MARGIN_PX = 25 * 3.779527559;   // 94.49px
-    const MAX_CONTENT_HEIGHT_PX = MAX_PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX; // 952.44px
+    // الهوامش الجديدة (تم تقليل الهامش العلوي إلى 12mm)
+    const TOP_MARGIN_MM = 12;      // تم التخفيض من 20mm إلى 12mm
+    const BOTTOM_MARGIN_MM = 25;
+    const SIDE_MARGIN_MM = 15;
+    
+    // أبعاد A4 بالبكسل (1mm = 3.779527559px)
+    const MM_TO_PX = 3.779527559;
+    const PAGE_HEIGHT_MM = 297;
+    const PAGE_HEIGHT_PX = PAGE_HEIGHT_MM * MM_TO_PX;
+    const TOP_MARGIN_PX = TOP_MARGIN_MM * MM_TO_PX;
+    const BOTTOM_MARGIN_PX = BOTTOM_MARGIN_MM * MM_TO_PX;
+    const MAX_CONTENT_HEIGHT_PX = PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX;
     
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
@@ -222,7 +231,7 @@
         return tr;
     }
     
-    // دالة لقياس الارتفاع الفعلي لعنصر (بعد إضافته للDOM مؤقتاً)
+    // دالة لقياس الارتفاع الفعلي لعنصر
     async function getActualHeight(element) {
         const container = document.createElement('div');
         container.style.position = 'absolute';
@@ -347,7 +356,7 @@
             <div class="thanks-block"><p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p></div>
         `;
         
-        // قياس ارتفاعات المكونات الثابتة (مرة واحدة)
+        // قياس ارتفاعات المكونات الثابتة
         const headerElement = document.createElement('div'); headerElement.innerHTML = headerHTML;
         const footerElement = document.createElement('div'); footerElement.innerHTML = footerHTML;
         const summaryElement = document.createElement('div'); summaryElement.innerHTML = summaryHTML;
@@ -356,13 +365,11 @@
         const footerHeight = await getActualHeight(footerElement);
         const summaryHeight = await getActualHeight(summaryElement);
         
-        // المساحة المتاحة للمحتوى المتغير (الصفوف) في الصفحة العادية
+        // المساحة المتاحة للمحتوى المتغير (الصفوف)
         const availableForRowsNormal = MAX_CONTENT_HEIGHT_PX - (headerHeight + footerHeight);
-        // المساحة المتاحة للصفوف في الصفحة الأخيرة (مع الملخص)
         const availableForRowsLast = MAX_CONTENT_HEIGHT_PX - (headerHeight + footerHeight + summaryHeight);
         
-        // --- توزيع الصفوف ديناميكياً باستخدام القياس الفعلي لكل صف ---
-        // سنقوم بإنشاء كل صف وقياس ارتفاعه الفعلي
+        // قياس كل صف على حدة
         const rowElements = [];
         const rowHeights = [];
         for (const data of productRowsData) {
@@ -372,26 +379,22 @@
             rowHeights.push(height);
         }
         
-        // خوارزمية التوزيع
-        const pagesRows = []; // مصفوفة من مصفوفات indices
+        // توزيع الصفوف على الصفحات
+        const pagesRows = [];
         let currentPageIndices = [];
         let currentHeight = 0;
-        let isProcessingLast = false;
         
         for (let i = 0; i < rowHeights.length; i++) {
             const rowH = rowHeights[i];
             const remainingAfterThis = rowHeights.length - i - 1;
             const willBeLastPage = (remainingAfterThis === 0);
-            
             let availableSpace = willBeLastPage ? availableForRowsLast : availableForRowsNormal;
             
-            if (currentHeight + rowH <= availableSpace + 1) { // +1 للتسامح
+            if (currentHeight + rowH <= availableSpace + 1) {
                 currentPageIndices.push(i);
                 currentHeight += rowH;
             } else {
-                // لا يتسع الصف في الصفحة الحالية
                 if (currentPageIndices.length === 0) {
-                    // الصف أكبر من المساحة المتاحة (نادر) - نضغطه بالقوة
                     currentPageIndices.push(i);
                     pagesRows.push([...currentPageIndices]);
                     currentPageIndices = [];
@@ -407,10 +410,9 @@
             pagesRows.push([...currentPageIndices]);
         }
         
-        // إزالة أي صفحات فارغة (لن تحدث)
         const finalPages = pagesRows.filter(p => p.length > 0);
         
-        // --- بناء الصفحات النهائية ---
+        // بناء الصفحات
         const container = document.getElementById('invoiceContainer');
         container.innerHTML = '';
         
@@ -418,7 +420,6 @@
             const rowIndices = finalPages[p];
             const isLastPage = (p === finalPages.length - 1);
             
-            // إنشاء هيكل الصفحة
             const pageDiv = document.createElement('div');
             pageDiv.className = 'page';
             const wrapper = document.createElement('div');
@@ -426,7 +427,7 @@
             const inner = document.createElement('div');
             inner.className = 'page-inner-content';
             
-            // إضافة الرأس
+            // الرأس
             const headerClone = document.createElement('div');
             headerClone.innerHTML = headerHTML;
             if (finalPages.length > 1) {
@@ -435,7 +436,7 @@
             }
             inner.appendChild(headerClone);
             
-            // إضافة الجدول
+            // الجدول
             const table = document.createElement('table');
             table.className = 'product-table';
             const thead = document.createElement('thead');
@@ -448,14 +449,14 @@
             table.appendChild(tbody);
             inner.appendChild(table);
             
-            // إضافة الملخص فقط للصفحة الأخيرة
+            // الملخص للصفحة الأخيرة فقط
             if (isLastPage) {
                 const summaryClone = document.createElement('div');
                 summaryClone.innerHTML = summaryHTML;
                 inner.appendChild(summaryClone);
             }
             
-            // إضافة التذييل
+            // التذييل
             const footerClone = document.createElement('div');
             footerClone.innerHTML = footerHTML;
             inner.appendChild(footerClone);
@@ -466,7 +467,6 @@
             wrapper.appendChild(spacer);
             pageDiv.appendChild(wrapper);
             
-            // رقم الصفحة
             const pageNum = document.createElement('div');
             pageNum.className = 'page-number';
             pageNum.textContent = `صفحة ${p+1} / ${finalPages.length}`;
