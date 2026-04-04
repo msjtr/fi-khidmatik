@@ -10,22 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #e2e8f0;
-            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-            direction: rtl;
-            padding: 20px;
-        }
-        .invoice-container {
-            max-width: 210mm;
-            margin: 0 auto;
-        }
-        /* الصفحة الرئيسية - ستتم إضافتها ديناميكياً */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #eef2f5; font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; direction: rtl; padding: 20px; }
+        .invoice-container { max-width: 210mm; margin: 0 auto; }
+        
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -38,6 +26,7 @@
             display: flex;
             flex-direction: column;
         }
+        
         .page-content-wrapper {
             flex: 1;
             display: flex;
@@ -47,18 +36,13 @@
             padding-right: 15mm;
             position: relative;
         }
-        .page-inner-content {
-            flex: 1;
-        }
-        /* الهامش السفلي الثابت 25mm */
-        .bottom-spacer {
-            height: 25mm;
-            width: 100%;
-            flex-shrink: 0;
-        }
+        
+        .page-inner-content { flex: 1; }
+        .bottom-spacer { height: 25mm; width: 100%; flex-shrink: 0; }
+        
         .page-number {
             position: absolute;
-            bottom: 8mm;
+            bottom: 10mm;
             left: 15mm;
             font-size: 10px;
             color: #1e293b;
@@ -67,168 +51,39 @@
             direction: ltr;
             text-align: left;
         }
+        
         @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .page {
-                box-shadow: none;
-                margin: 0;
-                page-break-after: always;
-                min-height: 297mm;
-            }
-            .page-content-wrapper {
-                padding-top: 20mm;
-                padding-left: 15mm;
-                padding-right: 15mm;
-            }
-            .action-buttons {
-                display: none;
-            }
-            @page {
-                size: A4;
-                margin: 0;
-            }
+            body { background: white; padding: 0; margin: 0; }
+            .page { box-shadow: none; margin: 0; page-break-after: always; min-height: 297mm; }
+            .page-content-wrapper { padding-top: 20mm; padding-left: 15mm; padding-right: 15mm; }
+            .action-buttons { display: none; }
+            @page { size: A4; margin: 0; }
         }
-        /* تنسيقات المحتوى */
-        .logo-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 12px;
-            border-bottom: 2px solid #1e3a5f;
-            padding-bottom: 8px;
-        }
-        .logo-area img {
-            max-height: 65px;
-            width: auto;
-            object-fit: contain;
-        }
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #1e3a5f, #3b82f6);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .invoice-title h1 {
-            font-size: 22px;
-            font-weight: 800;
-            color: #1e3a5f;
-            margin: 0;
-        }
-        .invoice-title p {
-            font-size: 11px;
-            margin: 3px 0;
-        }
-        .badge-status {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 30px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        .company-badge {
-            background: #f1f5f9;
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 10px;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 8px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .two-columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 12px 0;
-        }
-        .info-card {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 8px 12px;
-            border: 1px solid #e2e8f0;
-        }
-        .info-card h3 {
-            font-size: 13px;
-            margin-bottom: 6px;
-            border-right: 3px solid #3b82f6;
-            padding-right: 8px;
-        }
-        .info-card p {
-            font-size: 11px;
-            line-height: 1.45;
-        }
-        .info-row {
-            background: #f1f5f9;
-            padding: 6px 12px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 8px 0;
-            font-size: 11px;
-        }
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            margin: 14px 0 10px 0;
-            border-right: 4px solid #3b82f6;
-            padding-right: 10px;
-        }
-        .product-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-            margin: 8px 0;
-            table-layout: fixed;
-        }
-        .product-table th {
-            background: #1e3a5f;
-            color: white;
-            padding: 10px 6px;
-            border: 1px solid #2d4a6e;
-            font-weight: 600;
-            text-align: center;
-        }
-        .product-table td {
-            border: 1px solid #cbd5e1;
-            padding: 8px 6px;
-            vertical-align: middle;
-            text-align: center;
-        }
-        .product-table td:first-child {
-            text-align: right;
-            font-weight: 500;
-        }
-        .product-table td:nth-child(4) {
-            text-align: right;
-        }
-        .product-img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 8px;
-            display: block;
-            margin: 0 auto;
-        }
-        .desc-text {
-            font-size: 10px;
-            word-wrap: break-word;
-            word-break: break-word;
-            white-space: normal;
-            line-height: 1.4;
-            text-align: right;
-        }
+        
+        /* تنسيقات ثابتة */
+        .logo-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 12px; border-bottom: 2px solid #1e3a5f; padding-bottom: 8px; }
+        .logo-area img { max-height: 65px; width: auto; object-fit: contain; }
+        .logo-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #1e3a5f, #3b82f6); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .logo-icon i { font-size: 32px; color: white; }
+        .invoice-title h1 { font-size: 22px; font-weight: 800; color: #1e3a5f; margin: 0; }
+        .invoice-title p { font-size: 11px; margin: 3px 0; }
+        .badge-status { display: inline-block; padding: 2px 10px; border-radius: 30px; font-size: 10px; font-weight: 600; }
+        .company-badge { background: #f1f5f9; padding: 6px 12px; border-radius: 10px; font-size: 10px; display: flex; justify-content: space-between; margin-top: 8px; gap: 10px; flex-wrap: wrap; }
+        .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 12px 0; }
+        .info-card { background: #f8fafc; border-radius: 12px; padding: 8px 12px; border: 1px solid #e2e8f0; }
+        .info-card h3 { font-size: 13px; margin-bottom: 6px; border-right: 3px solid #3b82f6; padding-right: 8px; }
+        .info-card p { font-size: 11px; line-height: 1.45; }
+        .info-row { background: #f1f5f9; padding: 6px 12px; border-radius: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: 8px 0; font-size: 11px; }
+        .section-title { font-size: 14px; font-weight: 700; margin: 14px 0 10px 0; border-right: 4px solid #3b82f6; padding-right: 10px; }
+        
+        .product-table { width: 100%; border-collapse: collapse; font-size: 10px; margin: 8px 0; table-layout: fixed; }
+        .product-table th { background: #1e3a5f; color: white; padding: 10px 6px; border: 1px solid #2d4a6e; font-weight: 600; text-align: center; }
+        .product-table td { border: 1px solid #cbd5e1; padding: 8px 6px; vertical-align: middle; text-align: center; }
+        .product-table td:first-child { text-align: right; font-weight: 500; }
+        .product-table td:nth-child(4) { text-align: right; }
+        .product-img { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; display: block; margin: 0 auto; }
+        .desc-text { font-size: 10px; word-wrap: break-word; word-break: break-word; white-space: normal; line-height: 1.4; text-align: right; }
+        
         .product-table th:nth-child(1) { width: 20%; }
         .product-table th:nth-child(2) { width: 12%; }
         .product-table th:nth-child(3) { width: 10%; }
@@ -236,121 +91,29 @@
         .product-table th:nth-child(5) { width: 8%; }
         .product-table th:nth-child(6) { width: 11%; }
         .product-table th:nth-child(7) { width: 11%; }
-        .summary-box {
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-            border-radius: 14px;
-            padding: 12px 18px;
-            margin: 15px 0 12px 0;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px dashed #cbd5e1;
-            font-size: 12px;
-        }
-        .summary-row.total {
-            font-size: 16px;
-            font-weight: 800;
-            color: #166534;
-            border-top: 2px solid #86efac;
-            padding-top: 8px;
-            margin-top: 5px;
-            border-bottom: none;
-        }
-        .terms-box {
-            background: #fefce8;
-            border-radius: 10px;
-            padding: 8px 14px;
-            margin: 12px 0;
-            border-right: 4px solid #eab308;
-            font-size: 10px;
-        }
-        .footer-static {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 2px solid #1e3a5f;
-            text-align: center;
-        }
-        .contact-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            background: #f8fafc;
-            padding: 6px 15px;
-            border-radius: 40px;
-        }
-        .contact-links span {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 9px;
-            color: #334155;
-        }
-        .footer-copyright {
-            font-size: 9px;
-            color: #94a3b8;
-            margin-top: 6px;
-        }
-        .thanks-block {
-            text-align: center;
-            margin: 12px 0 5px 0;
-            padding: 8px;
-            background: #eff6ff;
-            border-radius: 20px;
-        }
-        .action-buttons {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            z-index: 1000;
-        }
-        .btn {
-            padding: 8px 22px;
-            border-radius: 40px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        
+        .summary-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 14px; padding: 12px 18px; margin: 15px 0 12px 0; }
+        .summary-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #cbd5e1; font-size: 12px; }
+        .summary-row.total { font-size: 16px; font-weight: 800; color: #166534; border-top: 2px solid #86efac; padding-top: 8px; margin-top: 5px; border-bottom: none; }
+        .terms-box { background: #fefce8; border-radius: 10px; padding: 8px 14px; margin: 12px 0; border-right: 4px solid #eab308; font-size: 10px; }
+        .footer-static { margin-top: 8px; padding-top: 8px; border-top: 2px solid #1e3a5f; text-align: center; }
+        .contact-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; background: #f8fafc; padding: 6px 15px; border-radius: 40px; }
+        .contact-links span { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; color: #334155; }
+        .footer-copyright { font-size: 9px; color: #94a3b8; margin-top: 6px; }
+        .thanks-block { text-align: center; margin: 12px 0 5px 0; padding: 8px; background: #eff6ff; border-radius: 20px; }
+        
+        .action-buttons { position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; z-index: 1000; }
+        .btn { padding: 8px 22px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-print { background: #3b82f6; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
         .btn-png { background: #8b5cf6; color: white; }
         .btn-close { background: #64748b; color: white; }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .loading-spinner {
-            background: white;
-            padding: 25px 35px;
-            border-radius: 16px;
-            text-align: center;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .fa-spin {
-            animation: spin 1s linear infinite;
-        }
+        
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .loading-spinner { background: white; padding: 25px 35px; border-radius: 16px; text-align: center; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .fa-spin { animation: spin 1s linear infinite; }
     </style>
 </head>
 <body>
@@ -384,10 +147,13 @@
     let customersMap = new Map();
     let productsMap = new Map();
     let currentFileName = "";
-
-    // المساحة القصوى للمحتوى (بالبكسل)
-    const MAX_CONTENT_HEIGHT_PX = 252 * 3.779527559; // 252mm ≈ 952.44px
-
+    
+    // أبعاد A4 بالبكسل (عند 96 DPI تقريباً، 1mm = 3.7795px)
+    const MAX_PAGE_HEIGHT_PX = 297 * 3.779527559; // 1122.52px (ارتفاع الصفحة الكامل)
+    const TOP_MARGIN_PX = 20 * 3.779527559;      // 75.59px
+    const BOTTOM_MARGIN_PX = 25 * 3.779527559;   // 94.49px
+    const MAX_CONTENT_HEIGHT_PX = MAX_PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX; // 952.44px
+    
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
         customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
@@ -408,7 +174,6 @@
         if (isNaN(d.getTime())) return dateStr;
         return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
     }
-
     function formatTime(time24) {
         if (!time24) return '';
         let [h, m] = time24.split(':');
@@ -417,7 +182,6 @@
         hour = hour % 12 || 12;
         return `${hour.toString().padStart(2,'0')}:${m} ${ampm}`;
     }
-
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, function(m) {
@@ -427,7 +191,6 @@
             return m;
         });
     }
-
     function getStatusClass(status) {
         const map = {
             'جديد': 'bg-blue-100 text-blue-800',
@@ -439,25 +202,11 @@
         };
         return map[status] || 'bg-gray-100 text-gray-800';
     }
-
-    function showLoading() {
-        let overlay = document.getElementById('loadingOverlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'loadingOverlay';
-            overlay.className = 'loading-overlay';
-            overlay.innerHTML = `<div class="loading-spinner"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">جاري إنشاء الفاتورة...</p></div>`;
-            document.body.appendChild(overlay);
-        }
-        overlay.style.display = 'flex';
-    }
-
-    function hideLoading() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'none';
-    }
-
-    // دالة لإنشاء صف المنتج (عنصر DOM جاهز للإلحاق)
+    
+    function showLoading() { let overlay = document.getElementById('loadingOverlay'); if (!overlay) { overlay = document.createElement('div'); overlay.id = 'loadingOverlay'; overlay.className = 'loading-overlay'; overlay.innerHTML = `<div class="loading-spinner"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">جاري إنشاء الفاتورة...</p></div>`; document.body.appendChild(overlay); } overlay.style.display = 'flex'; }
+    function hideLoading() { const overlay = document.getElementById('loadingOverlay'); if (overlay) overlay.style.display = 'none'; }
+    
+    // إنشاء صف منتج
     function createProductRowElement(item, productImage, description, price, qty, itemTotal) {
         const tr = document.createElement('tr');
         const imgSrc = productImage && productImage.trim() !== '' ? productImage : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
@@ -472,31 +221,47 @@
         `;
         return tr;
     }
-
+    
+    // دالة لقياس الارتفاع الفعلي لعنصر (بعد إضافته للDOM مؤقتاً)
+    async function getActualHeight(element) {
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.visibility = 'hidden';
+        container.style.top = '-9999px';
+        container.style.width = '210mm';
+        container.style.direction = 'rtl';
+        document.body.appendChild(container);
+        container.appendChild(element);
+        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        const height = element.getBoundingClientRect().height;
+        document.body.removeChild(container);
+        return height;
+    }
+    
     async function renderInvoice() {
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('id');
         const autoAction = urlParams.get('auto');
-
+        
         if (!orderId) {
             document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10">رقم الطلب غير موجود</div>';
             return;
         }
-
+        
         await loadCustomersAndProducts();
         const order = await getOrder(orderId);
         if (!order) {
             document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10">الطلب غير موجود</div>';
             return;
         }
-
+        
         const customer = customersMap.get(order.customerId) || { name: '__________', phone: '__________', city: '__________', street: '__________', email: '__________' };
         const clientName = (customer.name || 'client').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
         const orderNumber = order.orderNumber || order.id;
         const today = new Date();
         const dateStr = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}`;
         currentFileName = `${clientName}_${orderNumber}_${dateStr}`;
-
+        
         let subtotal = 0;
         const items = order.items || [];
         for (const item of items) {
@@ -511,8 +276,8 @@
         const total = afterDiscount + tax;
         const paymentMethodName = order.paymentMethodName || (order.paymentMethod === 'mada' ? 'مدى' : order.paymentMethod === 'mastercard' ? 'ماستركارد' : order.paymentMethod === 'visa' ? 'فيزا' : order.paymentMethod === 'stcpay' ? 'STCPay' : order.paymentMethod === 'tamara' ? 'تمارا' : order.paymentMethod === 'tabby' ? 'تابي' : 'أخرى');
         const shippingMethodText = { 'pickup': '🏪 استلام من المقر', 'delivery': '🚚 شحن منزلي', 'noship': '📥 لا يتطلب شحن' }[order.shippingMethod] || 'استلام من المقر';
-
-        // تجهيز بيانات المنتجات مع الصور والأوصاف
+        
+        // تجهيز بيانات المنتجات
         const productRowsData = [];
         for (const item of items) {
             const price = item.price || 0;
@@ -531,8 +296,8 @@
             if (description && typeof description === 'string') description = escapeHtml(description).replace(/\n/g, '<br>');
             productRowsData.push({ item, productImage, description: description || '', price, qty, itemTotal });
         }
-
-        // قوالب ثابتة (رأس، تذييل، ملخص)
+        
+        // --- قوالب HTML الثابتة ---
         const headerHTML = `
             <div class="logo-header">
                 <div class="logo-area">
@@ -558,7 +323,7 @@
             <div class="info-row"><span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span></div>
             <div class="section-title">تفاصيل المنتجات / الخدمات</div>
         `;
-
+        
         const footerHTML = `
             <div class="footer-static">
                 <div class="contact-links">
@@ -570,7 +335,7 @@
                 <div class="footer-copyright">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
             </div>
         `;
-
+        
         const summaryHTML = `
             <div class="summary-box">
                 <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
@@ -581,118 +346,95 @@
             <div class="terms-box"><h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4><p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها</p></div>
             <div class="thanks-block"><p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p></div>
         `;
-
-        // --- بناء الصفحات باستخدام القياس الفعلي ---
-        // ننشئ صفحة مؤقتة لقياس ارتفاع الرأس والتذييل والملخص
-        const tempDiv = document.createElement('div');
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.visibility = 'hidden';
-        tempDiv.style.top = '-9999px';
-        tempDiv.style.width = '210mm';
-        tempDiv.style.direction = 'rtl';
-        document.body.appendChild(tempDiv);
-
-        const measure = (html) => {
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            tempDiv.appendChild(div);
-            const height = div.getBoundingClientRect().height;
-            tempDiv.innerHTML = '';
-            return height;
-        };
-
-        const headerHeight = measure(headerHTML);
-        const footerHeight = measure(footerHTML);
-        const summaryHeight = measure(summaryHTML);
-        document.body.removeChild(tempDiv);
-
-        // المساحة المتاحة للصفوف في الصفحة العادية (بدون ملخص)
+        
+        // قياس ارتفاعات المكونات الثابتة (مرة واحدة)
+        const headerElement = document.createElement('div'); headerElement.innerHTML = headerHTML;
+        const footerElement = document.createElement('div'); footerElement.innerHTML = footerHTML;
+        const summaryElement = document.createElement('div'); summaryElement.innerHTML = summaryHTML;
+        
+        const headerHeight = await getActualHeight(headerElement);
+        const footerHeight = await getActualHeight(footerElement);
+        const summaryHeight = await getActualHeight(summaryElement);
+        
+        // المساحة المتاحة للمحتوى المتغير (الصفوف) في الصفحة العادية
         const availableForRowsNormal = MAX_CONTENT_HEIGHT_PX - (headerHeight + footerHeight);
         // المساحة المتاحة للصفوف في الصفحة الأخيرة (مع الملخص)
         const availableForRowsLast = MAX_CONTENT_HEIGHT_PX - (headerHeight + footerHeight + summaryHeight);
-
-        // الآن نقوم بتوزيع الصفوف على صفحات باستخدام القياس الفعلي لكل صف
-        // سنقوم بإنشاء كل صف في عنصر وهمي لقياس ارتفاعه الحقيقي
+        
+        // --- توزيع الصفوف ديناميكياً باستخدام القياس الفعلي لكل صف ---
+        // سنقوم بإنشاء كل صف وقياس ارتفاعه الفعلي
+        const rowElements = [];
         const rowHeights = [];
         for (const data of productRowsData) {
-            const tr = createProductRowElement(data.item, data.productImage, data.description, data.price, data.qty, data.itemTotal);
-            const wrapper = document.createElement('div');
-            const table = document.createElement('table');
-            table.className = 'product-table';
-            const tbody = document.createElement('tbody');
-            tbody.appendChild(tr);
-            table.appendChild(tbody);
-            wrapper.appendChild(table);
-            wrapper.style.position = 'absolute';
-            wrapper.style.visibility = 'hidden';
-            wrapper.style.width = '210mm';
-            document.body.appendChild(wrapper);
-            await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
-            const h = wrapper.getBoundingClientRect().height;
-            document.body.removeChild(wrapper);
-            rowHeights.push(h);
+            const row = createProductRowElement(data.item, data.productImage, data.description, data.price, data.qty, data.itemTotal);
+            const height = await getActualHeight(row);
+            rowElements.push(row);
+            rowHeights.push(height);
         }
-
-        // توزيع الصفوف على الصفحات
-        const pagesRows = []; // كل عنصر مصفوفة من indices
-        let currentPageRows = [];
+        
+        // خوارزمية التوزيع
+        const pagesRows = []; // مصفوفة من مصفوفات indices
+        let currentPageIndices = [];
         let currentHeight = 0;
-        let isLastPage = false;
-
+        let isProcessingLast = false;
+        
         for (let i = 0; i < rowHeights.length; i++) {
             const rowH = rowHeights[i];
-            const remainingRows = rowHeights.length - i - 1;
-            const willBeLastPage = (remainingRows === 0);
-
+            const remainingAfterThis = rowHeights.length - i - 1;
+            const willBeLastPage = (remainingAfterThis === 0);
+            
             let availableSpace = willBeLastPage ? availableForRowsLast : availableForRowsNormal;
-            if (currentHeight + rowH <= availableSpace + 0.5) { // تسامح بسيط
-                currentPageRows.push(i);
+            
+            if (currentHeight + rowH <= availableSpace + 1) { // +1 للتسامح
+                currentPageIndices.push(i);
                 currentHeight += rowH;
             } else {
-                // نحتاج لبدء صفحة جديدة
-                if (currentPageRows.length === 0) {
-                    // الصف لا يتناسب حتى لوحده، نضغطه (حالة نادرة)
-                    currentPageRows.push(i);
-                    pagesRows.push([...currentPageRows]);
-                    currentPageRows = [];
+                // لا يتسع الصف في الصفحة الحالية
+                if (currentPageIndices.length === 0) {
+                    // الصف أكبر من المساحة المتاحة (نادر) - نضغطه بالقوة
+                    currentPageIndices.push(i);
+                    pagesRows.push([...currentPageIndices]);
+                    currentPageIndices = [];
                     currentHeight = 0;
                 } else {
-                    pagesRows.push([...currentPageRows]);
-                    currentPageRows = [i];
+                    pagesRows.push([...currentPageIndices]);
+                    currentPageIndices = [i];
                     currentHeight = rowH;
                 }
             }
         }
-        if (currentPageRows.length > 0) {
-            pagesRows.push([...currentPageRows]);
+        if (currentPageIndices.length > 0) {
+            pagesRows.push([...currentPageIndices]);
         }
-
-        // التأكد من عدم وجود صفحات فارغة
-        const finalPagesRows = pagesRows.filter(rows => rows.length > 0);
-
-        // بناء الصفحات النهائية
+        
+        // إزالة أي صفحات فارغة (لن تحدث)
+        const finalPages = pagesRows.filter(p => p.length > 0);
+        
+        // --- بناء الصفحات النهائية ---
         const container = document.getElementById('invoiceContainer');
         container.innerHTML = '';
-
-        for (let p = 0; p < finalPagesRows.length; p++) {
-            const rowIndices = finalPagesRows[p];
-            const isLast = (p === finalPagesRows.length - 1);
+        
+        for (let p = 0; p < finalPages.length; p++) {
+            const rowIndices = finalPages[p];
+            const isLastPage = (p === finalPages.length - 1);
+            
+            // إنشاء هيكل الصفحة
             const pageDiv = document.createElement('div');
             pageDiv.className = 'page';
             const wrapper = document.createElement('div');
             wrapper.className = 'page-content-wrapper';
             const inner = document.createElement('div');
             inner.className = 'page-inner-content';
-
+            
             // إضافة الرأس
             const headerClone = document.createElement('div');
             headerClone.innerHTML = headerHTML;
-            if (finalPagesRows.length > 1) {
+            if (finalPages.length > 1) {
                 const titleSpan = headerClone.querySelector('.section-title');
-                if (titleSpan) titleSpan.innerHTML = `تفاصيل المنتجات / الخدمات (صفحة ${p+1} من ${finalPagesRows.length})`;
+                if (titleSpan) titleSpan.innerHTML = `تفاصيل المنتجات / الخدمات (صفحة ${p+1} من ${finalPages.length})`;
             }
             inner.appendChild(headerClone);
-
+            
             // إضافة الجدول
             const table = document.createElement('table');
             table.className = 'product-table';
@@ -701,51 +443,51 @@
             table.appendChild(thead);
             const tbody = document.createElement('tbody');
             for (const idx of rowIndices) {
-                const data = productRowsData[idx];
-                tbody.appendChild(createProductRowElement(data.item, data.productImage, data.description, data.price, data.qty, data.itemTotal));
+                tbody.appendChild(rowElements[idx].cloneNode(true));
             }
             table.appendChild(tbody);
             inner.appendChild(table);
-
+            
             // إضافة الملخص فقط للصفحة الأخيرة
-            if (isLast) {
+            if (isLastPage) {
                 const summaryClone = document.createElement('div');
                 summaryClone.innerHTML = summaryHTML;
                 inner.appendChild(summaryClone);
             }
-
+            
             // إضافة التذييل
             const footerClone = document.createElement('div');
             footerClone.innerHTML = footerHTML;
             inner.appendChild(footerClone);
-
+            
             wrapper.appendChild(inner);
             const spacer = document.createElement('div');
             spacer.className = 'bottom-spacer';
             wrapper.appendChild(spacer);
             pageDiv.appendChild(wrapper);
-
+            
+            // رقم الصفحة
             const pageNum = document.createElement('div');
             pageNum.className = 'page-number';
-            pageNum.textContent = `صفحة ${p+1} / ${finalPagesRows.length}`;
+            pageNum.textContent = `صفحة ${p+1} / ${finalPages.length}`;
             pageDiv.appendChild(pageNum);
-
+            
             container.appendChild(pageDiv);
         }
-
+        
         document.getElementById('loading').style.display = 'none';
         document.getElementById('invoiceContainer').style.display = 'block';
         document.getElementById('actionButtons').style.display = 'flex';
-
+        
         document.getElementById('printBtn').onclick = () => window.print();
         document.getElementById('pdfBtn').onclick = () => exportPDF();
         document.getElementById('pngBtn').onclick = () => exportPNG();
-
+        
         if (autoAction === 'print') setTimeout(() => window.print(), 500);
         else if (autoAction === 'pdf') setTimeout(() => exportPDF(), 500);
         else if (autoAction === 'png') setTimeout(() => exportPNG(), 500);
     }
-
+    
     async function exportPDF() {
         const element = document.getElementById('invoiceContainer');
         if (!element) return;
@@ -769,7 +511,7 @@
             hideLoading();
         }
     }
-
+    
     async function exportPNG() {
         const element = document.getElementById('invoiceContainer');
         if (!element) return;
@@ -790,7 +532,7 @@
             hideLoading();
         }
     }
-
+    
     renderInvoice();
 </script>
 </body>
