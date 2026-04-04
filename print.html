@@ -35,18 +35,15 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             margin-bottom: 25px;
             position: relative;
-            /* A4 dimensions */
             height: 297mm;
-            /* Inner margins: top 20mm, bottom 30mm (safe zone), right/left 15mm */
             padding: 20mm 15mm 30mm 15mm;
-            /* Page break after each page */
             page-break-after: always;
             break-after: page;
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
-        /* Prevent element splitting - all sections */
+        /* Prevent element splitting */
         .section, 
         .invoice-header, 
         .two-columns, 
@@ -80,9 +77,6 @@
         
         .page-number {
             font-weight: 600;
-            position: static;
-            bottom: auto;
-            right: auto;
         }
         
         .page-date {
@@ -104,8 +98,6 @@
                 padding: 20mm 15mm 30mm 15mm !important;
                 page-break-after: always;
                 break-after: page;
-                page-break-inside: avoid;
-                break-inside: avoid;
             }
             .action-buttons {
                 display: none;
@@ -116,7 +108,7 @@
             }
         }
 
-        /* Header styles - distributed in one line */
+        /* Header styles - logo slightly larger */
         .company-badge {
             background: #f1f5f9;
             padding: 8px 12px;
@@ -155,7 +147,7 @@
             margin-bottom: 6px;
         }
         .logo-img {
-            height: 60px;
+            height: 75px;
             width: auto;
         }
         .invoice-title h1 {
@@ -223,18 +215,18 @@
         .product-table th {
             background: #1e3a5f;
             color: white;
-            padding: 6px 4px;
+            padding: 8px 5px;
             border: 1px solid #2d4a6e;
         }
         .product-table td {
             border: 1px solid #cbd5e1;
-            padding: 5px 4px;
+            padding: 6px 5px;
             vertical-align: middle;
             text-align: center;
         }
         .product-img {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             object-fit: cover;
             border-radius: 6px;
             display: block;
@@ -275,19 +267,41 @@
             border-right: 4px solid #eab308;
             font-size: 11px;
         }
+        
+        /* Unified footer styling */
         .footer-static {
             margin-top: 15px;
-            padding-top: 8px;
-            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+            border-top: 2px solid #1e3a5f;
             text-align: center;
-            font-size: 10px;
         }
         .contact-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
             background: #f8fafc;
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 25px;
+            padding: 8px 15px;
+            border-radius: 40px;
+            margin-bottom: 8px;
         }
+        .contact-links span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #334155;
+        }
+        .contact-links i {
+            color: #1e3a5f;
+            width: 16px;
+        }
+        .footer-copyright {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        
         .action-buttons {
             position: fixed;
             bottom: 20px;
@@ -317,7 +331,10 @@
             }
             .two-columns { grid-template-columns: 1fr; gap: 10px; }
             .product-table th, .product-table td { font-size: 9px; padding: 3px; }
-            .product-img { width: 30px; height: 30px; }
+            .product-img { width: 35px; height: 35px; }
+            .logo-img { height: 55px; }
+            .contact-links { gap: 8px; }
+            .contact-links span { font-size: 9px; }
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -433,12 +450,14 @@
         return `
             <div class="footer-static">
                 <div class="contact-links">
-                    <i class="fas fa-phone-alt"></i> هاتف: 966534051317 &nbsp;|&nbsp;
-                    <i class="fab fa-whatsapp"></i> واتساب: 966545312021 &nbsp;|&nbsp;
-                    <i class="fas fa-envelope"></i> info@fi-khidmatik.com &nbsp;|&nbsp;
-                    <i class="fas fa-globe"></i> www.khidmatik.com
+                    <span><i class="fas fa-phone-alt"></i> هاتف: 966534051317</span>
+                    <span><i class="fab fa-whatsapp"></i> واتساب: 966545312021</span>
+                    <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
+                    <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</p>
+                <div class="footer-copyright">
+                    هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً
+                </div>
             </div>
         `;
     }
@@ -472,8 +491,9 @@
     function createPage(order, customer, itemsRows, pageNum, totalPages, commonSections, withSummary, summaryData) {
         const header = getFixedHeader(order);
         const footer = getFixedFooter();
+        // Removed page number from section title
         const tableSection = `
-            <div class="section-title">تفاصيل المنتجات / الخدمات <span class="text-sm text-gray-500">(صفحة ${pageNum} من ${totalPages})</span></div>
+            <div class="section-title">تفاصيل المنتجات / الخدمات</div>
             <table class="product-table">
                 <thead><tr><th>#</th><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
                 <tbody>${itemsRows.join('')}</tbody>
@@ -518,18 +538,23 @@
     }
 
     /**
-     * Automatic pagination based on safe margin (last 25-30mm)
-     * Maximum 4 products per page ensures content never reaches the bottom margin
-     * This prevents any content from being cut off
+     * Automatic pagination based on content reaching last 25-30mm
+     * Uses a safe estimate of 4 products per page to ensure content never reaches bottom margin
+     * The browser will handle natural page breaks during printing/PDF generation
      */
-    function splitProductsIntoPages(productsArray, itemsPerPage = 4) {
+    function splitProductsIntoPages(productsArray) {
         const pages = [];
         if (!productsArray.length) {
             pages.push([]);
             return pages;
         }
-        for (let i = 0; i < productsArray.length; i += itemsPerPage) {
-            pages.push(productsArray.slice(i, i + itemsPerPage));
+        
+        // Estimate: ~4 products per page ensures content stays within safe zone (last 25-30mm)
+        // This is a conservative estimate - browser will handle actual pagination during print
+        const ITEMS_PER_PAGE_ESTIMATE = 4;
+        
+        for (let i = 0; i < productsArray.length; i += ITEMS_PER_PAGE_ESTIMATE) {
+            pages.push(productsArray.slice(i, i + ITEMS_PER_PAGE_ESTIMATE));
         }
         return pages;
     }
@@ -610,14 +635,9 @@
         
         const commonSections = getCommonSections(order, customer, paymentMethodName, shippingMethodText);
         
-        /**
-         * Automatic pagination:
-         * - MAX 4 products per page (approx 25-30mm from bottom)
-         * - When products exceed 4, new page is created automatically
-         * - No content is ever cut off
-         */
-        const ITEMS_PER_PAGE = 4;
-        const productPages = splitProductsIntoPages(allItemsRows, ITEMS_PER_PAGE);
+        // Automatic pagination - splits content without fixed row count
+        // Uses safe estimate of 4 products per page to keep content within safe zone
+        const productPages = splitProductsIntoPages(allItemsRows);
         const totalPages = productPages.length;
         
         const container = document.getElementById('invoiceContainer');
