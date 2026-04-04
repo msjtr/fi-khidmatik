@@ -25,7 +25,6 @@
             flex-direction: column;
         }
         
-        /* منع انقسام الصفحات في الطباعة */
         .page:not(:last-child) {
             page-break-after: always;
             break-after: page;
@@ -43,7 +42,8 @@
         }
         
         .page-inner-content { flex: 1; }
-        .bottom-spacer { height: 25mm; width: 100%; flex-shrink: 0; }
+        /* تم زيادة الهامش السفلي من 25mm إلى 30mm */
+        .bottom-spacer { height: 30mm; width: 100%; flex-shrink: 0; }
         
         .page-number {
             position: absolute;
@@ -65,6 +65,7 @@
             @page { size: A4; margin: 0; }
         }
         
+        /* باقي الأنماط كما هي دون تغيير */
         .logo-header {
             display: flex;
             justify-content: space-between;
@@ -367,10 +368,10 @@
     let productsMap = new Map();
     let currentFileName = "";
     
-    // الثوابت المطلوبة
+    // الثوابت - تم تعديل الهامش السفلي إلى 30mm
     const MM_TO_PX = 3.78;
     const TOP_MARGIN_PX = 20 * MM_TO_PX;
-    const BOTTOM_MARGIN_PX = 25 * MM_TO_PX;
+    const BOTTOM_MARGIN_PX = 30 * MM_TO_PX;  // زيادة الهامش السفلي
     const PAGE_HEIGHT_PX = 297 * MM_TO_PX;
     const MAX_CONTENT_HEIGHT_PX = PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX;
     const BUFFER_PX = 50;
@@ -460,7 +461,6 @@
         const tr = document.createElement('tr');
         const imgSrc = productImage && productImage.trim() !== '' ? productImage : '';
         
-        // معالجة الوصف: تحويل الأسطر الجديدة إلى <br>
         let processedDescription = description || '';
         if (processedDescription) {
             processedDescription = processedDescription.replace(/\n/g, "<br>");
@@ -482,7 +482,6 @@
         return tr;
     }
     
-    // دالة تقسيم الصفحات كما طلبت
     function splitIntoPages(rows, rowHeights, maxHeight) {
         const pages = [];
         let currentPage = [];
@@ -549,7 +548,6 @@
         const paymentMethodName = order.paymentMethodName || (order.paymentMethod === 'mada' ? 'مدى' : order.paymentMethod === 'mastercard' ? 'ماستركارد' : order.paymentMethod === 'visa' ? 'فيزا' : order.paymentMethod === 'stcpay' ? 'STCPay' : order.paymentMethod === 'tamara' ? 'تمارا' : order.paymentMethod === 'tabby' ? 'تابي' : 'أخرى');
         const shippingMethodText = { 'pickup': '🏪 استلام من المقر', 'delivery': '🚚 شحن منزلي', 'noship': '📥 لا يتطلب شحن' }[order.shippingMethod] || 'استلام من المقر';
         
-        // تجهيز بيانات المنتجات
         const productRowsData = [];
         for (const item of items) {
             const price = item.price || 0;
@@ -569,7 +567,6 @@
             productRowsData.push({ item, productImage, description: description || '', price, qty, itemTotal });
         }
         
-        // قوالب HTML الثابتة
         const logoPath = 'images/logo.svg';
         
         const headerHTML = `
@@ -621,7 +618,6 @@
             <div class="thanks-block"><p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p></div>
         `;
         
-        // قياس المكونات الثابتة
         const headerDiv = document.createElement('div'); headerDiv.innerHTML = headerHTML;
         const footerDiv = document.createElement('div'); footerDiv.innerHTML = footerHTML;
         const summaryDiv = document.createElement('div'); summaryDiv.innerHTML = summaryHTML;
@@ -630,7 +626,6 @@
         const footerHeight = await measureHeight(footerDiv);
         const summaryHeight = await measureHeight(summaryDiv);
         
-        // إنشاء وقياس الصفوف
         const rowElements = [];
         const rowHeights = [];
         for (const data of productRowsData) {
@@ -640,13 +635,9 @@
             rowHeights.push(height);
         }
         
-        // حساب أقصى ارتفاع متاح للصفوف
         const maxRowsHeight = MAX_CONTENT_HEIGHT_PX - headerHeight - footerHeight;
-        
-        // تقسيم الصفوف باستخدام الدالة المطلوبة
         const pageGroups = splitIntoPages(rowElements, rowHeights, maxRowsHeight);
         
-        // بناء الصفحات
         const container = document.getElementById('invoiceContainer');
         container.innerHTML = '';
         
@@ -685,9 +676,7 @@
             table.appendChild(tbody);
             inner.appendChild(table);
             
-            // إضافة الملخص فقط للصفحة الأخيرة مع مراعاة المساحة
             if (isLastPage) {
-                // التحقق من أن الملخص سيتسع في الصفحة الأخيرة
                 const currentRowsHeight = rowIndices.reduce((sum, idx) => sum + rowHeights[idx], 0);
                 const totalLastPageHeight = headerHeight + footerHeight + summaryHeight + currentRowsHeight;
                 
