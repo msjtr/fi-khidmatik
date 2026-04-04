@@ -7,7 +7,6 @@
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
@@ -20,12 +19,15 @@
             background: #eef2f5;
             font-family: 'Cairo', 'Segoe UI', 'Tahoma', 'Noto Sans Arabic', sans-serif;
             direction: rtl;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
 
         .invoice-container {
             max-width: 1200px;
             margin: 0 auto;
+            background: #eef2f5;
+            padding: 20px;
         }
 
         /* Each page independent - A4 size */
@@ -35,22 +37,18 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             margin-bottom: 25px;
             position: relative;
-            height: 297mm;
-            padding: 20mm 15mm 30mm 15mm;
+            padding: 20mm 15mm 25mm 15mm;
+            /* Remove fixed height to prevent empty pages */
+            min-height: 297mm;
             page-break-after: always;
             break-after: page;
-            page-break-inside: avoid;
-            break-inside: avoid;
         }
 
         /* Prevent element splitting */
-        .section, 
         .invoice-header, 
         .two-columns, 
         .info-card, 
         .info-row, 
-        .product-table, 
-        .product-table tbody, 
         .product-table tr, 
         .summary-box, 
         .terms-box, 
@@ -62,7 +60,7 @@
         /* Page footer with numbering */
         .page-footer {
             position: absolute;
-            bottom: 10mm;
+            bottom: 8mm;
             right: 15mm;
             left: 15mm;
             display: flex;
@@ -72,7 +70,6 @@
             color: #94a3b8;
             border-top: 1px solid #e2e8f0;
             padding-top: 5mm;
-            margin-top: 5mm;
         }
         
         .page-number {
@@ -83,9 +80,14 @@
             font-size: 9px;
         }
 
-        /* Print settings */
+        /* Print settings - optimized */
         @media print {
             body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .invoice-container {
                 background: white;
                 padding: 0;
                 margin: 0;
@@ -94,10 +96,11 @@
                 box-shadow: none;
                 border-radius: 0;
                 margin: 0;
-                height: 297mm;
-                padding: 20mm 15mm 30mm 15mm !important;
+                padding: 20mm 15mm 25mm 15mm !important;
+                min-height: 0;
                 page-break-after: always;
                 break-after: page;
+                page-break-inside: avoid;
             }
             .action-buttons {
                 display: none;
@@ -326,20 +329,9 @@
         .btn-png { background: #8b5cf6; color: white; }
         .btn-close { background: #64748b; color: white; }
         
-        /* Hidden test container for measuring */
-        .hidden-measure {
-            position: fixed;
-            visibility: hidden;
-            top: 0;
-            left: 0;
-            width: 210mm;
-            background: white;
-            z-index: -1;
-        }
-        
         @media (max-width: 750px) {
             .page {
-                padding: 15mm 10mm 25mm 10mm;
+                padding: 15mm 10mm 20mm 10mm;
             }
             .two-columns { grid-template-columns: 1fr; gap: 10px; }
             .product-table th, .product-table td { font-size: 9px; padding: 3px; }
@@ -500,9 +492,6 @@
         `;
     }
 
-    /**
-     * Generate HTML for a single page
-     */
     function generatePageHTML(order, customer, itemsRows, pageNum, totalPages, commonSections, withSummary, summaryData) {
         const header = getFixedHeader(order);
         const footer = getFixedFooter();
@@ -552,67 +541,23 @@
     }
 
     /**
-     * Dynamic pagination based on actual content height
-     * Measures when content reaches 25mm from bottom (A4 height = 297mm)
-     * Available space = 297mm - 20mm(top padding) - 30mm(bottom padding) = 247mm for content
-     * When remaining space < 25mm, create new page
+     * Calculate optimal rows per page based on content
+     * Uses a safe estimate of 5 rows per page to ensure content stays within margins
      */
-    async function splitPagesDynamically(allItemsRows, order, customer, commonSections, summaryData) {
+    function splitProductsIntoPages(productsArray) {
         const pages = [];
-        let currentPageItems = [];
-        let currentHeight = 0;
-        
-        // Create a temporary container to measure heights
-        const measureContainer = document.createElement('div');
-        measureContainer.style.position = 'absolute';
-        measureContainer.style.visibility = 'hidden';
-        measureContainer.style.top = '0';
-        measureContainer.style.left = '0';
-        measureContainer.style.width = '210mm';
-        measureContainer.style.background = 'white';
-        measureContainer.style.padding = '20mm 15mm 30mm 15mm';
-        document.body.appendChild(measureContainer);
-        
-        // Measure fixed elements height (header, common sections, footer)
-        const fixedElementsHTML = `
-            ${getFixedHeader(order)}
-            ${commonSections}
-            ${getFixedFooter()}
-            <div class="page-footer" style="position: relative; bottom: auto;">dummy</div>
-        `;
-        measureContainer.innerHTML = fixedElementsHTML;
-        await new Promise(r => setTimeout(r, 50));
-        const fixedHeight = measureContainer.scrollHeight;
-        
-        // Available height for products: 247mm (A4 content area) - fixedHeight - 25mm safety margin
-        const A4_CONTENT_HEIGHT_MM = 247; // 297mm - 20mm top - 30mm bottom
-        const SAFETY_MARGIN_MM = 25;
-        const maxProductsHeight = A4_CONTENT_HEIGHT_MM - fixedHeight - SAFETY_MARGIN_MM;
-        
-        // Create a test table to measure row height
-        const testTable = document.createElement('table');
-        testTable.className = 'product-table';
-        testTable.style.width = '100%';
-        testTable.innerHTML = `
-            <thead><tr><th>#</th><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
-            <tbody>${allItemsRows[0] || ''}</tbody>
-        `;
-        measureContainer.innerHTML = '';
-        measureContainer.appendChild(testTable);
-        await new Promise(r => setTimeout(r, 50));
-        const rowHeight = testTable.scrollHeight;
-        
-        // Calculate max rows per page
-        const maxRowsPerPage = Math.max(1, Math.floor(maxProductsHeight / rowHeight));
-        
-        // Split items into pages based on calculated row limit
-        for (let i = 0; i < allItemsRows.length; i += maxRowsPerPage) {
-            pages.push(allItemsRows.slice(i, i + maxRowsPerPage));
+        if (!productsArray.length) {
+            pages.push([]);
+            return pages;
         }
         
-        // Clean up
-        document.body.removeChild(measureContainer);
+        // Safe estimate: 5 rows per page prevents reaching bottom margin
+        // This ensures no content is cut off and no empty pages
+        const SAFE_ROWS_PER_PAGE = 5;
         
+        for (let i = 0; i < productsArray.length; i += SAFE_ROWS_PER_PAGE) {
+            pages.push(productsArray.slice(i, i + SAFE_ROWS_PER_PAGE));
+        }
         return pages;
     }
 
@@ -692,8 +637,8 @@
         
         const commonSections = getCommonSections(order, customer, paymentMethodName, shippingMethodText);
         
-        // Dynamic pagination based on actual content height (25mm safety margin from bottom)
-        const productPages = await splitPagesDynamically(allItemsRows, order, customer, commonSections, { subtotal, discountValue, tax, total });
+        // Split into pages using safe row count (5 rows per page max)
+        const productPages = splitProductsIntoPages(allItemsRows);
         const totalPages = productPages.length;
         
         const container = document.getElementById('invoiceContainer');
@@ -721,21 +666,11 @@
     
     window.handlePrint = () => window.print();
     
-    window.handlePDF = async () => {
-        const element = document.getElementById('invoiceContainer');
-        if (element) {
-            const btns = document.getElementById('actionButtons');
-            if (btns) btns.style.display = 'none';
-            const opt = {
-                margin: [0, 0, 0, 0],
-                filename: `فاتورة_${Date.now()}.pdf`,
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 4, letterRendering: true, useCORS: true, dpi: 300 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            await html2pdf().set(opt).from(element).save();
-            if (btns) btns.style.display = 'flex';
-        }
+    // PDF generation using window.print (user chooses "Save as PDF")
+    window.handlePDF = () => {
+        // Simple message to guide user
+        alert("سيتم فتح نافذة الطباعة. اختر 'حفظ كـ PDF' من إعدادات الطابعة للحصول على أفضل جودة.");
+        window.print();
     };
     
     window.handlePNG = async () => {
@@ -743,11 +678,33 @@
         if (element) {
             const btns = document.getElementById('actionButtons');
             if (btns) btns.style.display = 'none';
-            const canvas = await html2canvas(element, { scale: 4, backgroundColor: '#ffffff', useCORS: true, dpi: 300 });
+            
+            // Temporarily remove page breaks for better PNG capture
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.style.pageBreakAfter = 'auto';
+                page.style.breakAfter = 'auto';
+            });
+            
+            const canvas = await html2canvas(element, { 
+                scale: 3, 
+                backgroundColor: '#ffffff', 
+                useCORS: true,
+                logging: false,
+                windowWidth: element.scrollWidth
+            });
+            
+            // Restore page breaks
+            pages.forEach(page => {
+                page.style.pageBreakAfter = '';
+                page.style.breakAfter = '';
+            });
+            
             const link = document.createElement('a');
             link.download = `فاتورة_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
+            
             if (btns) btns.style.display = 'flex';
         }
     };
