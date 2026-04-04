@@ -37,7 +37,6 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             margin-bottom: 25px;
             position: relative;
-            padding: 0;
             page-break-after: always;
             break-after: page;
             display: flex;
@@ -46,7 +45,7 @@
 
         /* Page content wrapper */
         .page-content {
-            padding: 18mm 12mm 25mm 12mm;
+            padding: 18mm 15mm 25mm 15mm;
             flex: 1;
         }
 
@@ -54,7 +53,7 @@
         .page-number {
             position: absolute;
             bottom: 10mm;
-            right: 12mm;
+            right: 15mm;
             font-size: 10px;
             color: #94a3b8;
         }
@@ -62,7 +61,7 @@
         .page-date {
             position: absolute;
             bottom: 10mm;
-            left: 12mm;
+            left: 15mm;
             font-size: 9px;
             color: #94a3b8;
         }
@@ -81,7 +80,7 @@
                 min-height: 297mm;
             }
             .page-content {
-                padding: 18mm 12mm 25mm 12mm;
+                padding: 18mm 15mm 25mm 15mm;
             }
             .action-buttons {
                 display: none;
@@ -210,6 +209,10 @@
             vertical-align: middle;
             text-align: center;
         }
+        .product-table td:first-child {
+            text-align: right;
+            font-weight: 500;
+        }
         .product-img {
             width: 35px;
             height: 35px;
@@ -337,13 +340,22 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Serial number column */
+        .serial-col {
+            width: 35px;
+            text-align: center;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+        
         @media (max-width: 750px) {
-            .page-content { padding: 12mm 8mm 20mm 8mm; }
+            .page-content { padding: 12mm 10mm 20mm 10mm; }
             .two-columns { grid-template-columns: 1fr; gap: 8px; }
             .product-table th, .product-table td { font-size: 8px; padding: 3px; }
             .product-img { width: 28px; height: 28px; }
             .logo-icon { width: 50px; height: 50px; }
             .logo-icon i { font-size: 24px; }
+            .serial-col { width: 28px; }
         }
     </style>
 </head>
@@ -525,10 +537,11 @@
         return div;
     }
 
-    function createProductRowElement(item, productImage, description, price, qty, itemTotal) {
+    function createProductRowElement(serialNumber, item, productImage, description, price, qty, itemTotal) {
         const row = document.createElement('tr');
         const imgSrc = productImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
         row.innerHTML = `
+            <td class="serial-col">${serialNumber}</td>
             <td style="text-align: right;">${escapeHtml(item.name)}</td>
             <td style="width: 45px;"><img src="${imgSrc}" class="product-img" crossorigin="anonymous" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E'"></td>
             <td>${escapeHtml(item.barcode || '—')}</td>
@@ -627,6 +640,7 @@
         
         // Prepare product rows data
         const productRowsData = [];
+        let globalSerial = 1;
         for (const item of items) {
             const price = item.price || 0;
             const qty = item.quantity || 0;
@@ -641,6 +655,7 @@
             const description = item.description || (productsMap.get(item.productId)?.description) || '';
             
             productRowsData.push({
+                serial: globalSerial++,
                 item, productImage, description, price, qty, itemTotal
             });
         }
@@ -669,7 +684,7 @@
         const A4_HEIGHT_PX = 297 * 3.78; // ~1122px
         const TOP_MARGIN_PX = 18 * 3.78; // ~68px
         const BOTTOM_MARGIN_PX = 25 * 3.78; // ~94px
-        const AVAILABLE_HEIGHT = A4_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX - fixedHeight;
+        const AVAILABLE_HEIGHT = A4_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX - fixedHeight - 50; // 50px buffer
         
         // Measure each product row height
         const rowHeights = [];
@@ -681,7 +696,7 @@
         
         for (const rowData of productRowsData) {
             tempTbody.innerHTML = '';
-            const row = createProductRowElement(rowData.item, rowData.productImage, rowData.description, rowData.price, rowData.qty, rowData.itemTotal);
+            const row = createProductRowElement(rowData.serial, rowData.item, rowData.productImage, rowData.description, rowData.price, rowData.qty, rowData.itemTotal);
             tempTbody.appendChild(row);
             await new Promise(r => setTimeout(r, 10));
             rowHeights.push(row.scrollHeight);
@@ -733,14 +748,14 @@
             table.className = 'product-table';
             const thead = document.createElement('thead');
             thead.innerHTML = `
-                <tr><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
+                <tr><th class="serial-col">#</th><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
             `;
             table.appendChild(thead);
             const tbody = document.createElement('tbody');
             
             for (const idx of pageRowIndices) {
                 const rd = productRowsData[idx];
-                tbody.appendChild(createProductRowElement(rd.item, rd.productImage, rd.description, rd.price, rd.qty, rd.itemTotal));
+                tbody.appendChild(createProductRowElement(rd.serial, rd.item, rd.productImage, rd.description, rd.price, rd.qty, rd.itemTotal));
             }
             table.appendChild(tbody);
             page.appendChild(table);
