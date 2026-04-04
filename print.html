@@ -1,12 +1,3 @@
-أتفهم، زر PDF و PNG لا يعملان بسبب مشكلة في استيراد المكتبات ديناميكياً. سأقوم بإصلاح ذلك بالكامل مع تحسينات:
-
-1. **إصلاح زر PDF** باستخدام `html2pdf.js` بشكل مباشر.
-2. **إصلاح زر PNG** باستخدام `html2canvas` بشكل مباشر.
-3. **إزالة الصفحة الثانية** نهائياً.
-4. **تحسين الهوامش** لمنع انقسام المحتوى.
-
-إليك الكود النهائي:
-```html
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -16,7 +7,6 @@
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- تحميل المكتبات بشكل ثابت -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -76,7 +66,32 @@
             }
         }
 
-        /* أنماط العناصر (مضغوطة لتوفير مساحة) */
+        /* رأس الفاتورة - توزيع متساوٍ في سطر واحد */
+        .company-badge {
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .company-badge span {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+        }
+        @media (max-width: 700px) {
+            .company-badge span {
+                white-space: normal;
+                font-size: 10px;
+            }
+        }
+
+        /* باقي الأنماط محسّنة لمنع الفراغات */
         .invoice-header {
             margin-bottom: 12px;
             padding-bottom: 8px;
@@ -109,15 +124,6 @@
             border-radius: 30px;
             font-size: 11px;
             font-weight: 600;
-        }
-        .company-badge {
-            background: #f1f5f9;
-            padding: 5px 10px;
-            border-radius: 10px;
-            font-size: 11px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
         }
         .two-columns {
             display: grid;
@@ -178,10 +184,12 @@
             text-align: center;
         }
         .product-img {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             object-fit: cover;
-            border-radius: 5px;
+            border-radius: 6px;
+            display: block;
+            margin: 0 auto;
         }
         .desc-text {
             font-size: 10px;
@@ -258,6 +266,7 @@
             .invoice-content { padding: 12px; }
             .two-columns { grid-template-columns: 1fr; gap: 10px; }
             .product-table th, .product-table td { font-size: 9px; padding: 3px; }
+            .product-img { width: 30px; height: 30px; }
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -362,6 +371,7 @@
                                 <p><span class="badge-status ${getStatusClass(order.status)}">${order.status || 'جديد'}</span></p>
                             </div>
                         </div>
+                        <!-- توزيع متساوٍ في سطر واحد -->
                         <div class="company-badge">
                             <span><i class="fas fa-briefcase"></i> <strong>منصة في خدمتك</strong></span>
                             <span><i class="fas fa-id-card"></i> رقم شهادة العمل الحر: FL-765735204</span>
@@ -451,11 +461,15 @@
             const total = price * qty;
             subtotal += total;
             
-            let productImage = item.image || '';
-            if (!productImage && item.productId) {
+            // الحصول على صورة المنتج من Firebase باستخدام productId
+            let productImage = '';
+            if (item.productId) {
                 const prod = productsMap.get(item.productId);
                 if (prod && prod.image) productImage = prod.image;
             }
+            // إذا لم توجد صورة، نستخدم الصورة المخزنة في item.image
+            if (!productImage && item.image) productImage = item.image;
+            
             const imgSrc = productImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
             const description = item.description || (productsMap.get(item.productId)?.description) || '';
             
@@ -469,7 +483,7 @@
                     <td>${qty}</td>
                     <td>${price.toFixed(2)} ريال</td>
                     <td>${total.toFixed(2)} ريال</td>
-                </table>
+                </tr>
             `);
         }
         
@@ -515,10 +529,10 @@
             const btns = document.getElementById('actionButtons');
             if (btns) btns.style.display = 'none';
             const opt = {
-                margin: [0.2, 0.2, 0.2, 0.2],
+                margin: [0.15, 0.15, 0.15, 0.15], // هوامش صغيرة جداً
                 filename: `فاتورة_${Date.now()}.pdf`,
                 image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 3, letterRendering: true, useCORS: true, dpi: 300 },
+                html2canvas: { scale: 4, letterRendering: true, useCORS: true, dpi: 300 },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
             await html2pdf().set(opt).from(element).save();
@@ -531,7 +545,7 @@
         if (element) {
             const btns = document.getElementById('actionButtons');
             if (btns) btns.style.display = 'none';
-            const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+            const canvas = await html2canvas(element, { scale: 4, backgroundColor: '#ffffff', useCORS: true, dpi: 300 });
             const link = document.createElement('a');
             link.download = `فاتورة_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
@@ -544,4 +558,3 @@
 </script>
 </body>
 </html>
-```
