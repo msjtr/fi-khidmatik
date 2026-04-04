@@ -19,62 +19,68 @@
             background: #eef2f5;
             font-family: 'Cairo', 'Segoe UI', 'Tahoma', 'Noto Sans Arabic', sans-serif;
             direction: rtl;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
 
         .invoice-container {
             max-width: 1200px;
             margin: 0 auto;
+            background: #eef2f5;
+            padding: 20px;
         }
 
-        /* ========================= */
-        /* PAGE LAYOUT - A4 */
-        /* ========================= */
+        /* Each page independent - A4 size */
         .page {
-            width: 210mm;
-            min-height: 297mm;
             background: white;
             border-radius: 12px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             margin-bottom: 25px;
             position: relative;
             padding: 20mm 15mm 25mm 15mm;
+            /* Remove fixed height to prevent empty pages */
+            min-height: 297mm;
             page-break-after: always;
             break-after: page;
-            box-sizing: border-box;
         }
 
-        /* ========================= */
-        /* PREVENT ELEMENT SPLITTING */
-        /* ========================= */
-        .section {
+        /* Prevent element splitting */
+        .invoice-header, 
+        .two-columns, 
+        .info-card, 
+        .info-row, 
+        .product-table tr, 
+        .summary-box, 
+        .terms-box, 
+        .footer-static {
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
-        /* ========================= */
-        /* PAGE NUMBER */
-        /* ========================= */
-        .page-number {
+        /* Page footer with numbering */
+        .page-footer {
             position: absolute;
-            bottom: 10mm;
+            bottom: 8mm;
             right: 15mm;
-            font-size: 11px;
+            left: 15mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
             color: #94a3b8;
-            font-weight: 500;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 5mm;
+        }
+        
+        .page-number {
+            font-weight: 600;
         }
         
         .page-date {
-            position: absolute;
-            bottom: 10mm;
-            left: 15mm;
-            font-size: 10px;
-            color: #94a3b8;
+            font-size: 9px;
         }
 
-        /* ========================= */
-        /* PRINT SETUP */
-        /* ========================= */
+        /* Print settings - optimized */
         @media print {
             body {
                 background: white;
@@ -91,8 +97,10 @@
                 border-radius: 0;
                 margin: 0;
                 padding: 20mm 15mm 25mm 15mm !important;
+                min-height: 0;
                 page-break-after: always;
                 break-after: page;
+                page-break-inside: avoid;
             }
             .action-buttons {
                 display: none;
@@ -103,9 +111,7 @@
             }
         }
 
-        /* ========================= */
-        /* INVOICE STYLES */
-        /* ========================= */
+        /* Header styles */
         .company-badge {
             background: #f1f5f9;
             padding: 8px 12px;
@@ -264,6 +270,8 @@
             border-right: 4px solid #eab308;
             font-size: 11px;
         }
+        
+        /* Unified footer styling */
         .footer-static {
             margin-top: 15px;
             padding-top: 10px;
@@ -332,7 +340,6 @@
             .contact-links { gap: 8px; }
             .contact-links span { font-size: 9px; }
         }
-        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -421,11 +428,6 @@
         return map[status] || 'bg-gray-100 text-gray-800';
     }
 
-    /**
-     * =========================
-     * INVOICE CONTENT GENERATORS
-     * =========================
-     */
     function getFixedHeader(order) {
         const logoUrl = 'images/logo.svg';
         return `
@@ -490,184 +492,73 @@
         `;
     }
 
-    function getSummarySection(subtotal, discountValue, tax, total) {
+    function generatePageHTML(order, customer, itemsRows, pageNum, totalPages, commonSections, withSummary, summaryData) {
+        const header = getFixedHeader(order);
+        const footer = getFixedFooter();
+        const tableSection = `
+            <div class="section-title">تفاصيل المنتجات / الخدمات</div>
+            <table class="product-table">
+                <thead><tr><th>#</th><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
+                <tbody>${itemsRows.join('')}</tbody>
+            </table>
+        `;
+        
+        let summaryAndThanks = '';
+        if (withSummary && summaryData) {
+            summaryAndThanks = `
+                <div class="summary-box">
+                    <div class="summary-row"><span>المجموع الفرعي:</span><span>${summaryData.subtotal.toFixed(2)} ريال</span></div>
+                    <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${summaryData.discountValue.toFixed(2)} ريال</span></div>
+                    <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${summaryData.tax.toFixed(2)} ريال</span></div>
+                    <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${summaryData.total.toFixed(2)} ريال</span></div>
+                </div>
+                <div class="terms-box">
+                    <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
+                    <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها</p>
+                </div>
+                <div class="text-center mt-3 py-2 bg-blue-50 rounded-xl">
+                    <p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p>
+                </div>
+            `;
+        }
+
+        const today = new Date();
+        const todayStr = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
+
         return `
-            <div class="summary-box">
-                <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
-                <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
-                <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
-            </div>
-            <div class="terms-box">
-                <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
-                <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها</p>
-            </div>
-            <div class="text-center mt-3 py-2 bg-blue-50 rounded-xl">
-                <p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p>
+            <div class="page">
+                ${header}
+                ${commonSections}
+                ${tableSection}
+                ${summaryAndThanks}
+                ${footer}
+                <div class="page-footer">
+                    <span class="page-date">تم الإنشاء: ${todayStr}</span>
+                    <span class="page-number">صفحة ${pageNum} من ${totalPages}</span>
+                </div>
             </div>
         `;
     }
 
     /**
-     * =========================
-     * DYNAMIC PAGE SPLITTING BASED ON RENDERED HEIGHT
-     * =========================
-     * 
-     * Page Configuration:
-     * - Paper size: A4 (297mm height)
-     * - Top padding: 20mm
-     * - Bottom safe area: 25mm (no content allowed)
-     * 
-     * Usable content height = 297mm - (20mm + 25mm) = 252mm
-     * 
-     * How it works:
-     * 1. All invoice content is built as HTML string
-     * 2. Each content block is treated as a "section"
-     * 3. The script measures each section's height in a hidden container
-     * 4. Sections are distributed across pages without exceeding usable height
-     * 5. Page numbers are added automatically
+     * Calculate optimal rows per page based on content
+     * Uses a safe estimate of 5 rows per page to ensure content stays within margins
      */
-    
-    // Convert mm to pixels (1mm ≈ 3.78px at 96 DPI)
-    function mmToPx(mm) {
-        return mm * 3.779527559;
-    }
-
-    // Calculate usable content height in pixels
-    function getUsableHeightPx() {
-        const pageHeightMM = 297;
-        const topPaddingMM = 20;
-        const bottomSafeMM = 25;
-        const usableMM = pageHeightMM - topPaddingMM - bottomSafeMM;
-        return mmToPx(usableMM);
-    }
-
-    // Create a new page element
-    function createPage(pageNum, totalPages, todayStr) {
-        const page = document.createElement('div');
-        page.className = 'page';
-        
-        // Add page number at bottom
-        const pageNumberDiv = document.createElement('div');
-        pageNumberDiv.className = 'page-number';
-        pageNumberDiv.textContent = `${pageNum} / ${totalPages}`;
-        page.appendChild(pageNumberDiv);
-        
-        // Add date at bottom left
-        const pageDateDiv = document.createElement('div');
-        pageDateDiv.className = 'page-date';
-        pageDateDiv.textContent = `تم الإنشاء: ${todayStr}`;
-        page.appendChild(pageDateDiv);
-        
-        return page;
-    }
-
-    // Distribute sections across pages dynamically
-    async function distributeToPages(sectionsArray, fixedHeaderHTML, commonSectionsHTML, footerHTML) {
-        const usableHeight = getUsableHeightPx();
-        const today = new Date();
-        const todayStr = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
-        
-        // Create hidden container for measuring
-        const measureContainer = document.createElement('div');
-        measureContainer.style.position = 'absolute';
-        measureContainer.style.visibility = 'hidden';
-        measureContainer.style.top = '-9999px';
-        measureContainer.style.left = '-9999px';
-        measureContainer.style.width = '210mm';
-        measureContainer.style.padding = '20mm 15mm 25mm 15mm';
-        measureContainer.style.boxSizing = 'border-box';
-        measureContainer.style.background = 'white';
-        document.body.appendChild(measureContainer);
-        
-        // Measure fixed elements height (header + common sections + footer)
-        measureContainer.innerHTML = fixedHeaderHTML + commonSectionsHTML + footerHTML;
-        await new Promise(r => setTimeout(r, 30));
-        const fixedHeight = measureContainer.scrollHeight;
-        
-        // Calculate available height for product rows
-        const availableForProducts = usableHeight - fixedHeight;
-        
-        // Measure each product row height
-        const rowHeights = [];
-        for (let i = 0; i < sectionsArray.length; i++) {
-            measureContainer.innerHTML = sectionsArray[i];
-            await new Promise(r => setTimeout(r, 10));
-            rowHeights.push(measureContainer.scrollHeight);
-        }
-        
-        // Clean up measure container
-        document.body.removeChild(measureContainer);
-        
-        // Distribute rows into pages based on accumulated height
+    function splitProductsIntoPages(productsArray) {
         const pages = [];
-        let currentPageRows = [];
-        let currentPageHeight = 0;
-        
-        for (let i = 0; i < sectionsArray.length; i++) {
-            const rowHeight = rowHeights[i];
-            
-            // If adding this row exceeds available height, start a new page
-            if (currentPageHeight + rowHeight > availableForProducts && currentPageRows.length > 0) {
-                pages.push([...currentPageRows]);
-                currentPageRows = [];
-                currentPageHeight = 0;
-            }
-            
-            currentPageRows.push(sectionsArray[i]);
-            currentPageHeight += rowHeight;
+        if (!productsArray.length) {
+            pages.push([]);
+            return pages;
         }
         
-        // Add last page if it has content
-        if (currentPageRows.length > 0) {
-            pages.push(currentPageRows);
+        // Safe estimate: 5 rows per page prevents reaching bottom margin
+        // This ensures no content is cut off and no empty pages
+        const SAFE_ROWS_PER_PAGE = 5;
+        
+        for (let i = 0; i < productsArray.length; i += SAFE_ROWS_PER_PAGE) {
+            pages.push(productsArray.slice(i, i + SAFE_ROWS_PER_PAGE));
         }
-        
-        // Build actual pages
-        const totalPages = pages.length;
-        const container = document.getElementById('invoiceContainer');
-        container.innerHTML = '';
-        
-        for (let i = 0; i < pages.length; i++) {
-            const pageRows = pages[i];
-            const isLastPage = (i === pages.length - 1);
-            
-            const page = createPage(i + 1, totalPages, todayStr);
-            
-            // Add fixed header
-            const headerDiv = document.createElement('div');
-            headerDiv.innerHTML = fixedHeaderHTML;
-            page.appendChild(headerDiv);
-            
-            // Add common sections
-            const commonDiv = document.createElement('div');
-            commonDiv.innerHTML = commonSectionsHTML;
-            page.appendChild(commonDiv);
-            
-            // Add product rows
-            for (const row of pageRows) {
-                const rowDiv = document.createElement('div');
-                rowDiv.innerHTML = row;
-                page.appendChild(rowDiv);
-            }
-            
-            // Add summary and footer only on last page
-            if (isLastPage) {
-                // Summary will be added later with actual totals
-                const summaryPlaceholder = document.createElement('div');
-                summaryPlaceholder.id = 'summary-placeholder';
-                page.appendChild(summaryPlaceholder);
-            }
-            
-            // Add footer
-            const footerDiv = document.createElement('div');
-            footerDiv.innerHTML = footerHTML;
-            page.appendChild(footerDiv);
-            
-            container.appendChild(page);
-        }
-        
-        return { totalPages, container };
+        return pages;
     }
 
     async function renderInvoice() {
@@ -690,7 +581,7 @@
         const customer = customersMap.get(order.customerId) || { name: '__________', phone: '__________', city: '__________', street: '__________', email: '__________' };
         
         let subtotal = 0;
-        const allProductRows = [];
+        const allItemsRows = [];
         const items = order.items || [];
         
         for (let idx = 0; idx < items.length; idx++) {
@@ -710,24 +601,18 @@
             const imgSrc = productImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
             const description = item.description || (productsMap.get(item.productId)?.description) || '';
             
-            // Create product row as HTML string
-            const rowHtml = `
-                <table class="product-table" style="margin-bottom: 0;">
-                    <tbody>
-                        <tr>
-                            <td style="font-weight:600; width: 40px;">${idx+1}</td>
-                            <td style="text-align: right;">${escapeHtml(item.name)}</td>
-                            <td style="width: 55px;"><img src="${imgSrc}" class="product-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E'"></td>
-                            <td>${escapeHtml(item.barcode || '—')}</td>
-                            <td class="desc-text">${escapeHtml(description).substring(0, 70)}${description.length > 70 ? '…' : ''}</td>
-                            <td>${qty}</td>
-                            <td>${price.toFixed(2)} ريال</td>
-                            <td>${total.toFixed(2)} ريال</td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
-            allProductRows.push(rowHtml);
+            allItemsRows.push(`
+                <tr>
+                    <td style="font-weight:600;">${idx+1}</td>
+                    <td style="text-align: right;">${escapeHtml(item.name)}</td>
+                    <td><img src="${imgSrc}" class="product-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E'"></td>
+                    <td>${escapeHtml(item.barcode || '—')}</td>
+                    <td class="desc-text">${escapeHtml(description).substring(0, 70)}${description.length > 70 ? '…' : ''}</td>
+                    <td>${qty}</td>
+                    <td>${price.toFixed(2)} ريال</td>
+                    <td>${total.toFixed(2)} ريال</td>
+                </tr>
+            `);
         }
         
         let discountValue = order.discount || 0;
@@ -750,44 +635,28 @@
             'noship': '📥 لا يتطلب شحن'
         }[order.shippingMethod] || order.shippingMethod || 'استلام من المقر';
         
-        // Get all HTML components
-        const fixedHeaderHTML = getFixedHeader(order);
-        const commonSectionsHTML = getCommonSections(order, customer, paymentMethodName, shippingMethodText);
-        const footerHTML = getFixedFooter();
-        const summaryHTML = getSummarySection(subtotal, discountValue, tax, total);
+        const commonSections = getCommonSections(order, customer, paymentMethodName, shippingMethodText);
         
-        // Distribute product rows across pages dynamically
-        const { totalPages, container } = await distributeToPages(allProductRows, fixedHeaderHTML, commonSectionsHTML, footerHTML);
+        // Split into pages using safe row count (5 rows per page max)
+        const productPages = splitProductsIntoPages(allItemsRows);
+        const totalPages = productPages.length;
         
-        // Add summary to the last page
-        if (totalPages > 0) {
-            const lastPage = container.querySelector('.page:last-child');
-            const summaryPlaceholder = lastPage.querySelector('#summary-placeholder');
-            if (summaryPlaceholder) {
-                summaryPlaceholder.innerHTML = summaryHTML;
-                summaryPlaceholder.removeAttribute('id');
-            }
+        const container = document.getElementById('invoiceContainer');
+        container.innerHTML = '';
+        
+        for (let pageIdx = 0; pageIdx < productPages.length; pageIdx++) {
+            const pageItems = productPages[pageIdx];
+            const isLastPage = (pageIdx === productPages.length - 1);
+            const pageHtml = generatePageHTML(
+                order, customer, pageItems, pageIdx + 1, totalPages, commonSections,
+                isLastPage,
+                isLastPage ? { subtotal, discountValue, tax, total } : null
+            );
+            container.innerHTML += pageHtml;
         }
         
-        // Add section title to each page
-        const pages = document.querySelectorAll('.page');
-        pages.forEach((page, idx) => {
-            const firstChild = page.children[0];
-            if (firstChild && !firstChild.querySelector('.section-title')) {
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'section-title';
-                titleDiv.innerHTML = `تفاصيل المنتجات / الخدمات ${pages.length > 1 ? `(صفحة ${idx + 1} من ${pages.length})` : ''}`;
-                // Insert after header and common sections
-                const header = page.querySelector('.invoice-header');
-                const companyBadge = page.querySelector('.company-badge');
-                if (header && companyBadge) {
-                    companyBadge.insertAdjacentElement('afterend', titleDiv);
-                }
-            }
-        });
-        
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('invoiceContainer').style.display = 'block';
+        container.style.display = 'block';
         document.getElementById('actionButtons').style.display = 'flex';
         
         if (autoAction === 'print') setTimeout(() => window.print(), 500);
@@ -797,7 +666,9 @@
     
     window.handlePrint = () => window.print();
     
+    // PDF generation using window.print (user chooses "Save as PDF")
     window.handlePDF = () => {
+        // Simple message to guide user
         alert("سيتم فتح نافذة الطباعة. اختر 'حفظ كـ PDF' من إعدادات الطابعة للحصول على أفضل جودة.");
         window.print();
     };
@@ -808,11 +679,25 @@
             const btns = document.getElementById('actionButtons');
             if (btns) btns.style.display = 'none';
             
+            // Temporarily remove page breaks for better PNG capture
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.style.pageBreakAfter = 'auto';
+                page.style.breakAfter = 'auto';
+            });
+            
             const canvas = await html2canvas(element, { 
                 scale: 3, 
                 backgroundColor: '#ffffff', 
                 useCORS: true,
-                logging: false
+                logging: false,
+                windowWidth: element.scrollWidth
+            });
+            
+            // Restore page breaks
+            pages.forEach(page => {
+                page.style.pageBreakAfter = '';
+                page.style.breakAfter = '';
             });
             
             const link = document.createElement('a');
