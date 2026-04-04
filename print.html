@@ -2,7 +2,7 @@
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>فاتورة إلكترونية</title>
+<title>فاتورة</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -11,7 +11,10 @@
 <style>
 @page { size: A4; margin: 0; }
 
-body { background:#eef2f5; font-family:Cairo; }
+body {
+  background:#eef2f5;
+  font-family:Cairo;
+}
 
 .page {
   width:210mm;
@@ -22,14 +25,40 @@ body { background:#eef2f5; font-family:Cairo; }
   page-break-after:always;
 }
 
-.product-table { width:100%; border-collapse:collapse; font-size:12px; }
-.product-table th,.product-table td { border:1px solid #ccc; padding:6px; }
+.header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.logo {
+  height:60px;
+}
+
+.product-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+
+.product-table th, .product-table td {
+  border:1px solid #ccc;
+  padding:6px;
+}
 
 .page-number {
   position:absolute;
   bottom:10mm;
   right:15mm;
   font-size:12px;
+}
+
+.actions {
+  position:fixed;
+  bottom:20px;
+  width:100%;
+  text-align:center;
 }
 </style>
 </head>
@@ -38,7 +67,7 @@ body { background:#eef2f5; font-family:Cairo; }
 
 <div id="invoiceContainer"></div>
 
-<div style="position:fixed;bottom:20px;width:100%;text-align:center;">
+<div class="actions">
   <button onclick="window.print()">طباعة</button>
   <button onclick="exportPDF()">PDF</button>
   <button onclick="exportPNG()">PNG</button>
@@ -46,43 +75,39 @@ body { background:#eef2f5; font-family:Cairo; }
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getDocument, loadCustomers, loadProducts } from "./js/firebase.js";
 
-const app = initializeApp({
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT"
-});
-
-const db = getFirestore(app);
-
-// =====================
+// =========================
 // أدوات
-// =====================
+// =========================
 function mmToPx(mm){ return mm * 3.78 }
 
 function getUsableHeight(){
   return mmToPx(297 - (20 + 25));
 }
 
-// =====================
+// =========================
 // إنشاء صف
-// =====================
-function createRow(item){
+// =========================
+function createRow(item, products){
+
+  const product = products.find(p => p.id === item.productId) || {};
+
   const tr = document.createElement('tr');
+
   tr.innerHTML = `
-    <td>${item.name}</td>
-    <td>${item.quantity}</td>
-    <td>${item.price}</td>
-    <td>${(item.price * item.quantity).toFixed(2)}</td>
+    <td>${item.name || product.name || '-'}</td>
+    <td>${item.quantity || 0}</td>
+    <td>${(item.price || 0).toFixed(2)}</td>
+    <td>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
   `;
+
   return tr;
 }
 
-// =====================
+// =========================
 // قياس الصفوف
-// =====================
+// =========================
 async function measureRows(rows){
 
   const box = document.createElement('div');
@@ -115,12 +140,11 @@ async function measureRows(rows){
   return heights;
 }
 
-// =====================
+// =========================
 // تقسيم الصفحات
-// =====================
-async function splitPages(items){
+// =========================
+async function splitPages(rows){
 
-  const rows = items.map(i=>createRow(i));
   const heights = await measureRows(rows);
 
   const usable = getUsableHeight();
@@ -147,16 +171,23 @@ async function splitPages(items){
   return pages;
 }
 
-// =====================
+// =========================
 // إنشاء صفحة
-// =====================
-function createPage(rows, pageNum, total){
+// =========================
+function createPage(rows, pageNum, total, order, customer){
 
   const page=document.createElement('div');
   page.className='page';
 
   page.innerHTML = `
-    <h2>فاتورة</h2>
+    <div class="header">
+      <div>
+        <h2>فاتورة</h2>
+        <p>رقم الطلب: ${order.id}</p>
+        <p>العميل: ${customer.name || '-'}</p>
+      </div>
+      <img src="./images/logo.svg" class="logo">
+    </div>
   `;
 
   const table=document.createElement('table');
@@ -188,40 +219,56 @@ function createPage(rows, pageNum, total){
   return page;
 }
 
-// =====================
-// تحميل الفاتورة
-// =====================
+// =========================
+// تشغيل
+// =========================
 async function render(){
 
   const orderId = new URLSearchParams(location.search).get('id');
 
-  const docSnap = await getDoc(doc(db,'orders',orderId));
-  const order = docSnap.data();
+  const order = await getDocument('orders', orderId);
+  if (!order) return alert("الطلب غير موجود");
 
-  const pages = await splitPages(order.items || []);
+  const customers = await loadCustomers();
+  const products = await loadProducts();
+
+  const customer = customers.find(c => c.id === order.customerId) || {};
+
+  const rows = (order.items || []).map(item => createRow(item, products));
+
+  const pages = await splitPages(rows);
 
   const container=document.getElementById('invoiceContainer');
 
   pages.forEach((p,i)=>{
-    container.appendChild(createPage(p,i+1,pages.length));
+    container.appendChild(createPage(p,i+1,pages.length,order,customer));
   });
 
 }
 
 render();
 
-// =====================
+// =========================
+// اسم الملف
+// =========================
+function getFileName(order, customer){
+  const today = new Date().toISOString().split('T')[0];
+  const name = (customer.name || 'client').replace(/[^\w\u0600-\u06FF]/g,'_');
+  return `${name}_${order.id}_${today}`;
+}
+
+// =========================
 // PDF
-// =====================
-async function exportPDF(){
+// =========================
+window.exportPDF = async function(){
   const el=document.getElementById('invoiceContainer');
   await html2pdf().from(el).save("invoice.pdf");
 }
 
-// =====================
+// =========================
 // PNG
-// =====================
-async function exportPNG(){
+// =========================
+window.exportPNG = async function(){
   const canvas = await html2canvas(document.getElementById('invoiceContainer'),{scale:3});
   const link=document.createElement('a');
   link.download="invoice.png";
