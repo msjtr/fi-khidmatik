@@ -10,23 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #e2e8f0;
-            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-            direction: rtl;
-            padding: 20px;
-        }
-        .invoice-container {
-            max-width: 210mm;
-            margin: 0 auto;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #e2e8f0; font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; direction: rtl; padding: 20px; }
+        .invoice-container { max-width: 210mm; margin: 0 auto; }
         
-        /* الصفحة الرئيسية */
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -51,16 +38,8 @@
             background: white;
         }
         
-        .page-inner-content {
-            flex: 1;
-        }
-        
-        /* الهامش السفلي الثابت */
-        .bottom-spacer {
-            height: 25mm;
-            width: 100%;
-            flex-shrink: 0;
-        }
+        .page-inner-content { flex: 1; }
+        .bottom-spacer { height: 25mm; width: 100%; flex-shrink: 0; }
         
         .page-number {
             position: absolute;
@@ -75,32 +54,13 @@
         }
         
         @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .page {
-                box-shadow: none;
-                margin: 0;
-                page-break-after: always;
-                min-height: 297mm;
-            }
-            .page-content-wrapper {
-                padding-top: 12mm;
-                padding-left: 15mm;
-                padding-right: 15mm;
-            }
-            .action-buttons {
-                display: none;
-            }
-            @page {
-                size: A4;
-                margin: 0;
-            }
+            body { background: white; padding: 0; margin: 0; }
+            .page { box-shadow: none; margin: 0; page-break-after: always; min-height: 297mm; }
+            .page-content-wrapper { padding-top: 12mm; padding-left: 15mm; padding-right: 15mm; }
+            .action-buttons { display: none; }
+            @page { size: A4; margin: 0; }
         }
         
-        /* تنسيقات المحتوى */
         .logo-header {
             display: flex;
             justify-content: space-between;
@@ -111,10 +71,23 @@
             border-bottom: 2px solid #1e3a5f;
             padding-bottom: 8px;
         }
-        .logo-area img {
-            max-height: 65px;
-            width: auto;
-            object-fit: contain;
+        .logo-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1e3a5f, #3b82f6);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-icon i {
+            font-size: 32px;
+            color: white;
         }
         .invoice-title h1 {
             font-size: 22px;
@@ -389,17 +362,11 @@
     let productsMap = new Map();
     let currentFileName = "";
     
-    // الهوامش (بالميليمتر)
-    const TOP_MARGIN_MM = 12;
-    const BOTTOM_MARGIN_MM = 25;
-    const SIDE_MARGIN_MM = 15;
-    
-    // تحويلات دقيقة
+    // الهوامش الدقيقة
     const MM_TO_PX = 3.779527559;
-    const PAGE_HEIGHT_MM = 297;
-    const PAGE_HEIGHT_PX = PAGE_HEIGHT_MM * MM_TO_PX;
-    const TOP_MARGIN_PX = TOP_MARGIN_MM * MM_TO_PX;
-    const BOTTOM_MARGIN_PX = BOTTOM_MARGIN_MM * MM_TO_PX;
+    const TOP_MARGIN_PX = 12 * MM_TO_PX;      // 12mm
+    const BOTTOM_MARGIN_PX = 25 * MM_TO_PX;    // 25mm
+    const PAGE_HEIGHT_PX = 297 * MM_TO_PX;     // 297mm
     const MAX_CONTENT_HEIGHT_PX = PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX;
     
     async function loadCustomersAndProducts() {
@@ -468,7 +435,6 @@
         if (overlay) overlay.style.display = 'none'; 
     }
     
-    // دالة لقياس ارتفاع العنصر
     async function measureHeight(element) {
         const container = document.createElement('div');
         container.style.position = 'absolute';
@@ -478,13 +444,12 @@
         container.style.direction = 'rtl';
         document.body.appendChild(container);
         container.appendChild(element);
-        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 60)));
+        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
         const height = element.getBoundingClientRect().height;
         document.body.removeChild(container);
         return height;
     }
     
-    // إنشاء صف المنتج
     function createProductRow(item, productImage, description, price, qty, itemTotal) {
         const tr = document.createElement('tr');
         const imgSrc = productImage && productImage.trim() !== '' ? productImage : '';
@@ -563,11 +528,13 @@
             productRowsData.push({ item, productImage, description: description || '', price, qty, itemTotal });
         }
         
-        // قوالب HTML الثابتة
+        // قوالب HTML الثابتة - استخدام أيقونة بديلة للشعار لتجنب 404
         const headerHTML = `
             <div class="logo-header">
                 <div class="logo-area">
-                    <img src="/fi-khidmatik/images/logo.svg" alt="منصة في خدمتك" style="max-height:65px; width:auto;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'logo-fallback\\' style=\\'width:60px;height:60px;background:linear-gradient(135deg,#1e3a5f,#3b82f6);border-radius:14px;display:flex;align-items:center;justify-content:center;\\'><i class=\\'fas fa-handshake fa-2x\\' style=\\'color:white;\\'></i></div>';">
+                    <div class="logo-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
                 </div>
                 <div class="invoice-title text-left">
                     <h1>فاتورة إلكترونية</h1>
@@ -622,7 +589,6 @@
         const footerHeight = await measureHeight(footerDiv);
         const summaryHeight = await measureHeight(summaryDiv);
         
-        // المساحة المتاحة للصفوف
         const availableForRowsNormal = MAX_CONTENT_HEIGHT_PX - (headerHeight + footerHeight);
         const availableForRowsLast = MAX_CONTENT_HEIGHT_PX - (headerHeight + footerHeight + summaryHeight);
         
@@ -636,7 +602,7 @@
             rowHeights.push(height);
         }
         
-        // توزيع الصفوف على الصفحات (خوارزمية دقيقة)
+        // توزيع الصفوف على الصفحات
         const pageGroups = [];
         let currentGroup = [];
         let currentGroupHeight = 0;
@@ -654,12 +620,12 @@
                     currentGroup = [];
                     currentGroupHeight = 0;
                 }
-                // نعيد المحاولة مع الصفحة الجديدة
+                // نحاول وضع الصف في صفحة جديدة
                 if (rowHeights[i] <= availableSpace) {
                     currentGroup.push(i);
                     currentGroupHeight = rowHeights[i];
                 } else {
-                    // حالة نادرة: صف طويل جداً - نضغطه بالقوة
+                    // صف طويل جداً - نضغطه بالقوة
                     currentGroup.push(i);
                     pageGroups.push([...currentGroup]);
                     currentGroup = [];
