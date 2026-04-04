@@ -1,282 +1,845 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
-<meta charset="UTF-8">
-<title>فاتورة</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>فاتورة إلكترونية - منصة في خدمتك</title>
+    <link rel="icon" href="data:,">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        body {
+            background: #eef2f5;
+            font-family: 'Cairo', 'Segoe UI', sans-serif;
+            direction: rtl;
+            padding: 20px;
+        }
 
-<style>
-@page { size: A4; margin: 0; }
+        .invoice-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-body {
-  background:#eef2f5;
-  font-family:Cairo;
-}
+        /* A4 Page */
+        .page {
+            width: 210mm;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            position: relative;
+            padding: 20mm 15mm 25mm 15mm;
+            page-break-after: always;
+            break-after: page;
+        }
 
-.page {
-  width:210mm;
-  height:297mm;
-  padding:20mm 15mm 25mm 15mm;
-  background:#fff;
-  position:relative;
-  page-break-after:always;
-}
+        /* Prevent content splitting */
+        .no-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
 
-.header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
+        /* Page number */
+        .page-number {
+            position: absolute;
+            bottom: 10mm;
+            right: 15mm;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        .page-date {
+            position: absolute;
+            bottom: 10mm;
+            left: 15mm;
+            font-size: 10px;
+            color: #94a3b8;
+        }
 
-.logo {
-  height:60px;
-}
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .page {
+                box-shadow: none;
+                border-radius: 0;
+                margin: 0;
+                padding: 20mm 15mm 25mm 15mm !important;
+                page-break-after: always;
+            }
+            .action-buttons {
+                display: none;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
 
-.product-table {
-  width:100%;
-  border-collapse:collapse;
-  font-size:12px;
-}
+        /* Invoice Styles */
+        .company-badge {
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .company-badge span {
+            flex: 1;
+            text-align: center;
+        }
 
-.product-table th, .product-table td {
-  border:1px solid #ccc;
-  padding:6px;
-}
-
-.page-number {
-  position:absolute;
-  bottom:10mm;
-  right:15mm;
-  font-size:12px;
-}
-
-.actions {
-  position:fixed;
-  bottom:20px;
-  width:100%;
-  text-align:center;
-}
-</style>
+        .invoice-header {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1e3a5f;
+        }
+        .logo-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+        .logo-icon {
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(135deg, #1e3a5f, #3b82f6);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .logo-icon i {
+            font-size: 38px;
+            color: white;
+        }
+        .invoice-title h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e3a5f;
+        }
+        .invoice-title p {
+            font-size: 12px;
+            margin: 2px 0;
+        }
+        .badge-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin: 12px 0;
+        }
+        .info-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .info-card h3 {
+            font-size: 15px;
+            margin-bottom: 5px;
+            border-right: 3px solid #3b82f6;
+            padding-right: 6px;
+        }
+        .info-card p {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .info-row {
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 15px 0 10px 0;
+            border-right: 4px solid #3b82f6;
+            padding-right: 8px;
+        }
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin: 8px 0;
+        }
+        .product-table th {
+            background: #1e3a5f;
+            color: white;
+            padding: 8px 5px;
+            border: 1px solid #2d4a6e;
+        }
+        .product-table td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 5px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .product-img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .desc-text {
+            font-size: 10px;
+            max-width: 140px;
+            word-break: break-word;
+        }
+        .summary-box {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin: 15px 0;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #cbd5e1;
+            font-size: 13px;
+        }
+        .summary-row.total {
+            font-size: 17px;
+            font-weight: 800;
+            color: #166534;
+            border-top: 2px solid #86efac;
+            padding-top: 8px;
+            margin-top: 4px;
+            border-bottom: none;
+        }
+        .terms-box {
+            background: #fefce8;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin: 12px 0;
+            border-right: 4px solid #eab308;
+            font-size: 11px;
+        }
+        .footer-static {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #1e3a5f;
+            text-align: center;
+        }
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 8px 15px;
+            border-radius: 40px;
+            margin-bottom: 8px;
+        }
+        .contact-links span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #334155;
+        }
+        .footer-copyright {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        
+        .action-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 1000;
+        }
+        .btn {
+            padding: 8px 22px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-print { background: #3b82f6; color: white; }
+        .btn-pdf { background: #ef4444; color: white; }
+        .btn-png { background: #8b5cf6; color: white; }
+        .btn-close { background: #64748b; color: white; }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .loading-spinner {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .loading-spinner i {
+            font-size: 40px;
+            color: #3b82f6;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 750px) {
+            .page { padding: 15mm 10mm 20mm 10mm; }
+            .two-columns { grid-template-columns: 1fr; gap: 10px; }
+            .product-table th, .product-table td { font-size: 9px; padding: 3px; }
+            .product-img { width: 35px; height: 35px; }
+            .logo-icon { width: 55px; height: 55px; }
+            .logo-icon i { font-size: 28px; }
+        }
+    </style>
 </head>
-
 <body>
-
-<div id="invoiceContainer"></div>
-
-<div class="actions">
-  <button onclick="window.print()">طباعة</button>
-  <button onclick="exportPDF()">PDF</button>
-  <button onclick="exportPNG()">PNG</button>
+<div id="loading" class="text-center py-20">
+    <div style="border:3px solid #e2e8f0; border-top-color:#3b82f6; width:45px; height:45px; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 15px;"></div>
+    <p class="text-gray-600">جاري تحميل الفاتورة...</p>
+</div>
+<div id="invoiceContainer" style="display: none;"></div>
+<div class="action-buttons" id="actionButtons" style="display: none;">
+    <button class="btn btn-print" id="printBtn"><i class="fas fa-print"></i> طباعة</button>
+    <button class="btn btn-pdf" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+    <button class="btn btn-png" id="pngBtn"><i class="fas fa-image"></i> صورة</button>
+    <button class="btn btn-close" onclick="window.close()"><i class="fas fa-times"></i> إغلاق</button>
 </div>
 
 <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-import { getDocument, loadCustomers, loadProducts } from "./js/firebase.js";
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+        authDomain: "msjt301-974bb.firebaseapp.com",
+        projectId: "msjt301-974bb",
+        storageBucket: "msjt301-974bb.firebasestorage.app",
+        messagingSenderId: "186209858482",
+        appId: "1:186209858482:web:186ca610780799ef562aab"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-// =========================
-// أدوات
-// =========================
-function mmToPx(mm){ return mm * 3.78 }
+    let customersMap = new Map();
+    let productsMap = new Map();
+    let currentFileName = "";
 
-function getUsableHeight(){
-  return mmToPx(297 - (20 + 25));
-}
-
-// =========================
-// إنشاء صف
-// =========================
-function createRow(item, products){
-
-  const product = products.find(p => p.id === item.productId) || {};
-
-  const tr = document.createElement('tr');
-
-  tr.innerHTML = `
-    <td>${item.name || product.name || '-'}</td>
-    <td>${item.quantity || 0}</td>
-    <td>${(item.price || 0).toFixed(2)}</td>
-    <td>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
-  `;
-
-  return tr;
-}
-
-// =========================
-// قياس الصفوف
-// =========================
-async function measureRows(rows){
-
-  const box = document.createElement('div');
-  box.style.position='absolute';
-  box.style.visibility='hidden';
-  box.style.top='-9999px';
-  box.style.width='794px';
-
-  document.body.appendChild(box);
-
-  const table=document.createElement('table');
-  table.className='product-table';
-  const tbody=document.createElement('tbody');
-  table.appendChild(tbody);
-  box.appendChild(table);
-
-  const heights=[];
-
-  for(let r of rows){
-    tbody.innerHTML='';
-    const c=r.cloneNode(true);
-    tbody.appendChild(c);
-
-    await new Promise(x=>setTimeout(x,30));
-
-    heights.push(c.getBoundingClientRect().height);
-  }
-
-  document.body.removeChild(box);
-  return heights;
-}
-
-// =========================
-// تقسيم الصفحات
-// =========================
-async function splitPages(rows){
-
-  const heights = await measureRows(rows);
-
-  const usable = getUsableHeight();
-  const BUFFER = 60;
-
-  const pages=[];
-  let current=[];
-  let h=0;
-
-  for(let i=0;i<rows.length;i++){
-
-    if(current.length && h + heights[i] > usable - BUFFER){
-      pages.push(current);
-      current=[];
-      h=0;
+    async function loadCustomersAndProducts() {
+        const customersSnap = await getDocs(collection(db, 'customers'));
+        customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
+        const productsSnap = await getDocs(collection(db, 'products'));
+        productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
     }
 
-    current.push(rows[i]);
-    h += heights[i];
-  }
+    async function getOrder(orderId) {
+        const orderRef = doc(db, 'orders', orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return null;
+        return { id: orderSnap.id, ...orderSnap.data() };
+    }
 
-  if(current.length) pages.push(current);
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
+    }
 
-  return pages;
-}
+    function formatTime(time24) {
+        if (!time24) return '';
+        let [h, m] = time24.split(':');
+        let hour = parseInt(h);
+        let ampm = hour >= 12 ? 'مساءً' : 'صباحاً';
+        hour = hour % 12 || 12;
+        return `${hour.toString().padStart(2,'0')}:${m} ${ampm}`;
+    }
 
-// =========================
-// إنشاء صفحة
-// =========================
-function createPage(rows, pageNum, total, order, customer){
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 
-  const page=document.createElement('div');
-  page.className='page';
+    function getStatusClass(status) {
+        const map = {
+            'جديد': 'bg-blue-100 text-blue-800',
+            'تحت التنفيذ': 'bg-yellow-100 text-yellow-800',
+            'تم التنفيذ': 'bg-green-100 text-green-800',
+            'تحت المراجعة': 'bg-purple-100 text-purple-800',
+            'مسترجع': 'bg-orange-100 text-orange-800',
+            'ملغي': 'bg-red-100 text-red-800'
+        };
+        return map[status] || 'bg-gray-100 text-gray-800';
+    }
 
-  page.innerHTML = `
-    <div class="header">
-      <div>
-        <h2>فاتورة</h2>
-        <p>رقم الطلب: ${order.id}</p>
-        <p>العميل: ${customer.name || '-'}</p>
-      </div>
-      <img src="./images/logo.svg" class="logo">
-    </div>
-  `;
+    function showLoading() {
+        let overlay = document.getElementById('loadingOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'loadingOverlay';
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `<div class="loading-spinner"><i class="fas fa-spinner"></i><p>جاري التحميل...</p></div>`;
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'flex';
+    }
 
-  const table=document.createElement('table');
-  table.className='product-table';
+    function hideLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
 
-  table.innerHTML=`
-    <thead>
-      <tr>
-        <th>المنتج</th>
-        <th>الكمية</th>
-        <th>السعر</th>
-        <th>الإجمالي</th>
-      </tr>
-    </thead>
-  `;
+    // Convert mm to pixels (1mm = 3.779527559px)
+    function mmToPx(mm) {
+        return mm * 3.779527559;
+    }
 
-  const tbody=document.createElement('tbody');
-  rows.forEach(r=>tbody.appendChild(r.cloneNode(true)));
+    // Calculate usable height: A4 height - top padding - bottom safe area
+    function getUsableHeightPx() {
+        const pageHeightMM = 297;
+        const topPaddingMM = 20;
+        const bottomSafeMM = 25;
+        const usableMM = pageHeightMM - topPaddingMM - bottomSafeMM;
+        return mmToPx(usableMM);
+    }
 
-  table.appendChild(tbody);
-  page.appendChild(table);
+    // Create a complete page with all fixed elements (without product rows)
+    function createBasePageElement(order, customer, paymentMethodName, shippingMethodText, pageNum, totalPages, todayStr) {
+        const page = document.createElement('div');
+        page.className = 'page';
+        
+        // Header
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'invoice-header';
+        headerDiv.innerHTML = `
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="invoice-title text-left">
+                    <h1>فاتورة إلكترونية</h1>
+                    <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
+                    <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} | <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
+                    <p><span class="badge-status ${getStatusClass(order.status)}">${order.status || 'جديد'}</span></p>
+                </div>
+            </div>
+            <div class="company-badge">
+                <span><i class="fas fa-briefcase"></i> <strong>منصة في خدمتك</strong></span>
+                <span><i class="fas fa-id-card"></i> رقم شهادة العمل الحر: FL-765735204</span>
+                <span><i class="fas fa-chart-line"></i> الرقم الضريبي: 312495447600003</span>
+            </div>
+        `;
+        page.appendChild(headerDiv);
+        
+        // Two columns
+        const columnsDiv = document.createElement('div');
+        columnsDiv.className = 'two-columns';
+        columnsDiv.innerHTML = `
+            <div class="info-card">
+                <h3><i class="fas fa-building ml-2"></i> مصدرة من</h3>
+                <p>منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط<br>رقم المبنى: 3085 | الرمز البريدي: 55431</p>
+            </div>
+            <div class="info-card">
+                <h3><i class="fas fa-user ml-2"></i> مصدرة إلى</h3>
+                <p><strong>العميل:</strong> ${escapeHtml(customer.name || '__________')}<br>
+                <strong>المدينة:</strong> ${escapeHtml(customer.city || '__________')}<br>
+                <strong>العنوان:</strong> ${escapeHtml(customer.street || '__________')}<br>
+                <strong>الجوال:</strong> ${escapeHtml(customer.phone || '__________')}<br>
+                <strong>البريد:</strong> ${escapeHtml(customer.email || '__________')}</p>
+            </div>
+        `;
+        page.appendChild(columnsDiv);
+        
+        // Payment and shipping rows
+        const infoRow1 = document.createElement('div');
+        infoRow1.className = 'info-row';
+        infoRow1.innerHTML = `
+            <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${paymentMethodName}</span>
+            <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${order.approvalCode || 'APV-' + Math.floor(Math.random()*10000)}</span>
+        `;
+        page.appendChild(infoRow1);
+        
+        const infoRow2 = document.createElement('div');
+        infoRow2.className = 'info-row';
+        infoRow2.innerHTML = `<span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>`;
+        page.appendChild(infoRow2);
+        
+        // Section title
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'section-title';
+        titleDiv.innerHTML = `تفاصيل المنتجات / الخدمات ${totalPages > 1 ? `(صفحة ${pageNum} من ${totalPages})` : ''}`;
+        page.appendChild(titleDiv);
+        
+        return page;
+    }
 
-  const num=document.createElement('div');
-  num.className='page-number';
-  num.textContent=`${pageNum} / ${total}`;
+    // Add footer and page numbering to a page
+    function finalizePage(page, pageNum, totalPages, todayStr, includeSummary = false, summaryHTML = '') {
+        // Add summary if needed
+        if (includeSummary && summaryHTML) {
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = summaryHTML;
+            page.appendChild(summaryDiv);
+        }
+        
+        // Footer
+        const footerDiv = document.createElement('div');
+        footerDiv.className = 'footer-static';
+        footerDiv.innerHTML = `
+            <div class="contact-links">
+                <span><i class="fas fa-phone-alt"></i> هاتف: 966534051317</span>
+                <span><i class="fab fa-whatsapp"></i> واتساب: 966545312021</span>
+                <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
+                <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
+            </div>
+            <div class="footer-copyright">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+        `;
+        page.appendChild(footerDiv);
+        
+        // Page number and date
+        const pageNumberDiv = document.createElement('div');
+        pageNumberDiv.className = 'page-number';
+        pageNumberDiv.textContent = `${pageNum} / ${totalPages}`;
+        page.appendChild(pageNumberDiv);
+        
+        const pageDateDiv = document.createElement('div');
+        pageDateDiv.className = 'page-date';
+        pageDateDiv.textContent = `تم الإنشاء: ${todayStr}`;
+        page.appendChild(pageDateDiv);
+        
+        return page;
+    }
 
-  page.appendChild(num);
+    // Create a product row element
+    function createProductRow(item, productImage, description, price, qty, itemTotal) {
+        const row = document.createElement('tr');
+        const imgSrc = productImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
+        row.innerHTML = `
+            <td style="text-align: right;">${escapeHtml(item.name)}</td>
+            <td style="width: 55px;"><img src="${imgSrc}" class="product-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E'"></td>
+            <td>${escapeHtml(item.barcode || '—')}</td>
+            <td class="desc-text">${escapeHtml(description).substring(0, 70)}${description.length > 70 ? '…' : ''}</td>
+            <td>${qty}</td>
+            <td>${price.toFixed(2)} ريال</td>
+            <td>${itemTotal.toFixed(2)} ريال</td>
+        `;
+        return row;
+    }
 
-  return page;
-}
-
-// =========================
-// تشغيل
-// =========================
-async function render(){
-
-  const orderId = new URLSearchParams(location.search).get('id');
-
-  const order = await getDocument('orders', orderId);
-  if (!order) return alert("الطلب غير موجود");
-
-  const customers = await loadCustomers();
-  const products = await loadProducts();
-
-  const customer = customers.find(c => c.id === order.customerId) || {};
-
-  const rows = (order.items || []).map(item => createRow(item, products));
-
-  const pages = await splitPages(rows);
-
-  const container=document.getElementById('invoiceContainer');
-
-  pages.forEach((p,i)=>{
-    container.appendChild(createPage(p,i+1,pages.length,order,customer));
-  });
-
-}
-
-render();
-
-// =========================
-// اسم الملف
-// =========================
-function getFileName(order, customer){
-  const today = new Date().toISOString().split('T')[0];
-  const name = (customer.name || 'client').replace(/[^\w\u0600-\u06FF]/g,'_');
-  return `${name}_${order.id}_${today}`;
-}
-
-// =========================
-// PDF
-// =========================
-window.exportPDF = async function(){
-  const el=document.getElementById('invoiceContainer');
-  await html2pdf().from(el).save("invoice.pdf");
-}
-
-// =========================
-// PNG
-// =========================
-window.exportPNG = async function(){
-  const canvas = await html2canvas(document.getElementById('invoiceContainer'),{scale:3});
-  const link=document.createElement('a');
-  link.download="invoice.png";
-  link.href=canvas.toDataURL();
-  link.click();
-}
-
+    async function renderInvoice() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('id');
+        const autoAction = urlParams.get('auto');
+        
+        if (!orderId) {
+            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10">رقم الطلب غير موجود</div>';
+            return;
+        }
+        
+        await loadCustomersAndProducts();
+        const order = await getOrder(orderId);
+        if (!order) {
+            document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10">الطلب غير موجود</div>';
+            return;
+        }
+        
+        const customer = customersMap.get(order.customerId) || { name: '__________', phone: '__________', city: '__________', street: '__________', email: '__________' };
+        
+        // Generate filename
+        const clientName = (customer.name || 'client').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
+        const orderNumber = order.orderNumber || order.id;
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}`;
+        currentFileName = `${clientName}_${orderNumber}_${dateStr}`;
+        const todayStr = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
+        
+        // Calculate totals
+        let subtotal = 0;
+        const items = order.items || [];
+        for (const item of items) {
+            const price = item.price || 0;
+            const qty = item.quantity || 0;
+            subtotal += price * qty;
+        }
+        
+        let discountValue = order.discount || 0;
+        if (order.discountType === 'percent' && discountValue > 0) discountValue = (subtotal * discountValue) / 100;
+        const afterDiscount = subtotal - discountValue;
+        const tax = afterDiscount * 0.15;
+        const total = afterDiscount + tax;
+        
+        const paymentMethodName = order.paymentMethodName || 
+            (order.paymentMethod === 'mada' ? 'مدى' :
+            order.paymentMethod === 'mastercard' ? 'ماستركارد' :
+            order.paymentMethod === 'visa' ? 'فيزا' :
+            order.paymentMethod === 'stcpay' ? 'STCPay' :
+            order.paymentMethod === 'tamara' ? 'تمارا' :
+            order.paymentMethod === 'tabby' ? 'تابي' : 'أخرى');
+        
+        const shippingMethodText = {
+            'pickup': '🏪 استلام من المقر',
+            'delivery': '🚚 شحن منزلي',
+            'noship': '📥 لا يتطلب شحن'
+        }[order.shippingMethod] || 'استلام من المقر';
+        
+        const summaryHTML = `
+            <div class="summary-box">
+                <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
+                <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
+                <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
+                <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
+            </div>
+            <div class="terms-box">
+                <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
+                <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها</p>
+            </div>
+            <div class="text-center mt-3 py-2 bg-blue-50 rounded-xl">
+                <p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p>
+            </div>
+        `;
+        
+        // Prepare product rows with their heights
+        const productRows = [];
+        for (const item of items) {
+            const price = item.price || 0;
+            const qty = item.quantity || 0;
+            const itemTotal = price * qty;
+            
+            let productImage = '';
+            if (item.productId) {
+                const prod = productsMap.get(item.productId);
+                if (prod && prod.image) productImage = prod.image;
+            }
+            if (!productImage && item.image) productImage = item.image;
+            const description = item.description || (productsMap.get(item.productId)?.description) || '';
+            
+            productRows.push({
+                element: createProductRow(item, productImage, description, price, qty, itemTotal),
+                item: item
+            });
+        }
+        
+        // ============================================================
+        // DYNAMIC PAGINATION BASED ON ACTUAL RENDERED HEIGHT
+        // ============================================================
+        
+        // Create hidden container for measuring
+        const measureContainer = document.createElement('div');
+        measureContainer.style.position = 'absolute';
+        measureContainer.style.visibility = 'hidden';
+        measureContainer.style.top = '-9999px';
+        measureContainer.style.left = '-9999px';
+        measureContainer.style.width = '210mm';
+        measureContainer.style.padding = '20mm 15mm 25mm 15mm';
+        measureContainer.style.boxSizing = 'border-box';
+        measureContainer.style.background = 'white';
+        document.body.appendChild(measureContainer);
+        
+        // Create a temporary page to measure fixed elements height
+        const tempPage = createBasePageElement(order, customer, paymentMethodName, shippingMethodText, 1, 1, todayStr);
+        measureContainer.appendChild(tempPage);
+        await new Promise(r => setTimeout(r, 50));
+        
+        // Get the table body to add rows
+        const tempTbody = document.createElement('tbody');
+        const tempTable = document.createElement('table');
+        tempTable.className = 'product-table';
+        tempTable.appendChild(document.createElement('thead'));
+        tempTable.appendChild(tempTbody);
+        tempPage.appendChild(tempTable);
+        
+        await new Promise(r => setTimeout(r, 30));
+        
+        // Measure fixed elements height (without any product rows)
+        const fixedHeight = tempPage.scrollHeight;
+        
+        // Calculate usable height for product rows with BUFFER (40px tolerance)
+        const usableHeight = getUsableHeightPx();
+        const BUFFER = 40;
+        const availableForRows = usableHeight - fixedHeight - BUFFER;
+        
+        // Measure each product row height
+        const rowHeights = [];
+        for (let i = 0; i < productRows.length; i++) {
+            tempTbody.innerHTML = '';
+            tempTbody.appendChild(productRows[i].element.cloneNode(true));
+            await new Promise(r => setTimeout(r, 10));
+            rowHeights.push(productRows[i].element.scrollHeight);
+        }
+        
+        // Clean up measure container
+        document.body.removeChild(measureContainer);
+        
+        // Distribute rows into pages based on accumulated height
+        const pageGroups = [];
+        let currentGroup = [];
+        let currentHeight = 0;
+        
+        for (let i = 0; i < productRows.length; i++) {
+            const rowHeight = rowHeights[i];
+            
+            // If adding this row exceeds available space, start a new page
+            if (currentGroup.length > 0 && currentHeight + rowHeight > availableForRows) {
+                pageGroups.push([...currentGroup]);
+                currentGroup = [];
+                currentHeight = 0;
+            }
+            
+            currentGroup.push(productRows[i]);
+            currentHeight += rowHeight;
+        }
+        
+        if (currentGroup.length > 0) {
+            pageGroups.push(currentGroup);
+        }
+        
+        // Build actual pages
+        const container = document.getElementById('invoiceContainer');
+        container.innerHTML = '';
+        const totalPages = pageGroups.length;
+        
+        for (let pageIdx = 0; pageIdx < pageGroups.length; pageIdx++) {
+            const group = pageGroups[pageIdx];
+            const isLastPage = (pageIdx === totalPages - 1);
+            
+            // Create base page
+            const page = createBasePageElement(order, customer, paymentMethodName, shippingMethodText, pageIdx + 1, totalPages, todayStr);
+            
+            // Create table and add rows
+            const table = document.createElement('table');
+            table.className = 'product-table';
+            
+            // Table header
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
+            `;
+            table.appendChild(thead);
+            
+            // Table body with rows
+            const tbody = document.createElement('tbody');
+            for (const row of group) {
+                tbody.appendChild(row.element.cloneNode(true));
+            }
+            table.appendChild(tbody);
+            page.appendChild(table);
+            
+            // Finalize page
+            finalizePage(page, pageIdx + 1, totalPages, todayStr, isLastPage, summaryHTML);
+            
+            container.appendChild(page);
+        }
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('invoiceContainer').style.display = 'block';
+        document.getElementById('actionButtons').style.display = 'flex';
+        
+        // Setup buttons
+        document.getElementById('printBtn').onclick = () => window.print();
+        document.getElementById('pdfBtn').onclick = () => exportPDF();
+        document.getElementById('pngBtn').onclick = () => exportPNG();
+        
+        if (autoAction === 'print') setTimeout(() => window.print(), 500);
+        else if (autoAction === 'pdf') setTimeout(() => exportPDF(), 500);
+        else if (autoAction === 'png') setTimeout(() => exportPNG(), 500);
+    }
+    
+    async function exportPDF() {
+        const element = document.getElementById('invoiceContainer');
+        if (!element) return;
+        const btn = document.getElementById('pdfBtn');
+        btn.disabled = true;
+        showLoading();
+        try {
+            await html2pdf().set({
+                margin: [0, 0, 0, 0],
+                filename: `${currentFileName}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 3, useCORS: true, dpi: 300 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(element).save();
+        } catch (error) {
+            alert('حدث خطأ أثناء تصدير PDF');
+        } finally {
+            btn.disabled = false;
+            hideLoading();
+        }
+    }
+    
+    async function exportPNG() {
+        const element = document.getElementById('invoiceContainer');
+        if (!element) return;
+        const btn = document.getElementById('pngBtn');
+        btn.disabled = true;
+        showLoading();
+        try {
+            const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+            const link = document.createElement('a');
+            link.download = `${currentFileName}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (error) {
+            alert('حدث خطأ أثناء تصدير الصورة');
+        } finally {
+            btn.disabled = false;
+            hideLoading();
+        }
+    }
+    
+    renderInvoice();
 </script>
-
 </body>
 </html>
