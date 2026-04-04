@@ -38,7 +38,6 @@
         }
         
         .page-inner-content { flex: 1; }
-        /* spacer يضمن عدم تجاوز المحتوى للهامش السفلي 25mm */
         .bottom-margin-spacer { height: 25mm; width: 100%; flex-shrink: 0; }
         
         .page-number {
@@ -124,7 +123,7 @@
 <body>
 <div id="loading" class="text-center py-20">
     <div style="border:3px solid #e2e8f0; border-top-color:#3b82f6; width:45px; height:45px; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 15px;"></div>
-    <p class="text-gray-600">جاري تحميل الفاتورة الذكية...</p>
+    <p class="text-gray-600">جاري تجهيز الفاتورة الذكية...</p>
 </div>
 <div id="invoiceContainer" style="display: none;"></div>
 <div class="action-buttons" id="actionButtons" style="display: none;">
@@ -211,7 +210,7 @@
     function showLoading() { let overlay = document.getElementById('loadingOverlay'); if (!overlay) { overlay = document.createElement('div'); overlay.id = 'loadingOverlay'; overlay.className = 'loading-overlay'; overlay.innerHTML = `<div class="loading-spinner"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">جاري إنشاء الفاتورة المعتمدة...</p></div>`; document.body.appendChild(overlay); } overlay.style.display = 'flex'; }
     function hideLoading() { const overlay = document.getElementById('loadingOverlay'); if (overlay) overlay.style.display = 'none'; }
     
-    // قياس أي عنصر HTML بدقة (نسخ مؤقت)
+    // دقيقة لقياس ارتفاع أي عنصر يتم إنشاؤه ديناميكيًا
     async function measureElementHeight(elementCreator) {
         const container = document.createElement('div');
         container.style.position = 'absolute';
@@ -223,13 +222,13 @@
         document.body.appendChild(container);
         const targetElem = elementCreator();
         container.appendChild(targetElem);
-        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 20)));
+        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
         const height = targetElem.getBoundingClientRect().height;
         document.body.removeChild(container);
         return height;
     }
     
-    // إنشاء صف المنتج كعنصر DOM لقياسه أو إلحاقه
+    // إنشاء صف المنتج كعنصر DOM (للاستخدام في الجدول)
     function createProductRowDOM(item, productImage, description, price, qty, itemTotal) {
         const tr = document.createElement('tr');
         const imgSrc = productImage && productImage.trim() !== '' ? productImage : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
@@ -352,12 +351,12 @@
             <div class="thanks-block"><p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p></div>
         `;
         
-        // قياس ارتفاعات المكونات الثابتة
+        // قياس ارتفاعات المكونات الثابتة (مرة واحدة)
         const headerHeight = await measureElementHeight(() => { const div = document.createElement('div'); div.innerHTML = headerHTML; return div; });
         const footerStaticHeight = await measureElementHeight(() => { const div = document.createElement('div'); div.innerHTML = footerStaticHTML; return div; });
         const summaryHeight = await measureElementHeight(() => { const div = document.createElement('div'); div.innerHTML = summaryHTML; return div; });
         
-        // قياس كل صف منتج على حدة
+        // قياس ارتفاع كل صف منتج على حدة (ضمن سياق الجدول)
         const rowHeights = [];
         for (const data of productRowsData) {
             const rowElement = createProductRowDOM(data.item, data.productImage, data.description, data.price, data.qty, data.itemTotal);
@@ -374,85 +373,92 @@
             rowHeights.push(height);
         }
         
-        // ---------- خوارزمية التقسيم الديناميكي بناءً على الارتفاع الفعلي ----------
-        const pagesRowsIndices = []; // قائمة كل صفحة تحتوي على مصفوفة indices الصفوف
+        // ---------- خوارزمية التقسيم الديناميكي الصحيحة ----------
+        // نحتاج لتوزيع الصفوف على صفحات بحيث لا يتجاوز الارتفاع الإجمالي (الرأس + الصفوف + التذييل + (الملخص للصفحة الأخيرة)) الحد الأقصى
+        const pages = []; // كل عنصر عبارة عن مصفوفة من indices الصفوف
+        
         let currentPageRows = [];
-        let currentHeightUsed = headerHeight + footerStaticHeight;
-        let remainingRows = [...Array(productRowsData.length).keys()];
-        let idx = 0;
+        let currentHeight = headerHeight + footerStaticHeight; // بدون ملخص بعد
         
-        while (idx < productRowsData.length) {
-            const rowH = rowHeights[idx];
-            // هل هذه هي الصفحة الأخيرة المحتملة؟ (لا نعرف بعد، لكن سنحاول)
-            const willBeLastPage = (idx === productRowsData.length - 1 && currentPageRows.length === 0) || (idx + 1 === productRowsData.length && currentPageRows.length >= 0);
-            // بالنسبة للصفحة الأخيرة يجب مراعاة الـ summaryHeight
-            let availableForRows = MAX_USABLE_HEIGHT_PX - (headerHeight + footerStaticHeight);
-            if (willBeLastPage && currentPageRows.length === 0 && (idx === productRowsData.length - 1)) {
-                availableForRows = MAX_USABLE_HEIGHT_PX - (headerHeight + footerStaticHeight + summaryHeight);
-            } else if (willBeLastPage && (idx + 1 === productRowsData.length)) {
-                // في حالة إضافة الصف الحالي ثم سيكون هذه الصفحة الأخيرة
-                const tempHeightAfterAdd = currentHeightUsed + rowH;
-                if (tempHeightAfterAdd + summaryHeight <= MAX_USABLE_HEIGHT_PX) {
-                    availableForRows = MAX_USABLE_HEIGHT_PX - (headerHeight + footerStaticHeight + summaryHeight);
-                } else {
-                    availableForRows = MAX_USABLE_HEIGHT_PX - (headerHeight + footerStaticHeight);
-                }
-            }
-            
-            if (currentHeightUsed + rowH <= availableForRows + SAFETY_BUFFER_PX) {
-                currentPageRows.push(idx);
-                currentHeightUsed += rowH;
-                idx++;
-            } else {
-                // إنهاء الصفحة الحالية وحفظها
-                if (currentPageRows.length === 0) {
-                    // عنصر واحد لا يتناسب حتى بمفرده (حالة نادرة) نضغطه بالقوة
-                    currentPageRows.push(idx);
-                    currentHeightUsed = headerHeight + footerStaticHeight + rowH;
-                    idx++;
-                }
-                pagesRowsIndices.push([...currentPageRows]);
+        for (let i = 0; i < rowHeights.length; i++) {
+            const rowH = rowHeights[i];
+            // هل هذه الصفحة ستصبح الأخيرة إذا أضفنا هذا الصف ولم يتبق صفوف بعدها؟
+            const isPotentialLastPage = (i === rowHeights.length - 1);
+            // الارتفاع المتوقع بعد إضافة هذا الصف (بدون ملخص)
+            let newHeight = currentHeight + rowH;
+            // إذا كانت الصفحة الأخيرة، يجب أن يتسع الملخص أيضاً
+            if (isPotentialLastPage && currentPageRows.length === 0 && newHeight + summaryHeight <= MAX_USABLE_HEIGHT_PX) {
+                // يمكن إضافة الصف والملخص معاً
+                currentPageRows.push(i);
+                pages.push([...currentPageRows]);
                 currentPageRows = [];
-                currentHeightUsed = headerHeight + footerStaticHeight;
-            }
-        }
-        if (currentPageRows.length > 0) pagesRowsIndices.push([...currentPageRows]);
-        
-        // معالجة الصفحة الأخيرة للتأكد من احتوائها على الملخص دون تجاوز
-        if (pagesRowsIndices.length > 0) {
-            let lastPageIdx = pagesRowsIndices.length - 1;
-            let lastPageRows = pagesRowsIndices[lastPageIdx];
-            let lastPageRowsHeight = lastPageRows.reduce((sum, rIdx) => sum + rowHeights[rIdx], 0);
-            let totalLastPageHeight = headerHeight + footerStaticHeight + lastPageRowsHeight + summaryHeight;
-            if (totalLastPageHeight > MAX_USABLE_HEIGHT_PX) {
-                // نحتاج نقل بعض الصفوف إلى صفحة جديدة قبل الأخيرة
-                while (totalLastPageHeight > MAX_USABLE_HEIGHT_PX && lastPageRows.length > 1) {
-                    const movedRow = lastPageRows.pop();
-                    const newPrevPageRows = pagesRowsIndices[lastPageIdx - 1] || [];
-                    if (pagesRowsIndices[lastPageIdx - 1]) {
-                        pagesRowsIndices[lastPageIdx - 1].push(movedRow);
-                    } else {
-                        // إنشاء صفحة جديدة قبل الأخيرة
-                        pagesRowsIndices.splice(lastPageIdx, 0, [movedRow]);
-                        lastPageIdx++;
+                currentHeight = headerHeight + footerStaticHeight;
+                continue;
+            } else if (isPotentialLastPage) {
+                // نحتاج للتأكد أن الصفحة الحالية (بعد إضافة الصف) + الملخص لا تتجاوز الحد
+                if (newHeight + summaryHeight <= MAX_USABLE_HEIGHT_PX) {
+                    currentPageRows.push(i);
+                    pages.push([...currentPageRows]);
+                    currentPageRows = [];
+                    currentHeight = headerHeight + footerStaticHeight;
+                } else {
+                    // لا يتسع الصف الحالي مع الملخص في الصفحة الحالية -> نغلق الصفحة الحالية ونبدأ صفحة جديدة لهذا الصف مع الملخص
+                    if (currentPageRows.length > 0) {
+                        pages.push([...currentPageRows]);
+                        currentPageRows = [];
+                        currentHeight = headerHeight + footerStaticHeight;
                     }
-                    lastPageRowsHeight = lastPageRows.reduce((sum, rIdx) => sum + rowHeights[rIdx], 0);
-                    totalLastPageHeight = headerHeight + footerStaticHeight + lastPageRowsHeight + summaryHeight;
+                    // الآن نحاول وضع هذا الصف في صفحة جديدة بمفرده مع الملخص
+                    if (rowH + summaryHeight <= MAX_USABLE_HEIGHT_PX - (headerHeight + footerStaticHeight)) {
+                        currentPageRows.push(i);
+                        pages.push([...currentPageRows]);
+                        currentPageRows = [];
+                        currentHeight = headerHeight + footerStaticHeight;
+                    } else {
+                        // حالة نادرة: صف طويل جداً يتجاوز الصفحة حتى مع الملخص - نضغطه بقوة
+                        currentPageRows.push(i);
+                        pages.push([...currentPageRows]);
+                        currentPageRows = [];
+                        currentHeight = headerHeight + footerStaticHeight;
+                    }
                 }
-                // إعادة ترتيب إذا أصبحت الصفحة الأخيرة فارغة
-                if (lastPageRows.length === 0) {
-                    pagesRowsIndices.pop();
+            } else {
+                // ليست الصفحة الأخيرة - نتحقق فقط من وجود مساحة للصف
+                if (newHeight <= MAX_USABLE_HEIGHT_PX) {
+                    currentPageRows.push(i);
+                    currentHeight = newHeight;
+                } else {
+                    // لا يتسع الصف الحالي في هذه الصفحة -> نغلق الصفحة ونبدأ صفحة جديدة
+                    if (currentPageRows.length === 0) {
+                        // الصف لا يتناسب حتى بمفرده (نادر) - نضغطه
+                        currentPageRows.push(i);
+                        pages.push([...currentPageRows]);
+                        currentPageRows = [];
+                        currentHeight = headerHeight + footerStaticHeight;
+                    } else {
+                        pages.push([...currentPageRows]);
+                        currentPageRows = [i];
+                        currentHeight = headerHeight + footerStaticHeight + rowH;
+                    }
                 }
             }
         }
+        
+        // إذا بقت صفحة غير مكتملة ولم تكن ضمن الحلقة (لأن i انتهت)
+        if (currentPageRows.length > 0) {
+            pages.push([...currentPageRows]);
+        }
+        
+        // إزالة أي صفحات فارغة محتملة (لن تحدث ولكن للتأمين)
+        const finalPages = pages.filter(pageRows => pageRows.length > 0);
         
         // بناء الصفحات النهائية
         const container = document.getElementById('invoiceContainer');
         container.innerHTML = '';
         
-        for (let p = 0; p < pagesRowsIndices.length; p++) {
-            const rowIndices = pagesRowsIndices[p];
-            const isLastPage = (p === pagesRowsIndices.length - 1);
+        for (let p = 0; p < finalPages.length; p++) {
+            const rowIndices = finalPages[p];
+            const isLastPage = (p === finalPages.length - 1);
             const pageDiv = document.createElement('div');
             pageDiv.className = 'page';
             const wrapper = document.createElement('div');
@@ -463,9 +469,9 @@
             // رأس الصفحة
             const headerClone = document.createElement('div');
             headerClone.innerHTML = headerHTML;
-            if (pagesRowsIndices.length > 1) {
+            if (finalPages.length > 1) {
                 const titleSpan = headerClone.querySelector('.section-title');
-                if (titleSpan) titleSpan.innerHTML = `تفاصيل المنتجات / الخدمات (صفحة ${p+1} من ${pagesRowsIndices.length})`;
+                if (titleSpan) titleSpan.innerHTML = `تفاصيل المنتجات / الخدمات (صفحة ${p+1} من ${finalPages.length})`;
             }
             inner.appendChild(headerClone);
             
@@ -483,7 +489,7 @@
             table.appendChild(tbody);
             inner.appendChild(table);
             
-            // الملخص وآخر الصفحة
+            // الملخص فقط في الصفحة الأخيرة
             if (isLastPage) {
                 const summaryClone = document.createElement('div');
                 summaryClone.innerHTML = summaryHTML;
@@ -503,7 +509,7 @@
             
             const pageNumSpan = document.createElement('div');
             pageNumSpan.className = 'page-number';
-            pageNumSpan.textContent = `صفحة ${p+1} / ${pagesRowsIndices.length}`;
+            pageNumSpan.textContent = `صفحة ${p+1} / ${finalPages.length}`;
             pageDiv.appendChild(pageNumSpan);
             container.appendChild(pageDiv);
         }
@@ -530,7 +536,7 @@
         try {
             const opt = { margin: [0, 0, 0, 0], filename: `${currentFileName}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 3, useCORS: true, logging: false, dpi: 300 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true } };
             await html2pdf().set(opt).from(element).save();
-        } catch (error) { console.error(error); alert('خطأ في PDF'); } 
+        } catch (error) { console.error(error); alert('حدث خطأ أثناء تصدير PDF'); } 
         finally { btn.disabled = false; hideLoading(); }
     }
     async function exportPNG() {
@@ -545,7 +551,7 @@
             link.download = `${currentFileName}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-        } catch (error) { console.error(error); alert('خطأ في الصورة'); } 
+        } catch (error) { console.error(error); alert('حدث خطأ أثناء تصدير الصورة'); } 
         finally { btn.disabled = false; hideLoading(); }
     }
     
