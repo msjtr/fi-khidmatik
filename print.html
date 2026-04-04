@@ -28,33 +28,41 @@
             margin: 0 auto;
         }
 
-        /* كل صفحة مستقلة - مقاس A4 */
+        /* Each page independent - A4 size */
         .page {
             background: white;
             border-radius: 12px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             margin-bottom: 25px;
             position: relative;
-            /* أبعاد صفحة A4 */
+            /* A4 dimensions */
             height: 297mm;
-            /* هوامش داخلية: علوي 20mm، سفلي 30mm (منطقة آمنة)، يمين ويسار 15mm */
+            /* Inner margins: top 20mm, bottom 30mm (safe zone), right/left 15mm */
             padding: 20mm 15mm 30mm 15mm;
-            /* منع انقسام الصفحة */
+            /* Page break after each page */
             page-break-after: always;
             break-after: page;
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
-        /* منع تقطيع العناصر */
-        .section, .invoice-header, .two-columns, .info-card, .info-row, 
-        .product-table, .product-table tbody, .product-table tr, 
-        .summary-box, .terms-box, .footer-static {
+        /* Prevent element splitting - all sections */
+        .section, 
+        .invoice-header, 
+        .two-columns, 
+        .info-card, 
+        .info-row, 
+        .product-table, 
+        .product-table tbody, 
+        .product-table tr, 
+        .summary-box, 
+        .terms-box, 
+        .footer-static {
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
-        /* تذييل الصفحة مع رقم الصفحة */
+        /* Page footer with numbering */
         .page-footer {
             position: absolute;
             bottom: 10mm;
@@ -69,14 +77,19 @@
             padding-top: 5mm;
             margin-top: 5mm;
         }
+        
         .page-number {
             font-weight: 600;
+            position: static;
+            bottom: auto;
+            right: auto;
         }
+        
         .page-date {
             font-size: 9px;
         }
 
-        /* إعدادات الطباعة */
+        /* Print settings */
         @media print {
             body {
                 background: white;
@@ -91,17 +104,19 @@
                 padding: 20mm 15mm 30mm 15mm !important;
                 page-break-after: always;
                 break-after: page;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             .action-buttons {
                 display: none;
             }
             @page {
                 size: A4;
-                margin: 0; /* إلغاء الهوامش الخارجية */
+                margin: 0;
             }
         }
 
-        /* توزيع الرأس في سطر واحد */
+        /* Header styles - distributed in one line */
         .company-badge {
             background: #f1f5f9;
             padding: 8px 12px;
@@ -484,7 +499,6 @@
             `;
         }
 
-        // تاريخ اليوم لأسفل الصفحة
         const today = new Date();
         const todayStr = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
 
@@ -503,8 +517,11 @@
         `;
     }
 
-    // تقسيم المنتجات إلى صفحات - 4 منتجات كحد أقصى لكل صفحة
-    // هذا يضمن عدم تجاوز الهامش الآمن (آخر 25-30mm من الصفحة)
+    /**
+     * Automatic pagination based on safe margin (last 25-30mm)
+     * Maximum 4 products per page ensures content never reaches the bottom margin
+     * This prevents any content from being cut off
+     */
     function splitProductsIntoPages(productsArray, itemsPerPage = 4) {
         const pages = [];
         if (!productsArray.length) {
@@ -593,7 +610,12 @@
         
         const commonSections = getCommonSections(order, customer, paymentMethodName, shippingMethodText);
         
-        // 4 منتجات لكل صفحة - يضمن عدم تجاوز الهامش الآمن (آخر 25-30mm)
+        /**
+         * Automatic pagination:
+         * - MAX 4 products per page (approx 25-30mm from bottom)
+         * - When products exceed 4, new page is created automatically
+         * - No content is ever cut off
+         */
         const ITEMS_PER_PAGE = 4;
         const productPages = splitProductsIntoPages(allItemsRows, ITEMS_PER_PAGE);
         const totalPages = productPages.length;
