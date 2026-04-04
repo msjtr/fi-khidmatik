@@ -230,7 +230,6 @@
         .product-table td:first-child {
             text-align: right;
         }
-        /* محاذاة النص لليمين للوصف */
         .product-table td:nth-child(4) {
             text-align: right;
         }
@@ -242,7 +241,6 @@
             display: block;
             margin: 0 auto;
         }
-        /* عمود الوصف مع التفاف النص تلقائيًا */
         .desc-text {
             font-size: 10px;
             word-wrap: break-word;
@@ -253,13 +251,13 @@
         }
         
         /* عرض الأعمدة - بدون ترقيم */
-        .product-table th:nth-child(1) { width: 20%; }  /* اسم المنتج */
-        .product-table th:nth-child(2) { width: 12%; }  /* الصورة */
-        .product-table th:nth-child(3) { width: 10%; }  /* الباركود */
-        .product-table th:nth-child(4) { width: 28%; }  /* الوصف */
-        .product-table th:nth-child(5) { width: 8%; }   /* الكمية */
-        .product-table th:nth-child(6) { width: 12%; }  /* سعر الوحدة */
-        .product-table th:nth-child(7) { width: 12%; }  /* الإجمالي */
+        .product-table th:nth-child(1) { width: 20%; }
+        .product-table th:nth-child(2) { width: 12%; }
+        .product-table th:nth-child(3) { width: 10%; }
+        .product-table th:nth-child(4) { width: 28%; }
+        .product-table th:nth-child(5) { width: 8%; }
+        .product-table th:nth-child(6) { width: 12%; }
+        .product-table th:nth-child(7) { width: 12%; }
         
         .summary-box {
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
@@ -337,10 +335,8 @@
             cursor: pointer;
             font-size: 14px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: transform 0.1s;
         }
-        .btn:active { transform: scale(0.97); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-print { background: #3b82f6; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
         .btn-png { background: #8b5cf6; color: white; }
@@ -366,18 +362,12 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .fa-spin { animation: spin 1s linear infinite; }
-        
-        @media (max-width: 750px) {
-            .product-table th, .product-table td { font-size: 8px; padding: 4px 2px; }
-            .product-img { width: 32px; height: 32px; }
-            .desc-text { font-size: 8px; }
-        }
     </style>
 </head>
 <body>
 <div id="loading" class="text-center py-20">
     <div style="border:3px solid #e2e8f0; border-top-color:#3b82f6; width:45px; height:45px; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 15px;"></div>
-    <p class="text-gray-600">جاري تجهيز الفاتورة بنظام التقسيم الديناميكي...</p>
+    <p class="text-gray-600">جاري تجهيز الفاتورة...</p>
 </div>
 <div id="invoiceContainer" style="display: none;"></div>
 <div class="action-buttons" id="actionButtons" style="display: none;">
@@ -406,15 +396,10 @@
     let productsMap = new Map();
     let currentFileName = "";
 
-    // ==== ثوابت التقسيم الأساسية بناءً على 252mm ====
-    const A4_HEIGHT_MM = 297;
-    const TOP_MARGIN_MM = 20;
-    const BOTTOM_MARGIN_MM = 25;
-    const USABLE_HEIGHT_MM = A4_HEIGHT_MM - TOP_MARGIN_MM - BOTTOM_MARGIN_MM; // 252mm بالضبط
-    
-    const MM_TO_PX = 3.779527;
-    const USABLE_HEIGHT_PX = USABLE_HEIGHT_MM * MM_TO_PX; // 952.44px
-    
+    // أبعاد A4 بالبكسل (1mm = 3.78px)
+    const MAX_CONTENT_HEIGHT_PX = 252 * 3.78; // 952.56px
+    const BUFFER_PX = 40;
+
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
         customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
@@ -484,117 +469,15 @@
         if (overlay) overlay.style.display = 'none';
     }
 
-    // إنشاء رأس الفاتورة مع مسار الشعار الصحيح
-    function createHeaderSection(order, customer, paymentMethodName, shippingMethodText) {
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'header-section';
-        headerDiv.innerHTML = `
-            <div class="logo-header">
-                <div class="logo-area">
-                    <img src="/fi-khidmatik/images/logo.svg" alt="شعار منصة في خدمتك" style="max-height:65px; width:auto;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'logo-icon\\'><i class=\\'fas fa-handshake fa-2x\\'></i><span style=\\'font-size:10px; margin-right:5px;\\'>منصة في خدمتك</span></div>';">
-                </div>
-                <div class="invoice-title text-left">
-                    <h1>فاتورة إلكترونية</h1>
-                    <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
-                    <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} | <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
-                    <p><span class="badge-status ${getStatusClass(order.status)}">${order.status || 'جديد'}</span></p>
-                </div>
-            </div>
-            <div class="company-badge">
-                <span><i class="fas fa-briefcase"></i> <strong>منصة في خدمتك</strong></span>
-                <span><i class="fas fa-id-card"></i> رقم شهادة العمل الحر: FL-765735204</span>
-                <span><i class="fas fa-chart-line"></i> الرقم الضريبي: 312495447600003</span>
-            </div>
-            <div class="two-columns">
-                <div class="info-card">
-                    <h3><i class="fas fa-building ml-2"></i> مصدرة من</h3>
-                    <p>منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط<br>رقم المبنى: 3085 | الرمز البريدي: 55431</p>
-                </div>
-                <div class="info-card">
-                    <h3><i class="fas fa-user ml-2"></i> مصدرة إلى</h3>
-                    <p><strong>العميل:</strong> ${escapeHtml(customer.name || '__________')}<br>
-                    <strong>المدينة:</strong> ${escapeHtml(customer.city || '__________')}<br>
-                    <strong>العنوان:</strong> ${escapeHtml(customer.street || '__________')}<br>
-                    <strong>الجوال:</strong> ${escapeHtml(customer.phone || '__________')}<br>
-                    <strong>البريد:</strong> ${escapeHtml(customer.email || '__________')}</p>
-                </div>
-            </div>
-            <div class="info-row">
-                <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${paymentMethodName}</span>
-                <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${order.approvalCode || 'APV-' + Math.floor(Math.random()*10000)}</span>
-            </div>
-            <div class="info-row">
-                <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>
-            </div>
-            <div class="section-title">
-                تفاصيل المنتجات / الخدمات
-            </div>
-        `;
-        return headerDiv;
-    }
-
-    function createFooterSection() {
-        const footer = document.createElement('div');
-        footer.className = 'footer-static';
-        footer.innerHTML = `
-            <div class="contact-links">
-                <span><i class="fas fa-phone-alt"></i> هاتف: 966534051317</span>
-                <span><i class="fab fa-whatsapp"></i> واتساب: 966545312021</span>
-                <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
-                <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
-            </div>
-            <div class="footer-copyright">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
-        `;
-        return footer;
-    }
-
-    function createSummaryAndTerms(subtotal, discountValue, tax, total) {
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <div class="summary-box">
-                <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
-                <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
-                <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
-            </div>
-            <div class="terms-box">
-                <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
-                <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها</p>
-            </div>
-            <div class="text-center mt-2 py-2 bg-blue-50 rounded-xl">
-                <p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p>
-            </div>
-        `;
-        return div;
-    }
-
-    // إنشاء صف المنتج - بدون عمود الترقيم
-    function createProductRowElement(item, productImage, description, price, qty, itemTotal) {
-        const row = document.createElement('tr');
-        const imgSrc = productImage && productImage.trim() !== '' ? productImage : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
-        row.innerHTML = `
-            <td style="text-align: right; font-weight: 500;">${escapeHtml(item.name)}</td>
-            <td><img src="${imgSrc}" class="product-img" crossorigin="anonymous" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E'"></td>
-            <td>${escapeHtml(item.barcode || '—')}</td>
-            <td class="desc-text">${description || ''}</td>
-            <td>${qty}</td>
-            <td>${price.toFixed(2)} ريال</td>
-            <td>${itemTotal.toFixed(2)} ريال</td>
-        `;
-        return row;
-    }
-
-    // قياس ارتفاع العنصر بدقة
-    async function measureElementHeight(element, widthMm = 180) {
+    function measureHeight(element) {
         const clone = element.cloneNode(true);
         clone.style.position = 'absolute';
         clone.style.visibility = 'hidden';
         clone.style.top = '-9999px';
         clone.style.left = '-9999px';
-        clone.style.width = `${widthMm}mm`;
+        clone.style.width = '180mm';
         document.body.appendChild(clone);
-        await new Promise(r => setTimeout(r, 50));
-        const height = clone.getBoundingClientRect().height;
+        const height = clone.offsetHeight;
         document.body.removeChild(clone);
         return height;
     }
@@ -649,7 +532,7 @@
             'noship': '📥 لا يتطلب شحن'
         }[order.shippingMethod] || 'استلام من المقر';
         
-        // تجهيز بيانات المنتجات
+        // تحضير بيانات المنتجات
         const productRowsData = [];
         for (const item of items) {
             const price = item.price || 0;
@@ -671,125 +554,197 @@
             productRowsData.push({ item, productImage, description: description || '', price, qty, itemTotal });
         }
         
-        // قياس الأجزاء الثابتة
-        const headerElement = createHeaderSection(order, customer, paymentMethodName, shippingMethodText);
-        const footerElement = createFooterSection();
-        const summaryElement = createSummaryAndTerms(subtotal, discountValue, tax, total);
+        // إنشاء رأس الصفحة
+        const headerDiv = document.createElement('div');
+        headerDiv.innerHTML = `
+            <div class="logo-header">
+                <div class="logo-area">
+                    <img src="/fi-khidmatik/images/logo.svg" alt="شعار منصة في خدمتك" style="max-height:65px; width:auto;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'logo-icon\\'><i class=\\'fas fa-handshake fa-2x\\'></i></div>';">
+                </div>
+                <div class="invoice-title text-left">
+                    <h1>فاتورة إلكترونية</h1>
+                    <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
+                    <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} | <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
+                    <p><span class="badge-status ${getStatusClass(order.status)}">${order.status || 'جديد'}</span></p>
+                </div>
+            </div>
+            <div class="company-badge">
+                <span><i class="fas fa-briefcase"></i> <strong>منصة في خدمتك</strong></span>
+                <span><i class="fas fa-id-card"></i> رقم شهادة العمل الحر: FL-765735204</span>
+                <span><i class="fas fa-chart-line"></i> الرقم الضريبي: 312495447600003</span>
+            </div>
+            <div class="two-columns">
+                <div class="info-card">
+                    <h3><i class="fas fa-building ml-2"></i> مصدرة من</h3>
+                    <p>منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط<br>رقم المبنى: 3085 | الرمز البريدي: 55431</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-user ml-2"></i> مصدرة إلى</h3>
+                    <p><strong>العميل:</strong> ${escapeHtml(customer.name || '__________')}<br>
+                    <strong>المدينة:</strong> ${escapeHtml(customer.city || '__________')}<br>
+                    <strong>العنوان:</strong> ${escapeHtml(customer.street || '__________')}<br>
+                    <strong>الجوال:</strong> ${escapeHtml(customer.phone || '__________')}<br>
+                    <strong>البريد:</strong> ${escapeHtml(customer.email || '__________')}</p>
+                </div>
+            </div>
+            <div class="info-row">
+                <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${paymentMethodName}</span>
+                <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${order.approvalCode || 'APV-' + Math.floor(Math.random()*10000)}</span>
+            </div>
+            <div class="info-row">
+                <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>
+            </div>
+            <div class="section-title">تفاصيل المنتجات / الخدمات</div>
+        `;
         
-        const headerHeight = await measureElementHeight(headerElement);
-        const footerHeight = await measureElementHeight(footerElement);
-        const summaryHeight = await measureElementHeight(summaryElement);
-        const tableHeaderHeight = 50;
+        const footerDiv = document.createElement('div');
+        footerDiv.className = 'footer-static';
+        footerDiv.innerHTML = `
+            <div class="contact-links">
+                <span><i class="fas fa-phone-alt"></i> هاتف: 966534051317</span>
+                <span><i class="fab fa-whatsapp"></i> واتساب: 966545312021</span>
+                <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
+                <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
+            </div>
+            <div class="footer-copyright">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+        `;
         
-        // المساحة المتاحة للصفوف = 252mm - مساحة الأجزاء الثابتة - منطقة أمان
-        const SAFE_BUFFER = 50;
-        let availableForRows = USABLE_HEIGHT_PX - headerHeight - footerHeight - summaryHeight - tableHeaderHeight - SAFE_BUFFER;
+        const summaryDiv = document.createElement('div');
+        summaryDiv.innerHTML = `
+            <div class="summary-box">
+                <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
+                <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
+                <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
+                <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
+            </div>
+            <div class="terms-box">
+                <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
+                <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها</p>
+            </div>
+            <div class="text-center mt-2 py-2 bg-blue-50 rounded-xl">
+                <p class="font-bold text-blue-800"><i class="fas fa-heart"></i> شكراً لتسوقكم معنا</p>
+            </div>
+        `;
         
-        // قياس ارتفاع كل صف
-        const rowHeights = [];
-        const measureContainer = document.createElement('div');
-        measureContainer.style.position = 'absolute';
-        measureContainer.style.visibility = 'hidden';
-        measureContainer.style.top = '-9999px';
-        measureContainer.style.width = '180mm';
-        document.body.appendChild(measureContainer);
+        // قياس ارتفاعات الأجزاء الثابتة
+        const headerHeight = measureHeight(headerDiv);
+        const footerHeight = measureHeight(footerDiv);
+        const summaryHeight = measureHeight(summaryDiv);
+        const theadHeight = 50;
+        
+        const availableForRows = MAX_CONTENT_HEIGHT_PX - headerHeight - footerHeight - summaryHeight - theadHeight - BUFFER_PX;
+        
+        // إنشاء صفوف المنتجات وقياسها
+        const rows = [];
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.visibility = 'hidden';
+        tempContainer.style.top = '-9999px';
+        tempContainer.style.width = '180mm';
+        document.body.appendChild(tempContainer);
         
         const tempTable = document.createElement('table');
         tempTable.className = 'product-table';
         const tempTbody = document.createElement('tbody');
         tempTable.appendChild(tempTbody);
-        measureContainer.appendChild(tempTable);
+        tempContainer.appendChild(tempTable);
         
-        for (const rowData of productRowsData) {
+        for (const data of productRowsData) {
             tempTbody.innerHTML = '';
-            const row = createProductRowElement(rowData.item, rowData.productImage, rowData.description, rowData.price, rowData.qty, rowData.itemTotal);
+            const row = document.createElement('tr');
+            const imgSrc = data.productImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E';
+            row.innerHTML = `
+                <td style="text-align: right;">${escapeHtml(data.item.name)}</td>
+                <td><img src="${imgSrc}" class="product-img" crossorigin="anonymous" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22%3Eصورة%3C/text%3E%3C/svg%3E'"></td>
+                <td>${escapeHtml(data.item.barcode || '—')}</td>
+                <td class="desc-text">${data.description}</td>
+                <td>${data.qty}</td>
+                <td>${data.price.toFixed(2)} ريال</td>
+                <td>${data.itemTotal.toFixed(2)} ريال</td>
+            `;
             tempTbody.appendChild(row);
-            await new Promise(r => setTimeout(r, 20));
-            const height = row.getBoundingClientRect().height;
-            rowHeights.push(height);
+            const height = row.offsetHeight;
+            rows.push({ data, height, element: row.cloneNode(true) });
+            await new Promise(r => setTimeout(r, 5));
         }
-        document.body.removeChild(measureContainer);
         
-        // التقسيم الديناميكي بناءً على الارتفاع - بدون تقسيم الصفوف
+        document.body.removeChild(tempContainer);
+        
+        // التقسيم الديناميكي بناءً على الارتفاع
         const pages = [];
-        let currentPageRows = [];
+        let currentPage = [];
         let currentHeight = 0;
         
-        for (let i = 0; i < productRowsData.length; i++) {
-            const rowH = rowHeights[i];
-            // إذا كان إضافة هذا الصف سيتجاوز المساحة المتاحة ولدينا صفوف في الصفحة الحالية
-            if (currentPageRows.length > 0 && currentHeight + rowH > availableForRows) {
-                pages.push([...currentPageRows]);
-                currentPageRows = [];
+        for (const row of rows) {
+            if (currentPage.length > 0 && currentHeight + row.height > availableForRows) {
+                pages.push([...currentPage]);
+                currentPage = [];
                 currentHeight = 0;
             }
-            currentPageRows.push(i);
-            currentHeight += rowH;
+            currentPage.push(row);
+            currentHeight += row.height;
         }
-        if (currentPageRows.length > 0) pages.push(currentPageRows);
+        if (currentPage.length > 0) pages.push(currentPage);
         
-        // التأكد من عدم وجود صفحات فارغة
-        const finalPages = pages.filter(pageRows => pageRows.length > 0);
-        if (finalPages.length === 0 && productRowsData.length > 0) {
-            finalPages.push([...Array(productRowsData.length).keys()]);
-        }
+        if (pages.length === 0 && rows.length > 0) pages.push([...rows]);
         
+        // بناء الصفحات
         const container = document.getElementById('invoiceContainer');
         container.innerHTML = '';
-        const totalPages = finalPages.length;
         
-        for (let pageIdx = 0; pageIdx < finalPages.length; pageIdx++) {
-            const pageRowIndices = finalPages[pageIdx];
-            const isLastPage = (pageIdx === totalPages - 1);
+        for (let i = 0; i < pages.length; i++) {
+            const pageRows = pages[i];
+            const isLastPage = (i === pages.length - 1);
             
             const page = document.createElement('div');
             page.className = 'page';
             
-            const contentWrapper = document.createElement('div');
-            contentWrapper.className = 'page-content-wrapper';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'page-content-wrapper';
             
-            const innerContent = document.createElement('div');
-            innerContent.className = 'page-inner-content';
+            const inner = document.createElement('div');
+            inner.className = 'page-inner-content';
             
-            const headerClone = headerElement.cloneNode(true);
-            if (totalPages > 1) {
-                const titleDiv = headerClone.querySelector('.section-title');
-                if (titleDiv) titleDiv.innerHTML = `تفاصيل المنتجات / الخدمات (صفحة ${pageIdx+1} من ${totalPages})`;
+            // إضافة الرأس
+            const headerClone = headerDiv.cloneNode(true);
+            if (pages.length > 1) {
+                const title = headerClone.querySelector('.section-title');
+                if (title) title.innerHTML = `تفاصيل المنتجات / الخدمات (صفحة ${i+1} من ${pages.length})`;
             }
-            innerContent.appendChild(headerClone);
+            inner.appendChild(headerClone);
             
-            // إنشاء الجدول بدون عمود الترقيم
+            // إضافة الجدول
             const table = document.createElement('table');
             table.className = 'product-table';
             const thead = document.createElement('thead');
             thead.innerHTML = `<tr><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>`;
             table.appendChild(thead);
             const tbody = document.createElement('tbody');
-            for (const idx of pageRowIndices) {
-                const rd = productRowsData[idx];
-                tbody.appendChild(createProductRowElement(rd.item, rd.productImage, rd.description, rd.price, rd.qty, rd.itemTotal));
+            for (const row of pageRows) {
+                tbody.appendChild(row.element.cloneNode(true));
             }
             table.appendChild(tbody);
-            innerContent.appendChild(table);
+            inner.appendChild(table);
             
+            // إضافة الملخص في الصفحة الأخيرة فقط
             if (isLastPage) {
-                innerContent.appendChild(summaryElement.cloneNode(true));
+                inner.appendChild(summaryDiv.cloneNode(true));
             }
             
-            innerContent.appendChild(footerElement.cloneNode(true));
+            inner.appendChild(footerDiv.cloneNode(true));
             
-            contentWrapper.appendChild(innerContent);
+            wrapper.appendChild(inner);
             
             const spacer = document.createElement('div');
             spacer.className = 'bottom-margin-spacer';
-            contentWrapper.appendChild(spacer);
+            wrapper.appendChild(spacer);
             
-            page.appendChild(contentWrapper);
+            page.appendChild(wrapper);
             
-            const pageNumDiv = document.createElement('div');
-            pageNumDiv.className = 'page-number';
-            pageNumDiv.textContent = `صفحة ${pageIdx+1} / ${totalPages}`;
-            page.appendChild(pageNumDiv);
+            const pageNum = document.createElement('div');
+            pageNum.className = 'page-number';
+            pageNum.textContent = `صفحة ${i+1} / ${pages.length}`;
+            page.appendChild(pageNum);
             
             container.appendChild(page);
         }
