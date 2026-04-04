@@ -108,7 +108,7 @@
             }
         }
 
-        /* Header styles - logo slightly larger */
+        /* Header styles */
         .company-badge {
             background: #f1f5f9;
             padding: 8px 12px;
@@ -325,6 +325,18 @@
         .btn-pdf { background: #ef4444; color: white; }
         .btn-png { background: #8b5cf6; color: white; }
         .btn-close { background: #64748b; color: white; }
+        
+        /* Hidden test container for measuring */
+        .hidden-measure {
+            position: fixed;
+            visibility: hidden;
+            top: 0;
+            left: 0;
+            width: 210mm;
+            background: white;
+            z-index: -1;
+        }
+        
         @media (max-width: 750px) {
             .page {
                 padding: 15mm 10mm 25mm 10mm;
@@ -488,10 +500,12 @@
         `;
     }
 
-    function createPage(order, customer, itemsRows, pageNum, totalPages, commonSections, withSummary, summaryData) {
+    /**
+     * Generate HTML for a single page
+     */
+    function generatePageHTML(order, customer, itemsRows, pageNum, totalPages, commonSections, withSummary, summaryData) {
         const header = getFixedHeader(order);
         const footer = getFixedFooter();
-        // Removed page number from section title
         const tableSection = `
             <div class="section-title">تفاصيل المنتجات / الخدمات</div>
             <table class="product-table">
@@ -538,24 +552,67 @@
     }
 
     /**
-     * Automatic pagination based on content reaching last 25-30mm
-     * Uses a safe estimate of 4 products per page to ensure content never reaches bottom margin
-     * The browser will handle natural page breaks during printing/PDF generation
+     * Dynamic pagination based on actual content height
+     * Measures when content reaches 25mm from bottom (A4 height = 297mm)
+     * Available space = 297mm - 20mm(top padding) - 30mm(bottom padding) = 247mm for content
+     * When remaining space < 25mm, create new page
      */
-    function splitProductsIntoPages(productsArray) {
+    async function splitPagesDynamically(allItemsRows, order, customer, commonSections, summaryData) {
         const pages = [];
-        if (!productsArray.length) {
-            pages.push([]);
-            return pages;
+        let currentPageItems = [];
+        let currentHeight = 0;
+        
+        // Create a temporary container to measure heights
+        const measureContainer = document.createElement('div');
+        measureContainer.style.position = 'absolute';
+        measureContainer.style.visibility = 'hidden';
+        measureContainer.style.top = '0';
+        measureContainer.style.left = '0';
+        measureContainer.style.width = '210mm';
+        measureContainer.style.background = 'white';
+        measureContainer.style.padding = '20mm 15mm 30mm 15mm';
+        document.body.appendChild(measureContainer);
+        
+        // Measure fixed elements height (header, common sections, footer)
+        const fixedElementsHTML = `
+            ${getFixedHeader(order)}
+            ${commonSections}
+            ${getFixedFooter()}
+            <div class="page-footer" style="position: relative; bottom: auto;">dummy</div>
+        `;
+        measureContainer.innerHTML = fixedElementsHTML;
+        await new Promise(r => setTimeout(r, 50));
+        const fixedHeight = measureContainer.scrollHeight;
+        
+        // Available height for products: 247mm (A4 content area) - fixedHeight - 25mm safety margin
+        const A4_CONTENT_HEIGHT_MM = 247; // 297mm - 20mm top - 30mm bottom
+        const SAFETY_MARGIN_MM = 25;
+        const maxProductsHeight = A4_CONTENT_HEIGHT_MM - fixedHeight - SAFETY_MARGIN_MM;
+        
+        // Create a test table to measure row height
+        const testTable = document.createElement('table');
+        testTable.className = 'product-table';
+        testTable.style.width = '100%';
+        testTable.innerHTML = `
+            <thead><tr><th>#</th><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
+            <tbody>${allItemsRows[0] || ''}</tbody>
+        `;
+        measureContainer.innerHTML = '';
+        measureContainer.appendChild(testTable);
+        await new Promise(r => setTimeout(r, 50));
+        const rowHeight = testTable.scrollHeight;
+        
+        // Calculate max rows per page
+        const maxRowsPerPage = Math.max(1, Math.floor(maxProductsHeight / rowHeight));
+        
+        // Split items into pages based on calculated row limit
+        for (let i = 0; i < allItemsRows.length; i += maxRowsPerPage) {
+            pages.push(allItemsRows.slice(i, i + maxRowsPerPage));
         }
         
-        // Estimate: ~4 products per page ensures content stays within safe zone (last 25-30mm)
-        // This is a conservative estimate - browser will handle actual pagination during print
-        const ITEMS_PER_PAGE_ESTIMATE = 4;
+        // Clean up
+        document.body.removeChild(measureContainer);
         
-        for (let i = 0; i < productsArray.length; i += ITEMS_PER_PAGE_ESTIMATE) {
-            pages.push(productsArray.slice(i, i + ITEMS_PER_PAGE_ESTIMATE));
-        }
         return pages;
     }
 
@@ -635,9 +692,8 @@
         
         const commonSections = getCommonSections(order, customer, paymentMethodName, shippingMethodText);
         
-        // Automatic pagination - splits content without fixed row count
-        // Uses safe estimate of 4 products per page to keep content within safe zone
-        const productPages = splitProductsIntoPages(allItemsRows);
+        // Dynamic pagination based on actual content height (25mm safety margin from bottom)
+        const productPages = await splitPagesDynamically(allItemsRows, order, customer, commonSections, { subtotal, discountValue, tax, total });
         const totalPages = productPages.length;
         
         const container = document.getElementById('invoiceContainer');
@@ -646,7 +702,7 @@
         for (let pageIdx = 0; pageIdx < productPages.length; pageIdx++) {
             const pageItems = productPages[pageIdx];
             const isLastPage = (pageIdx === productPages.length - 1);
-            const pageHtml = createPage(
+            const pageHtml = generatePageHTML(
                 order, customer, pageItems, pageIdx + 1, totalPages, commonSections,
                 isLastPage,
                 isLastPage ? { subtotal, discountValue, tax, total } : null
