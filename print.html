@@ -72,7 +72,7 @@
             }
             @page {
                 size: A4;
-                margin: 0.7cm 0.8cm; /* هوامش كافية من جميع الجهات */
+                margin: 0.8cm 0.8cm; /* هوامش أكبر لمنع القطع */
             }
         }
 
@@ -431,7 +431,7 @@
         const header = getFixedHeader(order);
         const footer = getFixedFooter();
         const tableSection = `
-            <div class="section-title">تفاصيل المنتجات / الخدمات <span class="text-sm text-gray-500">(صفحة ${pageNum} من ${totalPages})</span></div>
+            <div class="section-title">تفاصيل المنتجات / الخ services <span class="text-sm text-gray-500">(صفحة ${pageNum} من ${totalPages})</span></div>
             <table class="product-table">
                 <thead><tr><th>#</th><th>اسم المنتج</th><th>الصورة</th><th>الباركود</th><th>الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead>
                 <tbody>${itemsRows.join('')}</tbody>
@@ -470,8 +470,8 @@
         `;
     }
 
-    // تقسيم المنتجات إلى صفحات - 5 منتجات لكل صفحة (آمن لعدم القطع)
-    function splitProductsIntoPages(productsArray, itemsPerPage = 5) {
+    // تقسيم المنتجات إلى صفحات - 4 منتجات لكل صفحة (آمن تماماً)
+    function splitProductsIntoPages(productsArray, itemsPerPage = 4) {
         const pages = [];
         if (!productsArray.length) {
             pages.push([]);
@@ -559,8 +559,8 @@
         
         const commonSections = getCommonSections(order, customer, paymentMethodName, shippingMethodText);
         
-        // 5 منتجات لكل صفحة لمنع قطع المحتوى
-        const productPages = splitProductsIntoPages(allItemsRows, 5);
+        // 4 منتجات لكل صفحة - آمن جداً لمنع القطع
+        const productPages = splitProductsIntoPages(allItemsRows, 4);
         const totalPages = productPages.length;
         
         const container = document.getElementById('invoiceContainer');
@@ -594,7 +594,7 @@
             const btns = document.getElementById('actionButtons');
             if (btns) btns.style.display = 'none';
             const opt = {
-                margin: [0.25, 0.25, 0.25, 0.25], // هوامش داخلية صغيرة
+                margin: [0.3, 0.3, 0.3, 0.3], // هوامش متساوية
                 filename: `فاتورة_${Date.now()}.pdf`,
                 image: { type: 'jpeg', quality: 1 },
                 html2canvas: { scale: 4, letterRendering: true, useCORS: true, dpi: 300 },
