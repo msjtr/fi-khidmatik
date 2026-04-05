@@ -9,6 +9,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* ========================================
+           RESET & BASE STYLES
+           ======================================== */
         * {
             margin: 0;
             padding: 0;
@@ -22,26 +25,33 @@
             direction: rtl;
         }
 
+        /* ========================================
+           PAGE STYLES - A4 FORMAT
+           ======================================== */
         .page {
             width: 210mm;
             min-height: 297mm;
             background: white;
             margin: 0 auto 20px auto;
-            padding: 15mm 12mm 25mm 12mm;
+            padding: 15mm 12mm 20mm 12mm;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             position: relative;
             page-break-after: always;
             break-after: page;
+            box-sizing: border-box;
         }
 
-        /* منع انقسام العناصر */
-        .logo-header, .company-badge, .two-columns, .info-card, .info-row,
-        .section-title, .product-table, .product-table tr, .product-table td,
-        .product-table th, .summary-box, .terms-box, .thanks-block, .footer-static {
-            page-break-inside: avoid;
-            break-inside: avoid;
+        /* منع انكسار العناصر الداخلية */
+        .page-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 250mm;
         }
 
+        /* ========================================
+           PRINT STYLES - اخفاء الأزرار والأيقونات
+           ======================================== */
         @media print {
             body {
                 background: white;
@@ -51,11 +61,19 @@
             .page {
                 box-shadow: none;
                 margin: 0;
-                padding: 15mm 12mm 25mm 12mm;
+                padding: 15mm 12mm 20mm 12mm;
                 page-break-after: always;
+                break-after: page;
             }
-            .action-buttons {
-                display: none;
+            .action-buttons,
+            .no-print,
+            button,
+            .btn,
+            .fa-print,
+            .fa-file-pdf,
+            .fa-image,
+            .fa-times {
+                display: none !important;
             }
             @page {
                 size: A4;
@@ -63,7 +81,9 @@
             }
         }
 
-        /* ===== الهيدر ===== */
+        /* ========================================
+           HEADER SECTION
+           ======================================== */
         .logo-header {
             display: flex;
             justify-content: space-between;
@@ -128,7 +148,9 @@
             margin-bottom: 15px;
         }
 
-        /* ===== بطاقات المعلومات ===== */
+        /* ========================================
+           INFO CARDS
+           ======================================== */
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -179,29 +201,31 @@
             color: #1e293b;
         }
 
-        /* ===== الجدول - 5 أعمدة ===== */
+        /* ========================================
+           PRODUCT TABLE
+           ======================================== */
         .product-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 15px;
+            font-size: 14px;
             margin: 15px 0;
         }
 
         .product-table th {
             background: #1e3a5f;
             color: white;
-            padding: 14px 8px;
+            padding: 12px 8px;
             border: 1px solid #2d4a6e;
             text-align: center;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .product-table td {
             border: 1px solid #cbd5e1;
-            padding: 12px 6px;
+            padding: 10px 6px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             color: #1e293b;
         }
 
@@ -210,15 +234,17 @@
             font-weight: 600;
         }
 
+        /* عرض الأعمدة */
         .product-table th:nth-child(1) { width: 25%; }
-        .product-table th:nth-child(2) { width: 35%; }
+        .product-table th:nth-child(2) { width: 30%; }
         .product-table th:nth-child(3) { width: 15%; }
-        .product-table th:nth-child(4) { width: 10%; }
-        .product-table th:nth-child(5) { width: 15%; }
+        .product-table th:nth-child(4) { width: 12%; }
+        .product-table th:nth-child(5) { width: 18%; }
 
+        /* صور المنتجات */
         .product-img {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             object-fit: cover;
             border-radius: 10px;
             display: block;
@@ -227,8 +253,8 @@
         }
 
         .product-img-fallback {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             background: #f1f5f9;
             border-radius: 10px;
             display: flex;
@@ -239,19 +265,21 @@
         }
 
         .product-img-fallback i {
-            font-size: 28px;
+            font-size: 24px;
             color: #94a3b8;
         }
 
         .desc-text {
             text-align: right;
             word-break: break-word;
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.4;
             color: #475569;
         }
 
-        /* ===== الملخص ===== */
+        /* ========================================
+           SUMMARY & TERMS
+           ======================================== */
         .summary-box {
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
             padding: 16px 20px;
@@ -304,6 +332,9 @@
             color: #1e40af;
         }
 
+        /* ========================================
+           FOOTER
+           ======================================== */
         .footer-static {
             margin-top: 20px;
             text-align: center;
@@ -344,6 +375,9 @@
             border-top: 1px solid #e2e8f0;
         }
 
+        /* ========================================
+           BUTTONS (تظهر فقط على الشاشة)
+           ======================================== */
         .action-buttons {
             position: fixed;
             bottom: 20px;
@@ -363,12 +397,16 @@
             cursor: pointer;
             font-size: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
         }
 
         .btn-print { background: #3b82f6; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
         .btn-png { background: #8b5cf6; color: white; }
-        .btn-close { background: #64748b; color: white; }
 
         .loading-spinner {
             border: 3px solid #e2e8f0;
@@ -397,10 +435,12 @@
     <button class="btn btn-print" id="printBtn"><i class="fas fa-print"></i> طباعة</button>
     <button class="btn btn-pdf" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
     <button class="btn btn-png" id="pngBtn"><i class="fas fa-image"></i> صورة</button>
-    <button class="btn btn-close" onclick="window.close()"><i class="fas fa-times"></i> إغلاق</button>
 </div>
 
 <script type="module">
+    // ========================================
+    // FIREBASE IMPORTS & CONFIG
+    // ========================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
@@ -416,11 +456,17 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // ========================================
+    // GLOBAL VARIABLES
+    // ========================================
     let customersMap = new Map();
     let productsMap = new Map();
     let currentFileName = "";
-    const PRODUCTS_PER_PAGE = 5;
-    
+    const MAX_ROWS_PER_PAGE = 6; // عدد المنتجات في كل صفحة
+
+    // ========================================
+    // FIREBASE FUNCTIONS
+    // ========================================
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
         customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
@@ -435,6 +481,9 @@
         return { id: orderSnap.id, ...orderSnap.data() };
     }
 
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
     function formatDate(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr);
@@ -472,8 +521,11 @@
         };
         return map[status] || 'bg-gray-100 text-gray-800';
     }
-    
-    function getHeaderHTML(pageNum, totalPages, order, customer, paymentMethodName, shippingMethodText) {
+
+    // ========================================
+    // HTML TEMPLATES
+    // ========================================
+    function getHeaderHTML(order, customer, paymentMethodName, shippingMethodText) {
         return `
             <div class="logo-header">
                 <div class="logo-area">
@@ -545,7 +597,65 @@
             </div>
         `;
     }
-    
+
+    // ========================================
+    // BUILD PRODUCT ROWS
+    // ========================================
+    function buildProductRows(items) {
+        let rows = [];
+        
+        for (const item of items) {
+            const price = item.price || 0;
+            const qty = item.quantity || 0;
+            let productImage = '';
+            let description = item.description || '';
+            
+            // جلب الصورة من المخزون
+            if (item.productId && productsMap.has(item.productId)) {
+                const prod = productsMap.get(item.productId);
+                if (prod.mainImage && prod.mainImage.trim() !== '') {
+                    productImage = prod.mainImage;
+                } else if (prod.image && prod.image.trim() !== '') {
+                    productImage = prod.image;
+                }
+                if (!description && prod.description) description = prod.description;
+            }
+            // صورة من الطلب
+            if (!productImage && item.image && item.image.trim() !== '') {
+                productImage = item.image;
+            }
+            if (description) description = escapeHtml(description);
+            
+            const imgHtml = productImage ? 
+                `<img src="${productImage}" class="product-img" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-image\'></i></div>';">` :
+                `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
+            
+            rows.push({
+                name: escapeHtml(item.name),
+                description: description || '—',
+                image: imgHtml,
+                quantity: qty,
+                price: price.toFixed(2)
+            });
+        }
+        
+        return rows;
+    }
+
+    // ========================================
+    // SPLIT PRODUCTS INTO PAGES
+    // ========================================
+    function splitIntoPages(productsRows) {
+        const pages = [];
+        for (let i = 0; i < productsRows.length; i += MAX_ROWS_PER_PAGE) {
+            pages.push(productsRows.slice(i, i + MAX_ROWS_PER_PAGE));
+        }
+        return pages;
+    }
+
+    // ========================================
+    // RENDER INVOICE
+    // ========================================
     async function renderInvoice() {
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('id');
@@ -564,9 +674,6 @@
                 return;
             }
             
-            console.log('✅ الطلب:', order);
-            console.log('✅ المنتجات في الطلب:', order.items);
-            
             const customer = customersMap.get(order.customerId) || { 
                 name: '__________', phone: '__________', city: '__________', 
                 street: '__________', email: '__________' 
@@ -578,6 +685,7 @@
             const dateStr = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}`;
             currentFileName = `فاتورة_${clientName}_${orderNumber}_${dateStr}`;
             
+            // حساب الإجماليات
             let subtotal = 0;
             const items = order.items || [];
             for (const item of items) {
@@ -606,94 +714,71 @@
                 'noship': '📥 لا يتطلب شحن' 
             }[order.shippingMethod] || 'استلام من المقر';
             
-            // ===== بناء صفوف المنتجات بشكل صحيح =====
-            let allProductsHTML = '';
-            for (const item of items) {
-                const price = item.price || 0;
-                const qty = item.quantity || 0;
-                let productImage = '';
-                let description = item.description || '';
-                
-                // جلب الصورة
-                if (item.productId && productsMap.has(item.productId)) {
-                    const prod = productsMap.get(item.productId);
-                    if (prod.mainImage && prod.mainImage.trim() !== '') {
-                        productImage = prod.mainImage;
-                    } else if (prod.image && prod.image.trim() !== '') {
-                        productImage = prod.image;
-                    }
-                    if (!description && prod.description) description = prod.description;
-                }
-                if (!productImage && item.image && item.image.trim() !== '') {
-                    productImage = item.image;
-                }
-                if (description) description = escapeHtml(description);
-                
-                const imgHtml = productImage ? 
-                    `<img src="${productImage}" class="product-img" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-image\'></i></div>';">` :
-                    `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
-                
-                // إنشاء صف HTML بشكل صحيح
-                allProductsHTML += `
-                    <tr>
-                        <td style="text-align: right;">${escapeHtml(item.name)}</td>
-                        <td class="desc-text">${description || '—'}</td>
-                        <td>${imgHtml}</td>
-                        <td>${qty}</td>
-                        <td>${price.toFixed(2)} ريال</td>
-                    </tr>
-                `;
-            }
+            // بناء صفوف المنتجات وتقسيمها
+            const productRows = buildProductRows(items);
+            const pages = splitIntoPages(productRows);
+            const totalPages = pages.length;
             
-            console.log('✅ صفوف المنتجات:', allProductsHTML);
-            
-            // تقسيم المنتجات
-            const rows = allProductsHTML.match(/<tr[\s\S]*?<\/tr>/g) || [];
-            const productsArray = [];
-            for (let i = 0; i < rows.length; i += PRODUCTS_PER_PAGE) {
-                productsArray.push(rows.slice(i, i + PRODUCTS_PER_PAGE).join(''));
-            }
-            
-            const totalPages = Math.max(productsArray.length, 1);
+            // بناء HTML لكل صفحة
             const container = document.getElementById('pages');
             container.innerHTML = '';
             
             for (let p = 0; p < totalPages; p++) {
+                const pageProducts = pages[p];
                 const isLastPage = (p === totalPages - 1);
+                
+                // بناء صفوف الجدول لهذه الصفحة
+                let tableRows = '';
+                for (const prod of pageProducts) {
+                    tableRows += `
+                        <tr>
+                            <td style="text-align: right;">${prod.name}</td>
+                            <td class="desc-text">${prod.description}</td>
+                            <td>${prod.image}</td>
+                            <td>${prod.quantity}</td>
+                            <td>${prod.price} ريال</td>
+                        </tr>
+                    `;
+                }
                 
                 const pageHTML = `
                     <div class="page">
-                        ${getHeaderHTML(p + 1, totalPages, order, customer, paymentMethodName, shippingMethodText)}
-                        <table class="product-table">
-                            <thead>
-                                <tr>
-                                    <th>المنتج / الخدمة</th>
-                                    <th>الوصف</th>
-                                    <th>الصورة</th>
-                                    <th>الكمية</th>
-                                    <th>سعر الوحدة</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${productsArray[p] || ''}
-                            </tbody>
-                        </table>
-                        ${isLastPage ? getSummaryHTML(subtotal, discountValue, tax, total) : ''}
-                        ${getFooterHTML()}
-                        <div class="page-number">صفحة ${p + 1} / ${totalPages}</div>
+                        <div class="page-content">
+                            ${getHeaderHTML(order, customer, paymentMethodName, shippingMethodText)}
+                            <table class="product-table">
+                                <thead>
+                                    <tr>
+                                        <th>المنتج / الخدمة</th>
+                                        <th>الوصف</th>
+                                        <th>الصورة</th>
+                                        <th>الكمية</th>
+                                        <th>سعر الوحدة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRows}
+                                </tbody>
+                            </table>
+                            ${isLastPage ? getSummaryHTML(subtotal, discountValue, tax, total) : ''}
+                            ${getFooterHTML()}
+                            <div class="page-number">صفحة ${p + 1} / ${totalPages}</div>
+                        </div>
                     </div>
                 `;
                 container.innerHTML += pageHTML;
             }
             
+            // إظهار الفاتورة وإخفاء التحميل
             document.getElementById('loading').style.display = 'none';
             document.getElementById('pages').style.display = 'block';
             document.getElementById('actionButtons').style.display = 'flex';
             
+            // ربط الأزرار
             document.getElementById('printBtn').onclick = () => window.print();
             document.getElementById('pdfBtn').onclick = () => exportPDF();
             document.getElementById('pngBtn').onclick = () => exportPNG();
             
+            // تنفيذ الإجراء التلقائي
             if (autoAction === 'print') setTimeout(() => window.print(), 1000);
             else if (autoAction === 'pdf') setTimeout(() => exportPDF(), 1000);
             else if (autoAction === 'png') setTimeout(() => exportPNG(), 1000);
@@ -704,6 +789,9 @@
         }
     }
     
+    // ========================================
+    // EXPORT FUNCTIONS
+    // ========================================
     async function exportPDF() {
         const element = document.getElementById('pages');
         if (!element) return;
@@ -715,7 +803,7 @@
                 margin: [0, 0, 0, 0],
                 filename: `${currentFileName}.pdf`,
                 image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 4, dpi: 300, useCORS: true, logging: false, letterRendering: true },
+                html2canvas: { scale: 3, dpi: 300, useCORS: true, logging: false, letterRendering: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false }
             }).from(element).save();
         } catch (error) {
@@ -732,7 +820,7 @@
         if (btn) btn.disabled = true;
         
         try {
-            const canvas = await html2canvas(element, { scale: 4, dpi: 300, backgroundColor: '#ffffff', useCORS: true, logging: false });
+            const canvas = await html2canvas(element, { scale: 3, dpi: 300, backgroundColor: '#ffffff', useCORS: true, logging: false });
             const link = document.createElement('a');
             link.download = `${currentFileName}.png`;
             link.href = canvas.toDataURL('image/png');
@@ -744,6 +832,7 @@
         }
     }
     
+    // بدء التشغيل
     renderInvoice();
 </script>
 </body>
