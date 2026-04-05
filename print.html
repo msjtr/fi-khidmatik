@@ -22,16 +22,31 @@
             direction: rtl;
         }
 
+        /* حجم صفحة A4 */
         .page {
             width: 210mm;
             min-height: 297mm;
             background: white;
             margin: 0 auto 20px auto;
-            padding: 15mm 12mm;
+            padding: 12mm 10mm;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             position: relative;
             page-break-after: always;
             break-after: page;
+        }
+
+        /* منع انقسام العناصر المهمة */
+        .logo-header, .company-badge, .two-columns, .info-row, 
+        .section-title, .product-table, .summary-box, .terms-box, 
+        .thanks-block, .footer-static {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* منع انقسام صفوف الجدول */
+        .product-table tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         @media print {
@@ -43,7 +58,7 @@
             .page {
                 box-shadow: none;
                 margin: 0;
-                padding: 15mm 12mm;
+                padding: 12mm 10mm;
                 page-break-after: always;
             }
             .action-buttons {
@@ -55,26 +70,21 @@
             }
         }
 
-        /* منع انقسام صفوف الجدول */
-        tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
+        /* ===== الهيدر ===== */
         .logo-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
             border-bottom: 2px solid #1e3a5f;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
         }
 
         .logo-fallback {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             background: linear-gradient(135deg, #1e3a5f, #3b82f6);
             border-radius: 12px;
             display: flex;
@@ -83,120 +93,113 @@
         }
 
         .logo-fallback i {
-            font-size: 28px;
+            font-size: 24px;
             color: white;
         }
 
         .invoice-title h1 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 800;
             color: #1e3a5f;
-            margin: 0;
         }
 
         .invoice-title p {
-            font-size: 11px;
-            margin: 3px 0;
-            color: #475569;
+            font-size: 10px;
+            margin: 2px 0;
         }
 
         .badge-status {
             display: inline-block;
-            padding: 3px 12px;
+            padding: 2px 10px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
         }
 
         .company-badge {
             background: #f1f5f9;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 10px;
-            font-size: 10px;
+            font-size: 9px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
+        /* ===== بطاقات المعلومات ===== */
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 12px 0;
+            gap: 12px;
+            margin: 10px 0;
         }
 
         .info-card {
             background: #f8fafc;
-            padding: 10px 12px;
-            border-radius: 12px;
+            padding: 8px 10px;
+            border-radius: 10px;
             border: 1px solid #e2e8f0;
         }
 
         .info-card h3 {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             border-right: 3px solid #3b82f6;
-            padding-right: 8px;
-            color: #1e293b;
+            padding-right: 6px;
         }
 
         .info-card p {
-            font-size: 11px;
+            font-size: 10px;
             line-height: 1.4;
-            color: #334155;
         }
 
         .info-row {
             background: #f1f5f9;
-            padding: 8px 12px;
-            border-radius: 10px;
+            padding: 6px 10px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 10px;
-            margin: 10px 0;
-            font-size: 11px;
-            font-weight: 500;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 10px;
         }
 
         .section-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 800;
-            margin: 15px 0 10px 0;
+            margin: 12px 0 8px 0;
             border-right: 4px solid #3b82f6;
             padding-right: 10px;
-            color: #1e293b;
         }
 
+        /* ===== الجدول ===== */
         .product-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 10px;
-            margin: 10px 0;
+            margin: 8px 0;
         }
 
         .product-table th {
             background: #1e3a5f;
             color: white;
-            padding: 8px 6px;
+            padding: 8px 5px;
             border: 1px solid #2d4a6e;
             text-align: center;
-            font-weight: 700;
         }
 
         .product-table td {
             border: 1px solid #cbd5e1;
-            padding: 6px 5px;
+            padding: 6px 4px;
             text-align: center;
-            color: #1e293b;
         }
 
         .product-table td:first-child {
             text-align: right;
-            font-weight: 500;
         }
 
         .product-table th:nth-child(1) { width: 25%; }
@@ -206,19 +209,19 @@
         .product-table th:nth-child(5) { width: 15%; }
 
         .product-img {
-            width: 35px;
-            height: 35px;
+            width: 32px;
+            height: 32px;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 5px;
             display: block;
             margin: 0 auto;
         }
 
         .product-img-fallback {
-            width: 35px;
-            height: 35px;
+            width: 32px;
+            height: 32px;
             background: #f1f5f9;
-            border-radius: 6px;
+            border-radius: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -226,7 +229,7 @@
         }
 
         .product-img-fallback i {
-            font-size: 16px;
+            font-size: 14px;
             color: #94a3b8;
         }
 
@@ -237,91 +240,89 @@
             line-height: 1.3;
         }
 
+        /* ===== الملخص ===== */
         .summary-box {
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-            padding: 12px 18px;
-            border-radius: 12px;
-            margin: 15px 0;
+            background: #f0fdf4;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 12px 0;
         }
 
         .summary-row {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px dashed #cbd5e1;
-            font-size: 12px;
+            padding: 4px 0;
+            font-size: 11px;
         }
 
         .summary-row.total {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 800;
             color: #166534;
             border-top: 2px solid #86efac;
-            padding-top: 8px;
-            margin-top: 5px;
-            border-bottom: none;
+            padding-top: 6px;
+            margin-top: 4px;
         }
 
         .terms-box {
             background: #fefce8;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border-right: 4px solid #eab308;
-            margin: 12px 0;
-            font-size: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-right: 3px solid #eab308;
+            margin: 10px 0;
+            font-size: 9px;
         }
 
         .thanks-block {
             text-align: center;
-            margin: 12px 0;
-            padding: 10px;
+            margin: 10px 0;
+            padding: 8px;
             background: #eff6ff;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #1e40af;
+            border-radius: 16px;
+            font-size: 11px;
         }
 
+        /* ===== التذييل ===== */
         .footer-static {
-            margin-top: 15px;
+            margin-top: 12px;
             text-align: center;
             border-top: 2px solid #1e3a5f;
-            padding-top: 12px;
+            padding-top: 10px;
         }
 
         .contact-links {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 12px;
             background: #f8fafc;
-            padding: 8px 15px;
-            border-radius: 40px;
+            padding: 6px 12px;
+            border-radius: 35px;
         }
 
         .contact-links span {
-            font-size: 9px;
+            font-size: 8px;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            color: #334155;
+            gap: 4px;
         }
 
         .footer-copyright {
-            font-size: 8px;
+            font-size: 7px;
             color: #94a3b8;
-            margin-top: 6px;
+            margin-top: 5px;
         }
 
         .page-number {
             text-align: center;
-            font-size: 10px;
+            font-size: 9px;
             color: #94a3b8;
-            margin-top: 15px;
-            padding-top: 8px;
+            margin-top: 12px;
+            padding-top: 6px;
             border-top: 1px solid #e2e8f0;
         }
 
+        /* ===== أزرار ===== */
         .action-buttons {
             position: fixed;
             bottom: 20px;
@@ -340,7 +341,6 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 13px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
         .btn-print { background: #3b82f6; color: white; }
@@ -397,27 +397,8 @@
     let productsMap = new Map();
     let currentFileName = "";
     
-    // ===== إعدادات الصفحة =====
-    const MM = 3.78;
-    const TOP_MARGIN = 15 * MM;
-    const BOTTOM_MARGIN = 25 * MM;
-    const PAGE_HEIGHT = 297 * MM;
-    const BUFFER = 80;
-    
-    // ===== متغيرات الارتفاعات الثابتة =====
-    let headerHeight = 0;
-    let footerHeight = 0;
-    let summaryHeight = 0;
-    let MAX_CONTENT_HEIGHT = 0;
-    
-    // ===== Cache للارتفاعات =====
-    const heightCache = new Map();
-    
-    // ===== متغيرات عامة =====
-    let orderData = null;
-    let customerData = null;
-    let subtotal = 0, discountValue = 0, tax = 0, total = 0;
-    let paymentMethodName = "", shippingMethodText = "";
+    // عدد ثابت من المنتجات لكل صفحة (حل مضمون)
+    const PRODUCTS_PER_PAGE = 8;
     
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
@@ -471,64 +452,15 @@
         return map[status] || 'bg-gray-100 text-gray-800';
     }
     
-    // ===== قياس ارتفاع العنصر مع التخزين المؤقت =====
-    async function getHeight(element) {
-        const key = element.innerHTML;
-        
-        if (heightCache.has(key)) {
-            return heightCache.get(key);
-        }
-        
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.visibility = 'hidden';
-        container.style.top = '-9999px';
-        container.style.width = '210mm';
-        container.style.direction = 'rtl';
-        document.body.appendChild(container);
-        container.appendChild(element);
-        
-        await new Promise(r => setTimeout(r, 30));
-        
-        const height = element.offsetHeight;
-        heightCache.set(key, height);
-        
-        document.body.removeChild(container);
-        return height;
-    }
-    
-    // ===== إنشاء صف المنتج =====
-    function createProductRowElement(item, productImage, description, price, qty, itemTotal) {
-        const tr = document.createElement('tr');
-        const imgSrc = productImage && productImage.trim() !== '' ? productImage : '';
-        
-        let processedDescription = description || '';
-        if (processedDescription) processedDescription = processedDescription.replace(/\n/g, "<br>");
-        
-        const imgHtml = imgSrc ? 
-            `<img src="${imgSrc}" class="product-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-box\'></i></div>';">` :
-            `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
-        
-        tr.innerHTML = `
-            <td style="text-align: right;">${escapeHtml(item.name)}</td>
-            <td class="desc-text">${processedDescription || '—'}</td>
-            <td>${qty}</td>
-            <td>${price.toFixed(2)} ريال</td>
-            <td>${itemTotal.toFixed(2)} ريال</td>
-        `;
-        return tr;
-    }
-    
-    // ===== قوالب HTML =====
-    function getHeaderHTML(pageNum, totalPages) {
+    function getHeaderHTML(pageNum, totalPages, order, customer, paymentMethodName, shippingMethodText) {
         return `
             <div class="logo-header">
                 <div class="logo-fallback"><i class="fas fa-handshake"></i></div>
                 <div class="invoice-title">
                     <h1>فاتورة إلكترونية</h1>
-                    <p><strong>رقم الفاتورة:</strong> ${escapeHtml(orderData.orderNumber || orderData.id)}</p>
-                    <p><strong>التاريخ:</strong> ${formatDate(orderData.orderDate)} | <strong>الوقت:</strong> ${formatTime(orderData.orderTime)}</p>
-                    <p><span class="badge-status ${getStatusClass(orderData.status)}">${orderData.status || 'جديد'}</span></p>
+                    <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
+                    <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} | <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
+                    <p><span class="badge-status ${getStatusClass(order.status)}">${order.status || 'جديد'}</span></p>
                 </div>
             </div>
             <div class="company-badge">
@@ -543,14 +475,14 @@
                 </div>
                 <div class="info-card">
                     <h3><i class="fas fa-user"></i> مصدرة إلى</h3>
-                    <p><strong>العميل:</strong> ${escapeHtml(customerData.name || '__________')}<br>
-                    <strong>الجوال:</strong> ${escapeHtml(customerData.phone || '__________')}<br>
-                    <strong>العنوان:</strong> ${escapeHtml(customerData.city || '__________')} ${escapeHtml(customerData.street || '__________')}</p>
+                    <p><strong>العميل:</strong> ${escapeHtml(customer.name || '__________')}<br>
+                    <strong>الجوال:</strong> ${escapeHtml(customer.phone || '__________')}<br>
+                    <strong>العنوان:</strong> ${escapeHtml(customer.city || '__________')} ${escapeHtml(customer.street || '__________')}</p>
                 </div>
             </div>
             <div class="info-row">
                 <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${paymentMethodName}</span>
-                <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${orderData.approvalCode || 'APV-' + Math.floor(Math.random()*10000)}</span>
+                <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${order.approvalCode || 'APV-' + Math.floor(Math.random()*10000)}</span>
             </div>
             <div class="info-row">
                 <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>
@@ -573,7 +505,7 @@
         `;
     }
     
-    function getSummaryHTML() {
+    function getSummaryHTML(subtotal, discountValue, tax, total) {
         return `
             <div class="summary-box">
                 <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
@@ -589,71 +521,6 @@
                 <p><i class="fas fa-heart" style="color:#ef4444"></i> شكراً لتسوقكم معنا</p>
             </div>
         `;
-    }
-    
-    // ===== حساب الارتفاعات الثابتة =====
-    async function calculateFixedHeights(totalPages) {
-        const header = document.createElement('div');
-        header.innerHTML = getHeaderHTML(1, totalPages);
-        headerHeight = await getHeight(header);
-        
-        const footer = document.createElement('div');
-        footer.innerHTML = getFooterHTML();
-        footerHeight = await getHeight(footer);
-        
-        const summary = document.createElement('div');
-        summary.innerHTML = getSummaryHTML();
-        summaryHeight = await getHeight(summary);
-        
-        MAX_CONTENT_HEIGHT = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN - headerHeight - footerHeight;
-    }
-    
-    // ===== تقسيم المنتجات على الصفحات =====
-    async function paginateProducts(productRowsData, isLastPageSummary) {
-        const rows = [];
-        const heights = [];
-        
-        for (const data of productRowsData) {
-            const row = createProductRowElement(data.item, data.productImage, data.description, data.price, data.qty, data.itemTotal);
-            const height = await getHeight(row);
-            rows.push(row);
-            heights.push(height);
-        }
-        
-        const pages = [];
-        let currentPage = [];
-        let currentHeight = 0;
-        
-        for (let i = 0; i < rows.length; i++) {
-            let nextHeight = currentHeight + heights[i];
-            
-            if (isLastPageSummary && i === rows.length - 1) {
-                if (nextHeight + summaryHeight > MAX_CONTENT_HEIGHT) {
-                    if (currentPage.length > 0) {
-                        pages.push(currentPage);
-                    }
-                    currentPage = [];
-                    currentHeight = 0;
-                }
-            }
-            
-            if (currentHeight + heights[i] > MAX_CONTENT_HEIGHT) {
-                if (currentPage.length > 0) {
-                    pages.push(currentPage);
-                }
-                currentPage = [];
-                currentHeight = 0;
-            }
-            
-            currentPage.push(i);
-            currentHeight += heights[i];
-        }
-        
-        if (currentPage.length > 0) {
-            pages.push(currentPage);
-        }
-        
-        return { pages, rows };
     }
     
     async function renderInvoice() {
@@ -674,34 +541,33 @@
                 return;
             }
             
-            orderData = order;
-            customerData = customersMap.get(order.customerId) || { 
+            const customer = customersMap.get(order.customerId) || { 
                 name: '__________', phone: '__________', city: '__________', 
                 street: '__________', email: '__________' 
             };
             
-            const clientName = (customerData.name || 'client').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
+            const clientName = (customer.name || 'client').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
             const orderNumber = order.orderNumber || order.id;
             const today = new Date();
             const dateStr = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}`;
             currentFileName = `${clientName}_${orderNumber}_${dateStr}`;
             
             // حساب الإجماليات
-            subtotal = 0;
+            let subtotal = 0;
             const items = order.items || [];
             for (const item of items) {
                 subtotal += (item.price || 0) * (item.quantity || 0);
             }
             
-            discountValue = order.discount || 0;
+            let discountValue = order.discount || 0;
             if (order.discountType === 'percent' && discountValue > 0) {
                 discountValue = (subtotal * discountValue) / 100;
             }
             const afterDiscount = subtotal - discountValue;
-            tax = afterDiscount * 0.15;
-            total = afterDiscount + tax;
+            const tax = afterDiscount * 0.15;
+            const total = afterDiscount + tax;
             
-            paymentMethodName = order.paymentMethodName || 
+            const paymentMethodName = order.paymentMethodName || 
                 (order.paymentMethod === 'mada' ? 'مدى' : 
                 order.paymentMethod === 'mastercard' ? 'ماستركارد' : 
                 order.paymentMethod === 'visa' ? 'فيزا' : 
@@ -709,14 +575,14 @@
                 order.paymentMethod === 'tamara' ? 'تمارا' : 
                 order.paymentMethod === 'tabby' ? 'تابي' : 'أخرى');
             
-            shippingMethodText = { 
+            const shippingMethodText = { 
                 'pickup': '🏪 استلام من المقر', 
                 'delivery': '🚚 شحن منزلي', 
                 'noship': '📥 لا يتطلب شحن' 
             }[order.shippingMethod] || 'استلام من المقر';
             
-            // تجهيز بيانات المنتجات
-            const productRowsData = [];
+            // تجهيز صفوف المنتجات
+            let allProductsHTML = '';
             for (const item of items) {
                 const price = item.price || 0;
                 const qty = item.quantity || 0;
@@ -731,85 +597,64 @@
                 }
                 if (!productImage && item.image) productImage = item.image;
                 if (description) description = escapeHtml(description);
-                productRowsData.push({ 
-                    item, productImage, description: description || '', 
-                    price, qty, itemTotal 
-                });
+                
+                const imgHtml = productImage ? 
+                    `<img src="${productImage}" class="product-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-box\'></i></div>';">` :
+                    `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
+                
+                allProductsHTML += `
+                    <tr>
+                        <td style="text-align: right;">${escapeHtml(item.name)}</td>
+                        <td class="desc-text">${description || '—'}</td>
+                        <td>${qty}</td>
+                        <td>${price.toFixed(2)} ريال</td>
+                        <td>${itemTotal.toFixed(2)} ريال</td>
+                    </tr>
+                `;
             }
             
-            // حساب الارتفاعات الثابتة (بدون معرفة عدد الصفحات المبدئي)
-            const tempHeader = document.createElement('div');
-            tempHeader.innerHTML = getHeaderHTML(1, 1);
-            headerHeight = await getHeight(tempHeader);
+            // تقسيم المنتجات إلى صفحات (كل صفحة 8 منتجات)
+            const productsArray = [];
+            const rows = allProductsHTML.match(/<tr>[\s\S]*?<\/tr>/g) || [];
             
-            const tempFooter = document.createElement('div');
-            tempFooter.innerHTML = getFooterHTML();
-            footerHeight = await getHeight(tempFooter);
+            for (let i = 0; i < rows.length; i += PRODUCTS_PER_PAGE) {
+                productsArray.push(rows.slice(i, i + PRODUCTS_PER_PAGE).join(''));
+            }
             
-            const tempSummary = document.createElement('div');
-            tempSummary.innerHTML = getSummaryHTML();
-            summaryHeight = await getHeight(tempSummary);
-            
-            MAX_CONTENT_HEIGHT = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN - headerHeight - footerHeight;
-            
-            // تقسيم المنتجات
-            const { pages, rows } = await paginateProducts(productRowsData, true);
-            const totalPages = pages.length;
-            
-            // إعادة حساب الارتفاعات مع العدد الحقيقي للصفحات
-            await calculateFixedHeights(totalPages);
-            
-            // إعادة التقسيم مع الارتفاعات الصحيحة
-            const finalPagination = await paginateProducts(productRowsData, true);
-            const finalPages = finalPagination.pages;
-            const finalRows = finalPagination.rows;
+            const totalPages = productsArray.length;
             
             // بناء الصفحات
             const container = document.getElementById('pages');
             container.innerHTML = '';
             
-            for (let p = 0; p < finalPages.length; p++) {
-                const pageIndices = finalPages[p];
-                const isLastPage = (p === finalPages.length - 1);
+            for (let p = 0; p < totalPages; p++) {
+                const isLastPage = (p === totalPages - 1);
                 
-                let tableRows = '';
-                for (const idx of pageIndices) {
-                    tableRows += finalRows[idx].outerHTML;
-                }
-                
-                let summaryHTML = '';
-                if (isLastPage) {
-                    let estimatedHeight = pageIndices.reduce((sum, idx) => sum + finalRows[idx].offsetHeight, 0);
-                    if (estimatedHeight + summaryHeight <= MAX_CONTENT_HEIGHT) {
-                        summaryHTML = getSummaryHTML();
-                    } else {
-                        summaryHTML = '';
-                    }
-                }
-                
-                const pageDiv = document.createElement('div');
-                pageDiv.className = 'page';
-                pageDiv.innerHTML = `
-                    ${getHeaderHTML(p + 1, finalPages.length)}
-                    <table class="product-table">
-                        <thead>
-                            <tr>
-                                <th>المنتج / الخدمة</th>
-                                <th>الوصف</th>
-                                <th>الكمية</th>
-                                <th>سعر الوحدة</th>
-                                <th>الإجمالي</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
-                    ${summaryHTML}
-                    ${getFooterHTML()}
-                    <div class="page-number">صفحة ${p + 1} / ${finalPages.length}</div>
+                const pageHTML = `
+                    <div class="page">
+                        ${getHeaderHTML(p + 1, totalPages, order, customer, paymentMethodName, shippingMethodText)}
+                        
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>المنتج / الخدمة</th>
+                                    <th>الوصف</th>
+                                    <th>الكمية</th>
+                                    <th>سعر الوحدة</th>
+                                    <th>الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${productsArray[p]}
+                            </tbody>
+                        </table>
+                        
+                        ${isLastPage ? getSummaryHTML(subtotal, discountValue, tax, total) : ''}
+                        ${getFooterHTML()}
+                        <div class="page-number">صفحة ${p + 1} / ${totalPages}</div>
+                    </div>
                 `;
-                container.appendChild(pageDiv);
+                container.innerHTML += pageHTML;
             }
             
             document.getElementById('loading').style.display = 'none';
