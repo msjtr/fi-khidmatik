@@ -167,7 +167,7 @@
             color: #1e293b;
         }
 
-        /* ===== الجدول - 6 أعمدة (مع إضافة عمود الصورة) ===== */
+        /* ===== الجدول - 6 أعمدة ===== */
         .product-table {
             width: 100%;
             border-collapse: collapse;
@@ -197,34 +197,36 @@
 
         /* عرض الأعمدة - 6 أعمدة */
         .product-table th:nth-child(1) { width: 20%; }
-        .product-table th:nth-child(2) { width: 30%; }
-        .product-table th:nth-child(3) { width: 10%; }
+        .product-table th:nth-child(2) { width: 28%; }
+        .product-table th:nth-child(3) { width: 12%; }
         .product-table th:nth-child(4) { width: 10%; }
         .product-table th:nth-child(5) { width: 15%; }
         .product-table th:nth-child(6) { width: 15%; }
 
         .product-img {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 8px;
             display: block;
             margin: 0 auto;
+            border: 1px solid #e2e8f0;
         }
 
         .product-img-fallback {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             background: #f1f5f9;
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto;
+            border: 1px solid #e2e8f0;
         }
 
         .product-img-fallback i {
-            font-size: 18px;
+            font-size: 20px;
             color: #94a3b8;
         }
 
@@ -585,7 +587,7 @@
                 'noship': '📥 لا يتطلب شحن' 
             }[order.shippingMethod] || 'استلام من المقر';
             
-            // تجهيز صفوف المنتجات (6 أعمدة: المنتج، الوصف، الصورة، الكمية، السعر، الإجمالي)
+            // ===== تجهيز صفوف المنتجات (مع دعم mainImage) =====
             let allProductsHTML = '';
             for (const item of items) {
                 const price = item.price || 0;
@@ -594,21 +596,34 @@
                 let productImage = '';
                 let description = item.description || '';
                 
-                // جلب الصورة من المخزون
+                // جلب الصورة من المخزون (دعم mainImage و image)
                 if (item.productId && productsMap.has(item.productId)) {
                     const prod = productsMap.get(item.productId);
-                    if (prod.image && prod.image.trim() !== '') {
+                    // دعم كلا الحقلين: mainImage (النظام الجديد) و image (النظام القديم)
+                    if (prod.mainImage && prod.mainImage.trim() !== '') {
+                        productImage = prod.mainImage;
+                        console.log(`✅ صورة من mainImage لـ ${item.name}`);
+                    } else if (prod.image && prod.image.trim() !== '') {
                         productImage = prod.image;
+                        console.log(`✅ صورة من image لـ ${item.name}`);
                     }
                     if (!description && prod.description) description = prod.description;
                 }
+                
+                // إذا لم توجد صورة في المخزون، نستخدم الصورة المخزنة في الطلب
                 if (!productImage && item.image && item.image.trim() !== '') {
                     productImage = item.image;
+                    console.log(`✅ صورة من الطلب لـ ${item.name}`);
                 }
+                
                 if (description) description = escapeHtml(description);
                 
+                // إنشاء HTML الصورة مع تحسين معالج الأخطاء
                 const imgHtml = productImage ? 
-                    `<img src="${productImage}" class="product-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-box\'></i></div>';">` :
+                    `<img src="${productImage}" class="product-img" loading="lazy" 
+                          onerror="console.error('فشل تحميل الصورة:', this.src); 
+                                   this.style.display='none'; 
+                                   this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-image\'></i></div>';">` :
                     `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
                 
                 allProductsHTML += `
