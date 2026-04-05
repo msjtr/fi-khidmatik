@@ -26,7 +26,7 @@
         }
 
         /* ========================================
-           PAGE STYLES - A4 FORMAT
+           A4 PAGE SETUP - EXACT DIMENSIONS
            ======================================== */
         .page {
             width: 210mm;
@@ -35,23 +35,48 @@
             background: #fff;
             margin: 0 auto 20px auto;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Page break for multi-page documents */
+        .page:not(:last-child) {
             page-break-after: always;
             break-after: page;
         }
 
-        /* ===== الهوامش ===== */
+        /* ========================================
+           FIXED MARGINS: Top 20mm, Bottom 25mm, Left/Right 15mm
+           ======================================== */
         .page-content {
-            padding: 20mm 15mm 25mm 15mm;
+            padding-top: 20mm;
+            padding-bottom: 25mm;
+            padding-left: 15mm;
+            padding-right: 15mm;
             position: relative;
             min-height: 297mm;
         }
 
-        /* ===== منع كسر العناصر داخل الصفحة ===== */
-        .no-break {
+        /* ========================================
+           PREVENT CONTENT BREAK INSIDE ELEMENTS
+           ======================================== */
+        .no-break,
+        table,
+        tr,
+        thead,
+        tbody,
+        .product-row,
+        .summary-box,
+        .terms-box,
+        .info-card,
+        .info-row,
+        .logo-header,
+        .company-badge,
+        .two-columns,
+        .section-title {
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
+        /* Prevent row breaks inside tables */
         .product-table tr {
             page-break-inside: avoid;
             break-inside: avoid;
@@ -84,6 +109,12 @@
         .logo-fallback i {
             font-size: 30px;
             color: white;
+        }
+
+        /* For real logo */
+        .logo-img {
+            max-height: 65px;
+            width: auto;
         }
 
         .invoice-title h1 {
@@ -330,12 +361,11 @@
             font-size: 11px;
             color: #94a3b8;
             padding: 10px;
-            margin-top: 10px;
             border-top: 1px solid #e2e8f0;
         }
 
         /* ========================================
-           BUTTONS
+           ACTION BUTTONS
            ======================================== */
         .action-buttons {
             position: fixed;
@@ -380,11 +410,28 @@
             to { transform: rotate(360deg); }
         }
 
+        /* ========================================
+           PRINT STYLES
+           ======================================== */
         @media print {
-            body { background: white; padding: 0; margin: 0; }
-            .page { box-shadow: none; margin: 0; page-break-after: always; }
-            .action-buttons, .btn, button { display: none !important; }
-            @page { size: A4; margin: 0; }
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .page {
+                box-shadow: none;
+                margin: 0;
+            }
+            .action-buttons,
+            .btn,
+            button {
+                display: none !important;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
         }
     </style>
 </head>
@@ -394,18 +441,21 @@
     <div class="loading-spinner"></div>
     <p style="color:#64748b; font-size:14px">جاري تحميل الفاتورة...</p>
 </div>
-<div id="pages" style="display:none"></div>
+<div id="invoiceContainer" style="display:none"></div>
 
 <div class="action-buttons" id="actionButtons" style="display:none">
     <button class="btn btn-print" id="printBtn"><i class="fas fa-print"></i> طباعة</button>
-    <button class="btn btn-pdf" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
-    <button class="btn btn-png" id="pngBtn"><i class="fas fa-image"></i> صورة</button>
+    <button class="btn btn-pdf" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF (300 DPI)</button>
+    <button class="btn btn-png" id="pngBtn"><i class="fas fa-image"></i> صورة PNG</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
+    // ========================================
+    // FIREBASE CONFIGURATION
+    // ========================================
     const firebaseConfig = {
         apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
         authDomain: "msjt301-974bb.firebaseapp.com",
@@ -423,13 +473,20 @@
     let currentFileName = "";
 
     // ========================================
-    // إعدادات الصفحة - بالميليمتر
+    // PAGE SETUP - A4 EXACT DIMENSIONS
+    // Height: 297mm, Width: 210mm
+    // Margins: Top 20mm, Bottom 25mm, Left 15mm, Right 15mm
     // ========================================
-    const TOP_MARGIN_MM = 20;
-    const BOTTOM_MARGIN_MM = 25;
-    const PAGE_HEIGHT_MM = 297;
-    const CONTENT_HEIGHT_MM = PAGE_HEIGHT_MM - TOP_MARGIN_MM - BOTTOM_MARGIN_MM; // 252mm
+    const MM_TO_PX = 3.78;
+    const PAGE_HEIGHT = 297 * MM_TO_PX;
+    const TOP_MARGIN = 20 * MM_TO_PX;
+    const BOTTOM_MARGIN = 25 * MM_TO_PX;
+    const MAX_CONTENT = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN; // 252mm in pixels
+    const BUFFER = 50; // Safety buffer ~13mm
 
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
     function formatDate(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr);
@@ -457,14 +514,23 @@
     }
     
     function getStatusClass(status) {
-        const map = { 'جديد': 'bg-blue-100', 'تحت التنفيذ': 'bg-yellow-100', 'تم التنفيذ': 'bg-green-100', 'تحت المراجعة': 'bg-purple-100', 'مسترجع': 'bg-orange-100', 'ملغي': 'bg-red-100' };
+        const map = {
+            'جديد': 'bg-blue-100', 'تحت التنفيذ': 'bg-yellow-100',
+            'تم التنفيذ': 'bg-green-100', 'تحت المراجعة': 'bg-purple-100',
+            'مسترجع': 'bg-orange-100', 'ملغي': 'bg-red-100'
+        };
         return map[status] || 'bg-gray-100';
     }
 
+    // ========================================
+    // FIREBASE DATA LOADING
+    // ========================================
     async function loadCustomersAndProducts() {
-        const customersSnap = await getDocs(collection(db, 'customers'));
+        const [customersSnap, productsSnap] = await Promise.all([
+            getDocs(collection(db, 'customers')),
+            getDocs(collection(db, 'products'))
+        ]);
         customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
-        const productsSnap = await getDocs(collection(db, 'products'));
         productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
     }
 
@@ -476,43 +542,49 @@
     }
 
     // ========================================
-    // إنشاء محتوى الصفحة كاملًا ثم تقسيمه باستخدام CSS
+    // CREATE PRODUCT ROW HTML
     // ========================================
-    function createFullInvoiceHTML(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total) {
-        // بناء صفوف المنتجات كـ HTML
+    function createProductRowHTML(item) {
+        const price = Number(item.price) || 0;
+        const qty = Number(item.quantity) || 0;
+        let productImage = '';
+        let description = item.description || '';
+        
+        if (item.productId && productsMap.has(item.productId)) {
+            const prod = productsMap.get(item.productId);
+            if (prod.mainImage || prod.image) {
+                productImage = prod.mainImage || prod.image || '';
+            }
+            if (!description && prod.description) description = prod.description;
+        }
+        
+        const imgHtml = productImage ? 
+            `<img src="${productImage}" class="product-img" alt="${escapeHtml(item.name)}" onerror="this.outerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-box\'></i></div>';">` :
+            `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
+        
+        return `
+            <tr style="page-break-inside: avoid; break-inside: avoid;">
+                <td style="text-align: right;">${escapeHtml(item.name)}</td>
+                <td class="desc-text">${escapeHtml(description) || '—'}</td>
+                <td style="text-align: center;">${imgHtml}</td>
+                <td style="text-align: center;">${qty}</td>
+                <td style="text-align: center;">${price.toFixed(2)} ريال</td>
+            </tr>
+        `;
+    }
+
+    // ========================================
+    // CREATE COMPLETE PAGE CONTENT
+    // ========================================
+    function createPageContent(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total, isLastPage = true) {
         let productsRows = '';
         for (const item of items) {
-            const price = Number(item.price) || 0;
-            const qty = Number(item.quantity) || 0;
-            let productImage = '';
-            let description = item.description || '';
-            
-            if (item.productId && productsMap.has(item.productId)) {
-                const prod = productsMap.get(item.productId);
-                if (prod.mainImage || prod.image) {
-                    productImage = prod.mainImage || prod.image || '';
-                }
-                if (!description && prod.description) description = prod.description;
-            }
-            
-            const imgHtml = productImage ? 
-                `<img src="${productImage}" class="product-img" onerror="this.outerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-box\'></i></div>';">` :
-                `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
-            
-            productsRows += `
-                <tr style="page-break-inside: avoid; break-inside: avoid;">
-                    <td style="text-align: right;">${escapeHtml(item.name)}</td>
-                    <td class="desc-text">${escapeHtml(description) || '—'}</td>
-                    <td style="text-align: center;">${imgHtml}</td>
-                    <td style="text-align: center;">${qty}</td>
-                    <td style="text-align: center;">${price.toFixed(2)} ريال</td>
-                </tr>
-            `;
+            productsRows += createProductRowHTML(item);
         }
         
         return `
             <div class="page-content">
-                <!-- الرأس -->
+                <!-- Header -->
                 <div class="logo-header">
                     <div class="logo-area">
                         <div class="logo-fallback"><i class="fas fa-handshake"></i></div>
@@ -555,7 +627,7 @@
                 
                 <div class="section-title">تفاصيل المنتجات والخدمات</div>
                 
-                <!-- جدول المنتجات -->
+                <!-- Products Table -->
                 <table class="product-table">
                     <thead>
                         <tr>
@@ -571,7 +643,7 @@
                     </tbody>
                 </table>
                 
-                <!-- الملخص -->
+                ${isLastPage ? `
                 <div class="summary-box">
                     <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
                     <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
@@ -587,8 +659,9 @@
                 <div class="thanks-block">
                     <p><i class="fas fa-heart" style="color:#ef4444"></i> شكراً لتسوقكم معنا</p>
                 </div>
+                ` : ''}
                 
-                <!-- التذييل -->
+                <!-- Footer -->
                 <div class="footer-static">
                     <div class="contact-links">
                         <span><i class="fas fa-phone-alt"></i> 966534051317</span>
@@ -603,166 +676,188 @@
     }
 
     // ========================================
-    // دالة تقسيم المحتوى باستخدام CSS columns
+    // SMART PAGINATION WITH HEIGHT CALCULATION
     // ========================================
-    async function splitContentIntoPages(fullHTML) {
-        // إنشاء حاوية مؤقتة للمحتوى الكامل
+    async function splitIntoPages(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total) {
+        const pages = [];
+        
+        // Create a temporary container to measure heights
         const tempContainer = document.createElement('div');
         tempContainer.style.position = 'absolute';
         tempContainer.style.top = '-9999px';
         tempContainer.style.left = '-9999px';
         tempContainer.style.width = '210mm';
         tempContainer.style.backgroundColor = '#fff';
-        tempContainer.innerHTML = fullHTML;
         document.body.appendChild(tempContainer);
         
-        // الحصول على جميع العناصر التي يمكن تقسيمها
-        const contentElement = tempContainer.querySelector('.page-content');
-        if (!contentElement) {
-            document.body.removeChild(tempContainer);
-            return [fullHTML];
+        // First, get all product rows as individual elements
+        const allRowsHTML = [];
+        for (const item of items) {
+            allRowsHTML.push(createProductRowHTML(item));
         }
         
-        // الحصول على جميع العناصر الفرعية المهمة
-        const children = Array.from(contentElement.children);
+        // Create header and footer sections once
+        const headerSections = `
+            <div class="logo-header">
+                <div class="logo-area"><div class="logo-fallback"><i class="fas fa-handshake"></i></div></div>
+                <div class="invoice-title">
+                    <h1>فاتورة إلكترونية</h1>
+                    <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
+                    <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} | <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
+                    <p><span class="badge-status ${getStatusClass(order.status)}">${escapeHtml(order.status || 'جديد')}</span></p>
+                </div>
+            </div>
+            <div class="company-badge">
+                <span><i class="fas fa-briefcase"></i> <strong>منصة في خدمتك</strong></span>
+                <span><i class="fas fa-id-card"></i> رقم شهادة العمل الحر: FL-765735204</span>
+                <span><i class="fas fa-chart-line"></i> الرقم الضريبي: 312495447600003</span>
+            </div>
+            <div class="two-columns">
+                <div class="info-card">
+                    <h3><i class="fas fa-building"></i> جهة الإصدار</h3>
+                    <p>منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط<br>رقم المبنى: 3085 | الرمز البريدي: 55431</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-user"></i> جهة الإصدار إليه</h3>
+                    <p><strong>العميل:</strong> ${escapeHtml(customer.name || '__________')}<br>
+                    <strong>الجوال:</strong> ${escapeHtml(customer.phone || '__________')}<br>
+                    <strong>العنوان:</strong> ${escapeHtml(customer.city || '__________')} ${escapeHtml(customer.street || '__________')}</p>
+                </div>
+            </div>
+            <div class="info-row">
+                <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${escapeHtml(paymentMethodName)}</span>
+                <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${escapeHtml(order.approvalCode || 'APV-' + Math.floor(Math.random()*10000))}</span>
+            </div>
+            <div class="info-row">
+                <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${escapeHtml(shippingMethodText)}</span>
+            </div>
+            <div class="section-title">تفاصيل المنتجات والخدمات</div>
+        `;
         
-        // حساب الارتفاع المتاح للمحتوى
-        const pageHeightMM = 297;
-        const topMarginMM = 20;
-        const bottomMarginMM = 25;
-        const availableHeightMM = pageHeightMM - topMarginMM - bottomMarginMM;
+        const footerSections = `
+            <div class="footer-static">
+                <div class="contact-links">
+                    <span><i class="fas fa-phone-alt"></i> 966534051317</span>
+                    <span><i class="fab fa-whatsapp"></i> 966545312021</span>
+                    <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
+                    <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
+                </div>
+                <div class="footer-copyright">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+            </div>
+        `;
         
-        // تحويل إلى بكسل تقريبي للقياس
-        const mmToPx = 3.78;
-        const availableHeightPx = availableHeightMM * mmToPx;
-        const safetyMarginPx = 30; // هامش أمان
+        const summarySections = `
+            <div class="summary-box">
+                <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
+                <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
+                <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
+                <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
+            </div>
+            <div class="terms-box">
+                <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
+                <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة</p>
+            </div>
+            <div class="thanks-block">
+                <p><i class="fas fa-heart" style="color:#ef4444"></i> شكراً لتسوقكم معنا</p>
+            </div>
+        `;
         
-        const pages = [];
-        let currentPageChildren = [];
-        let currentHeightPx = 0;
+        // Measure header + footer height
+        tempContainer.innerHTML = `<div class="page-content">${headerSections}${footerSections}</div>`;
+        await new Promise(r => setTimeout(r, 100));
+        const headerFooterHeight = tempContainer.querySelector('.page-content').offsetHeight;
         
-        for (let i = 0; i < children.length; i++) {
-            const child = children[i];
-            const childHeight = child.offsetHeight;
-            
-            // إذا كان العنصر هو الجدول، نحتاج إلى تقسيم صفوفه
-            if (child.tagName === 'TABLE' && child.classList.contains('product-table')) {
-                const rows = Array.from(child.querySelectorAll('tbody tr'));
-                const thead = child.querySelector('thead');
-                const theadHeight = thead ? thead.offsetHeight : 0;
-                
-                let currentRows = [];
-                let rowsHeight = 0;
-                
-                for (let j = 0; j < rows.length; j++) {
-                    const row = rows[j];
-                    const rowHeight = row.offsetHeight;
-                    
-                    // حساب المساحة المتبقية
-                    const remainingSpace = availableHeightPx - currentHeightPx - theadHeight - rowsHeight - safetyMarginPx;
-                    
-                    if (remainingSpace < rowHeight && currentRows.length > 0) {
-                        // إنشاء صفحة جديدة للجدول
-                        const newTable = document.createElement('table');
-                        newTable.className = 'product-table';
-                        newTable.appendChild(thead.cloneNode(true));
-                        const newTbody = document.createElement('tbody');
-                        currentRows.forEach(r => newTbody.appendChild(r.cloneNode(true)));
-                        newTable.appendChild(newTbody);
-                        
-                        const pageDiv = document.createElement('div');
-                        pageDiv.className = 'page';
-                        const pageContentDiv = document.createElement('div');
-                        pageContentDiv.className = 'page-content';
-                        
-                        // إضافة العناصر السابقة
-                        for (let k = 0; k < currentPageChildren.length; k++) {
-                            pageContentDiv.appendChild(currentPageChildren[k].cloneNode(true));
-                        }
-                        pageContentDiv.appendChild(newTable);
-                        
-                        // إضافة الملخص والتذييل للصفحة الأخيرة؟ لا، نضيفها لاحقًا
-                        pageDiv.appendChild(pageContentDiv);
-                        pages.push(pageDiv);
-                        
-                        // إعادة تعيين
-                        currentPageChildren = [];
-                        currentHeightPx = 0;
-                        currentRows = [];
-                        rowsHeight = 0;
-                        j--; // إعادة معالجة الصف الحالي
-                        continue;
-                    }
-                    
-                    currentRows.push(row);
-                    rowsHeight += rowHeight;
-                }
-                
-                // معالجة الصفوف المتبقية
-                if (currentRows.length > 0) {
-                    const newTable = document.createElement('table');
-                    newTable.className = 'product-table';
-                    newTable.appendChild(thead.cloneNode(true));
-                    const newTbody = document.createElement('tbody');
-                    currentRows.forEach(r => newTbody.appendChild(r.cloneNode(true)));
-                    newTable.appendChild(newTbody);
-                    currentPageChildren.push(newTable);
-                    currentHeightPx += theadHeight + rowsHeight;
-                }
-            } 
-            else {
-                // للعناصر العادية (غير الجدول)
-                if (currentHeightPx + childHeight > availableHeightPx - safetyMarginPx && currentPageChildren.length > 0) {
-                    // إنشاء صفحة جديدة
-                    const pageDiv = document.createElement('div');
-                    pageDiv.className = 'page';
-                    const pageContentDiv = document.createElement('div');
-                    pageContentDiv.className = 'page-content';
-                    
-                    for (let k = 0; k < currentPageChildren.length; k++) {
-                        pageContentDiv.appendChild(currentPageChildren[k].cloneNode(true));
-                    }
-                    
-                    pageDiv.appendChild(pageContentDiv);
-                    pages.push(pageDiv);
-                    
-                    // إعادة تعيين
-                    currentPageChildren = [];
-                    currentHeightPx = 0;
-                }
-                
-                currentPageChildren.push(child.cloneNode(true));
-                currentHeightPx += childHeight;
-            }
+        // Measure summary height
+        tempContainer.innerHTML = `<div class="page-content">${summarySections}</div>`;
+        await new Promise(r => setTimeout(r, 100));
+        const summaryHeight = tempContainer.querySelector('.page-content').offsetHeight;
+        
+        // Available height for rows
+        const availableForRows = MAX_CONTENT - headerFooterHeight - BUFFER;
+        
+        // Now split rows into pages
+        let currentRows = [];
+        let currentHeight = 0;
+        const rowElements = [];
+        
+        // Create each row as a separate element to measure
+        for (let i = 0; i < allRowsHTML.length; i++) {
+            tempContainer.innerHTML = `<div class="page-content"><table class="product-table"><tbody>${allRowsHTML[i]}</tbody></table></div>`;
+            await new Promise(r => setTimeout(r, 50));
+            const rowHeight = tempContainer.querySelector('.product-table tbody tr')?.offsetHeight || 50;
+            rowElements.push({ html: allRowsHTML[i], height: rowHeight });
         }
         
-        // إضافة آخر صفحة
-        if (currentPageChildren.length > 0) {
-            const pageDiv = document.createElement('page');
-            pageDiv.className = 'page';
-            const pageContentDiv = document.createElement('div');
-            pageContentDiv.className = 'page-content';
+        // Split rows into pages
+        for (let i = 0; i < rowElements.length; i++) {
+            const row = rowElements[i];
             
-            for (let k = 0; k < currentPageChildren.length; k++) {
-                pageContentDiv.appendChild(currentPageChildren[k].cloneNode(true));
+            if (currentHeight + row.height > availableForRows && currentRows.length > 0) {
+                // Save current page
+                pages.push([...currentRows]);
+                currentRows = [];
+                currentHeight = 0;
             }
             
-            pageDiv.appendChild(pageContentDiv);
-            pages.push(pageDiv);
+            currentRows.push(row.html);
+            currentHeight += row.height;
         }
         
-        // إضافة أرقام الصفحات
+        if (currentRows.length > 0) {
+            pages.push(currentRows);
+        }
+        
+        // Build final pages HTML
+        const finalPages = [];
         for (let i = 0; i < pages.length; i++) {
-            const pageNumberDiv = document.createElement('div');
-            pageNumberDiv.className = 'page-number';
-            pageNumberDiv.textContent = `صفحة ${i + 1} / ${pages.length}`;
-            pages[i].appendChild(pageNumberDiv);
+            const isLastPage = (i === pages.length - 1);
+            const rowsHtml = pages[i].join('');
+            
+            const tableHtml = `
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>المنتج / الخدمة</th>
+                            <th>الوصف</th>
+                            <th>الصورة</th>
+                            <th>الكمية</th>
+                            <th>سعر الوحدة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            `;
+            
+            let pageHtml = `
+                <div class="page">
+                    <div class="page-content">
+                        ${headerSections}
+                        ${tableHtml}
+            `;
+            
+            if (isLastPage) {
+                pageHtml += summarySections;
+            }
+            
+            pageHtml += `
+                        ${footerSections}
+                    </div>
+                    <div class="page-number">صفحة ${i + 1} / ${pages.length}</div>
+                </div>
+            `;
+            
+            finalPages.push(pageHtml);
         }
         
         document.body.removeChild(tempContainer);
-        return pages;
+        return finalPages;
     }
 
+    // ========================================
+    // RENDER INVOICE
+    // ========================================
     async function renderInvoice() {
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('id');
@@ -820,23 +915,17 @@
                 'noship': '📥 لا يتطلب شحن' 
             }[order.shippingMethod] || 'استلام من المقر';
             
-            // إنشاء HTML كامل
-            const fullHTML = createFullInvoiceHTML(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total);
+            // Split into pages
+            const pages = await splitIntoPages(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total);
             
-            // تقسيم المحتوى إلى صفحات
-            const pages = await splitContentIntoPages(fullHTML);
-            
-            const container = document.getElementById('pages');
-            container.innerHTML = '';
-            
-            for (const page of pages) {
-                container.appendChild(page);
-            }
+            const container = document.getElementById('invoiceContainer');
+            container.innerHTML = pages.join('');
             
             document.getElementById('loading').style.display = 'none';
-            document.getElementById('pages').style.display = 'block';
+            document.getElementById('invoiceContainer').style.display = 'block';
             document.getElementById('actionButtons').style.display = 'flex';
             
+            // Setup buttons
             document.getElementById('printBtn').onclick = () => window.print();
             document.getElementById('pdfBtn').onclick = () => exportPDF();
             document.getElementById('pngBtn').onclick = () => exportPNG();
@@ -851,40 +940,69 @@
         }
     }
     
+    // ========================================
+    // HIGH QUALITY PDF EXPORT
+    // ========================================
     async function exportPDF() {
-        const element = document.getElementById('pages');
+        const element = document.getElementById('invoiceContainer');
         if (!element) return;
         const btn = document.getElementById('pdfBtn');
         if (btn) btn.disabled = true;
         
         try {
-            await html2pdf().set({
+            const opt = {
                 margin: [0, 0, 0, 0],
                 filename: `${currentFileName}.pdf`,
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 3, dpi: 300, useCORS: true, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).from(element).save();
+                image: {
+                    type: 'jpeg',
+                    quality: 0.98
+                },
+                html2canvas: {
+                    scale: 3,
+                    dpi: 300,
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait',
+                    compress: true
+                }
+            };
+            await html2pdf().set(opt).from(element).save();
         } catch (error) {
+            console.error('PDF export error:', error);
             alert('حدث خطأ أثناء تصدير PDF');
         } finally {
             if (btn) btn.disabled = false;
         }
     }
     
+    // ========================================
+    // PNG EXPORT
+    // ========================================
     async function exportPNG() {
-        const element = document.getElementById('pages');
+        const element = document.getElementById('invoiceContainer');
         if (!element) return;
         const btn = document.getElementById('pngBtn');
         if (btn) btn.disabled = true;
         
         try {
-            const canvas = await html2canvas(element, { scale: 3, dpi: 300, backgroundColor: '#ffffff', useCORS: true, logging: false });
+            const canvas = await html2canvas(element, {
+                scale: 3,
+                dpi: 300,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false
+            });
             const link = document.createElement('a');
             link.download = `${currentFileName}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         } catch (error) {
+            console.error('PNG export error:', error);
             alert('حدث خطأ أثناء تصدير الصورة');
         } finally {
             if (btn) btn.disabled = false;
