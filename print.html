@@ -52,26 +52,16 @@
             padding-left: 15mm;
             padding-right: 15mm;
             position: relative;
+            height: 100%;
             min-height: 297mm;
         }
 
         /* ========================================
            PREVENT CONTENT BREAK INSIDE ELEMENTS
            ======================================== */
-        .no-break,
-        table,
-        tr,
-        thead,
-        tbody,
-        .product-row,
-        .summary-box,
-        .terms-box,
-        .info-card,
-        .info-row,
-        .logo-header,
-        .company-badge,
-        .two-columns,
-        .section-title {
+        table, tr, thead, tbody, .summary-box, .terms-box, 
+        .info-card, .info-row, .logo-header, .company-badge, 
+        .two-columns, .section-title, .footer-static {
             page-break-inside: avoid;
             break-inside: avoid;
         }
@@ -109,12 +99,6 @@
         .logo-fallback i {
             font-size: 30px;
             color: white;
-        }
-
-        /* For real logo */
-        .logo-img {
-            max-height: 65px;
-            width: auto;
         }
 
         .invoice-title h1 {
@@ -360,8 +344,9 @@
             text-align: center;
             font-size: 11px;
             color: #94a3b8;
-            padding: 10px;
+            padding: 8px 0;
             border-top: 1px solid #e2e8f0;
+            margin-top: 5px;
         }
 
         /* ========================================
@@ -422,10 +407,9 @@
             .page {
                 box-shadow: none;
                 margin: 0;
+                page-break-after: always;
             }
-            .action-buttons,
-            .btn,
-            button {
+            .action-buttons, .btn, button {
                 display: none !important;
             }
             @page {
@@ -473,16 +457,16 @@
     let currentFileName = "";
 
     // ========================================
-    // PAGE SETUP - A4 EXACT DIMENSIONS
+    // PAGE SETUP - A4 EXACT DIMENSIONS (in pixels)
     // Height: 297mm, Width: 210mm
     // Margins: Top 20mm, Bottom 25mm, Left 15mm, Right 15mm
     // ========================================
-    const MM_TO_PX = 3.78;
-    const PAGE_HEIGHT = 297 * MM_TO_PX;
-    const TOP_MARGIN = 20 * MM_TO_PX;
-    const BOTTOM_MARGIN = 25 * MM_TO_PX;
-    const MAX_CONTENT = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN; // 252mm in pixels
-    const BUFFER = 50; // Safety buffer ~13mm
+    const MM_TO_PX = 3.779527559;
+    const PAGE_HEIGHT_PX = 297 * MM_TO_PX;
+    const TOP_MARGIN_PX = 20 * MM_TO_PX;
+    const BOTTOM_MARGIN_PX = 25 * MM_TO_PX;
+    const MAX_CONTENT_HEIGHT_PX = PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX; // 252mm in pixels
+    const BUFFER_PX = 40; // Safety buffer to prevent overflow
 
     // ========================================
     // HELPER FUNCTIONS
@@ -564,7 +548,7 @@
         
         return `
             <tr style="page-break-inside: avoid; break-inside: avoid;">
-                <td style="text-align: right;">${escapeHtml(item.name)}</td>
+                <td style="text-align: right; word-break: break-word;">${escapeHtml(item.name)}</td>
                 <td class="desc-text">${escapeHtml(description) || '—'}</td>
                 <td style="text-align: center;">${imgHtml}</td>
                 <td style="text-align: center;">${qty}</td>
@@ -574,132 +558,37 @@
     }
 
     // ========================================
-    // CREATE COMPLETE PAGE CONTENT
+    // MEASURE ELEMENT HEIGHT
     // ========================================
-    function createPageContent(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total, isLastPage = true) {
-        let productsRows = '';
-        for (const item of items) {
-            productsRows += createProductRowHTML(item);
-        }
-        
-        return `
-            <div class="page-content">
-                <!-- Header -->
-                <div class="logo-header">
-                    <div class="logo-area">
-                        <div class="logo-fallback"><i class="fas fa-handshake"></i></div>
-                    </div>
-                    <div class="invoice-title">
-                        <h1>فاتورة إلكترونية</h1>
-                        <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
-                        <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} | <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
-                        <p><span class="badge-status ${getStatusClass(order.status)}">${escapeHtml(order.status || 'جديد')}</span></p>
-                    </div>
-                </div>
-                
-                <div class="company-badge">
-                    <span><i class="fas fa-briefcase"></i> <strong>منصة في خدمتك</strong></span>
-                    <span><i class="fas fa-id-card"></i> رقم شهادة العمل الحر: FL-765735204</span>
-                    <span><i class="fas fa-chart-line"></i> الرقم الضريبي: 312495447600003</span>
-                </div>
-                
-                <div class="two-columns">
-                    <div class="info-card">
-                        <h3><i class="fas fa-building"></i> جهة الإصدار</h3>
-                        <p>منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة - شارع سعد المشاط<br>رقم المبنى: 3085 | الرمز البريدي: 55431</p>
-                    </div>
-                    <div class="info-card">
-                        <h3><i class="fas fa-user"></i> جهة الإصدار إليه</h3>
-                        <p><strong>العميل:</strong> ${escapeHtml(customer.name || '__________')}<br>
-                        <strong>الجوال:</strong> ${escapeHtml(customer.phone || '__________')}<br>
-                        <strong>العنوان:</strong> ${escapeHtml(customer.city || '__________')} ${escapeHtml(customer.street || '__________')}</p>
-                    </div>
-                </div>
-                
-                <div class="info-row">
-                    <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${escapeHtml(paymentMethodName)}</span>
-                    <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${escapeHtml(order.approvalCode || 'APV-' + Math.floor(Math.random()*10000))}</span>
-                </div>
-                
-                <div class="info-row">
-                    <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${escapeHtml(shippingMethodText)}</span>
-                </div>
-                
-                <div class="section-title">تفاصيل المنتجات والخدمات</div>
-                
-                <!-- Products Table -->
-                <table class="product-table">
-                    <thead>
-                        <tr>
-                            <th>المنتج / الخدمة</th>
-                            <th>الوصف</th>
-                            <th>الصورة</th>
-                            <th>الكمية</th>
-                            <th>سعر الوحدة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${productsRows}
-                    </tbody>
-                </table>
-                
-                ${isLastPage ? `
-                <div class="summary-box">
-                    <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                    <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
-                    <div class="summary-row"><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
-                    <div class="summary-row total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${total.toFixed(2)} ريال</span></div>
-                </div>
-                
-                <div class="terms-box">
-                    <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
-                    <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة</p>
-                </div>
-                
-                <div class="thanks-block">
-                    <p><i class="fas fa-heart" style="color:#ef4444"></i> شكراً لتسوقكم معنا</p>
-                </div>
-                ` : ''}
-                
-                <!-- Footer -->
-                <div class="footer-static">
-                    <div class="contact-links">
-                        <span><i class="fas fa-phone-alt"></i> 966534051317</span>
-                        <span><i class="fab fa-whatsapp"></i> 966545312021</span>
-                        <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
-                        <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
-                    </div>
-                    <div class="footer-copyright">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
-                </div>
-            </div>
-        `;
+    async function measureElementHeight(html) {
+        return new Promise((resolve) => {
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.visibility = 'hidden';
+            container.style.top = '-9999px';
+            container.style.left = '-9999px';
+            container.style.width = '210mm';
+            container.style.backgroundColor = '#fff';
+            container.innerHTML = `<div class="page-content">${html}</div>`;
+            document.body.appendChild(container);
+            
+            setTimeout(() => {
+                const height = container.querySelector('.page-content')?.offsetHeight || 0;
+                document.body.removeChild(container);
+                resolve(height);
+            }, 100);
+        });
     }
 
     // ========================================
-    // SMART PAGINATION WITH HEIGHT CALCULATION
+    // CREATE STATIC SECTIONS (Header, Footer, Summary)
     // ========================================
-    async function splitIntoPages(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total) {
-        const pages = [];
-        
-        // Create a temporary container to measure heights
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.top = '-9999px';
-        tempContainer.style.left = '-9999px';
-        tempContainer.style.width = '210mm';
-        tempContainer.style.backgroundColor = '#fff';
-        document.body.appendChild(tempContainer);
-        
-        // First, get all product rows as individual elements
-        const allRowsHTML = [];
-        for (const item of items) {
-            allRowsHTML.push(createProductRowHTML(item));
-        }
-        
-        // Create header and footer sections once
-        const headerSections = `
+    function getHeaderSections(order, customer, paymentMethodName, shippingMethodText) {
+        return `
             <div class="logo-header">
-                <div class="logo-area"><div class="logo-fallback"><i class="fas fa-handshake"></i></div></div>
+                <div class="logo-area">
+                    <div class="logo-fallback"><i class="fas fa-handshake"></i></div>
+                </div>
                 <div class="invoice-title">
                     <h1>فاتورة إلكترونية</h1>
                     <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
@@ -733,8 +622,10 @@
             </div>
             <div class="section-title">تفاصيل المنتجات والخدمات</div>
         `;
-        
-        const footerSections = `
+    }
+
+    function getFooterSections() {
+        return `
             <div class="footer-static">
                 <div class="contact-links">
                     <span><i class="fas fa-phone-alt"></i> 966534051317</span>
@@ -745,8 +636,10 @@
                 <div class="footer-copyright">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
             </div>
         `;
-        
-        const summarySections = `
+    }
+
+    function getSummarySections(subtotal, discountValue, tax, total) {
+        return `
             <div class="summary-box">
                 <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
                 <div class="summary-row"><span>إجمالي الخصم:</span><span style="color:#dc2626;">- ${discountValue.toFixed(2)} ريال</span></div>
@@ -761,50 +654,76 @@
                 <p><i class="fas fa-heart" style="color:#ef4444"></i> شكراً لتسوقكم معنا</p>
             </div>
         `;
+    }
+
+    // ========================================
+    // SMART PAGINATION WITH ACCURATE HEIGHT CALCULATION
+    // ========================================
+    async function splitIntoPages(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total) {
+        // Get static sections HTML
+        const headerSections = getHeaderSections(order, customer, paymentMethodName, shippingMethodText);
+        const footerSections = getFooterSections();
+        const summarySections = getSummarySections(subtotal, discountValue, tax, total);
         
         // Measure header + footer height
-        tempContainer.innerHTML = `<div class="page-content">${headerSections}${footerSections}</div>`;
-        await new Promise(r => setTimeout(r, 100));
-        const headerFooterHeight = tempContainer.querySelector('.page-content').offsetHeight;
+        const headerFooterHTML = headerSections + footerSections;
+        const headerFooterHeight = await measureElementHeight(headerFooterHTML);
         
         // Measure summary height
-        tempContainer.innerHTML = `<div class="page-content">${summarySections}</div>`;
-        await new Promise(r => setTimeout(r, 100));
-        const summaryHeight = tempContainer.querySelector('.page-content').offsetHeight;
+        const summaryHeight = await measureElementHeight(summarySections);
         
-        // Available height for rows
-        const availableForRows = MAX_CONTENT - headerFooterHeight - BUFFER;
+        // Calculate available height for product rows
+        // MAX_CONTENT_HEIGHT_PX - headerFooterHeight - BUFFER_PX
+        // For last page, also subtract summary height
+        const availableForRowsNormal = MAX_CONTENT_HEIGHT_PX - headerFooterHeight - BUFFER_PX;
+        const availableForRowsLast = MAX_CONTENT_HEIGHT_PX - headerFooterHeight - summaryHeight - BUFFER_PX;
         
-        // Now split rows into pages
-        let currentRows = [];
-        let currentHeight = 0;
-        const rowElements = [];
+        console.log('Header+Footer height:', headerFooterHeight, 'px');
+        console.log('Summary height:', summaryHeight, 'px');
+        console.log('Available for rows (normal):', availableForRowsNormal, 'px');
+        console.log('Available for rows (last):', availableForRowsLast, 'px');
         
-        // Create each row as a separate element to measure
-        for (let i = 0; i < allRowsHTML.length; i++) {
-            tempContainer.innerHTML = `<div class="page-content"><table class="product-table"><tbody>${allRowsHTML[i]}</tbody></table></div>`;
-            await new Promise(r => setTimeout(r, 50));
-            const rowHeight = tempContainer.querySelector('.product-table tbody tr')?.offsetHeight || 50;
-            rowElements.push({ html: allRowsHTML[i], height: rowHeight });
+        // Create all product rows as individual elements for measurement
+        const rowMeasurements = [];
+        
+        for (let i = 0; i < items.length; i++) {
+            const rowHTML = createProductRowHTML(items[i]);
+            const tableHTML = `<table class="product-table"><thead><tr><th>المنتج</th><th>الوصف</th><th>الصورة</th><th>الكمية</th><th>السعر</th></tr></thead><tbody>${rowHTML}</tbody></table>`;
+            const rowHeight = await measureElementHeight(tableHTML);
+            rowMeasurements.push({
+                html: rowHTML,
+                height: rowHeight,
+                item: items[i]
+            });
         }
         
         // Split rows into pages
-        for (let i = 0; i < rowElements.length; i++) {
-            const row = rowElements[i];
+        const pages = [];
+        let currentPageRows = [];
+        let currentHeight = 0;
+        
+        for (let i = 0; i < rowMeasurements.length; i++) {
+            const row = rowMeasurements[i];
+            const isLastRow = (i === rowMeasurements.length - 1);
+            const availableHeight = (pages.length === 0 && currentPageRows.length === 0) 
+                ? availableForRowsNormal 
+                : availableForRowsNormal;
             
-            if (currentHeight + row.height > availableForRows && currentRows.length > 0) {
+            // Check if adding this row would exceed available space
+            if (currentHeight + row.height > availableHeight && currentPageRows.length > 0) {
                 // Save current page
-                pages.push([...currentRows]);
-                currentRows = [];
+                pages.push([...currentPageRows]);
+                currentPageRows = [];
                 currentHeight = 0;
             }
             
-            currentRows.push(row.html);
+            currentPageRows.push(row.html);
             currentHeight += row.height;
         }
         
-        if (currentRows.length > 0) {
-            pages.push(currentRows);
+        // Add last page
+        if (currentPageRows.length > 0) {
+            pages.push(currentPageRows);
         }
         
         // Build final pages HTML
@@ -851,7 +770,6 @@
             finalPages.push(pageHtml);
         }
         
-        document.body.removeChild(tempContainer);
         return finalPages;
     }
 
@@ -915,7 +833,7 @@
                 'noship': '📥 لا يتطلب شحن' 
             }[order.shippingMethod] || 'استلام من المقر';
             
-            // Split into pages
+            // Split into pages with accurate height calculation
             const pages = await splitIntoPages(order, customer, paymentMethodName, shippingMethodText, items, subtotal, discountValue, tax, total);
             
             const container = document.getElementById('invoiceContainer');
