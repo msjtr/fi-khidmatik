@@ -422,7 +422,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ========== دوال Firebase الأساسية (مهمة جداً) ==========
+// ========== دوال Firebase الأساسية ==========
 async function loadOrders() {
     const ordersCol = collection(db, "orders");
     const ordersSnapshot = await getDocs(ordersCol);
@@ -640,7 +640,11 @@ async function renderOrders() {
             return icons[status] || '📋';
         };
         
-        const html = filtered.map(order => `
+        const html = filtered.map(order => {
+            // التأكد من عرض أسماء المنتجات بشكل صحيح
+            const productNames = (order.items || []).map(i => i.name || i.productDetails?.name || 'منتج غير معروف').slice(0, 3);
+            const productCount = (order.items || []).length;
+            return `
             <div class="order-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
                 <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b">
                     <div class="flex justify-between items-start flex-wrap gap-2">
@@ -670,8 +674,8 @@ async function renderOrders() {
                     <div class="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-xl">
                         <div class="font-semibold mb-2"><i class="fas fa-boxes ml-1"></i> المنتجات:</div>
                         <div class="flex flex-wrap gap-2">
-                            ${order.items.slice(0, 3).map(i => `<span class="bg-white px-2 py-1 rounded-lg text-xs shadow-sm">${i.name || i.productDetails?.name} (${i.quantity})</span>`).join('')}
-                            ${order.items.length > 3 ? `<span class="bg-gray-200 px-2 py-1 rounded-lg text-xs">+${order.items.length - 3} أخرى</span>` : ''}
+                            ${productNames.map(name => `<span class="bg-white px-2 py-1 rounded-lg text-xs shadow-sm">${escapeHtml(name)}</span>`).join('')}
+                            ${productCount > 3 ? `<span class="bg-gray-200 px-2 py-1 rounded-lg text-xs">+${productCount - 3} أخرى</span>` : ''}
                         </div>
                     </div>
                 </div>
@@ -692,7 +696,7 @@ async function renderOrders() {
                     <button onclick="window.deleteOrderHandler('${order.id}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
         
         ordersContainer.className = currentView === 'grid' ? 'orders-grid' : 'space-y-4';
         ordersContainer.innerHTML = html;
@@ -767,17 +771,19 @@ function addProductRow(pd = null) {
     const row = document.createElement('div');
     row.className = 'product-row';
     
-    const imageHtml = pd?.image ? `<img src="${pd.image}" class="product-image-preview" onclick="window.openImage('${pd.image}')">` : '<div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fas fa-image text-2xl"></i></div>';
+    // تأكد من تمرير الصورة بشكل صحيح
+    const productImage = pd?.image || '';
+    const imageHtml = productImage ? `<img src="${productImage}" class="product-image-preview" onclick="window.openImage('${productImage}')">` : '<div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fas fa-image text-2xl"></i></div>';
     
     row.innerHTML = `
         <div class="flex gap-3 flex-wrap md:flex-nowrap">
             <div class="product-image-container w-20 h-20 flex-shrink-0">
                 ${imageHtml}
-                <input type="hidden" class="product-image" value="${escapeHtml(pd?.image || '')}">
+                <input type="hidden" class="product-image" value="${escapeHtml(productImage)}">
             </div>
             <div class="flex-1 grid grid-cols-1 md:grid-cols-6 gap-2">
                 <input type="text" class="product-name border rounded-lg p-2 text-sm md:col-span-2" value="${escapeHtml(pd?.name || '')}" placeholder="اسم المنتج">
-                <input type="text" class="product-barcode border rounded-lg p-2 text-sm bg-gray-50" readonly value="${escapeHtml(pd?.barcode || '')}">
+                <input type="text" class="product-barcode border rounded-lg p-2 text-sm bg-gray-50" readonly value="${escapeHtml(pd?.barcode || generateRandomCode())}">
                 <input type="number" class="product-price border rounded-lg p-2 text-sm" step="0.01" value="${pd?.price || 0}">
                 <input type="number" class="product-quantity border rounded-lg p-2 text-sm" value="${pd?.quantity || 1}" min="1">
                 <button type="button" class="upload-image-btn bg-gray-100 rounded-lg p-2 hover:bg-gray-200"><i class="fas fa-camera"></i></button>
@@ -854,8 +860,17 @@ function openInventoryModal() {
 window.selectFromInventory = (id) => {
     const p = products.find(p => p.id === id);
     if (p) {
-        addProductRow({ name: p.name, price: p.price, barcode: p.code, image: p.image, description: p.description, productId: p.id });
+        // تمرير productId و name و price و image و description
+        addProductRow({ 
+            productId: p.id, 
+            name: p.name, 
+            price: p.price, 
+            barcode: p.code, 
+            image: p.image, 
+            description: p.description 
+        });
         document.getElementById('inventoryModal').classList.add('hidden');
+        showToast(`تم إضافة ${p.name}`, 'success');
     }
 };
 
@@ -872,6 +887,8 @@ function openQuickProductModal(row) {
     
     if (!window.quillEditor) {
         window.quillEditor = new Quill('#quickProductEditor', { theme: 'snow', placeholder: 'وصف المنتج...', modules: { toolbar: [['bold', 'italic', 'underline'], ['link', 'image']] } });
+    } else {
+        window.quillEditor.root.innerHTML = '';
     }
     
     const fileInput = document.getElementById('productImageFile');
@@ -880,7 +897,13 @@ function openQuickProductModal(row) {
     const previewImg = document.getElementById('imagePreview');
     const removeBtn = document.getElementById('removeImageBtn');
     
-    fileInput.onchange = (e) => {
+    // إزالة المستمعات القديمة وإضافتها مرة أخرى لتجنب التكرار
+    const newFileInput = fileInput.cloneNode(true);
+    fileInput.parentNode.replaceChild(newFileInput, fileInput);
+    const newUrlInput = urlInput.cloneNode(true);
+    urlInput.parentNode.replaceChild(newUrlInput, urlInput);
+    
+    newFileInput.onchange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -888,26 +911,26 @@ function openQuickProductModal(row) {
                 currentProductImageData = ev.target.result;
                 previewImg.src = currentProductImageData;
                 previewContainer.classList.remove('hidden');
-                urlInput.value = '';
+                newUrlInput.value = '';
             };
             reader.readAsDataURL(file);
         }
     };
     
-    urlInput.oninput = () => {
-        if (urlInput.value) {
-            currentProductImageData = urlInput.value;
+    newUrlInput.oninput = () => {
+        if (newUrlInput.value) {
+            currentProductImageData = newUrlInput.value;
             previewImg.src = currentProductImageData;
             previewContainer.classList.remove('hidden');
-            fileInput.value = '';
+            newFileInput.value = '';
         }
     };
     
     removeBtn.onclick = () => {
         currentProductImageData = null;
         previewContainer.classList.add('hidden');
-        fileInput.value = '';
-        urlInput.value = '';
+        newFileInput.value = '';
+        newUrlInput.value = '';
     };
 }
 
@@ -925,6 +948,7 @@ async function saveQuickProduct(e) {
     const image = currentProductImageData || '';
     const description = window.quillEditor ? window.quillEditor.root.innerHTML : '';
     const saveToInventory = document.getElementById('saveToInventory').checked;
+    const barcode = document.getElementById('quickProductBarcode').value;
     
     if (!name || isNaN(price) || quantity <= 0) {
         showToast('الاسم والسعر والكمية مطلوبة', 'error');
@@ -932,17 +956,28 @@ async function saveQuickProduct(e) {
     }
     if (price < cost) { showToast('سعر البيع أقل من التكلفة', 'error'); return; }
     
-    const barcode = document.getElementById('quickProductBarcode').value;
     let productId = null;
     
     if (saveToInventory) {
         try {
-            const np = { name, price, cost, stock: 0, image, description, code: barcode, createdAt: new Date().toISOString() };
+            const np = { 
+                name, price, cost, stock: 0, image, description, 
+                code: barcode, 
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
             const ref = await addProduct(np);
             productId = ref.id;
-            await loadProductsList();
-            showToast('تم حفظ المنتج', 'success');
-        } catch (err) { showToast('خطأ في الحفظ', 'error'); return; }
+            await loadProductsList(); // تحديث قائمة المنتجات المحلية
+            showToast('تم حفظ المنتج في المخزون', 'success');
+        } catch (err) { 
+            console.error(err);
+            showToast('خطأ في حفظ المنتج', 'error'); 
+            return;
+        }
+    } else {
+        // إنشاء معرف مؤقت للمنتج غير المحفوظ
+        productId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     }
     
     if (currentProductRowTemp) {
@@ -952,6 +987,7 @@ async function saveQuickProduct(e) {
         currentProductRowTemp.querySelector('.product-quantity').value = quantity;
         currentProductRowTemp.querySelector('.product-image').value = image;
         currentProductRowTemp.querySelector('.product-desc-hidden').value = description;
+        currentProductRowTemp.querySelector('.product-id').value = productId;
         
         const imgContainer = currentProductRowTemp.querySelector('.product-image-container');
         if (image) imgContainer.innerHTML = `<img src="${image}" class="product-image-preview" onclick="window.openImage('${image}')"><input type="hidden" class="product-image" value="${image}">`;
@@ -959,7 +995,6 @@ async function saveQuickProduct(e) {
         
         const ed = currentProductRowTemp.querySelector('.product-desc-editor .ql-editor');
         if (ed) ed.innerHTML = description;
-        currentProductRowTemp.querySelector('.product-id').value = productId || '';
         updateTotals();
         showToast('تم إضافة المنتج', 'success');
     }
@@ -1025,7 +1060,7 @@ function setPaymentMethod(method) {
 function resetForm() {
     currentOrderId = null;
     document.getElementById('productsContainer').innerHTML = '';
-    addProductRow();
+    addProductRow(); // إضافة صف منتج فارغ واحد
     document.getElementById('customerSelect').value = '';
     document.getElementById('discountValue').value = '0';
     document.getElementById('orderNumber').value = generateOrderNumber();
@@ -1099,7 +1134,9 @@ async function saveOrder(e) {
         if (!name || isNaN(price) || qty <= 0) { showToast('جميع المنتجات مطلوبة', 'error'); return; }
         items.push({
             productId: r.querySelector('.product-id').value || null,
-            name, price, quantity: qty,
+            name, 
+            price, 
+            quantity: qty,
             barcode: r.querySelector('.product-barcode').value,
             image: r.querySelector('.product-image').value,
             description: r.querySelector('.product-desc-hidden').value
@@ -1109,23 +1146,35 @@ async function saveOrder(e) {
     
     const { subtotal, discount, tax, total } = calculateTotals();
     const orderData = {
-        orderNumber: `KF-${orderNumber}`, orderDate, orderTime, customerId, status,
-        shippingMethod, shippingAddress, extraEmail,
+        orderNumber: `KF-${orderNumber}`, 
+        orderDate, 
+        orderTime, 
+        customerId, 
+        status,
+        shippingMethod, 
+        shippingAddress, 
+        extraEmail,
         paymentMethod: selectedPaymentMethod,
         paymentMethodName: selectedPaymentMethod === 'other' ? otherText : (selectedPaymentMethod === 'tamara' ? 'تمارا' : (selectedPaymentMethod === 'tabby' ? 'تابي' : (selectedPaymentMethod === 'mada' ? 'مدى' : (selectedPaymentMethod === 'mastercard' ? 'ماستركارد' : (selectedPaymentMethod === 'visa' ? 'فيزا' : 'STCPay'))))),
-        approvalCode, otherPaymentText: otherText, items, subtotal,
+        approvalCode, 
+        otherPaymentText: otherText, 
+        items, 
+        subtotal,
         discount: parseFloat(document.getElementById('discountValue').value) || 0,
-        discountType: document.getElementById('discountType').value, tax, total,
+        discountType: document.getElementById('discountType').value, 
+        tax, 
+        total,
         updatedAt: new Date().toISOString()
     };
     if (!currentOrderId) orderData.createdAt = new Date().toISOString();
     
     try {
         if (currentOrderId) {
+            // استعادة المخزون القديم
             const old = orders.find(o => o.id === currentOrderId);
             if (old?.items) {
                 for (let it of old.items) {
-                    if (it.productId) {
+                    if (it.productId && !it.productId.startsWith('temp_')) {
                         const p = products.find(pr => pr.id === it.productId);
                         if (p) await updateProductStock(it.productId, p.stock + it.quantity);
                     }
@@ -1137,12 +1186,15 @@ async function saveOrder(e) {
             await addOrder(orderData);
             showToast('تم إضافة الطلب', 'success');
         }
+        
+        // تحديث المخزون الجديد (فقط للمنتجات المخزنة وليست مؤقتة)
         for (let it of items) {
-            if (it.productId) {
+            if (it.productId && !it.productId.startsWith('temp_')) {
                 const p = products.find(pr => pr.id === it.productId);
                 if (p) await updateProductStock(it.productId, p.stock - it.quantity);
             }
         }
+        
         closeModal();
         await loadData();
         await renderOrders();
@@ -1218,8 +1270,13 @@ function openModalForEdit(orderId) {
 
 window.editOrder = openModalForEdit;
 window.changeStatus = async (id, st) => {
-    try { await updateOrder(id, { status: st }); await renderOrders(); showToast(`تم تغيير الحالة`, 'success'); }
-    catch (e) { showToast('خطأ', 'error'); }
+    try { 
+        await updateOrder(id, { status: st }); 
+        await renderOrders(); 
+        showToast(`تم تغيير الحالة`, 'success'); 
+    } catch (e) { 
+        showToast('خطأ', 'error'); 
+    }
 };
 window.deleteOrderHandler = async (id) => {
     if (!confirm('تأكيد الحذف؟')) return;
@@ -1227,7 +1284,7 @@ window.deleteOrderHandler = async (id) => {
         const ord = orders.find(o => o.id === id);
         if (ord?.items) {
             for (let it of ord.items) {
-                if (it.productId) {
+                if (it.productId && !it.productId.startsWith('temp_')) {
                     const p = products.find(pr => pr.id === it.productId);
                     if (p) await updateProductStock(it.productId, p.stock + it.quantity);
                 }
@@ -1236,7 +1293,9 @@ window.deleteOrderHandler = async (id) => {
         await deleteOrder(id);
         await renderOrders();
         showToast('تم الحذف', 'success');
-    } catch (e) { showToast('خطأ', 'error'); }
+    } catch (e) { 
+        showToast('خطأ', 'error'); 
+    }
 };
 
 // ========== ربط الأحداث ==========
@@ -1250,7 +1309,10 @@ function bindEvents() {
     document.getElementById('cancelQuickBtn').onclick = closeQuickModal;
     document.getElementById('addFromInventoryBtn').onclick = openInventoryModal;
     document.getElementById('closeInventoryModalBtn').onclick = () => { document.getElementById('inventoryModal').classList.add('hidden'); };
-    document.getElementById('addNewProductBtn').onclick = () => openQuickProductModal(null);
+    document.getElementById('addNewProductBtn').onclick = () => {
+        const newRow = addProductRow();
+        openQuickProductModal(newRow);
+    };
     document.getElementById('closeQuickProductModalBtn').onclick = closeQuickProductModal;
     document.getElementById('cancelQuickProductBtn').onclick = closeQuickProductModal;
     document.getElementById('orderForm').onsubmit = saveOrder;
