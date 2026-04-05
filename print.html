@@ -49,7 +49,7 @@
     const BOTTOM_MARGIN_PX = 20 * MM_TO_PX;   // هامش سفلي 20mm
     const PAGE_HEIGHT_PX = 297 * MM_TO_PX;    // ارتفاع A4
     const MAX_CONTENT_HEIGHT_PX = PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX;
-    const BUFFER_PX = 20;  // مساحة أمان - تم التخفيض من 50
+    const BUFFER_PX = 20;  // مساحة أمان
     
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
@@ -168,7 +168,6 @@
         for (let i = 0; i < rows.length; i++) {
             const nextHeight = rowHeights[i];
 
-            // استخدام BUFFER_PX الجديد (20)
             if (currentHeight + nextHeight > maxHeight - BUFFER_PX) {
                 if (currentPage.length > 0) {
                     pages.push(currentPage);
@@ -358,14 +357,12 @@
             table.appendChild(tbody);
             inner.appendChild(table);
             
+            // ===== إضافة الملخص في الصفحة الأخيرة (دائماً) =====
             if (isLastPage) {
-                const currentRowsHeight = rowIndices.reduce((sum, idx) => sum + rowHeights[idx], 0);
-                const totalLastPageHeight = headerHeight + footerHeight + summaryHeight + currentRowsHeight;
-                if (totalLastPageHeight <= MAX_CONTENT_HEIGHT_PX) {
-                    const summaryClone = document.createElement('div');
-                    summaryClone.innerHTML = summaryHTML;
-                    inner.appendChild(summaryClone);
-                }
+                const summaryClone = document.createElement('div');
+                summaryClone.innerHTML = summaryHTML;
+                inner.appendChild(summaryClone);
+                console.log('✅ تم إضافة الملخص إلى الصفحة', p + 1);
             }
             
             const footerClone = document.createElement('div');
