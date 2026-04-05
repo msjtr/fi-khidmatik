@@ -45,11 +45,11 @@
     
     // ===== الثوابت المعدلة =====
     const MM_TO_PX = 3.78;
-    const TOP_MARGIN_PX = 15 * MM_TO_PX;      // هامش علوي 15mm
-    const BOTTOM_MARGIN_PX = 20 * MM_TO_PX;   // هامش سفلي 20mm
+    const TOP_MARGIN_PX = 20 * MM_TO_PX;      // هامش علوي 15mm
+    const BOTTOM_MARGIN_PX = 30 * MM_TO_PX;   // هامش سفلي 20mm
     const PAGE_HEIGHT_PX = 297 * MM_TO_PX;    // ارتفاع A4
     const MAX_CONTENT_HEIGHT_PX = PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX;
-    const BUFFER_PX = 20;  // مساحة أمان
+    const BUFFER_PX = 30;  // مساحة أمان
     
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
