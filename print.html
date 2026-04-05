@@ -69,6 +69,9 @@
         .page-number {
             font-size: 11px;
             color: #94a3b8;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
 
         /* ===== منع كسر العناصر ===== */
@@ -143,6 +146,14 @@
             font-size: 12px;
             font-weight: 600;
         }
+
+        .bg-blue-100 { background: #dbeafe; color: #1e40af; }
+        .bg-yellow-100 { background: #fef3c7; color: #92400e; }
+        .bg-green-100 { background: #dcfce7; color: #166534; }
+        .bg-purple-100 { background: #f3e8ff; color: #6b21a5; }
+        .bg-orange-100 { background: #ffedd5; color: #9a3412; }
+        .bg-red-100 { background: #fee2e2; color: #991b1b; }
+        .bg-gray-100 { background: #f1f5f9; color: #334155; }
 
         .company-badge {
             background: #f1f5f9;
@@ -398,6 +409,12 @@
         .btn:hover {
             transform: translateY(-2px);
         }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .btn-print { background: #3b82f6; color: white; }
         .btn-pdf { background: #ef4444; color: white; }
@@ -464,6 +481,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
+    // ========================================
+    // تكرار التحقق من وجود Firebase (لمنع أخطاء التهيئة المتعددة)
+    // ========================================
     const firebaseConfig = {
         apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
         authDomain: "msjt301-974bb.firebaseapp.com",
@@ -473,51 +493,64 @@
         appId: "1:186209858482:web:186ca610780799ef562aab"
     };
     
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    // تهيئة Firebase مرة واحدة فقط
+    let app;
+    let db;
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+    } catch (error) {
+        console.error("Firebase initialization error:", error);
+        document.getElementById('loading').innerHTML = '<div style="color:red; text-align:center">فشل في الاتصال بقاعدة البيانات</div>';
+        throw error;
+    }
 
     let customersMap = new Map();
     let productsMap = new Map();
     let currentFileName = "";
 
     // ========================================
-    // إعدادات الصفحة - A4
+    // إعدادات الصفحة - A4 (بالملليمترات)
     // ========================================
     const MM_TO_PX = 3.78;
-    const PAGE_HEIGHT = 297 * MM_TO_PX;
+    const PAGE_WIDTH_MM = 210;
+    const PAGE_HEIGHT_MM = 297;
     const TOP_MARGIN_MM = 20;
     const BOTTOM_MARGIN_MM = 25;
     const LEFT_MARGIN_MM = 15;
     const RIGHT_MARGIN_MM = 15;
-    const TOP_MARGIN_PX = TOP_MARGIN_MM * MM_TO_PX;
-    const BOTTOM_MARGIN_PX = BOTTOM_MARGIN_MM * MM_TO_PX;
-    const LEFT_MARGIN_PX = LEFT_MARGIN_MM * MM_TO_PX;
-    const RIGHT_MARGIN_PX = RIGHT_MARGIN_MM * MM_TO_PX;
-    const AVAILABLE_HEIGHT = PAGE_HEIGHT - TOP_MARGIN_PX - BOTTOM_MARGIN_PX;
-    const SAFETY_BUFFER = 30;
+    
+    // المساحة المتاحة للمحتوى الداخلي (بالبكسل)
+    const CONTENT_WIDTH_PX = (PAGE_WIDTH_MM - LEFT_MARGIN_MM - RIGHT_MARGIN_MM) * MM_TO_PX;
+    const AVAILABLE_HEIGHT_PX = (PAGE_HEIGHT_MM - TOP_MARGIN_MM - BOTTOM_MARGIN_MM) * MM_TO_PX;
+    const SAFETY_BUFFER_PX = 30; // مساحة أمان إضافية
 
     // ========================================
-    // دالة قياس ارتفاع العنصر
+    // دالة قياس ارتفاع العنصر بشكل دقيق
     // ========================================
     async function getElementHeight(element) {
         return new Promise((resolve) => {
-            const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.visibility = 'hidden';
-            container.style.top = '-9999px';
-            container.style.left = '-9999px';
-            container.style.width = `${210 - LEFT_MARGIN_MM - RIGHT_MARGIN_MM}mm`;
-            container.style.direction = 'rtl';
-            document.body.appendChild(container);
-            
-            const clone = element.cloneNode(true);
-            container.appendChild(clone);
-            
-            setTimeout(() => {
-                const height = clone.offsetHeight;
-                document.body.removeChild(container);
-                resolve(height);
-            }, 50);
+            // استخدام requestAnimationFrame لضمان اكتمال التصيير
+            requestAnimationFrame(() => {
+                const container = document.createElement('div');
+                container.style.position = 'absolute';
+                container.style.visibility = 'hidden';
+                container.style.top = '-9999px';
+                container.style.left = '-9999px';
+                container.style.width = `${CONTENT_WIDTH_PX}px`; // استخدام عرض دقيق
+                container.style.direction = 'rtl';
+                document.body.appendChild(container);
+                
+                const clone = element.cloneNode(true);
+                container.appendChild(clone);
+                
+                // استخدام setTimeout لضمان حساب الأبعاد
+                setTimeout(() => {
+                    const height = clone.offsetHeight;
+                    document.body.removeChild(container);
+                    resolve(height);
+                }, 100);
+            });
         });
     }
 
@@ -525,21 +558,33 @@
     // دوال Firebase
     // ========================================
     async function loadCustomersAndProducts() {
-        const customersSnap = await getDocs(collection(db, 'customers'));
-        customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
-        const productsSnap = await getDocs(collection(db, 'products'));
-        productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
+        try {
+            const [customersSnap, productsSnap] = await Promise.all([
+                getDocs(collection(db, 'customers')),
+                getDocs(collection(db, 'products'))
+            ]);
+            customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
+            productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
+        } catch (error) {
+            console.error("Error loading data:", error);
+            throw new Error("فشل في تحميل بيانات العملاء أو المنتجات");
+        }
     }
 
     async function getOrder(orderId) {
-        const orderRef = doc(db, 'orders', orderId);
-        const orderSnap = await getDoc(orderRef);
-        if (!orderSnap.exists()) return null;
-        return { id: orderSnap.id, ...orderSnap.data() };
+        try {
+            const orderRef = doc(db, 'orders', orderId);
+            const orderSnap = await getDoc(orderRef);
+            if (!orderSnap.exists()) return null;
+            return { id: orderSnap.id, ...orderSnap.data() };
+        } catch (error) {
+            console.error("Error loading order:", error);
+            throw new Error("فشل في تحميل بيانات الطلب");
+        }
     }
 
     // ========================================
-    // دوال مساعدة
+    // دوال مساعدة للتنسيق
     // ========================================
     function formatDate(dateStr) {
         if (!dateStr) return '';
@@ -564,23 +609,25 @@
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
         });
     }
     
     function getStatusClass(status) {
         const map = {
-            'جديد': 'bg-blue-100 text-blue-800',
-            'تحت التنفيذ': 'bg-yellow-100 text-yellow-800',
-            'تم التنفيذ': 'bg-green-100 text-green-800',
-            'تحت المراجعة': 'bg-purple-100 text-purple-800',
-            'مسترجع': 'bg-orange-100 text-orange-800',
-            'ملغي': 'bg-red-100 text-red-800'
+            'جديد': 'bg-blue-100',
+            'تحت التنفيذ': 'bg-yellow-100',
+            'تم التنفيذ': 'bg-green-100',
+            'تحت المراجعة': 'bg-purple-100',
+            'مسترجع': 'bg-orange-100',
+            'ملغي': 'bg-red-100'
         };
-        return map[status] || 'bg-gray-100 text-gray-800';
+        return map[status] || 'bg-gray-100';
     }
 
     // ========================================
-    // قوالب HTML
+    // دوال إنشاء أجزاء HTML
     // ========================================
     function getHeaderHTML(order, customer, paymentMethodName, shippingMethodText) {
         return `
@@ -592,7 +639,7 @@
                     <h1>فاتورة إلكترونية</h1>
                     <p><strong>رقم الفاتورة:</strong> ${escapeHtml(order.orderNumber || order.id)}</p>
                     <p><strong>التاريخ:</strong> ${formatDate(order.orderDate)} | <strong>الوقت:</strong> ${formatTime(order.orderTime)}</p>
-                    <p><span class="badge-status ${getStatusClass(order.status)}">${order.status || 'جديد'}</span></p>
+                    <p><span class="badge-status ${getStatusClass(order.status)}">${escapeHtml(order.status || 'جديد')}</span></p>
                 </div>
             </div>
             <div class="company-badge">
@@ -613,11 +660,11 @@
                 </div>
             </div>
             <div class="info-row">
-                <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${paymentMethodName}</span>
-                <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${order.approvalCode || 'APV-' + Math.floor(Math.random()*10000)}</span>
+                <span><i class="fas fa-credit-card"></i> <strong>طريقة الدفع:</strong> ${escapeHtml(paymentMethodName)}</span>
+                <span><i class="fas fa-check-circle"></i> <strong>رمز الموافقة:</strong> ${escapeHtml(order.approvalCode || 'APV-' + Math.floor(Math.random()*10000))}</span>
             </div>
             <div class="info-row">
-                <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>
+                <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${escapeHtml(shippingMethodText)}</span>
             </div>
             <div class="section-title">تفاصيل المنتجات والخدمات</div>
         `;
@@ -638,6 +685,12 @@
     }
     
     function getSummaryHTML(subtotal, discountValue, tax, total) {
+        // التأكد من أن القيم أرقام
+        subtotal = Number(subtotal) || 0;
+        discountValue = Number(discountValue) || 0;
+        tax = Number(tax) || 0;
+        total = Number(total) || 0;
+        
         return `
             <div class="summary-box">
                 <div class="summary-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
@@ -656,12 +709,12 @@
     }
 
     // ========================================
-    // دالة إنشاء صف المنتج
+    // دالة إنشاء عنصر صف المنتج (DOM Element)
     // ========================================
     function createProductRowElement(item) {
         const tr = document.createElement('tr');
-        const price = item.price || 0;
-        const qty = item.quantity || 0;
+        const price = Number(item.price) || 0;
+        const qty = Number(item.quantity) || 0;
         let productImage = '';
         let description = item.description || '';
         
@@ -677,24 +730,59 @@
         if (!productImage && item.image && item.image.trim() !== '') {
             productImage = item.image;
         }
-        if (description) description = escapeHtml(description);
         
-        const imgHtml = productImage ? 
-            `<img src="${productImage}" class="product-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-image\'></i></div>';">` :
-            `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
+        // إنشاء خلية الصورة
+        const imgTd = document.createElement('td');
+        imgTd.style.textAlign = 'center';
+        if (productImage) {
+            const img = document.createElement('img');
+            img.src = productImage;
+            img.className = 'product-img';
+            img.alt = escapeHtml(item.name);
+            img.onerror = function() {
+                this.style.display = 'none';
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'product-img-fallback';
+                fallbackDiv.innerHTML = '<i class="fas fa-box"></i>';
+                this.parentNode.innerHTML = '';
+                this.parentNode.appendChild(fallbackDiv);
+            };
+            imgTd.appendChild(img);
+        } else {
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.className = 'product-img-fallback';
+            fallbackDiv.innerHTML = '<i class="fas fa-box"></i>';
+            imgTd.appendChild(fallbackDiv);
+        }
         
-        tr.innerHTML = `
-            <td style="text-align: right;">${escapeHtml(item.name)}</td
-            <td class="desc-text">${description || '—'}</td
-            <td style="text-align: center;">${imgHtml}</td
-            <td style="text-align: center;">${qty}</td
-            <td style="text-align: center;">${price.toFixed(2)} ريال</td
-        `;
+        // إنشاء بقية الخلايا
+        const nameTd = document.createElement('td');
+        nameTd.style.textAlign = 'right';
+        nameTd.textContent = escapeHtml(item.name);
+        
+        const descTd = document.createElement('td');
+        descTd.className = 'desc-text';
+        descTd.textContent = description || '—';
+        
+        const qtyTd = document.createElement('td');
+        qtyTd.style.textAlign = 'center';
+        qtyTd.textContent = qty;
+        
+        const priceTd = document.createElement('td');
+        priceTd.style.textAlign = 'center';
+        priceTd.textContent = `${price.toFixed(2)} ريال`;
+        
+        tr.appendChild(nameTd);
+        tr.appendChild(descTd);
+        tr.appendChild(imgTd);
+        tr.appendChild(qtyTd);
+        tr.appendChild(priceTd);
+        
         return tr;
     }
 
     // ========================================
-    // دالة حساب ارتفاع الرأس والتذييل
+    // دالة حساب ارتفاع الرأس والتذييل الثابتة
     // ========================================
     async function calculateFixedHeights(headerHTML, footerHTML) {
         const tempHeader = document.createElement('div');
@@ -709,13 +797,19 @@
     }
 
     // ========================================
-    // دالة تقسيم الصفوف ديناميكياً
+    // دالة تقسيم الصفوف على الصفحات
     // ========================================
-    async function splitRowsDynamic(rows, headerHeight, footerHeight) {
+    async function splitRowsIntoPages(rows, headerHeight, footerHeight) {
         const pages = [];
         let currentPageRows = [];
         let currentHeight = 0;
-        const availableForRows = AVAILABLE_HEIGHT - headerHeight - footerHeight - SAFETY_BUFFER;
+        const availableForRows = AVAILABLE_HEIGHT_PX - headerHeight - footerHeight - SAFETY_BUFFER_PX;
+        
+        if (availableForRows <= 0) {
+            console.warn("Not enough space for rows, adjusting...");
+            // إذا لم تكن هناك مساحة كافية، نضغط على الهامش
+            return [rows];
+        }
         
         for (let i = 0; i < rows.length; i++) {
             const rowHeight = await getElementHeight(rows[i]);
@@ -734,11 +828,11 @@
             pages.push(currentPageRows);
         }
         
-        return pages.filter(page => page && page.length > 0);
+        return pages.length > 0 ? pages : [[]];
     }
 
     // ========================================
-    // دالة عرض الفاتورة
+    // دالة عرض الفاتورة الرئيسية
     // ========================================
     async function renderInvoice() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -746,7 +840,7 @@
         const autoAction = urlParams.get('auto');
         
         if (!orderId) {
-            document.getElementById('loading').innerHTML = '<div style="color:red; text-align:center">رقم الطلب غير موجود</div>';
+            document.getElementById('loading').innerHTML = '<div style="color:red; text-align:center">رقم الطلب غير موجود في الرابط</div>';
             return;
         }
         
@@ -763,19 +857,21 @@
                 street: '__________', email: '__________' 
             };
             
+            // إنشاء اسم الملف
             const clientName = (customer.name || 'client').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
             const orderNumber = order.orderNumber || order.id;
             const today = new Date();
             const dateStr = `${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}`;
             currentFileName = `فاتورة_${clientName}_${orderNumber}_${dateStr}`;
             
+            // حساب الإجماليات
             let subtotal = 0;
             const items = order.items || [];
             for (const item of items) {
-                subtotal += (item.price || 0) * (item.quantity || 0);
+                subtotal += (Number(item.price) || 0) * (Number(item.quantity) || 0);
             }
             
-            let discountValue = order.discount || 0;
+            let discountValue = Number(order.discount) || 0;
             if (order.discountType === 'percent' && discountValue > 0) {
                 discountValue = (subtotal * discountValue) / 100;
             }
@@ -797,12 +893,13 @@
                 'noship': '📥 لا يتطلب شحن' 
             }[order.shippingMethod] || 'استلام من المقر';
             
-            // إنشاء صفوف المنتجات
+            // إنشاء صفوف المنتجات كـ DOM elements
             const productRows = [];
             for (const item of items) {
                 productRows.push(createProductRowElement(item));
             }
             
+            // إنشاء الـ HTML للرأس والتذييل
             const headerHTML = getHeaderHTML(order, customer, paymentMethodName, shippingMethodText);
             const footerHTML = getFooterHTML();
             const summaryHTML = getSummaryHTML(subtotal, discountValue, tax, total);
@@ -811,16 +908,16 @@
             const { headerHeight, footerHeight } = await calculateFixedHeights(headerHTML, footerHTML);
             
             // تقسيم الصفوف على الصفحات
-            const pages = await splitRowsDynamic(productRows, headerHeight, footerHeight);
+            const pagesRows = await splitRowsIntoPages(productRows, headerHeight, footerHeight);
             
             const container = document.getElementById('pages');
             container.innerHTML = '';
             
-            for (let i = 0; i < pages.length; i++) {
-                const pageRows = pages[i];
-                const isLastPage = (i === pages.length - 1);
+            // بناء كل صفحة
+            for (let i = 0; i < pagesRows.length; i++) {
+                const pageRows = pagesRows[i];
+                const isLastPage = (i === pagesRows.length - 1);
                 
-                // إنشاء الصفحة
                 const pageDiv = document.createElement('div');
                 pageDiv.className = 'page';
                 
@@ -853,50 +950,54 @@
                 
                 const tbody = document.createElement('tbody');
                 for (const row of pageRows) {
+                    // استنساخ الصف لإضافة نسخة جديدة لكل صفحة
                     tbody.appendChild(row.cloneNode(true));
                 }
                 table.appendChild(tbody);
                 innerDiv.appendChild(table);
                 
-                // إضافة الملخص في الصفحة الأخيرة
+                // إضافة الملخص والتذييل فقط للصفحة الأخيرة
                 if (isLastPage) {
                     const summaryDiv = document.createElement('div');
                     summaryDiv.innerHTML = summaryHTML;
                     innerDiv.appendChild(summaryDiv);
                 }
                 
-                // إضافة التذييل
+                // إضافة التذييل (يظهر في كل الصفحات حسب الطلب، لكن عادةً في الأخيرة أو كلها)
                 const footerDiv = document.createElement('div');
                 footerDiv.innerHTML = footerHTML;
                 innerDiv.appendChild(footerDiv);
                 
+                contentDiv.appendChild(innerDiv);
+                pageDiv.appendChild(contentDiv);
+                
                 // إضافة رقم الصفحة
                 const pageNumberDiv = document.createElement('div');
                 pageNumberDiv.className = 'page-number';
-                pageNumberDiv.textContent = `صفحة ${i + 1} / ${pages.length}`;
-                
-                contentDiv.appendChild(innerDiv);
-                pageDiv.appendChild(contentDiv);
+                pageNumberDiv.textContent = `صفحة ${i + 1} / ${pagesRows.length}`;
                 pageDiv.appendChild(pageNumberDiv);
                 
                 container.appendChild(pageDiv);
             }
             
+            // إخفاء التحميل وإظهار المحتوى والأزرار
             document.getElementById('loading').style.display = 'none';
             document.getElementById('pages').style.display = 'block';
             document.getElementById('actionButtons').style.display = 'flex';
             
+            // إعداد الأزرار
             document.getElementById('printBtn').onclick = () => window.print();
             document.getElementById('pdfBtn').onclick = () => exportPDF();
             document.getElementById('pngBtn').onclick = () => exportPNG();
             
+            // تنفيذ الإجراء التلقائي إذا وجد
             if (autoAction === 'print') setTimeout(() => window.print(), 1000);
             else if (autoAction === 'pdf') setTimeout(() => exportPDF(), 1000);
             else if (autoAction === 'png') setTimeout(() => exportPNG(), 1000);
             
         } catch (error) {
-            console.error(error);
-            document.getElementById('loading').innerHTML = `<div style="color:red; text-align:center">خطأ: ${error.message}</div>`;
+            console.error("Render error:", error);
+            document.getElementById('loading').innerHTML = `<div style="color:red; text-align:center">حدث خطأ: ${escapeHtml(error.message)}</div>`;
         }
     }
     
@@ -910,15 +1011,17 @@
         if (btn) btn.disabled = true;
         
         try {
-            await html2pdf().set({
+            const opt = {
                 margin: [0, 0, 0, 0],
                 filename: `${currentFileName}.pdf`,
                 image: { type: 'jpeg', quality: 1 },
                 html2canvas: { scale: 3, dpi: 300, useCORS: true, logging: false, letterRendering: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false }
-            }).from(element).save();
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            await html2pdf().set(opt).from(element).save();
         } catch (error) {
-            alert('حدث خطأ أثناء تصدير PDF');
+            console.error("PDF export error:", error);
+            alert('حدث خطأ أثناء تصدير PDF: ' + error.message);
         } finally {
             if (btn) btn.disabled = false;
         }
@@ -931,18 +1034,28 @@
         if (btn) btn.disabled = true;
         
         try {
-            const canvas = await html2canvas(element, { scale: 3, dpi: 300, backgroundColor: '#ffffff', useCORS: true, logging: false });
+            const canvas = await html2canvas(element, { 
+                scale: 3, 
+                dpi: 300, 
+                backgroundColor: '#ffffff', 
+                useCORS: true, 
+                logging: false,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
+            });
             const link = document.createElement('a');
             link.download = `${currentFileName}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         } catch (error) {
-            alert('حدث خطأ أثناء تصدير الصورة');
+            console.error("PNG export error:", error);
+            alert('حدث خطأ أثناء تصدير الصورة: ' + error.message);
         } finally {
             if (btn) btn.disabled = false;
         }
     }
     
+    // بدء تشغيل التطبيق
     renderInvoice();
 </script>
 </body>
