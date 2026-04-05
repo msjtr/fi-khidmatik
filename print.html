@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* ===== إعادة تعيين ===== */
         * {
             margin: 0;
             padding: 0;
@@ -17,29 +18,36 @@
 
         body {
             font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-            background: #e2e8f0;
+            background: #f0f4f8;
             padding: 20px;
             direction: rtl;
         }
 
-        /* حجم صفحة A4 مع منع انقسام العناصر */
+        /* ===== صفحة A4 مع منع الانقسام ===== */
         .page {
             width: 210mm;
             min-height: 297mm;
             background: white;
             margin: 0 auto 20px auto;
-            padding: 15mm 12mm;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 12mm 12mm 8mm 12mm; /* هامش سفلي أقل */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             position: relative;
             page-break-after: always;
             break-after: page;
             page-break-inside: avoid;
         }
 
-        /* منع انكسار العناصر الداخلية */
-        .logo-header, .company-badge, .two-columns, .info-row, 
-        .section-title, .product-table, .summary-box, .terms-box, 
-        .thanks-block, .footer-static, .product-table tr {
+        /* منع انقسام جميع العناصر الداخلية */
+        .logo-header, .company-badge, .two-columns, .info-row,
+        .section-title, .product-table, .summary-box, .terms-box,
+        .thanks-block, .footer-static, .product-table tr,
+        .product-table tbody, .product-table thead {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* منع انقسام صفوف الجدول */
+        .product-table tr {
             page-break-inside: avoid;
             break-inside: avoid;
         }
@@ -53,7 +61,7 @@
             .page {
                 box-shadow: none;
                 margin: 0;
-                padding: 15mm 12mm;
+                padding: 12mm 12mm 8mm 12mm;
                 page-break-after: always;
             }
             .action-buttons {
@@ -73,19 +81,19 @@
             flex-wrap: wrap;
             gap: 15px;
             border-bottom: 2px solid #1e3a5f;
-            padding-bottom: 12px;
+            padding-bottom: 10px;
             margin-bottom: 15px;
         }
 
-        /* الشعار - يمكنك تغيير المسار */
+        /* الشعار - ضع مسار صورتك هنا */
         .logo-area img {
-            max-height: 70px;
+            max-height: 65px;
             width: auto;
         }
 
         .logo-fallback {
-            width: 70px;
-            height: 70px;
+            width: 65px;
+            height: 65px;
             background: linear-gradient(135deg, #1e3a5f, #3b82f6);
             border-radius: 14px;
             display: flex;
@@ -94,7 +102,7 @@
         }
 
         .logo-fallback i {
-            font-size: 32px;
+            font-size: 30px;
             color: white;
         }
 
@@ -106,30 +114,31 @@
         }
 
         .invoice-title p {
-            font-size: 14px;
-            margin: 5px 0;
+            font-size: 13px;
+            margin: 4px 0;
             color: #475569;
         }
 
         .badge-status {
             display: inline-block;
-            padding: 5px 14px;
+            padding: 4px 14px;
             border-radius: 25px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
         }
 
         .company-badge {
             background: #f1f5f9;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 12px;
-            font-size: 13px;
+            font-size: 12px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 15px;
             font-weight: 500;
+            color: #1e293b;
         }
 
         /* ===== بطاقات المعلومات ===== */
@@ -137,18 +146,18 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin: 15px 0;
+            margin: 12px 0;
         }
 
         .info-card {
             background: #f8fafc;
-            padding: 14px 16px;
+            padding: 12px 14px;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
         }
 
         .info-card h3 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             margin-bottom: 8px;
             border-right: 3px solid #3b82f6;
@@ -157,28 +166,29 @@
         }
 
         .info-card p {
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.5;
             color: #334155;
         }
 
         .info-row {
             background: #f1f5f9;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 10px;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            margin: 12px 0;
-            font-size: 14px;
+            margin: 10px 0;
+            font-size: 13px;
             font-weight: 500;
+            color: #1e293b;
         }
 
         .section-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
-            margin: 18px 0 12px 0;
+            margin: 15px 0 12px 0;
             border-right: 4px solid #3b82f6;
             padding-right: 12px;
             color: #1e293b;
@@ -188,25 +198,25 @@
         .product-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
-            margin: 15px 0;
+            font-size: 13px;
+            margin: 12px 0;
         }
 
         .product-table th {
             background: #1e3a5f;
             color: white;
-            padding: 12px 8px;
+            padding: 10px 6px;
             border: 1px solid #2d4a6e;
             text-align: center;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .product-table td {
             border: 1px solid #cbd5e1;
-            padding: 10px 6px;
+            padding: 8px 5px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             color: #1e293b;
         }
 
@@ -225,8 +235,8 @@
 
         /* صور المنتجات */
         .product-img {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             object-fit: cover;
             border-radius: 8px;
             display: block;
@@ -235,8 +245,8 @@
         }
 
         .product-img-fallback {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             background: #f1f5f9;
             border-radius: 8px;
             display: flex;
@@ -247,14 +257,14 @@
         }
 
         .product-img-fallback i {
-            font-size: 24px;
+            font-size: 22px;
             color: #94a3b8;
         }
 
         .desc-text {
             text-align: right;
             word-break: break-word;
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.4;
             color: #475569;
         }
@@ -262,46 +272,48 @@
         /* ===== الملخص ===== */
         .summary-box {
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-            padding: 16px 20px;
+            padding: 14px 18px;
             border-radius: 14px;
-            margin: 18px 0;
+            margin: 15px 0;
         }
 
         .summary-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 6px 0;
             border-bottom: 1px dashed #cbd5e1;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
+            color: #1e293b;
         }
 
         .summary-row.total {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: #166534;
             border-top: 2px solid #86efac;
-            padding-top: 12px;
-            margin-top: 8px;
+            padding-top: 10px;
+            margin-top: 6px;
             border-bottom: none;
         }
 
+        /* ===== الشروط ===== */
         .terms-box {
-            background: #fefce8;
-            padding: 14px 18px;
+            background: #fffbeb;
+            padding: 12px 16px;
             border-radius: 12px;
-            border-right: 4px solid #eab308;
+            border-right: 4px solid #f59e0b;
             margin: 15px 0;
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.5;
-            color: #854d0e;
+            color: #92400e;
         }
 
         .terms-box h4 {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             margin-bottom: 6px;
-            color: #a16207;
+            color: #b45309;
         }
 
         .thanks-block {
@@ -310,31 +322,31 @@
             padding: 12px;
             background: #eff6ff;
             border-radius: 25px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #1e40af;
         }
 
         /* ===== التذييل ===== */
         .footer-static {
-            margin-top: 18px;
+            margin-top: 15px;
             text-align: center;
             border-top: 2px solid #1e3a5f;
-            padding-top: 14px;
+            padding-top: 12px;
         }
 
         .contact-links {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 18px;
             background: #f8fafc;
-            padding: 10px 20px;
+            padding: 8px 18px;
             border-radius: 50px;
         }
 
         .contact-links span {
-            font-size: 12px;
+            font-size: 11px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -343,17 +355,17 @@
         }
 
         .footer-copyright {
-            font-size: 11px;
+            font-size: 10px;
             color: #94a3b8;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .page-number {
             text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             color: #94a3b8;
-            margin-top: 15px;
-            padding-top: 10px;
+            margin-top: 12px;
+            padding-top: 8px;
             border-top: 1px solid #e2e8f0;
             font-weight: 500;
         }
@@ -376,9 +388,9 @@
             border: none;
             font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .btn:hover {
@@ -439,7 +451,7 @@
     let customersMap = new Map();
     let productsMap = new Map();
     let currentFileName = "";
-    const PRODUCTS_PER_PAGE = 6; // تقليل عدد المنتجات لكل صفحة لمنع الانكسار
+    const PRODUCTS_PER_PAGE = 5; // عدد أقل لمنع الانكسار
     
     async function loadCustomersAndProducts() {
         const customersSnap = await getDocs(collection(db, 'customers'));
@@ -494,13 +506,13 @@
     }
     
     function getHeaderHTML(pageNum, totalPages, order, customer, paymentMethodName, shippingMethodText) {
-        // مسار الشعار - غيّر هذا المسار إلى مسار شعارك الفعلي
-        const logoPath = 'images/logo.png'; // ضع مسار شعارك هنا
+        // ===== مسار الشعار - غيّر هذا المسار إلى مسار شعارك =====
+        const logoPath = 'images/logo.png';
         
         return `
             <div class="logo-header">
                 <div class="logo-area">
-                    <img src="${logoPath}" alt="شعار المنصة" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'logo-fallback\'><i class=\'fas fa-handshake\'></i></div>';">
+                    <img src="${logoPath}" alt="شعار منصة في خدمتك" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'logo-fallback\'><i class=\'fas fa-handshake\'></i></div>';">
                 </div>
                 <div class="invoice-title">
                     <h1>فاتورة إلكترونية</h1>
@@ -533,7 +545,7 @@
             <div class="info-row">
                 <span><i class="fas fa-truck"></i> <strong>طريقة الاستلام:</strong> ${shippingMethodText}</span>
             </div>
-            <div class="section-title">تفاصيل المنتجات والخدمات</div>
+            <div class="section-title">📦 تفاصيل المنتجات والخدمات</div>
         `;
     }
     
@@ -561,10 +573,10 @@
             </div>
             <div class="terms-box">
                 <h4><i class="fas fa-info-circle"></i> تعليمات الفاتورة</h4>
-                <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها</p>
+                <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة، ويُعد اعتمادها أو سداد أي مبلغ بموجبها إقرارًا صريحًا ونهائيًا بالموافقة على جميع بنودها دون أي تحفظ، مع إقرار العميل بمسؤوليته عن الاطلاع عليها.</p>
             </div>
             <div class="thanks-block">
-                <p><i class="fas fa-heart" style="color:#ef4444"></i> شكراً لتسوقكم معنا</p>
+                <p><i class="fas fa-heart" style="color:#ef4444"></i> شكراً لتسوقكم معنا - نتمنى لكم تجربة ممتعة</p>
             </div>
         `;
     }
@@ -635,7 +647,6 @@
                 let productImage = '';
                 let description = item.description || '';
                 
-                // جلب الصورة من المخزون
                 if (item.productId && productsMap.has(item.productId)) {
                     const prod = productsMap.get(item.productId);
                     if (prod.mainImage && prod.mainImage.trim() !== '') {
@@ -666,7 +677,7 @@
                 `;
             }
             
-            // تقسيم المنتجات (6 منتجات لكل صفحة لمنع الانكسار)
+            // تقسيم المنتجات (5 لكل صفحة)
             const rows = allProductsHTML.match(/<tr[\s\S]*?<\/tr>/g) || [];
             const productsArray = [];
             for (let i = 0; i < rows.length; i += PRODUCTS_PER_PAGE) {
@@ -739,6 +750,7 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false }
             }).from(element).save();
         } catch (error) {
+            console.error(error);
             alert('حدث خطأ أثناء تصدير PDF');
         } finally {
             if (btn) btn.disabled = false;
@@ -758,6 +770,7 @@
             link.href = canvas.toDataURL('image/png');
             link.click();
         } catch (error) {
+            console.error(error);
             alert('حدث خطأ أثناء تصدير الصورة');
         } finally {
             if (btn) btn.disabled = false;
