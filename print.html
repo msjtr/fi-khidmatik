@@ -25,25 +25,53 @@
 </div>
 
 <script type="module">
-    // استيراد إعدادات Firebase من الملف المنفصل
-    import { db, customersMap, productsMap, loadCustomersAndProducts, getOrder } from './js/firebase.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+        authDomain: "msjt301-974bb.firebaseapp.com",
+        projectId: "msjt301-974bb",
+        storageBucket: "msjt301-974bb.firebasestorage.app",
+        messagingSenderId: "186209858482",
+        appId: "1:186209858482:web:186ca610780799ef562aab"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let customersMap = new Map();
+    let productsMap = new Map();
     let currentFileName = "";
     
-    // الثوابت
+    // ===== الثوابت المعدلة =====
     const MM_TO_PX = 3.78;
-    const TOP_MARGIN_PX = 15 * MM_TO_PX;
-    const BOTTOM_MARGIN_PX = 15 * MM_TO_PX;
-    const PAGE_HEIGHT_PX = 297 * MM_TO_PX;
+    const TOP_MARGIN_PX = 15 * MM_TO_PX;      // هامش علوي 15mm
+    const BOTTOM_MARGIN_PX = 20 * MM_TO_PX;   // هامش سفلي 20mm
+    const PAGE_HEIGHT_PX = 297 * MM_TO_PX;    // ارتفاع A4
     const MAX_CONTENT_HEIGHT_PX = PAGE_HEIGHT_PX - TOP_MARGIN_PX - BOTTOM_MARGIN_PX;
-    const BUFFER_PX = 50;
+    const BUFFER_PX = 20;  // مساحة أمان - تم التخفيض من 50
     
+    async function loadCustomersAndProducts() {
+        const customersSnap = await getDocs(collection(db, 'customers'));
+        customersSnap.forEach(docSnap => customersMap.set(docSnap.id, docSnap.data()));
+        const productsSnap = await getDocs(collection(db, 'products'));
+        productsSnap.forEach(docSnap => productsMap.set(docSnap.id, docSnap.data()));
+    }
+
+    async function getOrder(orderId) {
+        const orderRef = doc(db, 'orders', orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return null;
+        return { id: orderSnap.id, ...orderSnap.data() };
+    }
+
     function formatDate(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return dateStr;
         return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
     }
+    
     function formatTime(time24) {
         if (!time24) return '';
         let [h, m] = time24.split(':');
@@ -52,6 +80,7 @@
         hour = hour % 12 || 12;
         return `${hour.toString().padStart(2,'0')}:${m} ${ampm}`;
     }
+    
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, function(m) {
@@ -61,6 +90,7 @@
             return m;
         });
     }
+    
     function getStatusClass(status) {
         const map = {
             'جديد': 'bg-blue-100 text-blue-800',
@@ -107,17 +137,15 @@
     
     function createProductRow(item, productImage, description, price, qty, itemTotal) {
         const tr = document.createElement('tr');
-        // تأكد من أن productImage هو رابط صحيح
-        let imgSrc = (productImage && productImage.trim() !== '') ? productImage : '';
+        const imgSrc = productImage && productImage.trim() !== '' ? productImage : '';
         
         let processedDescription = description || '';
         if (processedDescription) {
             processedDescription = processedDescription.replace(/\n/g, "<br>");
         }
         
-        // إضافة مستمع لحدث الخطأ لتسجيل المشكلة
         const imgHtml = imgSrc ? 
-            `<img src="${imgSrc}" class="product-img" loading="eager" onerror="console.error('فشل تحميل الصورة:', this.src); this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-box\'></i></div>';">` :
+            `<img src="${imgSrc}" class="product-img" loading="eager" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'product-img-fallback\'><i class=\'fas fa-box\'></i></div>';">` :
             `<div class="product-img-fallback"><i class="fas fa-box"></i></div>`;
         
         tr.innerHTML = `
@@ -140,6 +168,7 @@
         for (let i = 0; i < rows.length; i++) {
             const nextHeight = rowHeights[i];
 
+            // استخدام BUFFER_PX الجديد (20)
             if (currentHeight + nextHeight > maxHeight - BUFFER_PX) {
                 if (currentPage.length > 0) {
                     pages.push(currentPage);
@@ -169,16 +198,12 @@
             return;
         }
         
-        // تحميل العملاء والمنتجات من Firebase
         await loadCustomersAndProducts();
         const order = await getOrder(orderId);
         if (!order) {
             document.getElementById('loading').innerHTML = '<div class="text-center text-red-600 p-10">الطلب غير موجود</div>';
             return;
         }
-        
-        // طباعة بيانات الطلب للمساعدة في التصحيح
-        console.log('بيانات الطلب:', order);
         
         const customer = customersMap.get(order.customerId) || { name: '__________', phone: '__________', city: '__________', street: '__________', email: '__________' };
         const clientName = (customer.name || 'client').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
@@ -194,11 +219,13 @@
             const qty = item.quantity || 0;
             subtotal += price * qty;
         }
+        
         let discountValue = order.discount || 0;
         if (order.discountType === 'percent' && discountValue > 0) discountValue = (subtotal * discountValue) / 100;
         const afterDiscount = subtotal - discountValue;
         const tax = afterDiscount * 0.15;
         const total = afterDiscount + tax;
+        
         const paymentMethodName = order.paymentMethodName || (order.paymentMethod === 'mada' ? 'مدى' : order.paymentMethod === 'mastercard' ? 'ماستركارد' : order.paymentMethod === 'visa' ? 'فيزا' : order.paymentMethod === 'stcpay' ? 'STCPay' : order.paymentMethod === 'tamara' ? 'تمارا' : order.paymentMethod === 'tabby' ? 'تابي' : 'أخرى');
         const shippingMethodText = { 'pickup': '🏪 استلام من المقر', 'delivery': '🚚 شحن منزلي', 'noship': '📥 لا يتطلب شحن' }[order.shippingMethod] || 'استلام من المقر';
         
@@ -207,46 +234,21 @@
             const price = item.price || 0;
             const qty = item.quantity || 0;
             const itemTotal = price * qty;
-            
-            // ** التعديل المهم: الأولوية للصورة المخزنة مباشرة في الطلب **
             let productImage = '';
             let description = item.description || '';
             
-            // 1. أولاً: استخدام الصورة المخزنة مباشرة في عنصر الطلب (item.image)
-            if (item.image && item.image.trim() !== '') {
-                productImage = item.image;
-                console.log('تم العثور على صورة في الطلب:', productImage);
-            }
-            // 2. ثانياً: إذا لم توجد صورة في الطلب، حاول جلبها من المنتجات المخزنة
-            else if (item.productId) {
+            if (item.productId) {
                 const prod = productsMap.get(item.productId);
                 if (prod) {
-                    if (prod.image) {
-                        productImage = prod.image;
-                        console.log('تم العثور على صورة من المخزون:', productImage);
-                    }
+                    if (prod.image) productImage = prod.image;
                     if (!description && prod.description) description = prod.description;
                 }
             }
-            
-            // معالجة الوصف
-            if (description && typeof description === 'string') {
-                description = escapeHtml(description);
-            }
-            
-            console.log(`المنتج: ${item.name}, الصورة: ${productImage || 'لا توجد صورة'}`);
-            
-            productRowsData.push({ 
-                item, 
-                productImage, 
-                description: description || '', 
-                price, 
-                qty, 
-                itemTotal 
-            });
+            if (!productImage && item.image) productImage = item.image;
+            if (description && typeof description === 'string') description = escapeHtml(description);
+            productRowsData.push({ item, productImage, description: description || '', price, qty, itemTotal });
         }
         
-        // شعار من images/logo.svg
         const logoPath = 'images/logo.svg';
         
         const headerHTML = `
@@ -359,7 +361,6 @@
             if (isLastPage) {
                 const currentRowsHeight = rowIndices.reduce((sum, idx) => sum + rowHeights[idx], 0);
                 const totalLastPageHeight = headerHeight + footerHeight + summaryHeight + currentRowsHeight;
-                
                 if (totalLastPageHeight <= MAX_CONTENT_HEIGHT_PX) {
                     const summaryClone = document.createElement('div');
                     summaryClone.innerHTML = summaryHTML;
