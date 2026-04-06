@@ -27,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* Invoice Container - matches A4 exactly */
         .invoice-wrapper {
             max-width: 210mm;
             margin: 0 auto;
@@ -36,12 +35,6 @@
             border-radius: 4px;
         }
 
-        /* main invoice pages container */
-        .invoice-pages {
-            background: white;
-        }
-
-        /* each page = A4 size with fixed margins */
         .invoice-page {
             width: 210mm;
             min-height: 297mm;
@@ -54,13 +47,11 @@
             box-sizing: border-box;
         }
 
-        /* avoid breaking rows inside table */
         .invoice-table tr {
             break-inside: avoid;
             page-break-inside: avoid;
         }
 
-        /* Header section fixed style */
         .header-top {
             display: flex;
             justify-content: space-between;
@@ -70,26 +61,31 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
+
         .logo-area {
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
         .logo-img {
             width: 55px;
             height: 55px;
             object-fit: contain;
         }
+
         .platform-name {
             font-size: 20px;
             font-weight: bold;
             color: #1e3a5f;
         }
+
         .invoice-title {
             font-size: 24px;
             font-weight: bold;
             color: #2c3e66;
         }
+
         .legal-numbers {
             text-align: left;
             font-size: 11px;
@@ -97,7 +93,6 @@
             line-height: 1.4;
         }
 
-        /* order status row */
         .info-row {
             display: flex;
             justify-content: space-between;
@@ -107,10 +102,12 @@
             margin: 15px 0;
             border: 1px solid #e2e8f0;
         }
+
         .info-item {
             font-size: 13px;
             font-weight: 500;
         }
+
         .status-badge {
             background: #10b981;
             color: white;
@@ -119,13 +116,13 @@
             font-size: 12px;
         }
 
-        /* two columns addresses */
         .addresses {
             display: flex;
             gap: 20px;
             margin: 20px 0;
             flex-wrap: wrap;
         }
+
         .address-box {
             flex: 1;
             background: #f9f9fb;
@@ -135,18 +132,19 @@
             font-size: 12px;
             line-height: 1.6;
         }
+
         .address-box strong {
             display: block;
             margin-bottom: 8px;
             color: #1e3a5f;
         }
 
-        /* payment & approval row */
         .payment-approval {
             display: flex;
             gap: 20px;
             margin: 15px 0;
         }
+
         .payment-box, .approval-box {
             flex: 1;
             background: #f1f5f9;
@@ -155,13 +153,13 @@
             font-size: 13px;
         }
 
-        /* dynamic product table */
         .invoice-table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             font-size: 12px;
         }
+
         .invoice-table th {
             background: #1e3a5f;
             color: white;
@@ -169,11 +167,13 @@
             border: 1px solid #2d4a7a;
             font-weight: bold;
         }
+
         .invoice-table td {
             border: 1px solid #cbd5e1;
             padding: 10px 6px;
             vertical-align: middle;
         }
+
         .product-img {
             width: 50px;
             height: 50px;
@@ -182,7 +182,6 @@
             background: #f1f5f9;
         }
 
-        /* totals section */
         .totals {
             width: 280px;
             margin-right: auto;
@@ -191,12 +190,14 @@
             border-top: 2px solid #e2e8f0;
             padding-top: 12px;
         }
+
         .totals div {
             display: flex;
             justify-content: space-between;
             padding: 6px 0;
             font-size: 13px;
         }
+
         .grand-total {
             font-weight: bold;
             font-size: 16px;
@@ -206,7 +207,6 @@
             padding-top: 8px;
         }
 
-        /* barcode & zatca qr */
         .barcode-qr {
             display: flex;
             justify-content: space-between;
@@ -217,12 +217,12 @@
             border: 1px solid #e2e8f0;
             border-radius: 12px;
         }
+
         .qr-placeholder {
             width: 80px;
             height: 80px;
         }
 
-        /* footer instructions */
         .footer-note {
             margin-top: 20px;
             font-size: 11px;
@@ -232,7 +232,6 @@
             padding-top: 15px;
         }
 
-        /* page number */
         .page-number {
             text-align: left;
             font-size: 11px;
@@ -241,7 +240,6 @@
             direction: ltr;
         }
 
-        /* terms page styling */
         .terms-page {
             width: 210mm;
             min-height: 297mm;
@@ -249,6 +247,7 @@
             background: white;
             page-break-after: auto;
         }
+
         .terms-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -256,9 +255,11 @@
             font-size: 10.5px;
             line-height: 1.5;
         }
+
         .terms-section {
             margin-bottom: 16px;
         }
+
         .terms-section h4 {
             background: #1e3a5f;
             color: white;
@@ -268,7 +269,6 @@
             margin-bottom: 10px;
         }
 
-        /* print specific */
         @media print {
             body {
                 background: white;
@@ -297,7 +297,6 @@
             }
         }
 
-        /* action buttons */
         .action-buttons {
             display: flex;
             justify-content: center;
@@ -313,6 +312,7 @@
             width: fit-content;
             z-index: 100;
         }
+
         .btn {
             padding: 8px 18px;
             border: none;
@@ -322,36 +322,109 @@
             font-size: 13px;
             transition: 0.2s;
         }
+
         .btn-primary {
             background: #1e3a5f;
             color: white;
         }
+
         .btn-secondary {
             background: #334155;
             color: white;
         }
+
         .btn-success {
             background: #10b981;
             color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .loading-box {
+            background: white;
+            padding: 25px 35px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3a5f;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 14px;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
 <div style="display: flex; flex-direction: column; align-items: center;">
     <div class="invoice-wrapper" id="invoiceRoot">
-        <!-- dynamic content will be rendered here (invoice pages + terms) -->
+        <div class="loading-box" style="text-align: center; padding: 50px;">
+            <div class="loading-spinner"></div>
+            <p>جاري تحميل الفاتورة...</p>
+        </div>
     </div>
     <div class="action-buttons no-print">
         <button class="btn btn-primary" id="printBtn">🖨️ طباعة مباشرة</button>
         <button class="btn btn-secondary" id="pdfBtn">📄 PDF (عالية الجودة)</button>
         <button class="btn btn-secondary" id="pngBtn">🖼️ PNG (دقة عالية)</button>
         <button class="btn btn-success" id="zipBtn">📦 تحميل مضغوط (PDF+PNG)</button>
+        <button class="btn btn-danger" id="backBtn" onclick="window.close()">✖️ إغلاق</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     // Firebase Config
     const firebaseConfig = {
@@ -362,31 +435,89 @@
         messagingSenderId: "186209858482",
         appId: "1:186209858482:web:186ca610780799ef562aab"
     };
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // -------------------- Mock / Demo Order Data (dynamic fetch from firestore or demo) --------------------
-    // We'll try to fetch order from URL param ?orderId=... or fallback to demo order with full details from the invoice spec
+    let orderData = null;
+
+    // ========== دوال مساعدة ==========
+    function showLoading(message = 'جاري التحميل...') {
+        let overlay = document.getElementById('loadingOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'loadingOverlay';
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `
+                <div class="loading-box">
+                    <div class="loading-spinner"></div>
+                    <p id="loadingMessage">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+        const msgEl = document.getElementById('loadingMessage');
+        if (msgEl) msgEl.textContent = message;
+        overlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = type === 'success' ? '✅ ' + message : '❌ ' + message;
+        toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+        toast.style.color = 'white';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ========== جلب بيانات الطلب ==========
     async function fetchOrderData() {
         const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('orderId');
-        if (orderId) {
+        const orderId = urlParams.get('id');
+        const autoPrint = urlParams.get('print') === 'true' || urlParams.get('auto') === 'print';
+        
+        if (orderId && orderId !== 'null' && orderId !== 'undefined') {
             try {
+                showLoading('جاري تحميل بيانات الطلب...');
                 const orderRef = doc(db, 'orders', orderId);
                 const snap = await getDoc(orderRef);
                 if (snap.exists()) {
-                    return { id: snap.id, ...snap.data() };
+                    orderData = { id: snap.id, ...snap.data() };
+                    showToast('تم تحميل الفاتورة بنجاح', 'success');
+                    if (autoPrint) {
+                        setTimeout(() => printInvoice(), 500);
+                    }
+                    return;
                 }
-            } catch(e) { console.warn(e); }
+            } catch(e) { 
+                console.warn('Firebase error:', e);
+                showToast('خطأ في جلب البيانات من Firebase', 'error');
+            }
         }
-        // Demo order data fully matching design requirements (including images, tax, discount, etc)
-        return {
+        
+        // بيانات تجريبية للعرض
+        orderData = {
             id: "demo_001",
             orderNumber: "KF-2603290287",
             orderDate: "29/03/2026",
             orderTime: "03:21 صباحاً",
             status: "تم التنفيذ",
-            customer: "شركة التقنية الحديثة",
             customerName: "أحمد محمد السالم",
             phone: "+966 55 123 4567",
             email: "ahmed@example.com",
@@ -408,39 +539,61 @@
         };
     }
 
-    // Generate ZATCA QR code (text based on seller, tax, total)
+    // ========== إنشاء باركود ZATCA ==========
     function generateZATCAQRData(order) {
         const seller = order.seller?.name || "منصة في خدمتك";
         const taxNumber = order.seller?.taxNumber || "312495447600003";
         const timestamp = new Date().toISOString();
         const total = order.total || 0;
         const taxAmount = order.tax || 0;
-        // Simplified ZATCA format (TLV)
-        return `Seller:${seller}|TaxID:${taxNumber}|Timestamp:${timestamp}|Total:${total}|VAT:${taxAmount}`;
+        
+        // تشفير TLV
+        function encodeTLV(tag, value) {
+            return String.fromCharCode(tag) + String.fromCharCode(value.length) + value;
+        }
+        
+        let tlvData = '';
+        tlvData += encodeTLV(1, seller);
+        tlvData += encodeTLV(2, taxNumber);
+        tlvData += encodeTLV(3, timestamp);
+        tlvData += encodeTLV(4, total.toFixed(2));
+        tlvData += encodeTLV(5, taxAmount.toFixed(2));
+        
+        return btoa(tlvData);
     }
 
-    // Render product rows for a page (splitting dynamic)
+    // ========== عرض المنتجات ==========
     function renderProductRows(items) {
+        if (!items || items.length === 0) return '<tr><td colspan="7" style="text-align:center;">لا توجد منتجات</td></tr>';
+        
         return items.map((item, idx) => `
             <tr>
-                <td style="text-align:center">${idx+1}</td>
-                <td style="text-align:center"><img src="${item.image || 'https://via.placeholder.com/50?text=No+Img'}" class="product-img" onerror="this.src='https://via.placeholder.com/50?text=No+Img'" alt="product"></td>
-                <td>${item.name}</td>
-                <td style="text-align:center">${item.description || '-'}</td>
+                <td style="text-align:center">${idx + 1}</td>
+                <td style="text-align:center">
+                    ${item.image ? `<img src="${item.image}" class="product-img" onerror="this.style.display='none'" alt="product">` : 
+                      '<div style="width:50px;height:50px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto;"><i class="fas fa-image" style="color:#9ca3af;"></i></div>'}
+                </td>
+                <td><strong>${escapeHtml(item.name)}</strong><br><small style="color:#666;">${escapeHtml(item.description || '')}</small></td>
                 <td style="text-align:center">${item.quantity}</td>
-                <td style="text-align:center">${item.price.toFixed(2)} ريال</td>
-                <td style="text-align:center">${(item.price * item.quantity).toFixed(2)} ريال</td>
+                <td style="text-align:center">${(item.price || 0).toFixed(2)} ريال</td>
+                <td style="text-align:center">${((item.price || 0) * item.quantity).toFixed(2)} ريال</td>
             </tr>
         `).join('');
     }
 
-    // Build first invoice page (main invoice content)
+    // ========== بناء صفحة الفاتورة ==========
     function buildInvoicePage(order, pageNumber, totalPages) {
-        const itemsHtml = renderProductRows(order.items || []);
-        const subtotal = order.subtotal || order.items.reduce((s,i)=> s + (i.price*i.quantity),0);
+        const itemsHtml = renderProductRows(order.items);
+        const subtotal = order.subtotal || order.items?.reduce((s, i) => s + (i.price * i.quantity), 0) || 0;
         const discount = order.discount || 0;
-        const tax = order.tax || ((subtotal - discount) * 0.15).toFixed(2);
-        const finalTotal = order.total || (subtotal - discount + parseFloat(tax));
+        const tax = order.tax || ((subtotal - discount) * 0.15);
+        const finalTotal = order.total || (subtotal - discount + tax);
+        
+        const shippingMethodText = {
+            'pickup': '🏪 استلام من المقر',
+            'delivery': '🚚 شحن منزلي',
+            'noship': '📥 لا يتطلب شحن'
+        }[order.shippingMethod] || order.shippingMethod || 'توصيل';
         
         return `
             <div class="invoice-page">
@@ -457,21 +610,33 @@
                 </div>
                 <div class="info-row">
                     <div class="info-item"><strong>رقم الفاتورة:</strong> ${order.orderNumber}</div>
-                    <div class="info-item"><strong>التاريخ:</strong> ${order.orderDate} &nbsp; <strong>الوقت:</strong> ${order.orderTime}</div>
-                    <div class="info-item"><span class="status-badge">${order.status}</span></div>
+                    <div class="info-item"><strong>التاريخ:</strong> ${order.orderDate} &nbsp; <strong>الوقت:</strong> ${order.orderTime || '00:00'}</div>
+                    <div class="info-item"><span class="status-badge">${order.status || 'جديد'}</span></div>
                 </div>
                 <div class="addresses">
-                    <div class="address-box"><strong>مصدرة من:</strong> ${order.seller?.name || 'منصة في خدمتك'}<br>المملكة العربية السعودية<br>${order.addressFrom || 'حائل : حي النقرة'}</div>
-                    <div class="address-box"><strong>مصدرة إلى:</strong> ${order.customerName || order.customer}<br>${order.addressTo || 'الرياض، حي النقرة'}<br>جوال: ${order.phone}<br>بريد: ${order.email || 'client@example.com'}</div>
+                    <div class="address-box">
+                        <strong>📦 مصدرة من</strong>
+                        ${order.seller?.name || 'منصة في خدمتك'}<br>
+                        المملكة العربية السعودية<br>
+                        ${order.addressFrom || 'حائل : حي النقرة : شارع سعد المشاط'}<br>
+                        الرمز البريدي: 55431
+                    </div>
+                    <div class="address-box">
+                        <strong>👤 مصدرة إلى</strong>
+                        ${escapeHtml(order.customerName || order.customer || 'عميل')}<br>
+                        ${order.addressTo || ''}<br>
+                        <strong>جوال:</strong> ${order.phone || ''}<br>
+                        <strong>بريد:</strong> ${order.email || ''}
+                    </div>
                 </div>
                 <div class="payment-approval">
-                    <div class="payment-box"><strong>طريقة الدفع:</strong> ${order.paymentMethod || 'تحويل بنكي'}</div>
-                    <div class="payment-box"><strong>طريقة استلام المنتج:</strong> ${order.shippingMethod || 'توصيل'}</div>
-                    <div class="approval-box"><strong>رمز الموافقة على الطلب:</strong> ${order.approvalCode || 'APP-2026-001'}</div>
+                    <div class="payment-box"><strong>💳 طريقة الدفع:</strong> ${order.paymentMethodName || order.paymentMethod || 'مدى'}</div>
+                    <div class="payment-box"><strong>🚚 طريقة استلام المنتج:</strong> ${shippingMethodText}</div>
+                    <div class="approval-box"><strong>✓ رمز الموافقة:</strong> ${order.approvalCode || 'غير مطلوب'}</div>
                 </div>
                 <table class="invoice-table">
                     <thead>
-                        <tr><th>#</th><th>صورة</th><th>اسم المنتج</th><th>وصف المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
+                        <tr><th>#</th><th>صورة</th><th>اسم المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
                     </thead>
                     <tbody>
                         ${itemsHtml}
@@ -480,88 +645,85 @@
                 <div class="totals">
                     <div><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
                     <div><span>إجمالي الخصم:</span><span>- ${discount.toFixed(2)} ريال</span></div>
-                    <div><span>ضريبة القيمة المضافة (15%):</span><span>${tax} ريال</span></div>
-                    <div class="grand-total"><span>الإجمالي النهائي شامل الضريبة:</span><span>${finalTotal.toFixed(2)} ريال</span></div>
+                    <div><span>ضريبة القيمة المضافة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
+                    <div class="grand-total"><span>الإجمالي النهائي:</span><span>${finalTotal.toFixed(2)} ريال</span></div>
                 </div>
                 <div class="barcode-qr">
-                    <div id="qrCode_${pageNumber}" class="qr-placeholder"></div>
+                    <div id="zatcaQR" class="qr-placeholder"></div>
                     <div style="font-size:11px; text-align:center;">باركود هيئة الزكاة والضريبة والجمارك</div>
                 </div>
                 <div class="footer-note">
-                    <strong>تعليمات الفاتورة:</strong> تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة<br>
-                    شكراً لتسوقكم معنا<br>
-                    الهاتف: 966534051317 | الواتساب: 966545312021 | info@fi-khidmatik.com | www.khidmatik.com<br>
-                    هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً
+                    <strong>📋 تعليمات الفاتورة:</strong> تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة<br><br>
+                    <strong>🙏 شكراً لتسوقكم معنا</strong><br>
+                    📞 966534051317 | 💬 966545312021 | ✉️ info@fi-khidmatik.com | 🌐 www.khidmatik.com<br>
+                    ✅ هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً
                 </div>
-                <div class="page-number">صفحة ${pageNumber} من ${totalPages}</div>
+                <div class="page-number">📄 صفحة ${pageNumber} من ${totalPages}</div>
             </div>
         `;
     }
 
-    // Terms and conditions page (full terms as per document)
+    // ========== بناء صفحة الشروط ==========
     function buildTermsPage(pageNum, totalPages) {
         return `
             <div class="terms-page">
-                <h3 style="color:#1e3a5f; margin-bottom:20px;">الشروط والأحكام والتعليمات</h3>
+                <h3 style="color:#1e3a5f; margin-bottom:20px;">📜 الشروط والأحكام والتعليمات</h3>
                 <div class="terms-grid">
-                    <div><div class="terms-section"><h4>أولاً: صلاحية العرض والتنفيذ</h4>1. مدة صلاحية العرض: 3 أيام عمل.<br>2. بدء التنفيذ بعد استلام الدفعة المقدمة.<br>3. مدة التنفيذ تحتسب من تاريخ اكتمال المتطلبات.<br>4. لا مسؤولية عن تأخير خارج الإرادة.<br>5. الموافقات الخارجية وفق سياسات الجهات.</div>
-                    <div class="terms-section"><h4>ثانياً: التكاليف والمسؤوليات المالية</h4>6. الرسوم الخارجية غير مشمولة.<br>7. خدمات الطرف الثالث تخضع لسياساتها.<br>8. المدفوعات الخارجية غير قابلة للاسترجاع.<br>9. الدفع نيابة عن العميل دين مستحق.<br>10. الضريبة 15% تضاف حسب الأنظمة.</div>
-                    <div class="terms-section"><h4>ثالثاً: التسليم والملكية</h4>11. التسليم حسب النطاق المحدد.<br>12. المنتج النهائي فقط.<br>13. الكود المصدري ملكية حصرية لمقدم الخدمة.<br>14. نقل الملكية باتفاق وسداد كامل.<br>15. عدم طلب التسليم يلغي الالتزام.<br>16. حق إعادة الاستخدام محفوظ.</div>
-                    <div class="terms-section"><h4>رابعاً: الدفعات والاسترجاع</h4>17. نظام الدفع وفق الآلية المتفق عليها.<br>18. تأخر السداد يؤدي لإيقاف العمل.<br>19. عدم استرجاع بعد البدء.<br>20. إيقاف المشروع من مقدم الخدمة عند المخالفة.<br>21. احتساب الأعمال المنفذة بنسبة الإنجاز.<br>22. رسوم إدارية 20% على الأعمال المنفذة.</div>
-                    <div class="terms-section"><h4>خامساً: الضمان</h4>23. الضمان حسب طبيعة المشروع.<br>24. يقتصر على الأخطاء الفنية لمقدم الخدمة.<br>25. استثناءات: سوء استخدام أو تعديلات خارجية.</div>
-                    <div class="terms-section"><h4>سادساً: انتهاء العلاقة والمسؤولية</h4>26. تنتهي العلاقة بعد التسليم.<br>27. لا مسؤولية لاحقة.<br>28. تشغيل المشروع على العميل.<br>29. حفظ النسخ الاحتياطية على العميل.<br>30. براءة ذمة من خدمات الأطراف الثالثة.</div>
-                    <div class="terms-section"><h4>سابعاً: التواصل والتنفيذ</h4>31. وسائل التواصل الرسمية فقط.<br>32. التفويض بإشعار رسمي.<br>33. النسخ الإلكترونية معتمدة قانونياً.</div>
-                    <div class="terms-section"><h4>ثامناً: البنود القانونية</h4>34. علاقة تعاقدية مستقلة.<br>35. كامل الاتفاق.<br>36. الأخطاء غير المقصودة لا تبطل البنود.<br>37. عدم التنازل عن الحقوق.<br>38. اللغة العربية المعتمدة.</div>
-                    <div class="terms-section"><h4>تاسعاً: النزاعات</h4>39. حل النزاعات ودياً.<br>40. الجهة المختصة يحددها مقدم الخدمة.</div>
-                    <div class="terms-section"><h4>عاشراً: البنود المتقدمة</h4>41. القوة القاهرة.<br>42. السرية.<br>43. التعديلات خارج النطاق بعرض منفصل.<br>44. التوقف المؤقت عند عدم تجاوب العميل.<br>45. الاستلام الحكمي بعد 7 أيام.<br>46. الاعتراض خلال 7 أيام كتابياً.</div>
-                    <div class="terms-section"><h4>حادي عشر: البنود المالية والقانونية المتقدمة</h4>47. المدفوعات الخارجية غير مستحقة.<br>48. المدفوعات بالنيابة تسدد من العميل.<br>49. تفسير البنود بما يحفظ حقوق مقدم الخدمة.<br>50. حق رفض الخدمة مع احتساب الأعمال المنفذة.</div>
-                    <div class="terms-section"><h4>ثاني عشر: الحماية القانونية</h4>51. التنازل عن المطالبات.<br>52. حدود المسؤولية لا تتجاوز المبلغ المدفوع.<br>53. الاستخدام غير المشروع مسؤولية العميل.<br>54. الملكية الفكرية محفوظة.<br>55. تحديث الشروط مستقبلاً للأعمال الجديدة.<br>56. استقلالية البنود.<br>57. الشروط الإضافية تكون بملحق مستقل.</div>
+                    <div>
+                        <div class="terms-section"><h4>أولاً: صلاحية العرض والتنفيذ</h4>1. مدة صلاحية العرض: 3 أيام عمل.<br>2. بدء التنفيذ بعد استلام الدفعة المقدمة.<br>3. مدة التنفيذ تحتسب من تاريخ اكتمال المتطلبات.<br>4. لا مسؤولية عن تأخير خارج الإرادة.<br>5. الموافقات الخارجية وفق سياسات الجهات.</div>
+                        <div class="terms-section"><h4>ثانياً: التكاليف والمسؤوليات المالية</h4>6. الرسوم الخارجية غير مشمولة.<br>7. خدمات الطرف الثالث تخضع لسياساتها.<br>8. المدفوعات الخارجية غير قابلة للاسترجاع.<br>9. الدفع نيابة عن العميل دين مستحق.<br>10. الضريبة 15% تضاف حسب الأنظمة.</div>
+                        <div class="terms-section"><h4>ثالثاً: التسليم والملكية</h4>11. التسليم حسب النطاق المحدد.<br>12. المنتج النهائي فقط.<br>13. الكود المصدري ملكية حصرية لمقدم الخدمة.<br>14. نقل الملكية باتفاق وسداد كامل.<br>15. عدم طلب التسليم يلغي الالتزام.<br>16. حق إعادة الاستخدام محفوظ.</div>
+                    </div>
+                    <div>
+                        <div class="terms-section"><h4>رابعاً: الدفعات والاسترجاع</h4>17. نظام الدفع وفق الآلية المتفق عليها.<br>18. تأخر السداد يؤدي لإيقاف العمل.<br>19. عدم استرجاع بعد البدء.<br>20. إيقاف المشروع عند المخالفة.<br>21. احتساب الأعمال المنفذة.<br>22. رسوم إدارية 20%.</div>
+                        <div class="terms-section"><h4>خامساً: الضمان</h4>23. الضمان حسب طبيعة المشروع.<br>24. يقتصر على الأخطاء الفنية.<br>25. استثناءات: سوء استخدام أو تعديلات خارجية.</div>
+                        <div class="terms-section"><h4>سادساً: انتهاء العلاقة</h4>26. تنتهي العلاقة بعد التسليم.<br>27. لا مسؤولية لاحقة.<br>28. تشغيل المشروع على العميل.<br>29. حفظ النسخ الاحتياطية على العميل.<br>30. براءة ذمة من خدمات الأطراف الثالثة.</div>
+                    </div>
                 </div>
                 <div style="margin-top:30px; border-top:1px solid #ccc; padding-top:15px;">
-                    <p><strong>الإقرار:</strong> أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل.</p>
-                    <div style="display:flex; justify-content:space-between; margin-top:20px;"><span>الاسم: ${orderData?.customerName || '_________________'}</span><span>التاريخ: ${new Date().toLocaleDateString('ar-SA')}</span></div>
-                    <div style="margin-top:10px;">التوقيع: _________________</div>
+                    <p><strong>✍️ الإقرار:</strong> أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل.</p>
+                    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                        <span><strong>الاسم:</strong> ${escapeHtml(orderData?.customerName || '_________________')}</span>
+                        <span><strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}</span>
+                    </div>
+                    <div style="margin-top:10px;"><strong>التوقيع:</strong> _________________</div>
                 </div>
-                <div class="page-number" style="margin-top:20px;">صفحة ${pageNum} من ${totalPages}</div>
+                <div class="page-number" style="margin-top:20px;">📄 صفحة ${pageNum} من ${totalPages}</div>
             </div>
         `;
     }
 
-    let orderData = null;
-    let currentInvoiceHTML = '';
-
-    // Render Full invoice pages + terms
+    // ========== عرض الفاتورة كاملة ==========
     async function renderFullInvoice() {
-        orderData = await fetchOrderData();
+        await fetchOrderData();
         const mainPage = buildInvoicePage(orderData, 1, 2);
         const termsPage = buildTermsPage(2, 2);
         const fullHtml = mainPage + termsPage;
         document.getElementById('invoiceRoot').innerHTML = fullHtml;
-        // generate QR Code after DOM render
+        
+        // إنشاء QR Code
         setTimeout(() => {
-            const qrDiv = document.getElementById('qrCode_1');
-            if(qrDiv) {
-                new QRCode(qrDiv, {
-                    text: generateZATCAQRData(orderData),
-                    width: 80,
-                    height: 80
-                });
+            const qrDiv = document.getElementById('zatcaQR');
+            if (qrDiv && typeof QRCode !== 'undefined') {
+                try {
+                    new QRCode(qrDiv, {
+                        text: generateZATCAQRData(orderData),
+                        width: 80,
+                        height: 80,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch(e) {
+                    console.warn('QR Error:', e);
+                }
             }
         }, 100);
-        currentInvoiceHTML = fullHtml;
+        
+        hideLoading();
     }
 
-    // print function
-    function printInvoice() {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة ${orderData.orderNumber}</title>
-            <style>${getPrintStyles()}</style></head><body>${document.getElementById('invoiceRoot').innerHTML}</body></html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-    }
-
+    // ========== دوال الطباعة والتصدير ==========
     function getPrintStyles() {
         return `
             * { margin:0; padding:0; box-sizing:border-box; }
@@ -571,74 +733,128 @@
             .product-img { width:50px; height:50px; object-fit:cover; }
             .page-number { text-align:left; }
             .action-buttons { display:none; }
+            .no-print { display:none; }
         `;
     }
 
-    // PDF Generation high quality using html2canvas + jsPDF
+    function printInvoice() {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            showToast('الرجاء السماح للنوافذ المنبثقة', 'error');
+            return;
+        }
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <title>فاتورة ${orderData.orderNumber}</title>
+                <style>${getPrintStyles()}</style>
+            </head>
+            <body>${document.getElementById('invoiceRoot').innerHTML}</body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        showToast('تم إرسال الفاتورة للطباعة', 'success');
+    }
+
     async function generatePDF() {
         const element = document.getElementById('invoiceRoot');
         const pages = element.querySelectorAll('.invoice-page, .terms-page');
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
-        let pageIndex = 0;
-        for (const page of pages) {
-            const canvas = await html2canvas(page, { scale: 3, useCORS: true, logging: false });
-            const imgData = canvas.toDataURL('image/png');
-            const imgWidth = 210;
-            const pageHeight = 297;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-            if (pageIndex !== 0) pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            pageIndex++;
+        
+        showLoading('جاري إنشاء ملف PDF...');
+        
+        try {
+            for (let i = 0; i < pages.length; i++) {
+                const canvas = await html2canvas(pages[i], { scale: 3, useCORS: true, logging: false });
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                if (i !== 0) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            }
+            pdf.save(`invoice_${orderData.orderNumber}.pdf`);
+            showToast('تم حفظ PDF بنجاح', 'success');
+        } catch (error) {
+            console.error('PDF Error:', error);
+            showToast('حدث خطأ في إنشاء PDF', 'error');
+        } finally {
+            hideLoading();
         }
-        pdf.save(`invoice_${orderData.orderNumber}.pdf`);
     }
 
     async function generatePNG() {
         const element = document.getElementById('invoiceRoot');
-        const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
-        const link = document.createElement('a');
-        link.download = `invoice_${orderData.orderNumber}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
+        showLoading('جاري إنشاء صورة PNG...');
+        
+        try {
+            const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+            const link = document.createElement('a');
+            link.download = `invoice_${orderData.orderNumber}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showToast('تم حفظ PNG بنجاح', 'success');
+        } catch (error) {
+            console.error('PNG Error:', error);
+            showToast('حدث خطأ في إنشاء PNG', 'error');
+        } finally {
+            hideLoading();
+        }
     }
 
     async function generateZIP() {
         const element = document.getElementById('invoiceRoot');
         const zip = new JSZip();
-        // PDF
         const { jsPDF } = window.jspdf;
         const pages = element.querySelectorAll('.invoice-page, .terms-page');
         const pdf = new jsPDF('p', 'mm', 'a4');
-        for (let i=0; i<pages.length; i++) {
-            const canvas = await html2canvas(pages[i], { scale: 3, useCORS: true });
-            const imgData = canvas.toDataURL('image/png');
-            if(i !== 0) pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+        
+        showLoading('جاري إنشاء الملف المضغوط...');
+        
+        try {
+            // إضافة PDF
+            for (let i = 0; i < pages.length; i++) {
+                const canvas = await html2canvas(pages[i], { scale: 3, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
+                if (i !== 0) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+            }
+            zip.file(`invoice_${orderData.orderNumber}.pdf`, pdf.output('blob'));
+            
+            // إضافة PNG
+            const fullCanvas = await html2canvas(element, { scale: 2.5, useCORS: true });
+            const pngBlob = await new Promise(resolve => fullCanvas.toBlob(resolve, 'image/png'));
+            zip.file(`invoice_${orderData.orderNumber}.png`, pngBlob);
+            
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoice_${orderData.orderNumber}.zip`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('تم حفظ الملف المضغوط بنجاح', 'success');
+        } catch (error) {
+            console.error('ZIP Error:', error);
+            showToast('حدث خطأ في إنشاء الملف المضغوط', 'error');
+        } finally {
+            hideLoading();
         }
-        const pdfBlob = pdf.output('blob');
-        zip.file(`invoice_${orderData.orderNumber}.pdf`, pdfBlob);
-        // PNG full length
-        const fullCanvas = await html2canvas(element, { scale: 2.5, useCORS: true });
-        const pngBlob = await new Promise(resolve => fullCanvas.toBlob(resolve, 'image/png'));
-        zip.file(`invoice_${orderData.orderNumber}.png`, pngBlob);
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        const url = URL.createObjectURL(zipBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `invoice_${orderData.orderNumber}.zip`;
-        a.click();
-        URL.revokeObjectURL(url);
     }
 
-    // event listeners
+    // ========== ربط الأحداث ==========
     document.getElementById('printBtn')?.addEventListener('click', printInvoice);
     document.getElementById('pdfBtn')?.addEventListener('click', generatePDF);
     document.getElementById('pngBtn')?.addEventListener('click', generatePNG);
     document.getElementById('zipBtn')?.addEventListener('click', generateZIP);
 
+    // بدء التشغيل
     renderFullInvoice();
 </script>
 </body>
