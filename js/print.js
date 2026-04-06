@@ -24,7 +24,9 @@ export async function downloadPDF(elementId, filename = 'invoice') {
             scale: 3,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            allowTaint: false,
+            useCORS: true
         });
         
         const imgData = canvas.toDataURL('image/png');
@@ -37,8 +39,20 @@ export async function downloadPDF(elementId, filename = 'invoice') {
         
         const imgWidth = 210;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
         
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= 297;
+        
+        // إضافة صفحات إضافية إذا كان المحتوى أطول من صفحة واحدة
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= 297;
+        }
+        
         pdf.save(`${filename}.pdf`);
         showSuccess('تم حفظ PDF بنجاح');
     } catch (error) {
@@ -66,7 +80,8 @@ export async function downloadPNG(elementId, filename = 'invoice') {
             scale: 3,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            allowTaint: false
         });
         
         const link = document.createElement('a');
@@ -99,7 +114,8 @@ export async function downloadZIP(elementId, filename = 'invoice') {
             scale: 3,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            allowTaint: false
         });
         
         const zip = new JSZip();
@@ -133,7 +149,7 @@ export async function downloadZIP(elementId, filename = 'invoice') {
 }
 
 /**
- * إنشاء باركود هيئة الزكاة والضريبة (ZATCA)
+ * إنشاء باركود هيئة الزكاة والضريبة (ZATCA) - نسخة متوافقة مع المعايير السعودية
  */
 export function generateZATCAQRCode(containerId, orderData) {
     const sellerName = 'منصة في خدمتك';
@@ -142,15 +158,11 @@ export function generateZATCAQRCode(containerId, orderData) {
     const totalWithVAT = orderData.total || 0;
     const vatAmount = orderData.tax || 0;
     
-    // تشفير TLV لهيئة الزكاة
+    // تشفير TLV وفق معيار هيئة الزكاة (Base64)
     function encodeTLV(tag, value) {
-        const tagHex = tag.toString(16).padStart(2, '0');
-        const lengthHex = value.length.toString(16).padStart(2, '0');
-        let valueHex = '';
-        for (let i = 0; i < value.length; i++) {
-            valueHex += value.charCodeAt(i).toString(16).padStart(2, '0');
-        }
-        return tagHex + lengthHex + valueHex;
+        const tagHex = String.fromCharCode(tag);
+        const lengthHex = String.fromCharCode(value.length);
+        return tagHex + lengthHex + value;
     }
     
     let tlvData = '';
@@ -160,11 +172,54 @@ export function generateZATCAQRCode(containerId, orderData) {
     tlvData += encodeTLV(4, totalWithVAT.toFixed(2));
     tlvData += encodeTLV(5, vatAmount.toFixed(2));
     
+    // تحويل إلى Base64
+    const base64Data = btoa(tlvData);
+    
     const container = document.getElementById(containerId);
     if (container) {
         container.innerHTML = '';
         new QRCode(container, {
-            text: tlvData,
+            text: base64Data,
+            width: 100,
+            height: 100,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+}
+
+/**
+ * إنشاء باركود هيئة الزكاة (نسخة بديلة باستخدام TLV مباشر)
+ */
+export function generateZATCAQRCodeV2(containerId, orderData) {
+    const sellerName = 'منصة في خدمتك';
+    const vatNumber = '312495447600003';
+    const timestamp = new Date().toISOString();
+    const totalWithVAT = orderData.total || 0;
+    const vatAmount = orderData.tax || 0;
+    
+    // إنشاء كائن TLV
+    const tlvTags = [
+        { tag: 1, value: sellerName },
+        { tag: 2, value: vatNumber },
+        { tag: 3, value: timestamp },
+        { tag: 4, value: totalWithVAT.toFixed(2) },
+        { tag: 5, value: vatAmount.toFixed(2) }
+    ];
+    
+    let tlvString = '';
+    for (const item of tlvTags) {
+        tlvString += String.fromCharCode(item.tag);
+        tlvString += String.fromCharCode(item.value.length);
+        tlvString += item.value;
+    }
+    
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = '';
+        new QRCode(container, {
+            text: tlvString,
             width: 100,
             height: 100,
             colorDark: '#000000',
@@ -177,7 +232,7 @@ export function generateZATCAQRCode(containerId, orderData) {
 // ========== دوال مساعدة للتحميل ==========
 let loadingOverlay = null;
 
-function showLoading(message) {
+export function showLoading(message) {
     if (!loadingOverlay) {
         loadingOverlay = document.createElement('div');
         loadingOverlay.id = 'loadingOverlay';
@@ -195,18 +250,23 @@ function showLoading(message) {
         document.body.appendChild(loadingOverlay);
         
         const style = document.createElement('style');
-        style.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+        style.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }`;
         document.head.appendChild(style);
     }
-    document.getElementById('loadingMessage').textContent = message;
+    const messageEl = document.getElementById('loadingMessage');
+    if (messageEl) messageEl.textContent = message;
     loadingOverlay.style.display = 'flex';
 }
 
-function hideLoading() {
+export function hideLoading() {
     if (loadingOverlay) loadingOverlay.style.display = 'none';
 }
 
-function showSuccess(message) {
+export function showSuccess(message) {
     const toast = document.createElement('div');
     toast.className = 'toast-message';
     toast.textContent = '✅ ' + message;
@@ -220,7 +280,7 @@ function showSuccess(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-function showError(message) {
+export function showError(message) {
     const toast = document.createElement('div');
     toast.className = 'toast-message';
     toast.textContent = '❌ ' + message;
@@ -232,4 +292,68 @@ function showError(message) {
     `;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
+}
+
+/**
+ * إزالة رسائل التوست الموجودة
+ */
+export function clearToasts() {
+    const toasts = document.querySelectorAll('.toast-message');
+    toasts.forEach(toast => toast.remove());
+}
+
+/**
+ * إخفاء التحميل وإزالة العنصر بالكامل
+ */
+export function removeLoadingOverlay() {
+    if (loadingOverlay) {
+        loadingOverlay.remove();
+        loadingOverlay = null;
+    }
+}
+
+/**
+ * تصدير الفاتورة كملف HTML
+ */
+export async function downloadHTML(elementId, filename = 'invoice') {
+    const element = document.getElementById(elementId);
+    if (!element) {
+        console.error('❌ العنصر غير موجود:', elementId);
+        return;
+    }
+    
+    showLoading('جاري إنشاء ملف HTML...');
+    
+    try {
+        const styles = document.querySelector('style').innerHTML;
+        const htmlContent = `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>فاتورة ${filename}</title>
+    <style>${styles}</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    ${element.outerHTML}
+    <div style="text-align:center; padding:20px; margin-top:20px;">
+        <button onclick="window.print()" style="padding:10px 20px;">🖨️ طباعة</button>
+    </div>
+</body>
+</html>`;
+        
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${filename}.html`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showSuccess('تم حفظ HTML بنجاح');
+    } catch (error) {
+        console.error('HTML Error:', error);
+        showError('حدث خطأ في إنشاء HTML');
+    } finally {
+        hideLoading();
+    }
 }
