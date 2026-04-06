@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة المنتجات - نظام متكامل</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
@@ -52,23 +53,23 @@
             position: fixed;
             bottom: 20px;
             left: 20px;
-            background: #10b981;
-            color: white;
             padding: 12px 24px;
             border-radius: 8px;
             z-index: 1000;
             animation: slideIn 0.3s ease;
         }
-        .toast-error { background: #ef4444; }
-        .toast-warning { background: #f59e0b; }
+        .toast-success { background: #10b981; color: white; }
+        .toast-error { background: #ef4444; color: white; }
+        .toast-warning { background: #f59e0b; color: white; }
         @keyframes slideIn {
             from { transform: translateX(-100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        .low-stock { background: #fee2e2; color: #dc2626; font-weight: bold; }
-        .out-of-stock { background: #fecaca; color: #dc2626; font-weight: bold; }
+        .low-stock { background: #fee2e2; color: #dc2626; font-weight: bold; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+        .out-of-stock { background: #fecaca; color: #dc2626; font-weight: bold; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+        .in-stock { background: #dcfce7; color: #16a34a; font-weight: bold; padding: 2px 8px; border-radius: 20px; display: inline-block; }
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .tab-active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .tab-active { background: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
         .report-card {
             transition: all 0.2s;
             border: 1px solid #e5e7eb;
@@ -107,7 +108,7 @@
                 <i class="fas fa-file-import ml-1"></i> استيراد
             </button>
             <button id="downloadTemplateBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg shadow transition">
-                <i class="fas fa-download ml-1"></i> تحميل قالب Excel
+                <i class="fas fa-download ml-1"></i> تحميل قالب
             </button>
             <button id="exportBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow transition">
                 <i class="fas fa-file-export ml-1"></i> تصدير CSV
@@ -137,18 +138,17 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-right">الصورة الرئيسية</th>
+                        <th class="px-4 py-3 text-right">الصورة</th>
                         <th class="px-4 py-3 text-right">الاسم</th>
                         <th class="px-4 py-3 text-right">الكود</th>
                         <th class="px-4 py-3 text-right">السعر</th>
                         <th class="px-4 py-3 text-right">المخزون</th>
-                        <th class="px-4 py-3 text-right">صور إضافية</th>
                         <th class="px-4 py-3 text-right">الحالة</th>
                         <th class="px-4 py-3 text-right">العمليات</th>
                     </tr>
                 </thead>
                 <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
-                    <tr><td colspan="8" class="text-center py-8 text-gray-500">جاري التحميل...</td></tr>
+                    <tr><td colspan="7" class="text-center py-8 text-gray-500">جاري التحميل...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -156,9 +156,10 @@
 
     <!-- لوحة التقارير -->
     <div id="reportsPanel" class="hidden">
-        <div class="mb-4 flex gap-2">
-            <input type="number" id="stockThreshold" placeholder="حد المخزون (مثال: 10)" class="border rounded-lg px-3 py-2 w-40" value="10">
+        <div class="mb-4 flex gap-2 items-center">
+            <input type="number" id="stockThreshold" placeholder="حد المخزون" class="border rounded-lg px-3 py-2 w-40" value="10">
             <button id="applyThreshold" class="bg-blue-600 text-white px-4 py-2 rounded-lg">تطبيق</button>
+            <span class="text-sm text-gray-500 mr-2">المنتجات التي يقل مخزونها عن الحد</span>
         </div>
         <div id="reportsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </div>
@@ -202,15 +203,15 @@
                             </div>
                             <div id="mainImagePreview" class="mt-2 hidden">
                                 <img id="mainPreviewImg" class="product-image-preview">
-                                <button type="button" id="removeMainImageBtn" class="text-red-500 text-sm">إزالة</button>
+                                <button type="button" id="removeMainImageBtn" class="text-red-500 text-sm mt-1">إزالة</button>
                             </div>
                         </div>
 
                         <!-- صور إضافية -->
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">صور إضافية (اختياري - حتى 8 صور)</label>
-                            <div id="galleryContainer" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2"></div>
-                            <button type="button" id="addGalleryImageBtn" class="text-blue-600 text-sm mt-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">صور إضافية</label>
+                            <div id="galleryContainer" class="space-y-2 mb-2"></div>
+                            <button type="button" id="addGalleryImageBtn" class="text-blue-600 text-sm">
                                 <i class="fas fa-plus"></i> إضافة صورة إضافية
                             </button>
                             <div id="galleryPreview" class="image-grid mt-2"></div>
@@ -251,7 +252,7 @@
     <!-- مودال سلة المهملات -->
     <div id="trashModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
         <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b p-4 flex justify-between">
+            <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
                 <h2 class="text-xl font-bold"><i class="fas fa-trash-alt text-red-600 ml-2"></i>سلة المهملات</h2>
                 <button id="closeTrashModalBtn" class="text-gray-500 text-2xl">&times;</button>
             </div>
@@ -262,21 +263,17 @@
         </div>
     </div>
 
-    <!-- مودال استيراد CSV/Excel -->
+    <!-- مودال استيراد -->
     <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-            <div class="p-4 border-b flex justify-between">
+            <div class="p-4 border-b flex justify-between items-center">
                 <h2 class="text-xl font-bold">استيراد منتجات</h2>
                 <button id="closeImportModalBtn" class="text-gray-500 text-2xl">&times;</button>
             </div>
             <div class="p-4">
-                <p class="text-sm text-gray-600 mb-3">قم بتحميل ملف CSV أو Excel يحتوي على الأعمدة التالية:</p>
-                <div class="bg-gray-50 p-3 rounded-lg text-xs mb-3">
-                    <p><strong>الأعمدة المطلوبة:</strong></p>
-                    <p>الاسم, الكود, السعر, الكمية, الصورة_الرئيسية, الصور_الإضافية (مفصولة بفاصلة منقوطة), الفيديو, الوصف</p>
-                </div>
+                <p class="text-sm text-gray-600 mb-3">قم بتحميل ملف CSV أو Excel</p>
                 <input type="file" id="importFile" accept=".csv,.xlsx,.xls" class="w-full border rounded-lg p-2">
-                <div id="importPreview" class="mt-3 max-h-60 overflow-y-auto"></div>
+                <div id="importPreview" class="mt-3 max-h-60 overflow-y-auto text-sm"></div>
                 <div class="flex justify-end gap-2 mt-4">
                     <button id="cancelImportBtn" class="px-4 py-2 border rounded-lg">إلغاء</button>
                     <button id="confirmImportBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg">استيراد</button>
@@ -285,7 +282,7 @@
         </div>
     </div>
 
-    <div id="toast" class="hidden fixed bottom-4 left-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"></div>
+    <div id="toast" class="hidden fixed bottom-4 left-4 px-6 py-3 rounded-lg shadow-lg z-50"></div>
 
 <script type="module">
     // ===================== استيراد Firebase =====================
@@ -297,7 +294,9 @@
         doc,
         getDocs,
         updateDoc,
-        deleteDoc
+        deleteDoc,
+        query,
+        orderBy
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     // Firebase configuration
@@ -307,8 +306,7 @@
         projectId: "msjt301-974bb",
         storageBucket: "msjt301-974bb.firebasestorage.app",
         messagingSenderId: "186209858482",
-        appId: "1:186209858482:web:186ca610780799ef562aab",
-        measurementId: "G-NDVGC9GPQZ"
+        appId: "1:186209858482:web:186ca610780799ef562aab"
     };
 
     // Initialize Firebase
@@ -316,21 +314,19 @@
     const db = getFirestore(app);
 
     // ===================== دوال Firebase =====================
-    async function getCollection(collectionName) {
+    async function loadProductsFromFirebase() {
         try {
-            const querySnapshot = await getDocs(collection(db, collectionName));
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
-            console.error(`Error fetching ${collectionName}:`, error);
+            console.error('Error loading products:', error);
             return [];
         }
     }
 
-    async function loadProducts() {
-        return await getCollection('products');
-    }
-
-    async function addProduct(data) {
+    async function addProductToFirebase(data) {
         try {
             return await addDoc(collection(db, 'products'), data);
         } catch (error) {
@@ -339,7 +335,7 @@
         }
     }
 
-    async function updateProduct(id, data) {
+    async function updateProductInFirebase(id, data) {
         try {
             return await updateDoc(doc(db, 'products', id), data);
         } catch (error) {
@@ -348,7 +344,7 @@
         }
     }
 
-    async function deleteProduct(id) {
+    async function deleteProductFromFirebase(id) {
         try {
             return await deleteDoc(doc(db, 'products', id));
         } catch (error) {
@@ -359,7 +355,7 @@
 
     // ========== المتغيرات العامة ==========
     let products = [];
-    let deletedProducts = [];
+    let deletedProducts = []; // سلة المهملات المحلية
     let currentProductId = null;
     let searchTerm = '';
     let currentTab = 'products';
@@ -417,8 +413,7 @@
     // ========== دوال مساعدة ==========
     function showToast(message, type = 'success') {
         toast.textContent = message;
-        toast.className = `fixed bottom-4 left-4 px-6 py-3 rounded-lg shadow-lg z-50`;
-        toast.style.backgroundColor = type === 'error' ? '#ef4444' : (type === 'warning' ? '#f59e0b' : '#10b981');
+        toast.className = `toast toast-${type} fixed bottom-4 left-4 px-6 py-3 rounded-lg shadow-lg z-50`;
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 3000);
     }
@@ -428,70 +423,86 @@
     }
     
     function escapeHtml(str) { 
-        if (str === undefined || str === null) return ''; 
-        if (typeof str === 'number') return str.toString();
+        if (!str) return ''; 
         return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m)); 
     }
 
     function getStockStatus(stock) {
         if (stock === 0) return { text: 'نفد', class: 'out-of-stock' };
         if (stock <= 5) return { text: 'منخفض', class: 'low-stock' };
-        return { text: 'متوفر', class: '' };
+        return { text: 'متوفر', class: 'in-stock' };
     }
 
     // ========== إدارة الصور الإضافية ==========
+    let galleryImageUrls = [];
+
     function addGalleryImageInput() {
-        const index = galleryContainer.children.length;
+        const index = galleryImageUrls.length;
         if (index >= 8) {
             showToast('لا يمكن إضافة أكثر من 8 صور إضافية', 'warning');
             return;
         }
         
-        const div = document.createElement('div');
-        div.className = 'gallery-image-input flex gap-2 items-center';
-        div.innerHTML = `
-            <input type="url" class="gallery-url flex-1 border rounded px-2 py-1 text-sm" placeholder="رابط الصورة ${index + 1}">
-            <input type="file" class="gallery-file hidden" accept="image/*">
-            <button type="button" class="upload-gallery-btn bg-gray-200 px-2 py-1 rounded text-sm"><i class="fas fa-upload"></i></button>
-            <button type="button" class="remove-gallery-btn text-red-500 px-2"><i class="fas fa-times"></i></button>
-        `;
+        galleryImageUrls.push('');
+        updateGalleryInputs();
+    }
+    
+    function updateGalleryInputs() {
+        galleryContainer.innerHTML = galleryImageUrls.map((url, i) => `
+            <div class="gallery-image-input flex gap-2 items-center">
+                <input type="url" class="gallery-url flex-1 border rounded px-2 py-1 text-sm" placeholder="رابط الصورة ${i + 1}" value="${escapeHtml(url)}">
+                <input type="file" class="gallery-file hidden" accept="image/*" data-index="${i}">
+                <button type="button" class="upload-gallery-btn bg-gray-200 px-2 py-1 rounded text-sm" data-index="${i}"><i class="fas fa-upload"></i></button>
+                <button type="button" class="remove-gallery-btn text-red-500 px-2" data-index="${i}"><i class="fas fa-times"></i></button>
+            </div>
+        `).join('');
         
-        const urlInput = div.querySelector('.gallery-url');
-        const fileInput = div.querySelector('.gallery-file');
-        const uploadBtn = div.querySelector('.upload-gallery-btn');
-        const removeBtn = div.querySelector('.remove-gallery-btn');
+        // ربط الأحداث
+        document.querySelectorAll('.gallery-url').forEach((input, idx) => {
+            input.addEventListener('input', (e) => {
+                galleryImageUrls[idx] = e.target.value;
+                updateGalleryPreview();
+            });
+        });
         
-        uploadBtn.onclick = () => fileInput.click();
+        document.querySelectorAll('.upload-gallery-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.index);
+                const fileInput = document.querySelector(`.gallery-file[data-index="${idx}"]`);
+                fileInput.click();
+            });
+        });
         
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    urlInput.value = ev.target.result;
-                    updateGalleryPreview();
-                };
-                reader.readAsDataURL(file);
-            }
-        };
+        document.querySelectorAll('.gallery-file').forEach((fileInput, idx) => {
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        galleryImageUrls[idx] = ev.target.result;
+                        updateGalleryInputs();
+                        updateGalleryPreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
         
-        urlInput.oninput = () => updateGalleryPreview();
-        removeBtn.onclick = () => {
-            div.remove();
-            updateGalleryPreview();
-        };
+        document.querySelectorAll('.remove-gallery-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.index);
+                galleryImageUrls.splice(idx, 1);
+                updateGalleryInputs();
+                updateGalleryPreview();
+            });
+        });
         
-        galleryContainer.appendChild(div);
         updateGalleryPreview();
     }
     
     function updateGalleryPreview() {
-        const urls = [];
-        document.querySelectorAll('.gallery-url').forEach(input => {
-            if (input.value.trim()) urls.push(input.value.trim());
-        });
-        
-        galleryPreview.innerHTML = urls.map((url, i) => `
+        const validUrls = galleryImageUrls.filter(url => url.trim());
+        galleryPreview.innerHTML = validUrls.map((url, i) => `
             <div class="relative">
                 <img src="${escapeHtml(url)}" class="gallery-image" onerror="this.style.display='none'">
                 <button type="button" class="remove-gallery-img absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs" data-index="${i}">×</button>
@@ -499,25 +510,24 @@
         `).join('');
         
         document.querySelectorAll('.remove-gallery-img').forEach(btn => {
-            btn.onclick = (e) => {
+            btn.addEventListener('click', (e) => {
                 const idx = parseInt(btn.dataset.index);
-                const inputs = document.querySelectorAll('.gallery-url');
-                if (inputs[idx]) inputs[idx].value = '';
+                galleryImageUrls.splice(idx, 1);
+                updateGalleryInputs();
                 updateGalleryPreview();
-            };
+            });
         });
     }
     
     // ========== عرض المنتجات ==========
     function renderProducts(productsToRender) {
         if (!productsToRender || productsToRender.length === 0) {
-            productsTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">${searchTerm ? '🔍 لا توجد نتائج مطابقة للبحث' : '📦 لا توجد منتجات'}</td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">${searchTerm ? '🔍 لا توجد نتائج مطابقة للبحث' : '📦 لا توجد منتجات'}</td></tr>`;
             return;
         }
         
         productsTableBody.innerHTML = productsToRender.map(p => {
             const status = getStockStatus(p.stock);
-            const galleryCount = p.galleryImages?.length || 0;
             return `
             <tr class="hover:bg-gray-50 transition">
                 <td class="px-4 py-3">${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="product-image-preview" onerror="this.style.display='none'">` : '<i class="fas fa-image text-gray-300 text-2xl"></i>'}</td>
@@ -525,7 +535,6 @@
                 <td class="px-4 py-3 font-mono text-sm">${escapeHtml(p.code || '—')}</td>
                 <td class="px-4 py-3 font-bold text-blue-600">${p.price} <span class="text-xs">ريال</span></td>
                 <td class="px-4 py-3">${p.stock}</td>
-                <td class="px-4 py-3">${galleryCount > 0 ? `<i class="fas fa-images text-purple-500"></i> ${galleryCount} صورة` : '—'}</td>
                 <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${status.class}">${status.text}</span></td>
                 <td class="px-4 py-3 whitespace-nowrap">
                     <button onclick="window.editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition" title="تعديل">
@@ -542,7 +551,7 @@
     // ========== التقارير ==========
     function renderReports() {
         const threshold = stockThreshold;
-        const lowStockProducts = products.filter(p => p.stock <= threshold && !deletedProducts.some(dp => dp.id === p.id));
+        const lowStockProducts = products.filter(p => p.stock <= threshold);
         
         if (lowStockProducts.length === 0) {
             reportsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">✨ لا توجد منتجات تحت الحد المحدد</div>';
@@ -570,12 +579,12 @@
     // ========== تحميل المنتجات ==========
     async function loadProductsTable() {
         loadingContainer.classList.remove('hidden');
-        productsTableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8"><div class="loading-spinner"></div></td></tr>';
         
         try {
-            products = await loadProducts();
+            products = await loadProductsFromFirebase();
             console.log('✅ تم تحميل المنتجات:', products.length);
             
+            // استبعاد المنتجات المحذوفة مؤقتاً
             const activeProducts = products.filter(p => !deletedProducts.some(dp => dp.id === p.id));
             let filtered = activeProducts;
             if (searchTerm) {
@@ -589,7 +598,7 @@
             renderReports();
         } catch (err) {
             console.error('❌ خطأ في تحميل المنتجات:', err);
-            productsTableBody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">❌ حدث خطأ في تحميل المنتجات</td></tr>';
+            productsTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">❌ حدث خطأ في تحميل المنتجات</td></tr>';
             showToast('حدث خطأ في تحميل المنتجات', 'error');
         } finally {
             loadingContainer.classList.add('hidden');
@@ -624,7 +633,7 @@
         ]);
         
         let csv = headers.join(',') + '\n';
-        rows.forEach(row => csv += row.map(cell => `"${cell}"`).join(',') + '\n');
+        rows.forEach(row => csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n');
         
         const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -635,7 +644,7 @@
         showToast('✅ تم تصدير المنتجات بنجاح');
     }
 
-    // ========== إدارة الصور ==========
+    // ========== معالجة الصور ==========
     productMainImageFile.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -673,6 +682,7 @@
             let embedUrl = url;
             if (url.includes('youtube.com/watch')) embedUrl = url.replace('watch?v=', 'embed/');
             if (url.includes('youtu.be/')) embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
+            if (url.includes('vimeo.com/')) embedUrl = url.replace('vimeo.com/', 'player.vimeo.com/video/');
             videoIframe.src = embedUrl;
             videoPreview.classList.remove('hidden');
         } else {
@@ -710,23 +720,18 @@
         productDescription.innerHTML = product.description || '';
         productDescriptionHidden.value = product.description || '';
         
+        // تعبئة الصور الإضافية
+        galleryImageUrls = product.galleryImages || [];
+        updateGalleryInputs();
+        
         if (product.mainImage) { 
             mainPreviewImg.src = product.mainImage; 
             mainImagePreview.classList.remove('hidden'); 
+        } else {
+            mainImagePreview.classList.add('hidden');
         }
         
         if (product.video) productVideo.dispatchEvent(new Event('input'));
-        
-        // تعبئة الصور الإضافية
-        galleryContainer.innerHTML = '';
-        if (product.galleryImages && product.galleryImages.length) {
-            product.galleryImages.forEach(img => {
-                addGalleryImageInput();
-                const lastInput = galleryContainer.lastElementChild?.querySelector('.gallery-url');
-                if (lastInput) lastInput.value = img;
-            });
-        }
-        updateGalleryPreview();
         
         productModal.classList.remove('hidden');
         productModal.classList.add('flex');
@@ -740,7 +745,6 @@
         if (product) {
             deletedProducts.push({ ...product, deletedAt: new Date().toISOString() });
             localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
-            products = products.filter(p => p.id !== id);
             await loadProductsTable();
             showToast(`🗑️ تم نقل "${name}" إلى سلة المهملات`);
         }
@@ -750,7 +754,6 @@
         const product = deletedProducts.find(p => p.id === id);
         if (product) {
             deletedProducts = deletedProducts.filter(p => p.id !== id);
-            products.push(product);
             localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
             showToast(`✅ تم استعادة المنتج "${product.name}"`);
             loadProductsTable();
@@ -761,7 +764,7 @@
     window.permanentDelete = async (id) => {
         if (confirm('⚠️ هل أنت متأكد من الحذف النهائي؟ لا يمكن التراجع.')) {
             try {
-                await deleteProduct(id);
+                await deleteProductFromFirebase(id);
                 deletedProducts = deletedProducts.filter(p => p.id !== id);
                 localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
                 showToast('🗑️ تم الحذف النهائي');
@@ -776,7 +779,9 @@
     window.emptyTrash = async () => {
         if (confirm('⚠️ هل أنت متأكد من إفراغ سلة المهملات؟')) {
             try {
-                for (const p of deletedProducts) await deleteProduct(p.id);
+                for (const p of deletedProducts) {
+                    await deleteProductFromFirebase(p.id);
+                }
                 deletedProducts = [];
                 localStorage.setItem('deletedProducts', JSON.stringify(deletedProducts));
                 loadTrash();
@@ -811,6 +816,7 @@
         `).join('');
     }
 
+    // ========== حفظ المنتج ==========
     async function saveProduct(event) {
         event.preventDefault();
         
@@ -821,19 +827,13 @@
         const price = parseFloat(productPrice.value);
         if (isNaN(price)) { showToast('السعر غير صحيح', 'error'); return; }
         
-        // جمع الصور الإضافية
-        const galleryUrls = [];
-        document.querySelectorAll('.gallery-url').forEach(input => {
-            if (input.value.trim()) galleryUrls.push(input.value.trim());
-        });
-        
         const data = {
             name,
             code: productCode.value.trim() || generateRandomCode(),
             stock,
             price,
             mainImage: productMainImage.value.trim() || null,
-            galleryImages: galleryUrls,
+            galleryImages: galleryImageUrls.filter(url => url.trim()),
             video: productVideo.value.trim() || null,
             description: productDescriptionHidden.value,
             updatedAt: new Date().toISOString()
@@ -842,10 +842,10 @@
 
         try {
             if (currentProductId) {
-                await updateProduct(currentProductId, data);
+                await updateProductInFirebase(currentProductId, data);
                 showToast('✅ تم تعديل المنتج بنجاح');
             } else {
-                await addProduct(data);
+                await addProductToFirebase(data);
                 showToast('✅ تم إضافة المنتج بنجاح');
             }
             closeModal();
@@ -870,8 +870,8 @@
         productDescriptionHidden.value = '';
         mainImagePreview.classList.add('hidden');
         videoPreview.classList.add('hidden');
-        galleryContainer.innerHTML = '';
-        galleryPreview.innerHTML = '';
+        galleryImageUrls = [];
+        updateGalleryInputs();
         modalTitle.innerText = 'إضافة منتج جديد';
     }
 
@@ -880,8 +880,8 @@
         currentTab = 'products';
         productsPanel.classList.remove('hidden');
         reportsPanel.classList.add('hidden');
-        tabProducts.classList.add('tab-active', 'bg-blue-600', 'text-white');
-        tabReports.classList.remove('tab-active', 'bg-blue-600', 'text-white');
+        tabProducts.classList.add('tab-active');
+        tabReports.classList.remove('tab-active');
     };
     
     tabReports.onclick = () => {
@@ -889,8 +889,8 @@
         productsPanel.classList.add('hidden');
         reportsPanel.classList.remove('hidden');
         renderReports();
-        tabReports.classList.add('tab-active', 'bg-blue-600', 'text-white');
-        tabProducts.classList.remove('tab-active', 'bg-blue-600', 'text-white');
+        tabReports.classList.add('tab-active');
+        tabProducts.classList.remove('tab-active');
     };
     
     applyThreshold.onclick = () => {
@@ -899,6 +899,8 @@
     };
 
     // ========== استيراد المنتجات ==========
+    let importData = null;
+    
     importFile.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -918,20 +920,20 @@
             const dataRows = rows.slice(1);
             importPreview.innerHTML = `<div class="text-sm">📄 تم قراءة ${dataRows.length} منتج</div>
                                         <div class="text-xs text-gray-500 mt-1">المعاينة: ${dataRows.slice(0, 3).map(r => r[0]).join(', ')}</div>`;
-            window.importData = dataRows;
+            importData = dataRows;
         };
         reader.readAsArrayBuffer(file);
     });
 
     confirmImportBtn.onclick = async () => {
-        if (!window.importData) { 
+        if (!importData) { 
             showToast('❌ لا توجد بيانات للاستيراد', 'error'); 
             return; 
         }
         
         let imported = 0, failed = 0;
         
-        for (const row of window.importData) {
+        for (const row of importData) {
             try {
                 const name = row[0];
                 const code = row[1] || generateRandomCode();
@@ -944,7 +946,7 @@
                 const description = row[7] || '';
                 
                 if (name && !isNaN(price)) {
-                    await addProduct({ 
+                    await addProductToFirebase({ 
                         name, 
                         code,
                         price, 
@@ -953,7 +955,8 @@
                         galleryImages,
                         video,
                         description,
-                        createdAt: new Date().toISOString() 
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
                     });
                     imported++;
                 } else {
@@ -967,7 +970,7 @@
         showToast(`✅ تم استيراد ${imported} منتج، فشل ${failed}`);
         importModal.classList.add('hidden');
         await loadProductsTable();
-        window.importData = null;
+        importData = null;
         importFile.value = '';
     };
 
@@ -995,7 +998,7 @@
         trashModal.classList.add('flex');
     };
     closeTrashModalBtn.onclick = () => trashModal.classList.add('hidden');
-    emptyTrashBtn.onclick = window.emptyTrash;
+    emptyTrashBtn.onclick = () => window.emptyTrash();
     
     productForm.onsubmit = saveProduct;
     
@@ -1004,7 +1007,7 @@
     importModal.onclick = (e) => { if (e.target === importModal) importModal.classList.add('hidden'); };
     searchInput.addEventListener('input', (e) => { searchTerm = e.target.value; loadProductsTable(); });
 
-    // ========== استعادة سلة المهملات ==========
+    // ========== استعادة سلة المهملات من localStorage ==========
     const savedTrash = localStorage.getItem('deletedProducts');
     if (savedTrash) {
         try { deletedProducts = JSON.parse(savedTrash); } catch(e) { deletedProducts = []; }
@@ -1012,6 +1015,7 @@
 
     // ========== بدء التشغيل ==========
     console.log('🚀 بدء تشغيل صفحة المنتجات...');
+    productCode.value = generateRandomCode();
     await loadProductsTable();
     console.log('✅ تم تهيئة صفحة المنتجات بنجاح');
 </script>
