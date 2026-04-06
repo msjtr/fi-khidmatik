@@ -13,7 +13,8 @@ import {
     query,
     where,
     orderBy,
-    limit
+    limit,
+    writeBatch  // ✅ إضافة batch للعمليات المتعددة
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 // ================= Config =================
@@ -148,9 +149,8 @@ export async function getAllOrdersFull(limitCount = 500) {
         
         await loadCustomersAndProducts();
         
-        // جلب الطلبات مباشرة بدلاً من getCollection للتأكد
         const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, orderBy('createdAt', 'desc'));
+        const q = query(ordersRef, orderBy('createdAt', 'desc'), limit(limitCount));
         const querySnapshot = await getDocs(q);
         
         const orders = [];
@@ -515,6 +515,51 @@ export async function testConnection() {
     } catch (error) {
         console.error('❌ فشل الاتصال:', error);
         return { success: false, error: error.message };
+    }
+}
+
+// ================= دالة للعمليات المتعددة (Batch) =================
+export async function batchOperations(operations) {
+    const batch = writeBatch(db);
+    
+    for (const op of operations) {
+        const ref = doc(db, op.collection, op.id);
+        if (op.type === 'set') {
+            batch.set(ref, op.data);
+        } else if (op.type === 'update') {
+            batch.update(ref, op.data);
+        } else if (op.type === 'delete') {
+            batch.delete(ref);
+        }
+    }
+    
+    await batch.commit();
+    console.log(`✅ تم تنفيذ ${operations.length} عملية بنجاح`);
+}
+
+// ================= دالة لجلب إحصائيات سريعة =================
+export async function getQuickStats() {
+    try {
+        const [productsSnap, ordersSnap, customersSnap] = await Promise.all([
+            getDocs(collection(db, 'products')),
+            getDocs(collection(db, 'orders')),
+            getDocs(collection(db, 'customers'))
+        ]);
+        
+        let totalRevenue = 0;
+        ordersSnap.forEach(doc => {
+            totalRevenue += doc.data().total || 0;
+        });
+        
+        return {
+            products: productsSnap.size,
+            orders: ordersSnap.size,
+            customers: customersSnap.size,
+            revenue: totalRevenue
+        };
+    } catch (error) {
+        console.error('❌ خطأ في جلب الإحصائيات:', error);
+        return null;
     }
 }
 
