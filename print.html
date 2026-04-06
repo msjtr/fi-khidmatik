@@ -43,6 +43,7 @@
         .qr-placeholder { width: 100px; height: 100px; }
         .footer-note { margin-top: auto; font-size: 10px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px; }
         .contact-info { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 12px 0; padding: 10px; background: #f1f5f9; border-radius: 10px; }
+        .contact-info span { font-size: 11px; }
         .page-number { text-align: left; font-size: 10px; color: #94a3b8; margin-top: 15px; direction: ltr; }
         .terms-page .page-title { color: #1e3a5f; margin-bottom: 15px; font-size: 22px; font-weight: bold; border-right: 4px solid #1e3a5f; padding-right: 12px; }
         .terms-intro { background: #fef3c7; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 11px; line-height: 1.7; border-right: 4px solid #f59e0b; }
@@ -71,11 +72,11 @@
 <div style="display: flex; flex-direction: column; align-items: center;">
     <div class="invoice-wrapper" id="invoiceRoot"><div class="loading-box"><div class="loading-spinner"></div><p>جاري التحميل...</p></div></div>
     <div class="action-buttons no-print">
-        <button class="btn btn-primary" id="printBtn">🖨️ طباعة</button>
-        <button class="btn btn-secondary" id="pdfBtn">📄 PDF</button>
-        <button class="btn btn-secondary" id="pngBtn">🖼️ PNG</button>
-        <button class="btn btn-success" id="zipBtn">📦 مضغوط</button>
-        <button class="btn btn-danger" id="backBtn" onclick="window.close()">✖️ إغلاق</button>
+        <button class="btn btn-primary" id="printBtn">طباعة</button>
+        <button class="btn btn-secondary" id="pdfBtn">PDF</button>
+        <button class="btn btn-secondary" id="pngBtn">PNG</button>
+        <button class="btn btn-success" id="zipBtn">مضغوط</button>
+        <button class="btn btn-danger" id="backBtn" onclick="window.close()">إغلاق</button>
     </div>
 </div>
 
@@ -111,6 +112,7 @@
     function hideLoading() { let ov = document.getElementById('loadingOverlay'); if(ov) ov.style.display = 'none'; }
     function showToast(msg) { let t = document.createElement('div'); t.className = 'toast-message'; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
 
+    // تنظيف النصوص من أي أكواد HTML
     function cleanHtmlText(html) {
         if (!html) return '';
         let text = String(html);
@@ -121,6 +123,7 @@
         return text;
     }
 
+    // تحويل الصورة إلى Base64 مع انتظار كامل
     async function imageToBase64(url) {
         if (!url) return null;
         try {
@@ -155,7 +158,8 @@
                             orderData.customerAddress = [c.city, c.street, c.postalCode].filter(Boolean).join(' - ');
                         }
                     }
-                    if (orderData.items) {
+                    // تنظيف أوصاف المنتجات
+                    if (orderData.items && Array.isArray(orderData.items)) {
                         for(let item of orderData.items) {
                             item.name = cleanHtmlText(item.name);
                             item.description = cleanHtmlText(item.description);
@@ -166,7 +170,7 @@
                 }
             } catch(e) { console.error(e); }
         }
-        // بيانات تجريبية نموذجية
+        // بيانات تجريبية نموذجية مع وصف واضح
         orderData = {
             id: "demo_001",
             orderNumber: "KF-2603290287",
@@ -185,8 +189,8 @@
             shippingMethod: "delivery",
             approvalCode: "AP-8821X9",
             items: [
-                { id: 1, name: "الباقة المتقدمة في تصميم المتاجر الإلكترونية", description: "تصميم متكامل + لوحة تحكم + بوابة دفع", image: "https://picsum.photos/id/48/200/200", quantity: 1, price: 12500.00 },
-                { id: 2, name: "استضافة سحابية", description: "استضافة لمدة عام", image: "https://picsum.photos/id/0/200/200", quantity: 2, price: 2391.00 }
+                { id: 1, name: "الباقة المتقدمة في تصميم المتاجر الإلكترونية", description: "تصميم متكامل + لوحة تحكم + بوابة دفع وشهادة SSL", image: "https://picsum.photos/id/48/200/200", quantity: 1, price: 12500.00 },
+                { id: 2, name: "استضافة سحابية", description: "استضافة لمدة عام مع دعم فني 24/7", image: "https://picsum.photos/id/0/200/200", quantity: 2, price: 2391.00 }
             ],
             seller: { name: "منصة في خدمتك", taxNumber: "312495447600003" }
         };
@@ -203,69 +207,72 @@
     function formatDateYMD(d) { if(!d) return ''; let p = d.split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : d; }
 
     function buildHeader() {
-        return `<div class="header-top"><div class="logo-area"><img src="images/logo.svg" class="logo-img" onerror="this.src='https://placehold.co/65x65/1e3a5f/white?text=في+خدمتك'"><div><div class="platform-name">منصة في خدمتك</div><div class="platform-slogan">خدمات تقنية متكاملة</div></div></div><div class="invoice-title">فاتورة إلكترونية</div><div class="legal-numbers"><div>📜 رقم شهادة العمل الحر: FL-765735204</div><div>🏢 الرقم الضريبي: 312495447600003</div></div></div>`;
+        return `<div class="header-top"><div class="logo-area"><img src="images/logo.svg" class="logo-img" onerror="this.src='https://placehold.co/65x65/1e3a5f/white?text=في+خدمتك'"><div><div class="platform-name">منصة في خدمتك</div><div class="platform-slogan">خدمات تقنية متكاملة</div></div></div><div class="invoice-title">فاتورة إلكترونية</div><div class="legal-numbers"><div>رقم شهادة العمل الحر: FL-765735204</div><div>الرقم الضريبي: 312495447600003</div></div></div>`;
     }
     function buildFooter(pnum, total) {
-        return `<div class="footer-note"><div class="contact-info"><span>📞 الهاتف: 966534051317</span><span>💬 الواتساب: 966545312021</span><span>✉️ البريد: info@fi-khidmatik.com</span><span>🌐 الموقع: www.khidmatik.com</span></div><div>✅ هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div><div class="page-number">📄 صفحة ${pnum} من ${total}</div></div>`;
+        return `<div class="footer-note"><div class="contact-info"><span>📞 الهاتف: 966534051317</span><span>💬 الواتساب: 966545312021</span><span>✉️ البريد: info@fi-khidmatik.com</span><span>🌐 الموقع: www.khidmatik.com</span></div><div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div><div class="page-number">صفحة ${pnum} من ${total}</div></div>`;
     }
 
     async function renderInvoicePage(pageNum, totalPages, base64Images) {
-        const itemsHtml = orderData.items.map((item, idx) => {
+        const itemsHtml = [];
+        for (let idx = 0; idx < orderData.items.length; idx++) {
+            const item = orderData.items[idx];
             let imgHtml = '';
             const b64 = base64Images?.find(b=>b.index===idx)?.base64;
-            if (b64) imgHtml = `<img src="${b64}" class="product-img">`;
-            else if (item.image) imgHtml = `<img src="${item.image}" class="product-img" crossorigin="anonymous" onerror="this.style.display='none'">`;
-            else imgHtml = '<div style="width:50px;height:50px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;">📦</div>';
-            return `<tr><td style="text-align:center">${idx+1}</td><td style="text-align:center">${imgHtml}</td><td style="text-align:right"><strong>${escapeHtml(item.name)}</strong><br><small>${escapeHtml(item.description||'')}</small></td><td style="text-align:center">${item.quantity}</td><td style="text-align:center">${item.price.toFixed(2)} ريال</td><td style="text-align:center">${(item.price*item.quantity).toFixed(2)} ريال</td></tr>`;
-        }).join('');
+            if (b64) {
+                imgHtml = `<img src="${b64}" class="product-img" style="width:50px;height:50px;object-fit:cover;">`;
+            } else if (item.image) {
+                imgHtml = `<img src="${item.image}" class="product-img" crossorigin="anonymous" onerror="this.style.display='none'" style="width:50px;height:50px;object-fit:cover;">`;
+            } else {
+                imgHtml = '<div style="width:50px;height:50px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;">صورة</div>';
+            }
+            itemsHtml.push(`<tr><td style="text-align:center">${idx+1}</td><td style="text-align:center">${imgHtml}</td><td style="text-align:right"><strong>${escapeHtml(item.name)}</strong><br><small>${escapeHtml(item.description || '')}</small></td><td style="text-align:center">${item.quantity}</td><td style="text-align:center">${item.price.toFixed(2)} ريال</td><td style="text-align:center">${(item.price*item.quantity).toFixed(2)} ريال</td></tr>`);
+        }
         const subtotal = orderData.subtotal || orderData.items.reduce((s,i)=>s+(i.price*i.quantity),0);
         const discount = orderData.discount || 0;
         const tax = orderData.tax || ((subtotal-discount)*0.15);
         const finalTotal = orderData.total || (subtotal-discount+tax);
-        const shipMethod = orderData.shippingMethod === 'delivery' ? '🚚 شحن منزلي' : 'توصيل';
+        const shipMethod = orderData.shippingMethod === 'delivery' ? 'شحن منزلي' : 'توصيل';
         return `<div class="invoice-page">
             ${buildHeader()}
-            <div class="info-row"><div class="info-item"><strong>📄 رقم الفاتورة:</strong> ${orderData.orderNumber}</div><div class="info-item"><strong>📅 التاريخ:</strong> ${formatDateYMD(orderData.orderDate)} ⏰ ${formatTime12(orderData.orderTime)}</div><div><span class="status-badge">✅ ${orderData.status}</span></div></div>
-            <div class="addresses"><div class="address-box"><strong>📦 مصدرة من</strong> منصة في خدمتك<br>🇸🇦 المملكة العربية السعودية<br>📍 حائل : حي النقرة</div><div class="address-box"><strong>👤 مصدرة إلى</strong> ${escapeHtml(orderData.customerName)}<br>📍 ${escapeHtml(orderData.customerAddress)}<br>📞 ${escapeHtml(orderData.customerPhone)}<br>✉️ ${escapeHtml(orderData.customerEmail)}</div></div>
-            <div class="payment-approval"><div class="payment-box"><strong>💳 طريقة الدفع:</strong> ${orderData.paymentMethodName}</div><div class="payment-box"><strong>🚚 طريقة استلام المنتج:</strong> ${shipMethod}</div><div class="approval-box"><strong>✓ رمز الموافقة:</strong> ${orderData.approvalCode||'غير مطلوب'}</div></div>
-            <table class="invoice-table"><thead><tr><th>#</th><th>🖼️ الصورة</th><th>📦 المنتج / الوصف</th><th>🔢 الكمية</th><th>💰 سعر الوحدة</th><th>💵 الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></table>
-            <div class="totals"><div><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div><div><span>🏷️ الخصم:</span><span>- ${discount.toFixed(2)} ريال</span></div><div><span>🧾 الضريبة 15%:</span><span>${tax.toFixed(2)} ريال</span></div><div class="grand-total"><span>💰 الإجمالي النهائي:</span><span>${finalTotal.toFixed(2)} ريال</span></div></div>
+            <div class="info-row"><div class="info-item"><strong>رقم الفاتورة:</strong> ${orderData.orderNumber}</div><div class="info-item"><strong>التاريخ:</strong> ${formatDateYMD(orderData.orderDate)} - الوقت: ${formatTime12(orderData.orderTime)}</div><div><span class="status-badge">${orderData.status}</span></div></div>
+            <div class="addresses"><div class="address-box"><strong>مصدرة من</strong> منصة في خدمتك<br>المملكة العربية السعودية<br>حائل - حي النقرة</div><div class="address-box"><strong>مصدرة إلى</strong> ${escapeHtml(orderData.customerName)}<br>${escapeHtml(orderData.customerAddress)}<br>هاتف: ${escapeHtml(orderData.customerPhone)}<br>بريد: ${escapeHtml(orderData.customerEmail)}</div></div>
+            <div class="payment-approval"><div class="payment-box"><strong>طريقة الدفع:</strong> ${orderData.paymentMethodName}</div><div class="payment-box"><strong>طريقة استلام المنتج:</strong> ${shipMethod}</div><div class="approval-box"><strong>رمز الموافقة:</strong> ${orderData.approvalCode||'غير مطلوب'}</div></div>
+            <table class="invoice-table"><thead><tr><th>#</th><th>الصورة</th><th>المنتج / الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>${itemsHtml.join('')}</tbody></table>
+            <div class="totals"><div><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div><div><span>الخصم:</span><span>- ${discount.toFixed(2)} ريال</span></div><div><span>ضريبة القيمة المضافة 15%:</span><span>${tax.toFixed(2)} ريال</span></div><div class="grand-total"><span>الإجمالي النهائي:</span><span>${finalTotal.toFixed(2)} ريال</span></div></div>
             <div class="barcodes-container"><div class="barcode-item"><div id="platformQR" class="qr-placeholder"></div></div></div>
             ${buildFooter(pageNum, totalPages)}
         </div>`;
     }
 
-    // ========== الشروط والأحكام الكاملة (57 بنداً) بدون أيقونات ==========
     function buildTermsPage1(pageNum, totalPages) {
         return `<div class="terms-page">
             ${buildHeader()}
             <div class="page-title">الشروط والأحكام والتعليمات</div>
-            <div class="terms-intro"><strong>إقرار ملزم قانونياً:</strong> يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.</div>
+            <div class="terms-intro"><strong>إقرار ملزم قانونياً:</strong> يُعد هذا المستند اتفاقًا ملزمًا قانونيًا بين الطرفين، ويعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ.</div>
             <div class="terms-content">
-                <div class="terms-section"><h4>أولاً: صلاحية العرض والتنفيذ</h4><p><strong>1. مدة صلاحية العرض:</strong> يكون هذا عرض السعر / الفاتورة صالحًا لمدة ثلاثة (3) أيام عمل فقط من تاريخ إصداره، ويُعد لاغيًا تلقائيًا بعد انتهاء هذه المدة دون الحاجة إلى إشعار مسبق، ولا يترتب على مقدم الخدمة أي التزام بعد ذلك.<br><strong>2. بدء التنفيذ:</strong> تبدأ أعمال التنفيذ بعد استلام الدفعة المقدمة المتفق عليها، واستلام جميع المتطلبات والمعلومات اللازمة من العميل بشكل كامل وواضح.<br><strong>3. مدة التنفيذ:</strong> تُحتسب مدة التنفيذ من تاريخ اكتمال استلام جميع المتطلبات، ولا يُعتد بأي مدة يترتب عليها تأخير بسبب العميل أو أي طرف خارجي.<br><strong>4. التأخير:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن أي تأخير ناتج عن ظروف خارجة عن إرادته، أو عن أطراف ثالثة، أو عن تأخر العميل في تزويد المتطلبات.<br><strong>5. الموافقات الخارجية:</strong> تخضع جميع الموافقات أو التراخيص الصادرة من الجهات الحكومية أو الجهات الخارجية لسياسات تلك الجهات، ولا يضمن مقدم الخدمة الحصول عليها بأي حال من الأحوال.</p></div>
-                <div class="terms-section"><h4>ثانياً: التكاليف والمسؤوليات المالية</h4><p><strong>6. الرسوم الخارجية:</strong> لا تشمل قيمة هذا عرض السعر / الفاتورة أي رسوم أو تكاليف خاصة بالجهات الخارجية مثل السيرفرات أو النطاقات أو التراخيص أو الرسوم الحكومية أو بوابات الدفع أو أي مزود خدمة طرف ثالث، ما لم يتم النص على خلاف ذلك بشكل صريح.<br><strong>7. خدمات الطرف الثالث:</strong> أي خدمات يتم تقديمها من خلال أطراف ثالثة تخضع لسياسات تلك الجهات، ولا يتحمل مقدم الخدمة أي مسؤولية عن أدائها أو جودتها أو توقفها أو تعديل سياساتها.<br><strong>8. المدفوعات الخارجية:</strong> جميع المبالغ التي يتم دفعها إلى جهات خارجية سواء بشكل مباشر من قبل العميل أو من خلال مقدم الخدمة لا يمكن استرجاعها تحت أي ظرف.<br><strong>9. الدفع نيابة عن العميل:</strong> في حال قيام مقدم الخدمة بسداد أي مبالغ نيابة عن العميل فإن تلك المبالغ تُعد دينًا مستحقًا على العميل ويلتزم بسدادها عند الطلب ولا تدخل ضمن أي تسوية أو استرجاع.<br><strong>10. الضريبة:</strong> جميع الأسعار المذكورة لا تشمل ضريبة القيمة المضافة ويتم إضافتها وفق الأنظمة المعمول بها.</p></div>
-                <div class="terms-section"><h4>ثالثاً: التسليم والملكية</h4><p><strong>11. نطاق التسليم:</strong> يتم تنفيذ وتسليم الأعمال وفق النطاق المحدد في هذا عرض السعر / الفاتورة فقط ولا يشمل أي أعمال إضافية غير مذكورة.<br><strong>12. المنتج النهائي:</strong> يقتصر التسليم على المنتج النهائي الجاهز للاستخدام ولا يشمل الملفات المفتوحة أو الكود المصدري أو أي مواد إنتاج داخلية.<br><strong>13. الكود المصدري:</strong> يبقى الكود المصدري ملكًا حصريًا لمقدم الخدمة ولا يتم تسليمه إلا بموجب اتفاق مستقل ومقابل مالي يتم تحديده بشكل منفصل.<br><strong>14. نقل الملكية:</strong> لا يتم نقل ملكية أي من الأعمال أو المواد أو المخرجات إلا بعد اتفاق مكتوب وصريح وسداد كامل المقابل المالي الخاص بنقل الملكية.<br><strong>15. عدم طلب التسليم:</strong> في حال عدم طلب العميل نقل الملكية أو تسليم المخرجات وفق ما سبق لا يلتزم مقدم الخدمة بتسليم أي أعمال أو ملفات.<br><strong>16. حق إعادة الاستخدام:</strong> يحتفظ مقدم الخدمة بحقه الكامل في إعادة استخدام أو تطوير أو الاستفادة من الأعمال المنفذة بأي شكل من الأشكال ما لم يتم الاتفاق على خلاف ذلك كتابةً.</p></div>
-                <div class="terms-section"><h4>رابعاً: الدفعات والاسترجاع</h4><p><strong>17. نظام الدفع:</strong> يتم سداد قيمة هذا عرض السعر / الفاتورة وفق الآلية المتفق عليها بين الطرفين سواء دفعة واحدة أو على دفعات.<br><strong>18. تأخر السداد:</strong> يحق لمقدم الخدمة إيقاف العمل بشكل فوري في حال تأخر العميل عن سداد أي دفعة مستحقة.<br><strong>19. عدم الاسترجاع:</strong> لا يحق للعميل المطالبة باسترجاع أي مبلغ مالي بعد بدء التنفيذ أو في حال الانسحاب أو عدم استكمال المشروع لأي سبب كان.<br><strong>20. إيقاف المشروع من مقدم الخدمة:</strong> يحق لمقدم الخدمة إيقاف المشروع في حال مخالفة العميل لأي من الشروط أو عدم التزامه بالمتطلبات أو السداد.<br><strong>21. احتساب الأعمال:</strong> يتم احتساب قيمة الأعمال المنفذة بناءً على نسبة الإنجاز الفعلية حتى تاريخ الإيقاف.<br><strong>22. الرسوم الإدارية:</strong> تُضاف رسوم تشغيلية وإدارية بنسبة 20% على قيمة الأعمال المنفذة.</p></div>
+                <div class="terms-section"><h4>أولاً: صلاحية العرض والتنفيذ</h4><p><strong>1.</strong> صلاحية العرض: 3 أيام عمل فقط. <strong>2.</strong> بدء التنفيذ بعد استلام الدفعة المقدمة والمتطلبات. <strong>3.</strong> مدة التنفيذ تحتسب من اكتمال المتطلبات. <strong>4.</strong> لا مسؤولية عن تأخير خارج الإرادة. <strong>5.</strong> الموافقات الخارجية وفق سياسات الجهات.</p></div>
+                <div class="terms-section"><h4>ثانياً: التكاليف والمسؤوليات المالية</h4><p><strong>6.</strong> الرسوم الخارجية غير مشمولة. <strong>7.</strong> خدمات الطرف الثالث تخضع لسياساتها. <strong>8.</strong> المدفوعات الخارجية غير قابلة للاسترجاع. <strong>9.</strong> الدفع نيابة عن العميل دين مستحق. <strong>10.</strong> الضريبة 15% تضاف حسب الأنظمة.</p></div>
+                <div class="terms-section"><h4>ثالثاً: التسليم والملكية</h4><p><strong>11.</strong> التسليم حسب النطاق المحدد. <strong>12.</strong> المنتج النهائي فقط. <strong>13.</strong> الكود المصدري ملكية حصرية لمقدم الخدمة. <strong>14.</strong> نقل الملكية باتفاق وسداد كامل. <strong>15.</strong> عدم طلب التسليم يلغي الالتزام. <strong>16.</strong> حق إعادة الاستخدام محفوظ.</p></div>
+                <div class="terms-section"><h4>رابعاً: الدفعات والاسترجاع</h4><p><strong>17.</strong> نظام الدفع وفق الآلية المتفق عليها. <strong>18.</strong> تأخر السداد يؤدي لإيقاف العمل. <strong>19.</strong> عدم استرجاع بعد البدء. <strong>20.</strong> إيقاف المشروع عند المخالفة. <strong>21.</strong> احتساب الأعمال المنفذة بنسبة الإنجاز. <strong>22.</strong> رسوم إدارية 20% على الأعمال المنفذة.</p></div>
             </div>
             ${buildFooter(pageNum, totalPages)}
         </div>`;
     }
-    
     function buildTermsPage2(pageNum, totalPages) {
         return `<div class="terms-page">
             ${buildHeader()}
             <div class="page-title">الشروط والأحكام والتعليمات (تابع)</div>
             <div class="terms-content">
-                <div class="terms-section"><h4>خامساً: الضمان</h4><p><strong>23. الضمان:</strong> يتم تحديد الضمان إن وجد وفق الخطة التشغيلية للمشروع وطبيعته.<br><strong>24. نطاق الضمان:</strong> يقتصر الضمان على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط.<br><strong>25. الاستثناءات:</strong> لا يشمل الضمان أي مشاكل ناتجة عن عوامل خارجية أو سوء استخدام أو تعديلات من طرف العميل أو طرف ثالث.</p></div>
-                <div class="terms-section"><h4>سادساً: انتهاء العلاقة والمسؤولية</h4><p><strong>26. انتهاء العلاقة:</strong> تنتهي العلاقة التعاقدية بين الطرفين فور تسليم المشروع وفق النطاق المتفق عليه.<br><strong>27. المسؤولية بعد التسليم:</strong> لا يتحمل مقدم الخدمة أي مسؤولية لاحقة عن المشروع بعد التسليم.<br><strong>28. التشغيل:</strong> يتحمل العميل المسؤولية الكاملة عن تشغيل المشروع وإدارته.<br><strong>29. البيانات:</strong> يتحمل العميل مسؤولية حفظ النسخ الاحتياطية للبيانات.<br><strong>30. براءة الذمة:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن أي خدمات مقدمة من أطراف ثالثة أو توقفها.</p></div>
-                <div class="terms-section"><h4>سابعاً: التواصل والتنفيذ</h4><p><strong>31. وسائل التواصل:</strong> تُعتمد وسائل التواصل الرسمية المسجلة فقط كقنوات معتمدة بين الطرفين.<br><strong>32. التفويض:</strong> يلتزم العميل بإشعار مقدم الخدمة رسميًا في حال تفويض أي شخص للتواصل نيابة عنه.<br><strong>33. النسخ الإلكترونية:</strong> تُعتبر جميع النسخ الإلكترونية من هذا عرض السعر / الفاتورة بما في ذلك المرسلة عبر البريد الإلكتروني أو وسائل التواصل نسخًا معتمدة ولها نفس القوة القانونية.</p></div>
-                <div class="terms-section"><h4>ثامناً: البنود القانونية</h4><p><strong>34. طبيعة العلاقة:</strong> تُعد العلاقة بين الطرفين علاقة تعاقدية مستقلة ولا تُنشئ أي شراكة أو وكالة أو تمثيل قانوني.<br><strong>35. كامل الاتفاق:</strong> يمثل هذا المستند كامل الاتفاق بين الطرفين ويلغي أي اتفاقات أو تفاهمات سابقة سواء كانت شفهية أو مكتوبة.<br><strong>36. الأخطاء غير المقصودة:</strong> في حال وجود أي خطأ غير مقصود في الصياغة فإنه لا يؤثر على صحة باقي البنود وتبقى سارية وملزمة.<br><strong>37. عدم التنازل:</strong> عدم استخدام مقدم الخدمة لأي من حقوقه لا يُعد تنازلًا عنها ويحتفظ بحقه في استخدامها في أي وقت لاحق.<br><strong>38. اللغة المعتمدة:</strong> في حال ترجمة هذا المستند إلى أي لغة أخرى تُعتمد النسخة العربية في التفسير.</p></div>
-                <div class="terms-section"><h4>تاسعاً: النزاعات</h4><p><strong>39. حل النزاعات:</strong> يتم السعي لحل أي نزاع ينشأ بين الطرفين بشكل ودي خلال مدة مناسبة من تاريخ الإشعار.<br><strong>40. الجهة المختصة:</strong> في حال عدم التوصل إلى حل يحق لمقدم الخدمة تحديد الجهة القضائية أو التحكيمية المختصة.</p></div>
+                <div class="terms-section"><h4>خامساً: الضمان</h4><p><strong>23.</strong> الضمان حسب طبيعة المشروع. <strong>24.</strong> يقتصر على الأخطاء الفنية لمقدم الخدمة. <strong>25.</strong> استثناءات: سوء استخدام أو تعديلات خارجية.</p></div>
+                <div class="terms-section"><h4>سادساً: انتهاء العلاقة والمسؤولية</h4><p><strong>26.</strong> تنتهي العلاقة بعد التسليم. <strong>27.</strong> لا مسؤولية لاحقة. <strong>28.</strong> تشغيل المشروع على العميل. <strong>29.</strong> حفظ النسخ الاحتياطية على العميل. <strong>30.</strong> براءة ذمة من خدمات الأطراف الثالثة.</p></div>
+                <div class="terms-section"><h4>سابعاً: التواصل والتنفيذ</h4><p><strong>31.</strong> وسائل التواصل الرسمية فقط. <strong>32.</strong> التفويض بإشعار رسمي. <strong>33.</strong> النسخ الإلكترونية معتمدة قانونياً.</p></div>
+                <div class="terms-section"><h4>ثامناً: البنود القانونية</h4><p><strong>34.</strong> علاقة تعاقدية مستقلة. <strong>35.</strong> كامل الاتفاق. <strong>36.</strong> الأخطاء غير المقصودة لا تبطل البنود. <strong>37.</strong> عدم التنازل عن الحقوق. <strong>38.</strong> اللغة العربية المعتمدة.</p></div>
+                <div class="terms-section"><h4>تاسعاً: النزاعات</h4><p><strong>39.</strong> حل النزاعات ودياً. <strong>40.</strong> الجهة المختصة يحددها مقدم الخدمة.</p></div>
             </div>
             ${buildFooter(pageNum, totalPages)}
         </div>`;
     }
-    
     function buildTermsPage3WithDeclaration(pageNum, totalPages) {
         const invoiceDate = formatDateYMD(orderData.orderDate);
         const invoiceTime = formatTime12(orderData.orderTime);
@@ -273,9 +280,9 @@
             ${buildHeader()}
             <div class="page-title">الشروط والأحكام والتعليمات (تابع)</div>
             <div class="terms-content">
-                <div class="terms-section"><h4>عاشراً: البنود المتقدمة</h4><p><strong>41. القوة القاهرة:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن التأخير أو عدم التنفيذ الناتج عن ظروف خارجة عن الإرادة.<br><strong>42. السرية:</strong> يلتزم الطرفان بالمحافظة على سرية المعلومات وعدم الإفصاح عنها لأي طرف ثالث دون موافقة خطية.<br><strong>43. التعديلات خارج النطاق:</strong> أي طلبات أو تعديلات خارج نطاق هذا المستند يتم تنفيذها بموجب عرض وسعر مستقل.<br><strong>44. التوقف المؤقت:</strong> يحق لمقدم الخدمة إيقاف المشروع مؤقتًا في حال عدم تجاوب العميل أو عدم توفير المتطلبات.<br><strong>45. الاستلام الحكمي:</strong> يُعد المشروع مستلمًا ومقبولًا من قبل العميل بعد مضي سبعة أيام من تاريخ تسليمه في حال عدم تقديم اعتراض رسمي.<br><strong>46. الاعتراض:</strong> يجب على العميل تقديم أي اعتراض بشكل مكتوب وواضح خلال مدة سبعة أيام من تاريخ التسليم.</p></div>
-                <div class="terms-section"><h4>حادي عشر: البنود المالية والقانونية المتقدمة</h4><p><strong>47. المدفوعات الخارجية:</strong> لا تُعد أي مبالغ تُدفع لجهات خارجية مستحقة لمقدم الخدمة ولا يحق المطالبة بها أو استرجاعها.<br><strong>48. المدفوعات بالنيابة:</strong> تُحتسب أي مدفوعات يقوم بها مقدم الخدمة نيابة عن العميل ضمن تكاليف المشروع ويلتزم العميل بسدادها.<br><strong>49. تفسير البنود:</strong> يتم تفسير بنود هذا المستند بما يحقق الغرض منها وبما يحفظ حقوق مقدم الخدمة.<br><strong>50. حق رفض الخدمة:</strong> يحتفظ مقدم الخدمة بحقه في رفض تقديم الخدمة أو إيقافها في أي مرحلة مع احتساب الأعمال المنفذة.</p></div>
-                <div class="terms-section"><h4>ثاني عشر: الحماية القانونية</h4><p><strong>51. التنازل عن المطالبات:</strong> يتنازل العميل عن أي مطالبات أو تعويضات تتجاوز قيمة هذا عرض السعر / الفاتورة.<br><strong>52. حدود المسؤولية:</strong> لا تتجاوز مسؤولية مقدم الخدمة في جميع الأحوال إجمالي المبلغ المدفوع من قبل العميل.<br><strong>53. الاستخدام غير المشروع:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن استخدام العميل للمخرجات بشكل مخالف للأنظمة.<br><strong>54. الملكية الفكرية:</strong> تبقى جميع حقوق الملكية الفكرية محفوظة لمقدم الخدمة ما لم يتم الاتفاق على نقلها بشكل مكتوب.<br><strong>55. تحديث الشروط:</strong> يحق لمقدم الخدمة تحديث أو تعديل هذه الشروط مستقبلاً وتسري على الأعمال الجديدة.<br><strong>56. استقلالية البنود:</strong> يتم تفسير كل بند من بنود هذا المستند بشكل مستقل دون التأثير على بقية البنود.<br><strong>57. الشروط الإضافية والملحقات:</strong> في حال وجود أي شروط أو طلبات أو متطلبات إضافية من قبل العميل سواء كانت فنية أو تشغيلية أو مالية أو تنظيمية ولم تكن ضمن نطاق هذا عرض السعر / الفاتورة فإنه يتم توثيقها حصراً في ملحق اتفاق مستقل يتم إعداده واعتماده من قبل الطرفين بشكل خطي ورسمي، ولا تُعد تلك الشروط أو الطلبات الإضافية جزءًا من هذا المستند ولا يترتب عليها أي تعديل أو تأثير على أي من بنوده ما لم يتم النص على ذلك صراحةً وبشكل مكتوب في ذلك الملحق، كما لا يُعتد بأي اتفاقات أو تفاهمات أو مراسلات سواء كانت شفهية أو غير موثقة ما لم يتم تضمينها في ملحق رسمي معتمد.</p></div>
+                <div class="terms-section"><h4>عاشراً: البنود المتقدمة</h4><p><strong>41.</strong> القوة القاهرة. <strong>42.</strong> السرية. <strong>43.</strong> التعديلات خارج النطاق بعرض منفصل. <strong>44.</strong> التوقف المؤقت عند عدم تجاوب العميل. <strong>45.</strong> الاستلام الحكمي بعد 7 أيام. <strong>46.</strong> الاعتراض خلال 7 أيام كتابياً.</p></div>
+                <div class="terms-section"><h4>حادي عشر: البنود المالية والقانونية المتقدمة</h4><p><strong>47.</strong> المدفوعات الخارجية غير مستحقة لمقدم الخدمة. <strong>48.</strong> المدفوعات بالنيابة ضمن تكاليف المشروع. <strong>49.</strong> تفسير البنود بما يحفظ حقوق مقدم الخدمة. <strong>50.</strong> حق رفض الخدمة أو إيقافها.</p></div>
+                <div class="terms-section"><h4>ثاني عشر: الحماية القانونية</h4><p><strong>51.</strong> التنازل عن المطالبات التي تتجاوز قيمة الفاتورة. <strong>52.</strong> حدود المسؤولية = إجمالي المبلغ المدفوع. <strong>53.</strong> لا مسؤولية عن الاستخدام غير المشروع. <strong>54.</strong> الملكية الفكرية محفوظة لمقدم الخدمة. <strong>55.</strong> حق تحديث الشروط مستقبلاً. <strong>56.</strong> استقلالية البنود. <strong>57.</strong> الشروط الإضافية توثق في ملحق مستقل.</p></div>
             </div>
             <div class="declaration-box">
                 <p style="font-size:13px; font-weight:bold; text-align:center;">أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
@@ -297,7 +304,7 @@
         
         // تحويل الصور إلى base64
         const base64Images = [];
-        if (orderData.items) {
+        if (orderData.items && Array.isArray(orderData.items)) {
             for(let i=0; i<orderData.items.length; i++) {
                 const item = orderData.items[i];
                 if (item.image) {
@@ -337,7 +344,7 @@
             }
             pdf.save(`فاتورة_${orderData.orderNumber}.pdf`);
             showToast('تم حفظ PDF');
-        } catch(e) { showToast('خطأ في PDF'); }
+        } catch(e) { showToast('خطأ في PDF'); console.error(e); }
         finally { hideLoading(); }
     }
     function printInvoice() { window.print(); }
