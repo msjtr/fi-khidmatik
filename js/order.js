@@ -1,144 +1,3 @@
-// ========== جلب بيانات المنتج من المخزون بشكل آمن ==========
-function getFullProductFromInventory(productId) {
-    // التحقق من صحة المعرف
-    if (!productId || productId === 'null' || productId === 'undefined') {
-        console.warn('⚠️ معرف المنتج غير صالح:', productId);
-        return null;
-    }
-    
-    const product = products.find(p => p.id === productId);
-    if (product) {
-        return {
-            productId: product.id,
-            name: product.name,
-            price: product.price,
-            barcode: product.code || product.barcode,
-            image: product.image || product.mainImage || '',
-            description: product.description || '',
-            cost: product.cost || 0,
-            stock: product.stock || 0
-        };
-    }
-    
-    console.warn(`⚠️ المنتج غير موجود في المخزون: ${productId}`);
-    return null;
-}
-
-// ========== تحديث المنتج في الطلب ==========
-async function updateOrderProduct(orderId, productIndex, newProductData) {
-    try {
-        const order = orders.find(o => o.id === orderId);
-        if (!order) throw new Error('الطلب غير موجود');
-        
-        const updatedItems = [...(order.items || [])];
-        if (productIndex >= updatedItems.length) throw new Error('المنتج غير موجود');
-        
-        // تحديث بيانات المنتج
-        updatedItems[productIndex] = {
-            ...updatedItems[productIndex],
-            ...newProductData,
-            updatedAt: new Date().toISOString()
-        };
-        
-        await updateOrder(orderId, { items: updatedItems });
-        return true;
-    } catch (error) {
-        console.error('❌ خطأ في تحديث المنتج:', error);
-        throw error;
-    }
-}
-
-// ========== إضافة منتج في الطلب (محسّن) ==========
-function addProductRow(pd = null) {
-    const container = document.getElementById('productsContainer');
-    const row = document.createElement('div');
-    row.className = 'product-row';
-    
-    let productData = pd || {};
-    
-    // معالجة المنتج من المخزون
-    if (pd?.productId && pd?.productId !== 'null' && pd?.productId !== 'undefined') {
-        const fullProduct = getFullProductFromInventory(pd.productId);
-        if (fullProduct) {
-            productData = { 
-                ...fullProduct, 
-                quantity: pd.quantity || 1,
-                productId: fullProduct.productId
-            };
-        } else if (pd.name) {
-            // منتج مخصص غير موجود في المخزون
-            productData = { ...pd };
-        }
-    }
-    
-    const productImage = productData.image || '';
-    const imageHtml = productImage ? 
-        `<img src="${productImage}" class="product-image-preview" onclick="window.openImage('${productImage}')" onerror="this.style.display='none'">` : 
-        '<div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fas fa-image text-2xl"></i></div>';
-    
-    const description = productData.description || '';
-    const productIdValue = productData.productId || '';
-    
-    row.innerHTML = `
-        <div class="flex gap-3 flex-wrap md:flex-nowrap">
-            <div class="product-image-container w-20 h-20 flex-shrink-0">
-                ${imageHtml}
-                <input type="hidden" class="product-image" value="${escapeHtml(productImage)}">
-            </div>
-            <div class="flex-1 grid grid-cols-1 md:grid-cols-6 gap-2">
-                <input type="text" class="product-name border rounded-lg p-2 text-sm md:col-span-2" value="${escapeHtml(productData.name || '')}" placeholder="اسم المنتج">
-                <input type="text" class="product-barcode border rounded-lg p-2 text-sm bg-gray-50" readonly value="${escapeHtml(productData.barcode || generateRandomCode())}">
-                <input type="number" class="product-price border rounded-lg p-2 text-sm" step="0.01" value="${productData.price || 0}">
-                <input type="number" class="product-quantity border rounded-lg p-2 text-sm" value="${productData.quantity || 1}" min="1">
-                <button type="button" class="upload-image-btn bg-gray-100 rounded-lg p-2 hover:bg-gray-200"><i class="fas fa-camera"></i></button>
-                <button type="button" class="remove-product-btn text-red-600 rounded-lg p-2 hover:bg-red-50"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>
-        <div class="mt-2">
-            <textarea class="product-desc w-full border rounded-lg p-2 text-sm" rows="3" placeholder="وصف المنتج...">${escapeHtml(description)}</textarea>
-            <input type="hidden" class="product-desc-hidden" value="${escapeHtml(description)}">
-        </div>
-        <input type="hidden" class="product-id" value="${escapeHtml(productIdValue)}">
-    `;
-    
-    container.appendChild(row);
-    
-    const descTextarea = row.querySelector('.product-desc');
-    const descHidden = row.querySelector('.product-desc-hidden');
-    descTextarea.addEventListener('input', () => {
-        descHidden.value = descTextarea.value;
-        updateTotals();
-    });
-    
-    row.querySelector('.product-price').addEventListener('input', updateTotals);
-    row.querySelector('.product-quantity').addEventListener('input', updateTotals);
-    row.querySelector('.remove-product-btn').onclick = () => { row.remove(); updateTotals(); };
-    
-    row.querySelector('.upload-image-btn').onclick = () => {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*';
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const imgUrl = ev.target.result;
-                    row.querySelector('.product-image').value = imgUrl;
-                    row.querySelector('.product-image-container').innerHTML = `<img src="${imgUrl}" class="product-image-preview" onclick="window.openImage('${imgUrl}')"><input type="hidden" class="product-image" value="${imgUrl}">`;
-                    updateTotals();
-                    showToast('تم إضافة الصورة', 'success');
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-        fileInput.click();
-    };
-    
-    updateTotals();
-    return row;
-}
-
 // ========== حفظ الطلب (محسّن مع معالجة الأخطاء) ==========
 async function saveOrder(e) {
     e.preventDefault();
@@ -234,7 +93,10 @@ async function saveOrder(e) {
             default: paymentMethodName = 'مدى';
         }
         
-        const orderData = {
+        // ========== إصلاح المشكلة: التحقق من وجود currentOrderId ==========
+        const now = new Date().toISOString();
+        
+        let orderData = {
             orderNumber,
             orderDate,
             orderTime,
@@ -253,11 +115,12 @@ async function saveOrder(e) {
             discountType,
             tax,
             total,
-            updatedAt: new Date().toISOString()
+            updatedAt: now
         };
         
+        // ✅ فقط أضف createdAt إذا كان طلب جديد (ليس تعديل)
         if (!currentOrderId) {
-            orderData.createdAt = new Date().toISOString();
+            orderData.createdAt = now;
         }
         
         // حفظ الطلب
@@ -267,7 +130,7 @@ async function saveOrder(e) {
             if (oldOrder?.items) {
                 // إعادة الكمية للمنتجات القديمة
                 for (let it of oldOrder.items) {
-                    if (it.productId && !it.productId.startsWith('temp_') && it.productId !== 'null') {
+                    if (it.productId && !it.productId.startsWith('temp_') && it.productId !== 'null' && it.productId !== 'undefined') {
                         const p = products.find(pr => pr.id === it.productId);
                         if (p) {
                             await updateProductStock(it.productId, (p.stock || 0) + (it.quantity || 0));
@@ -285,7 +148,7 @@ async function saveOrder(e) {
         
         // خصم الكمية من المخزون للمنتجات الجديدة
         for (let it of items) {
-            if (it.productId && !it.productId.startsWith('temp_') && it.productId !== 'null') {
+            if (it.productId && !it.productId.startsWith('temp_') && it.productId !== 'null' && it.productId !== 'undefined') {
                 const p = products.find(pr => pr.id === it.productId);
                 if (p) {
                     const newStock = Math.max(0, (p.stock || 0) - (it.quantity || 0));
@@ -301,50 +164,5 @@ async function saveOrder(e) {
     } catch (err) {
         console.error('❌ خطأ في حفظ الطلب:', err);
         showToast('خطأ في الحفظ: ' + (err.message || 'حدث خطأ غير متوقع'), 'error');
-    }
-}
-
-// ========== تحديث مخزون المنتج بشكل آمن ==========
-async function updateProductStock(productId, newStock) {
-    if (!productId || productId.startsWith('temp_') || productId === 'null' || productId === 'undefined') {
-        console.log('⏭️ تخطي تحديث المخزون للمنتج المؤقت:', productId);
-        return;
-    }
-    
-    try {
-        const productRef = doc(db, "products", productId);
-        await updateDoc(productRef, { 
-            stock: Math.max(0, newStock),
-            updatedAt: new Date().toISOString()
-        });
-        console.log(`✅ تم تحديث مخزون المنتج ${productId} إلى ${newStock}`);
-        
-        // تحديث الكاش المحلي
-        const productIndex = products.findIndex(p => p.id === productId);
-        if (productIndex !== -1) {
-            products[productIndex].stock = Math.max(0, newStock);
-        }
-    } catch (error) {
-        console.error("❌ خطأ في تحديث المخزون:", error);
-        // لا نرمي الخطأ لأن هذا لا يجب أن يمنع حفظ الطلب
-    }
-}
-
-// ========== تحميل قائمة المنتجات ==========
-async function loadProductsList() {
-    try {
-        const snapshot = await getDocs(collection(db, "products"));
-        products = snapshot.docs.map(doc => ({ 
-            id: doc.id, 
-            ...doc.data(),
-            image: doc.data().image || doc.data().mainImage || ''
-        }));
-        console.log(`✅ تم تحميل ${products.length} منتج بنجاح`);
-        return products;
-    } catch (err) {
-        console.error('❌ خطأ في تحميل المنتجات:', err);
-        products = [];
-        showToast('خطأ في تحميل المنتجات', 'error');
-        return [];
     }
 }
