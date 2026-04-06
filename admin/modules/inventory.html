@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المخزون - منصة في خدمتك</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -34,9 +35,27 @@
             animation: slideIn 0.3s ease;
         }
         .toast-error { background: #ef4444; }
+        .toast-warning { background: #f59e0b; }
         @keyframes slideIn {
             from { transform: translateX(-100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -182,7 +201,9 @@
         doc,
         getDocs,
         updateDoc,
-        deleteDoc
+        deleteDoc,
+        query,
+        orderBy
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     // Firebase configuration
@@ -201,8 +222,15 @@
 
     // ===================== دوال Firebase =====================
     async function loadProducts() {
-        const querySnapshot = await getDocs(collection(db, 'products'));
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        try {
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error('Error loading products:', error);
+            return [];
+        }
     }
 
     async function addProduct(data) {
@@ -235,7 +263,13 @@
     function showToast(message, type = 'success') {
         toast.textContent = message;
         toast.className = `fixed bottom-4 left-4 px-6 py-3 rounded-lg shadow-lg z-50`;
-        toast.style.backgroundColor = type === 'error' ? '#ef4444' : '#10b981';
+        if (type === 'error') {
+            toast.style.backgroundColor = '#ef4444';
+        } else if (type === 'warning') {
+            toast.style.backgroundColor = '#f59e0b';
+        } else {
+            toast.style.backgroundColor = '#10b981';
+        }
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 3000);
     }
@@ -294,11 +328,20 @@
     // ===================== إحصائيات المخزون =====================
     function updateStats() {
         totalProductsSpan.textContent = products.length;
+        
         const productsWithImages = products.filter(p => p.mainImage && p.mainImage.trim() !== '').length;
         productsWithImagesSpan.textContent = productsWithImages;
-        const lowStock = products.filter(p => (p.stock || 0) > 0 && (p.stock || 0) <= (p.minStock || 5)).length;
-        const outStock = products.filter(p => (p.stock || 0) === 0).length;
+        
+        // المنتجات المنخفضة (أقل من الحد الأدنى وأكبر من 0)
+        const lowStock = products.filter(p => {
+            const stock = p.stock || 0;
+            const minStock = p.minStock || 5;
+            return stock > 0 && stock <= minStock;
+        }).length;
         lowStockCountSpan.textContent = lowStock;
+        
+        // المنتجات التي نفدت (الكمية = 0)
+        const outStock = products.filter(p => (p.stock || 0) === 0).length;
         outStockCountSpan.textContent = outStock;
     }
 
@@ -311,7 +354,7 @@
         } else if (stock <= minStock) {
             return '<span class="text-orange-600 font-semibold"><i class="fas fa-exclamation-triangle ml-1"></i> منخفض</span>';
         }
-        return '<span class="text-green-600"><i class="fas fa-check-circle ml-1"></i> متوفر</span>';
+        return '<span class="text-green-600 font-semibold"><i class="fas fa-check-circle ml-1"></i> متوفر</span>';
     }
 
     function getRowClass(product) {
@@ -335,20 +378,20 @@
             <tr class="border-b hover:bg-gray-50 transition ${getRowClass(p)}">
                 <td class="p-3">
                     ${p.mainImage ? `<img src="${escapeHtml(p.mainImage)}" class="product-image-preview" onerror="this.style.display='none'">` : '<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-image text-gray-400 text-xl"></i></div>'}
-                 </td>
+                  </td>
                 <td class="p-3">
                     <div class="font-semibold text-gray-800">${escapeHtml(p.name)}</div>
                     <div class="text-xs text-gray-500 font-mono">${escapeHtml(p.code || '—')}</div>
-                    ${p.description ? `<div class="text-xs text-gray-400 mt-1">${escapeHtml(p.description.substring(0, 50))}${p.description.length > 50 ? '...' : ''}</div>` : ''}
+                    ${p.description ? `<div class="text-xs text-gray-400 mt-1">${escapeHtml(p.description.substring(0, 50))}${p.description && p.description.length > 50 ? '...' : ''}</div>` : ''}
                 </td>
                 <td class="p-3 font-bold text-blue-600">${p.price} <span class="text-xs">ر.س</span></td>
                 <td class="p-3">
                     <div class="flex items-center gap-2">
                         <span class="font-semibold text-lg">${stock}</span>
-                        <button onclick="window.quickUpdateStock('${p.id}', ${stock - 1})" class="bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition" ${stock === 0 ? 'disabled' : ''}>
+                        <button onclick="window.quickUpdateStock('${p.id}', 'decrease')" class="bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition" ${stock === 0 ? 'disabled' : ''}>
                             <i class="fas fa-minus"></i>
                         </button>
-                        <button onclick="window.quickUpdateStock('${p.id}', ${stock + 1})" class="bg-green-100 text-green-600 px-2 py-1 rounded hover:bg-green-200 transition">
+                        <button onclick="window.quickUpdateStock('${p.id}', 'increase')" class="bg-green-100 text-green-600 px-2 py-1 rounded hover:bg-green-200 transition">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -361,16 +404,31 @@
                     <button onclick="window.deleteProductHandler('${p.id}', '${escapeHtml(p.name)}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition" title="حذف">
                         <i class="fas fa-trash-alt"></i>
                     </button>
-                 </td>
+                  </td>
             </tr>
         `}).join('');
     }
 
     // ===================== تحديث سريع للمخزون =====================
-    window.quickUpdateStock = async (id, newStock) => {
-        if (newStock < 0) return;
+    window.quickUpdateStock = async (id, action) => {
+        const product = products.find(p => p.id === id);
+        if (!product) return;
+        
+        let newStock = product.stock || 0;
+        if (action === 'increase') {
+            newStock++;
+        } else if (action === 'decrease') {
+            if (newStock === 0) return;
+            newStock--;
+        } else {
+            return;
+        }
+        
         try {
-            await updateProduct(id, { stock: newStock, updatedAt: new Date().toISOString() });
+            await updateProduct(id, { 
+                stock: newStock, 
+                updatedAt: new Date().toISOString() 
+            });
             await loadAndRender();
             showToast(`✅ تم تحديث الكمية إلى ${newStock}`);
         } catch (err) {
@@ -422,6 +480,7 @@
             document.getElementById('productForm').reset();
             document.getElementById('productCode').value = generateRandomCode();
             document.getElementById('minStock').value = 5;
+            document.getElementById('productStock').value = 0;
             productMainImage.value = '';
             mainImagePreview.classList.add('hidden');
         }
@@ -442,23 +501,27 @@
         
         const name = document.getElementById('productName').value.trim();
         const price = parseFloat(document.getElementById('productPrice').value);
-        const stock = parseInt(document.getElementById('productStock').value);
-        const minStock = parseInt(document.getElementById('minStock').value);
+        const stock = parseInt(document.getElementById('productStock').value) || 0;
+        const minStock = parseInt(document.getElementById('minStock').value) || 5;
         const description = document.getElementById('productDescription').value.trim();
         const mainImage = document.getElementById('productMainImage').value.trim();
         const code = document.getElementById('productCode').value.trim();
         
-        if (!name || isNaN(price)) {
-            showToast('❌ اسم المنتج والسعر مطلوبان', 'error');
+        if (!name) {
+            showToast('❌ اسم المنتج مطلوب', 'error');
+            return;
+        }
+        if (isNaN(price) || price < 0) {
+            showToast('❌ السعر غير صحيح', 'error');
             return;
         }
         
         const data = {
             name,
             price,
-            stock: stock || 0,
-            minStock: minStock || 5,
-            description,
+            stock: stock,
+            minStock: minStock,
+            description: description || null,
             mainImage: mainImage || null,
             code: code || generateRandomCode(),
             updatedAt: new Date().toISOString()
@@ -506,6 +569,7 @@
 
     function closeDeleteModal() {
         document.getElementById('deleteModal').classList.add('hidden');
+        document.getElementById('deleteModal').classList.remove('flex');
         deleteId = null;
         deleteName = '';
     }
@@ -521,8 +585,14 @@
     
     document.getElementById('cancelDeleteBtn').onclick = closeDeleteModal;
     document.getElementById('confirmDeleteBtn').onclick = confirmDelete;
-    document.getElementById('deleteModal').onclick = (e) => { if (e.target === document.getElementById('deleteModal')) closeDeleteModal(); };
-    document.getElementById('productModal').onclick = (e) => { if (e.target === document.getElementById('productModal')) closeModal(); };
+    
+    // إغلاق المودال عند النقر خارج المحتوى
+    document.getElementById('deleteModal').onclick = (e) => { 
+        if (e.target === document.getElementById('deleteModal')) closeDeleteModal(); 
+    };
+    document.getElementById('productModal').onclick = (e) => { 
+        if (e.target === document.getElementById('productModal')) closeModal(); 
+    };
 
     // ===================== بدء التشغيل =====================
     console.log('🚀 بدء تشغيل صفحة المخزون...');
