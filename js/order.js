@@ -1,452 +1,350 @@
-import { 
-    db, 
-    collection, 
-    addDoc, 
-    doc, 
-    getDoc, 
-    getDocs, 
-    updateDoc, 
-    deleteDoc,
-    query, 
-    orderBy, 
-    limit,
-    where
-} from './firebase.js';
-
-// ========== دوال مساعدة ==========
-function sanitizeOrderData(orderData) {
-    const items = (orderData.items || orderData.cart || []).map(item => ({
-        productId: item.productId || null,
-        name: item.name || '',
-        price: parseFloat(item.price) || 0,
-        quantity: parseInt(item.quantity) || 1,
-        barcode: item.barcode || '',
-        image: item.image || '',
-        description: item.description || '',
-        productDetails: item.productDetails || null
-    }));
-    
-    return {
-        customer: orderData.customer || '',
-        customerId: orderData.customerId || null,
-        phone: orderData.phone || '',
-        cart: items,
-        items: items,
-        total: orderData.total || 0,
-        payment: orderData.payment || '',
-        paymentMethod: orderData.paymentMethod || orderData.payment || '',
-        paymentMethodName: orderData.paymentMethodName || '',
-        shipping: orderData.shipping || '',
-        shippingMethod: orderData.shippingMethod || orderData.shipping || 'pickup',
-        shippingAddress: orderData.shippingAddress || null,
-        extraEmail: orderData.extraEmail || null,
-        approvalCode: orderData.approvalCode || null,
-        otherPaymentText: orderData.otherPaymentText || null,
-        subtotal: orderData.subtotal || 0,
-        discount: orderData.discount || 0,
-        discountType: orderData.discountType || 'fixed',
-        tax: orderData.tax || 0,
-        notes: orderData.notes || '',
-        status: orderData.status || 'جديد'
-    };
-}
-
-// ========== حفظ طلب جديد ==========
-export async function saveOrderToFirebase(orderData) {
-    try {
-        const ordersRef = collection(db, 'orders');
-        const safeData = sanitizeOrderData(orderData);
-        
-        const timestamp = Date.now();
-        const orderNumber = orderData.orderNumber || `KF-${timestamp.toString().slice(-8)}`;
-        
-        const docRef = await addDoc(ordersRef, {
-            ...safeData,
-            orderNumber: orderNumber,
-            orderDate: orderData.orderDate || new Date().toISOString().split('T')[0],
-            orderTime: orderData.orderTime || new Date().toLocaleTimeString('en-US', { hour12: false }),
-            createdAt: new Date().toISOString(),
-            timestamp: timestamp,
-            updatedAt: new Date().toISOString(),
-            status: safeData.status
-        });
-
-        console.log('✅ تم حفظ الطلب:', docRef.id, 'رقم الطلب:', orderNumber);
-        return { id: docRef.id, orderNumber: orderNumber };
-
-    } catch (error) {
-        console.error('❌ خطأ في الحفظ:', error);
-        throw new Error('فشل حفظ الطلب: ' + error.message);
-    }
-}
-
-// ========== جلب طلب بواسطة ID ==========
-export async function getOrderFromFirebase(orderId) {
-    try {
-        if (!orderId) throw new Error('معرّف الطلب مطلوب');
-        
-        const docRef = doc(db, 'orders', orderId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            console.log('✅ تم جلب الطلب:', orderId);
-            return {
-                id: docSnap.id,
-                ...data,
-                items: (data.items || data.cart || []).map(item => ({
-                    ...item,
-                    image: item.image || ''
-                })),
-                cart: (data.cart || data.items || []).map(item => ({
-                    ...item,
-                    image: item.image || ''
-                }))
-            };
-        }
-
-        console.warn('⚠️ الطلب غير موجود:', orderId);
+// ========== جلب بيانات المنتج من المخزون بشكل آمن ==========
+function getFullProductFromInventory(productId) {
+    // التحقق من صحة المعرف
+    if (!productId || productId === 'null' || productId === 'undefined') {
+        console.warn('⚠️ معرف المنتج غير صالح:', productId);
         return null;
-
-    } catch (error) {
-        console.error('❌ خطأ في جلب الطلب:', error);
-        throw error;
     }
+    
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        return {
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            barcode: product.code || product.barcode,
+            image: product.image || product.mainImage || '',
+            description: product.description || '',
+            cost: product.cost || 0,
+            stock: product.stock || 0
+        };
+    }
+    
+    console.warn(`⚠️ المنتج غير موجود في المخزون: ${productId}`);
+    return null;
 }
 
-// ========== جلب جميع الطلبات (نسخة محسّنة - بدون تكرار) ==========
-export async function getAllOrdersFromFirebase(limitCount = 500) {
+// ========== تحديث المنتج في الطلب ==========
+async function updateOrderProduct(orderId, productIndex, newProductData) {
     try {
-        console.log('🔄 جاري جلب الطلبات من Firebase...');
+        const order = orders.find(o => o.id === orderId);
+        if (!order) throw new Error('الطلب غير موجود');
         
-        const ordersRef = collection(db, 'orders');
+        const updatedItems = [...(order.items || [])];
+        if (productIndex >= updatedItems.length) throw new Error('المنتج غير موجود');
         
-        // استخدام orderBy مع createdAt مع التعامل مع الحقول المفقودة
-        // استخدام orderBy مع '__name__' كبديل آمن
-        let q;
-        try {
-            q = query(ordersRef, orderBy('createdAt', 'desc'), limit(limitCount));
-        } catch (error) {
-            console.warn('⚠️ لا يمكن الترتيب بـ createdAt، استخدام الترتيب الافتراضي');
-            q = query(ordersRef, limit(limitCount));
-        }
-        
-        const querySnapshot = await getDocs(q);
-        
-        const orders = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const items = (data.items || data.cart || []).map(item => ({
-                ...item,
-                image: item.image || ''
-            }));
-            
-            orders.push({ 
-                id: doc.id, 
-                ...data,
-                items: items,
-                cart: items
-            });
-        });
-
-        console.log(`✅ تم جلب ${orders.length} طلب بنجاح`);
-        
-        // عرض أول 5 طلبات في الكونسول للتحقق
-        if (orders.length > 0) {
-            console.log('📋 أول 5 طلبات:', orders.slice(0, 5).map(o => ({
-                id: o.id,
-                orderNumber: o.orderNumber,
-                customer: o.customer || o.customerId,
-                date: o.orderDate
-            })));
-        }
-        
-        return orders;
-
-    } catch (error) {
-        console.error('❌ خطأ في جلب الطلبات:', error);
-        console.error('تفاصيل الخطأ:', error.message);
-        // إعادة محاولة جلب بدون ترتيب
-        try {
-            console.log('🔄 محاولة جلب الطلبات بدون ترتيب...');
-            const ordersRef = collection(db, 'orders');
-            const simpleQuery = query(ordersRef, limit(limitCount));
-            const simpleSnapshot = await getDocs(simpleQuery);
-            const orders = [];
-            simpleSnapshot.forEach((doc) => {
-                orders.push({ id: doc.id, ...doc.data() });
-            });
-            console.log(`✅ تم جلب ${orders.length} طلب (بدون ترتيب)`);
-            return orders;
-        } catch (fallbackError) {
-            console.error('❌ فشلت المحاولة الثانية:', fallbackError);
-            throw error;
-        }
-    }
-}
-
-// ========== جلب الطلبات مع الفلترة (محسّن) ==========
-export async function getFilteredOrders(filters = {}) {
-    try {
-        console.log('🔄 جاري جلب الطلبات المفلترة...', filters);
-        
-        let ordersRef = collection(db, 'orders');
-        let constraints = [];
-        
-        // إضافة شروط الفلترة
-        if (filters.status && filters.status !== '') {
-            constraints.push(where('status', '==', filters.status));
-        }
-        if (filters.customerId) {
-            constraints.push(where('customerId', '==', filters.customerId));
-        }
-        if (filters.shippingMethod && filters.shippingMethod !== '') {
-            constraints.push(where('shippingMethod', '==', filters.shippingMethod));
-        }
-        if (filters.startDate) {
-            constraints.push(where('orderDate', '>=', filters.startDate));
-        }
-        if (filters.endDate) {
-            constraints.push(where('orderDate', '<=', filters.endDate));
-        }
-        
-        // إضافة الترتيب (مع التعامل مع الأخطاء)
-        try {
-            constraints.push(orderBy('createdAt', 'desc'));
-        } catch (error) {
-            console.warn('⚠️ لا يمكن الترتيب بـ createdAt');
-        }
-        
-        // إضافة الحد
-        if (filters.limit) {
-            constraints.push(limit(filters.limit));
-        }
-        
-        const q = query(ordersRef, ...constraints);
-        const querySnapshot = await getDocs(q);
-        
-        const orders = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const items = (data.items || data.cart || []).map(item => ({
-                ...item,
-                image: item.image || ''
-            }));
-            orders.push({ id: doc.id, ...data, items: items });
-        });
-        
-        console.log(`✅ تم جلب ${orders.length} طلب مفلتر`);
-        return orders;
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب الطلبات المفلترة:', error);
-        throw error;
-    }
-}
-
-// ========== تحديث حالة الطلب ==========
-export async function updateOrderStatusInFirebase(orderId, newStatus) {
-    try {
-        if (!orderId || !newStatus) throw new Error('معرّف الطلب والحالة الجديدة مطلوبان');
-        
-        const validStatuses = ['جديد', 'تحت التنفيذ', 'تم التنفيذ', 'تحت المراجعة', 'مسترجع', 'ملغي'];
-        if (!validStatuses.includes(newStatus)) throw new Error('حالة غير صالحة: ' + newStatus);
-        
-        const docRef = doc(db, 'orders', orderId);
-        await updateDoc(docRef, { status: newStatus, updatedAt: new Date().toISOString() });
-
-        console.log('✅ تم تحديث حالة الطلب:', orderId, '->', newStatus);
-        return true;
-
-    } catch (error) {
-        console.error('❌ خطأ في تحديث الحالة:', error);
-        throw error;
-    }
-}
-
-// ========== تحديث بيانات الطلب كاملة ==========
-export async function updateOrderInFirebase(orderId, orderData) {
-    try {
-        const docRef = doc(db, 'orders', orderId);
-        const safeData = sanitizeOrderData(orderData);
-        
-        await updateDoc(docRef, {
-            ...safeData,
-            orderDate: orderData.orderDate,
-            orderTime: orderData.orderTime,
+        // تحديث بيانات المنتج
+        updatedItems[productIndex] = {
+            ...updatedItems[productIndex],
+            ...newProductData,
             updatedAt: new Date().toISOString()
-        });
-        
-        console.log('✅ تم تحديث الطلب:', orderId);
-        return true;
-        
-    } catch (error) {
-        console.error('❌ خطأ في تحديث الطلب:', error);
-        throw error;
-    }
-}
-
-// ========== حذف طلب ==========
-export async function deleteOrderFromFirebase(orderId) {
-    try {
-        if (!orderId) throw new Error('معرّف الطلب مطلوب');
-        const docRef = doc(db, 'orders', orderId);
-        await deleteDoc(docRef);
-        console.log('✅ تم حذف الطلب:', orderId);
-        return true;
-    } catch (error) {
-        console.error('❌ خطأ في حذف الطلب:', error);
-        throw error;
-    }
-}
-
-// ========== إحصائيات الطلبات ==========
-export async function getOrdersStatistics() {
-    try {
-        const orders = await getAllOrdersFromFirebase(1000);
-        
-        const stats = {
-            total: orders.length,
-            totalRevenue: 0,
-            byStatus: {},
-            last30Days: 0,
-            today: 0
         };
         
-        const today = new Date().toISOString().split('T')[0];
-        const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-        
-        orders.forEach(order => {
-            stats.totalRevenue += order.total || 0;
-            const status = order.status || 'غير محدد';
-            stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
-            if (order.timestamp && order.timestamp >= thirtyDaysAgo) stats.last30Days++;
-            if (order.createdAt && order.createdAt.split('T')[0] === today) stats.today++;
-        });
-        
-        return stats;
-    } catch (error) {
-        console.error('❌ خطأ في جلب الإحصائيات:', error);
-        throw error;
-    }
-}
-
-// ========== البحث في الطلبات ==========
-export async function searchOrders(searchTerm) {
-    try {
-        const orders = await getAllOrdersFromFirebase();
-        const term = searchTerm.toLowerCase();
-        const filtered = orders.filter(order => {
-            return (
-                order.orderNumber?.toLowerCase().includes(term) ||
-                order.customer?.toLowerCase().includes(term) ||
-                order.phone?.includes(term) ||
-                order.items?.some(item => item.name?.toLowerCase().includes(term))
-            );
-        });
-        return filtered;
-    } catch (error) {
-        console.error('❌ خطأ في البحث:', error);
-        throw error;
-    }
-}
-
-// ========== تصدير CSV ==========
-export async function exportOrdersToCSV(orders) {
-    try {
-        const headers = ['رقم الطلب', 'التاريخ', 'العميل', 'الجوال', 'المنتجات', 'الإجمالي', 'الحالة', 'طريقة الدفع'];
-        const rows = orders.map(order => {
-            const productsList = (order.items || []).map(item => 
-                `${item.name} (${item.quantity} × ${item.price})`
-            ).join(' | ');
-            
-            return [
-                order.orderNumber,
-                order.orderDate,
-                order.customer || 'غير معروف',
-                order.phone || '—',
-                productsList,
-                order.total || 0,
-                order.status || 'جديد',
-                order.paymentMethodName || order.paymentMethod || '—'
-            ];
-        });
-        
-        const csvContent = [headers, ...rows]
-            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-            .join('\n');
-        
-        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.setAttribute('download', `orders_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
+        await updateOrder(orderId, { items: updatedItems });
         return true;
     } catch (error) {
-        console.error('❌ خطأ في التصدير:', error);
+        console.error('❌ خطأ في تحديث المنتج:', error);
         throw error;
     }
 }
 
-// ========== جلب طلبات العميل ==========
-export async function getCustomerOrders(customerId) {
-    try {
-        if (!customerId) throw new Error('معرّف العميل مطلوب');
-        
-        const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, where('customerId', '==', customerId), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        
-        const orders = [];
-        querySnapshot.forEach((doc) => {
-            orders.push({ id: doc.id, ...doc.data() });
-        });
-        
-        console.log(`✅ تم جلب ${orders.length} طلب للعميل ${customerId}`);
-        return orders;
-    } catch (error) {
-        console.error('❌ خطأ في جلب طلبات العميل:', error);
-        throw error;
+// ========== إضافة منتج في الطلب (محسّن) ==========
+function addProductRow(pd = null) {
+    const container = document.getElementById('productsContainer');
+    const row = document.createElement('div');
+    row.className = 'product-row';
+    
+    let productData = pd || {};
+    
+    // معالجة المنتج من المخزون
+    if (pd?.productId && pd?.productId !== 'null' && pd?.productId !== 'undefined') {
+        const fullProduct = getFullProductFromInventory(pd.productId);
+        if (fullProduct) {
+            productData = { 
+                ...fullProduct, 
+                quantity: pd.quantity || 1,
+                productId: fullProduct.productId
+            };
+        } else if (pd.name) {
+            // منتج مخصص غير موجود في المخزون
+            productData = { ...pd };
+        }
     }
+    
+    const productImage = productData.image || '';
+    const imageHtml = productImage ? 
+        `<img src="${productImage}" class="product-image-preview" onclick="window.openImage('${productImage}')" onerror="this.style.display='none'">` : 
+        '<div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fas fa-image text-2xl"></i></div>';
+    
+    const description = productData.description || '';
+    const productIdValue = productData.productId || '';
+    
+    row.innerHTML = `
+        <div class="flex gap-3 flex-wrap md:flex-nowrap">
+            <div class="product-image-container w-20 h-20 flex-shrink-0">
+                ${imageHtml}
+                <input type="hidden" class="product-image" value="${escapeHtml(productImage)}">
+            </div>
+            <div class="flex-1 grid grid-cols-1 md:grid-cols-6 gap-2">
+                <input type="text" class="product-name border rounded-lg p-2 text-sm md:col-span-2" value="${escapeHtml(productData.name || '')}" placeholder="اسم المنتج">
+                <input type="text" class="product-barcode border rounded-lg p-2 text-sm bg-gray-50" readonly value="${escapeHtml(productData.barcode || generateRandomCode())}">
+                <input type="number" class="product-price border rounded-lg p-2 text-sm" step="0.01" value="${productData.price || 0}">
+                <input type="number" class="product-quantity border rounded-lg p-2 text-sm" value="${productData.quantity || 1}" min="1">
+                <button type="button" class="upload-image-btn bg-gray-100 rounded-lg p-2 hover:bg-gray-200"><i class="fas fa-camera"></i></button>
+                <button type="button" class="remove-product-btn text-red-600 rounded-lg p-2 hover:bg-red-50"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+        <div class="mt-2">
+            <textarea class="product-desc w-full border rounded-lg p-2 text-sm" rows="3" placeholder="وصف المنتج...">${escapeHtml(description)}</textarea>
+            <input type="hidden" class="product-desc-hidden" value="${escapeHtml(description)}">
+        </div>
+        <input type="hidden" class="product-id" value="${escapeHtml(productIdValue)}">
+    `;
+    
+    container.appendChild(row);
+    
+    const descTextarea = row.querySelector('.product-desc');
+    const descHidden = row.querySelector('.product-desc-hidden');
+    descTextarea.addEventListener('input', () => {
+        descHidden.value = descTextarea.value;
+        updateTotals();
+    });
+    
+    row.querySelector('.product-price').addEventListener('input', updateTotals);
+    row.querySelector('.product-quantity').addEventListener('input', updateTotals);
+    row.querySelector('.remove-product-btn').onclick = () => { row.remove(); updateTotals(); };
+    
+    row.querySelector('.upload-image-btn').onclick = () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const imgUrl = ev.target.result;
+                    row.querySelector('.product-image').value = imgUrl;
+                    row.querySelector('.product-image-container').innerHTML = `<img src="${imgUrl}" class="product-image-preview" onclick="window.openImage('${imgUrl}')"><input type="hidden" class="product-image" value="${imgUrl}">`;
+                    updateTotals();
+                    showToast('تم إضافة الصورة', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        fileInput.click();
+    };
+    
+    updateTotals();
+    return row;
 }
 
-// ========== دالة اختبار للتحقق من الاتصال بقاعدة البيانات ==========
-export async function testFirebaseConnection() {
+// ========== حفظ الطلب (محسّن مع معالجة الأخطاء) ==========
+async function saveOrder(e) {
+    e.preventDefault();
+    
     try {
-        console.log('🔄 اختبار الاتصال بقاعدة البيانات...');
+        const customerId = document.getElementById('customerSelect')?.value;
+        if (!customerId) { showToast('اختر عميل', 'error'); return; }
         
-        const ordersRef = collection(db, 'orders');
-        const snapshot = await getDocs(ordersRef);
+        let orderNumber = document.getElementById('orderNumber')?.value.trim();
+        if (!orderNumber) { showToast('أدخل رقم الطلب', 'error'); return; }
+        if (!orderNumber.startsWith('KF-')) orderNumber = `KF-${orderNumber}`;
         
-        console.log(`✅ الاتصال ناجح! عدد الطلبات في قاعدة البيانات: ${snapshot.size}`);
+        const orderDate = document.getElementById('orderDate')?.value;
+        const orderTime = get24HourTime();
+        const status = document.getElementById('orderStatus')?.value;
+        const shippingMethod = document.querySelector('input[name="shippingMethod"]:checked')?.value;
         
-        if (snapshot.size > 0) {
-            console.log('📋 أول 3 طلبات في قاعدة البيانات:');
-            snapshot.docs.forEach((doc, index) => {
-                if (index < 3) {
-                    const data = doc.data();
-                    console.log(`  ${index + 1}. ID: ${doc.id}`);
-                    console.log(`     رقم الطلب: ${data.orderNumber || 'غير محدد'}`);
-                    console.log(`     العميل: ${data.customer || data.customerId || 'غير محدد'}`);
-                    console.log(`     التاريخ: ${data.orderDate || 'غير محدد'}`);
-                    console.log(`     الإجمالي: ${data.total || 0} ريال`);
-                    console.log('     ---');
-                }
-            });
-        } else {
-            console.log('⚠️ لا توجد طلبات في قاعدة البيانات');
-            console.log('💡 يمكنك إضافة طلب تجريبي باستخدام:');
-            console.log('   await addOrder({ orderNumber: "TEST-001", customer: "عميل تجريبي", total: 100 });');
+        let shippingAddress = null, extraEmail = null;
+        if (shippingMethod === 'delivery') {
+            shippingAddress = {
+                city: document.getElementById('deliveryCity')?.value || '',
+                street: document.getElementById('deliveryStreet')?.value || '',
+                additionalNo: document.getElementById('deliveryAdditionalNo')?.value || '',
+                poBox: document.getElementById('deliveryPoBox')?.value || '',
+                phone: document.getElementById('deliveryPhone')?.value || ''
+            };
+        } else if (shippingMethod === 'noship') {
+            extraEmail = document.getElementById('extraEmail')?.value.trim() || null;
         }
         
-        return { success: true, count: snapshot.size };
+        let approvalCode = null, otherText = null;
+        if (selectedPaymentMethod === 'tamara' || selectedPaymentMethod === 'tabby') {
+            approvalCode = document.getElementById('approvalCode')?.value.trim();
+            if (!approvalCode) { showToast('أدخل رمز الموافقة', 'error'); return; }
+        }
+        if (selectedPaymentMethod === 'other') {
+            otherText = document.getElementById('otherPaymentText')?.value.trim();
+            if (!otherText) { showToast('أدخل طريقة الدفع', 'error'); return; }
+        }
+        
+        const items = [];
+        const rows = document.querySelectorAll('.product-row');
+        
+        for (let r of rows) {
+            const name = r.querySelector('.product-name')?.value.trim();
+            const price = parseFloat(r.querySelector('.product-price')?.value);
+            const qty = parseInt(r.querySelector('.product-quantity')?.value);
+            
+            if (!name) {
+                showToast('اسم المنتج مطلوب', 'error');
+                return;
+            }
+            if (isNaN(price) || price <= 0) {
+                showToast(`سعر المنتج "${name}" غير صحيح`, 'error');
+                return;
+            }
+            if (isNaN(qty) || qty <= 0) {
+                showToast(`كمية المنتج "${name}" غير صحيحة`, 'error');
+                return;
+            }
+            
+            const productId = r.querySelector('.product-id')?.value;
+            
+            items.push({
+                productId: (productId && productId !== 'null' && productId !== 'undefined') ? productId : null,
+                name: name,
+                price: price,
+                quantity: qty,
+                barcode: r.querySelector('.product-barcode')?.value || '',
+                image: r.querySelector('.product-image')?.value || '',
+                description: r.querySelector('.product-desc')?.value || r.querySelector('.product-desc-hidden')?.value || ''
+            });
+        }
+        
+        if (items.length === 0) { 
+            showToast('أضف منتجاً واحداً على الأقل', 'error'); 
+            return; 
+        }
+        
+        const { subtotal, discount, tax, total } = calculateTotals();
+        const discountValue = parseFloat(document.getElementById('discountValue')?.value) || 0;
+        const discountType = document.getElementById('discountType')?.value;
+        
+        let paymentMethodName = '';
+        switch(selectedPaymentMethod) {
+            case 'mada': paymentMethodName = 'مدى'; break;
+            case 'mastercard': paymentMethodName = 'ماستركارد'; break;
+            case 'visa': paymentMethodName = 'فيزا'; break;
+            case 'stcpay': paymentMethodName = 'STCPay'; break;
+            case 'tamara': paymentMethodName = 'تمارا'; break;
+            case 'tabby': paymentMethodName = 'تابي'; break;
+            case 'other': paymentMethodName = otherText || 'أخرى'; break;
+            default: paymentMethodName = 'مدى';
+        }
+        
+        const orderData = {
+            orderNumber,
+            orderDate,
+            orderTime,
+            customerId,
+            status,
+            shippingMethod,
+            shippingAddress,
+            extraEmail,
+            paymentMethod: selectedPaymentMethod,
+            paymentMethodName,
+            approvalCode,
+            otherPaymentText: otherText,
+            items,
+            subtotal,
+            discount: discountValue,
+            discountType,
+            tax,
+            total,
+            updatedAt: new Date().toISOString()
+        };
+        
+        if (!currentOrderId) {
+            orderData.createdAt = new Date().toISOString();
+        }
+        
+        // حفظ الطلب
+        if (currentOrderId) {
+            // استرجاع الطلب القديم لتحديث المخزون
+            const oldOrder = orders.find(o => o.id === currentOrderId);
+            if (oldOrder?.items) {
+                // إعادة الكمية للمنتجات القديمة
+                for (let it of oldOrder.items) {
+                    if (it.productId && !it.productId.startsWith('temp_') && it.productId !== 'null') {
+                        const p = products.find(pr => pr.id === it.productId);
+                        if (p) {
+                            await updateProductStock(it.productId, (p.stock || 0) + (it.quantity || 0));
+                        }
+                    }
+                }
+            }
+            
+            await updateOrder(currentOrderId, orderData);
+            showToast('تم تعديل الطلب بنجاح', 'success');
+        } else {
+            await addOrder(orderData);
+            showToast('تم إضافة الطلب بنجاح', 'success');
+        }
+        
+        // خصم الكمية من المخزون للمنتجات الجديدة
+        for (let it of items) {
+            if (it.productId && !it.productId.startsWith('temp_') && it.productId !== 'null') {
+                const p = products.find(pr => pr.id === it.productId);
+                if (p) {
+                    const newStock = Math.max(0, (p.stock || 0) - (it.quantity || 0));
+                    await updateProductStock(it.productId, newStock);
+                }
+            }
+        }
+        
+        closeModal();
+        await loadData();
+        await renderOrders();
+        
+    } catch (err) {
+        console.error('❌ خطأ في حفظ الطلب:', err);
+        showToast('خطأ في الحفظ: ' + (err.message || 'حدث خطأ غير متوقع'), 'error');
+    }
+}
+
+// ========== تحديث مخزون المنتج بشكل آمن ==========
+async function updateProductStock(productId, newStock) {
+    if (!productId || productId.startsWith('temp_') || productId === 'null' || productId === 'undefined') {
+        console.log('⏭️ تخطي تحديث المخزون للمنتج المؤقت:', productId);
+        return;
+    }
+    
+    try {
+        const productRef = doc(db, "products", productId);
+        await updateDoc(productRef, { 
+            stock: Math.max(0, newStock),
+            updatedAt: new Date().toISOString()
+        });
+        console.log(`✅ تم تحديث مخزون المنتج ${productId} إلى ${newStock}`);
+        
+        // تحديث الكاش المحلي
+        const productIndex = products.findIndex(p => p.id === productId);
+        if (productIndex !== -1) {
+            products[productIndex].stock = Math.max(0, newStock);
+        }
     } catch (error) {
-        console.error('❌ فشل الاتصال بقاعدة البيانات:', error);
-        return { success: false, error: error.message };
+        console.error("❌ خطأ في تحديث المخزون:", error);
+        // لا نرمي الخطأ لأن هذا لا يجب أن يمنع حفظ الطلب
+    }
+}
+
+// ========== تحميل قائمة المنتجات ==========
+async function loadProductsList() {
+    try {
+        const snapshot = await getDocs(collection(db, "products"));
+        products = snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data(),
+            image: doc.data().image || doc.data().mainImage || ''
+        }));
+        console.log(`✅ تم تحميل ${products.length} منتج بنجاح`);
+        return products;
+    } catch (err) {
+        console.error('❌ خطأ في تحميل المنتجات:', err);
+        products = [];
+        showToast('خطأ في تحميل المنتجات', 'error');
+        return [];
     }
 }
