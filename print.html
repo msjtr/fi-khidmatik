@@ -238,23 +238,41 @@
             padding-top: 10px;
         }
 
-        /* ========== باركود ZATCA ========== */
-        .barcode-qr {
+        /* ========== الباركودات (ZATCA + Linktree) ========== */
+        .barcodes-container {
             display: flex;
             justify-content: center;
-            align-items: center;
+            gap: 30px;
             margin: 20px 0;
             padding: 15px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .barcode-item {
+            display: flex;
             flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
         }
 
         .qr-placeholder {
-            width: 110px;
-            height: 110px;
+            width: 100px;
+            height: 100px;
+        }
+
+        .barcode-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+
+        .barcode-sub {
+            font-size: 8px;
+            color: #6c757d;
         }
 
         /* ========== تذييل الفاتورة (التذليل) ========== */
@@ -282,18 +300,6 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-        }
-
-        .linktree-link {
-            text-align: center;
-            margin: 8px 0;
-        }
-        
-        .linktree-link a {
-            color: #1e3a5f;
-            text-decoration: none;
-            font-size: 11px;
-            font-weight: bold;
         }
 
         /* ========== ترقيم الصفحات ========== */
@@ -506,6 +512,8 @@
             .product-img { width: 40px; height: 40px; }
             .addresses, .payment-approval { flex-direction: column; gap: 10px; }
             .terms-grid { grid-template-columns: 1fr; gap: 10px; }
+            .barcodes-container { gap: 15px; }
+            .qr-placeholder { width: 80px; height: 80px; }
         }
     </style>
 </head>
@@ -803,10 +811,18 @@
                     <div class="grand-total"><span>💰 الإجمالي النهائي شامل الضريبة:</span><span>${finalTotal.toFixed(2)} ريال</span></div>
                 </div>
                 
-                <div class="barcode-qr">
-                    <div id="zatcaQR" class="qr-placeholder"></div>
-                    <div style="font-size:11px; font-weight:bold;">📱 باركود هيئة الزكاة والضريبة والجمارك (ZATCA)</div>
-                    <div style="font-size:9px; color:#666;">رمز التحقق الضريبي الموحد - الفاتورة إلكترونية</div>
+                <!-- باركودات ZATCA و Linktree -->
+                <div class="barcodes-container">
+                    <div class="barcode-item">
+                        <div id="zatcaQR" class="qr-placeholder"></div>
+                        <div class="barcode-label">🇸🇦 باركود هيئة الزكاة والضريبة</div>
+                        <div class="barcode-sub">فاتورة إلكترونية - ZATCA</div>
+                    </div>
+                    <div class="barcode-item">
+                        <div id="linktreeQR" class="qr-placeholder"></div>
+                        <div class="barcode-label">🔗 رابط المنصة</div>
+                        <div class="barcode-sub">linktr.ee/fikhidmatik</div>
+                    </div>
                 </div>
                 
                 <div class="footer-note">
@@ -817,9 +833,6 @@
                         <span>💬 <strong>الواتساب:</strong> 966545312021</span>
                         <span>✉️ <strong>البريد:</strong> info@fi-khidmatik.com</span>
                         <span>🌐 <strong>الموقع:</strong> www.khidmatik.com</span>
-                    </div>
-                    <div class="linktree-link">
-                        🔗 <a href="https://linktr.ee/fikhidmatik" target="_blank">https://linktr.ee/fikhidmatik</a>
                     </div>
                     <div style="margin-top: 10px;">✅ هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
                     <div style="margin-top: 5px; font-size:9px;">📌 تخضع للأنظمة واللوائح الصادرة عن هيئة الزكاة والضريبة والجمارك</div>
@@ -978,13 +991,29 @@
         document.getElementById('invoiceRoot').innerHTML = page1 + page2 + page3;
         
         setTimeout(() => {
-            const qrDiv = document.getElementById('zatcaQR');
-            if (qrDiv && typeof QRCode !== 'undefined') {
+            // باركود ZATCA
+            const zatcaQrDiv = document.getElementById('zatcaQR');
+            if (zatcaQrDiv && typeof QRCode !== 'undefined') {
                 try {
-                    new QRCode(qrDiv, {
+                    new QRCode(zatcaQrDiv, {
                         text: generateZATCAQRData(orderData),
-                        width: 110,
-                        height: 110,
+                        width: 100,
+                        height: 100,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch(e) { console.warn(e); }
+            }
+            
+            // باركود Linktree
+            const linktreeQrDiv = document.getElementById('linktreeQR');
+            if (linktreeQrDiv && typeof QRCode !== 'undefined') {
+                try {
+                    new QRCode(linktreeQrDiv, {
+                        text: 'https://linktr.ee/fikhidmatik',
+                        width: 100,
+                        height: 100,
                         colorDark: '#000000',
                         colorLight: '#ffffff',
                         correctLevel: QRCode.CorrectLevel.H
