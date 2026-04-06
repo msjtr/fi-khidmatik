@@ -42,6 +42,7 @@
         border-radius: 10px;
         color: #4b5563;
         cursor: pointer;
+        text-decoration: none;
     }
     
     .sidebar-link:hover:not(.disabled) {
@@ -70,6 +71,7 @@
         background: white;
         border-radius: 12px;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        transition: opacity 0.3s ease;
     }
     
     /* شريط تمرير مخصص للـ sidebar */
@@ -94,6 +96,32 @@
     .hover-scale:hover {
         transform: translateY(-2px);
     }
+    
+    /* تنسيق رسالة التحميل */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #1e40af;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 </style>
 </head>
 <body class="bg-gray-50">
@@ -110,24 +138,39 @@
     
     <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
         
+        <!-- الطلبات (متاحة) -->
         <a href="admin/modules/orders.html" target="frame" class="sidebar-link active" data-module="orders">
             <i class="fas fa-shopping-cart"></i>
             <span>الطلبات</span>
         </a>
         
-        <a href="admin/modules/customers.html" target="frame" class="sidebar-link" data-module="customers">
+        <!-- العملاء (سيتم إنشاؤه لاحقاً) -->
+        <div class="sidebar-link disabled" onclick="showComingSoon()">
             <i class="fas fa-users"></i>
-            <span>العملاء</span>
-        </a>
+            <span>العملاء <span class="text-xs text-gray-400">(قريباً)</span></span>
+        </div>
         
-        <a href="admin/modules/products.html" target="frame" class="sidebar-link" data-module="products">
+        <!-- المنتجات (سيتم إنشاؤه لاحقاً) -->
+        <div class="sidebar-link disabled" onclick="showComingSoon()">
             <i class="fas fa-boxes"></i>
-            <span>المنتجات</span>
-        </a>
+            <span>المنتجات <span class="text-xs text-gray-400">(قريباً)</span></span>
+        </div>
         
         <div class="border-t border-gray-200 my-3"></div>
         
         <div class="text-xs text-gray-400 px-3 py-2 font-semibold">إضافات</div>
+        
+        <!-- التقارير (متاحة) -->
+        <a href="admin/modules/reports.html" target="frame" class="sidebar-link" data-module="reports">
+            <i class="fas fa-chart-line"></i>
+            <span>التقارير</span>
+        </a>
+        
+        <!-- الفواتير (متاحة) -->
+        <a href="print.html" target="frame" class="sidebar-link" data-module="invoices">
+            <i class="fas fa-file-invoice"></i>
+            <span>الفواتير</span>
+        </a>
         
         <div class="sidebar-link disabled" onclick="showComingSoon()">
             <i class="fas fa-warehouse"></i>
@@ -136,12 +179,7 @@
         
         <div class="sidebar-link disabled" onclick="showComingSoon()">
             <i class="fas fa-credit-card"></i>
-            <span>الدفع <span class="text-xs text-gray-400">(قريباً)</span></span>
-        </div>
-        
-        <div class="sidebar-link disabled" onclick="showComingSoon()">
-            <i class="fas fa-file-invoice"></i>
-            <span>الفاتورة <span class="text-xs text-gray-400">(قريباً)</span></span>
+            <span>المدفوعات <span class="text-xs text-gray-400">(قريباً)</span></span>
         </div>
         
         <div class="sidebar-link disabled" onclick="showComingSoon()">
@@ -164,6 +202,10 @@
         <div class="flex items-center gap-2">
             <i class="far fa-calendar-alt text-xs"></i>
             <span id="currentDate"></span>
+        </div>
+        <div class="flex items-center gap-2 mt-1">
+            <i class="fas fa-version text-xs"></i>
+            <span>الإصدار 2.0</span>
         </div>
     </div>
     
@@ -211,7 +253,7 @@ updateDate();
 ============================= */
 let toastTimeout;
 
-function showComingSoon() {
+window.showComingSoon = function() {
     showToast('🚀 هذه الميزة قيد التطوير وستتوفر قريباً', 'info');
 }
 
@@ -268,6 +310,9 @@ if (frame) {
                 link.classList.remove('active');
             }
         });
+        
+        // إخفاء تأثير التحميل
+        frame.style.opacity = '1';
     });
 }
 
@@ -281,6 +326,7 @@ links.forEach(link => {
         
         // تغيير مصدر iframe
         if (frame) {
+            frame.style.opacity = '0.5';
             frame.setAttribute('src', href);
             // حفظ الصفحة في localStorage
             localStorage.setItem('currentAdminPage', href);
@@ -289,32 +335,10 @@ links.forEach(link => {
         // تحديث الـ active class
         links.forEach(l => l.classList.remove('active'));
         this.classList.add('active');
-        
-        // إضافة تأثير تحميل بسيط (اختياري)
-        showLoadingEffect();
     });
 });
 
-// إضافة تأثير تحميل عند تغيير الصفحة
-function showLoadingEffect() {
-    if (frame) {
-        frame.style.opacity = '0.5';
-        setTimeout(() => {
-            frame.style.opacity = '1';
-        }, 300);
-    }
-}
-
-// إعادة تعيين تأثير التحميل عند اكتمال تحميل iframe
-if (frame) {
-    frame.addEventListener('load', () => {
-        frame.style.opacity = '1';
-    });
-}
-
-/* =============================
-   معالجة أخطاء الـ iframe
-============================= */
+// معالجة أخطاء الـ iframe
 if (frame) {
     frame.addEventListener('error', () => {
         showToast('❌ حدث خطأ في تحميل الصفحة', 'error');
@@ -323,18 +347,51 @@ if (frame) {
 }
 
 /* =============================
-   منع فتح الروابط داخل الـ iframe في نافذة جديدة
+   التواصل بين iframe والصفحة الرئيسية
 ============================= */
 window.addEventListener('message', (event) => {
-    // يمكنك إضافة منطق للتواصل بين iframe والصفحة الرئيسية إذا لزم الأمر
-    console.log('Message from iframe:', event.data);
+    // التحقق من أصل الرسالة (لأمان إضافي)
+    if (event.origin !== window.location.origin) return;
+    
+    console.log('📨 رسالة من iframe:', event.data);
+    
+    // معالجة أنواع مختلفة من الرسائل
+    if (event.data.type === 'showToast') {
+        showToast(event.data.message, event.data.messageType || 'success');
+    } else if (event.data.type === 'changePage') {
+        // تغيير الصفحة من داخل iframe
+        const targetLink = Array.from(links).find(l => 
+            l.getAttribute('href')?.includes(event.data.page)
+        );
+        if (targetLink) {
+            targetLink.click();
+        }
+    } else if (event.data.type === 'updateTitle') {
+        document.title = event.data.title || 'لوحة التحكم - متجرك الذكي';
+    }
 });
 
-// إضافة دعم لوضع الظلام (اختياري)
+/* =============================
+   إرسال رسالة إلى iframe (اختياري)
+============================= */
+function sendMessageToIframe(message) {
+    if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage(message, '*');
+    }
+}
+
+// مثال: إرسال رسالة ترحيب عند تحميل الصفحة
+setTimeout(() => {
+    sendMessageToIframe({ type: 'init', data: { userId: 'admin', timestamp: Date.now() } });
+}, 1000);
+
+/* =============================
+   دعم وضع الظلام (اختياري)
+============================= */
 const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 if (prefersDarkMode) {
+    console.log('🌙 الوضع المظلم مفضل');
     // يمكن إضافة تنسيقات للوضع المظلم إذا رغبت
-    console.log('Dark mode is preferred');
 }
 
 // عرض رسالة ترحيب عند التحميل الأول
