@@ -1,90 +1,695 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>فاتورة إلكترونية</title>
-
-<link rel="stylesheet" href="css/print.css" />
-
-<!-- خط -->
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الفاتورة الإلكترونية - منصة في خدمتك</title>
+    <link rel="stylesheet" href="../css/print.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        /* ========== إعدادات إضافية للطباعة ========== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            min-width: 250px;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e40af;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 10000;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideUp 0.3s ease;
+        }
+        .toast-error {
+            background: #ef4444;
+        }
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        .print-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            flex-wrap: wrap;
+        }
+        .print-btn {
+            background: linear-gradient(135deg, #1e40af, #2563eb);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .print-btn i {
+            margin-left: 6px;
+        }
+        @media print {
+            .print-buttons, .no-print {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
-
 <body>
 
-<div id="invoice">
-
-    <!-- HEADER -->
-    <header class="header">
-        <div class="right">
-            <img src="images/logo.svg" class="logo">
-            <h1>فاتورة إلكترونية</h1>
-            <p>رقم شهادة العمل الحر: FL-765735204</p>
-            <p>الرقم الضريبي: 312495447600003</p>
+<div class="invoice-container" id="invoiceContainer">
+    <!-- ========== الصفحة الأولى: الفاتورة ========== -->
+    <div class="page">
+        <!-- الهيدر -->
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo">fi-khidmatik</div>
+                <div class="logo-sub">منصة في خدمتك</div>
+            </div>
+            <div class="title-area">
+                <div class="invoice-title">فاتورة إلكترونية</div>
+            </div>
+            <div class="tax-info">
+                <div>شهادة العمل الحر: FL-765735204</div>
+                <div>الرقم الضريبي: 312495447600003</div>
+            </div>
         </div>
 
-        <div class="left">
-            <p>رقم الفاتورة: <span id="invoiceNumber"></span></p>
-            <p>التاريخ: <span id="date"></span></p>
-            <p>الوقت: <span id="time"></span></p>
-            <p>الحالة: <span id="status"></span></p>
+        <!-- معلومات الفاتورة -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h4><i class="fas fa-file-invoice"></i> معلومات الفاتورة</h4>
+                <p><strong>رقم الفاتورة:</strong> <span id="invoiceNumber">—</span></p>
+                <p><strong>التاريخ:</strong> <span id="invoiceDate">—</span></p>
+                <p><strong>الوقت:</strong> <span id="invoiceTime">—</span></p>
+                <p><strong>حالة الطلب:</strong> <span id="orderStatus">—</span></p>
+            </div>
+            <div class="info-card">
+                <h4><i class="fas fa-user"></i> معلومات العميل</h4>
+                <p><strong>الاسم:</strong> <span id="customerName">—</span></p>
+                <p><strong>الجوال:</strong> <span id="customerPhone">—</span></p>
+                <p><strong>البريد:</strong> <span id="customerEmail">—</span></p>
+                <p><strong>العنوان:</strong> <span id="customerAddress">—</span></p>
+            </div>
         </div>
-    </header>
 
-    <!-- FROM / TO -->
-    <section class="addresses">
-        <div>
-            <h3>مصدرة من</h3>
-            <p>منصة في خدمتك</p>
-            <p>المملكة العربية السعودية</p>
+        <!-- مصدرة من / مصدرة إلى -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h4><i class="fas fa-building"></i> مصدرة من</h4>
+                <p><strong>منصة في خدمتك</strong></p>
+                <p>المملكة العربية السعودية - حائل</p>
+                <p>حي النقرة - شارع سعد المشاط - مبنى 3085</p>
+                <p>الرمز البريدي: 55431</p>
+            </div>
+            <div class="info-card">
+                <h4><i class="fas fa-truck"></i> مصدرة إلى</h4>
+                <p><strong>العميل:</strong> <span id="customerName2">—</span></p>
+                <p><strong>الدولة:</strong> المملكة العربية السعودية</p>
+                <p><strong>العنوان:</strong> <span id="customerAddress2">—</span></p>
+            </div>
         </div>
 
-        <div>
-            <h3>مصدرة إلى</h3>
-            <p id="customerName"></p>
-            <p id="customerPhone"></p>
-            <p id="customerEmail"></p>
+        <!-- طريقة الدفع والاستلام -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h4><i class="fas fa-credit-card"></i> طريقة الدفع</h4>
+                <p><span id="paymentMethod">—</span></p>
+                <p id="approvalCodeInfo" style="display:none;"><strong>رمز الموافقة:</strong> <span id="approvalCode">—</span></p>
+            </div>
+            <div class="info-card">
+                <h4><i class="fas fa-shipping-fast"></i> طريقة استلام المنتج</h4>
+                <p><span id="shippingMethod">—</span></p>
+                <p id="shippingAddressInfo" style="display:none;"><strong>عنوان الشحن:</strong> <span id="shippingAddress">—</span></p>
+            </div>
         </div>
-    </section>
 
-    <!-- TABLE -->
-    <table class="invoice-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>المنتج</th>
-                <th>الوصف</th>
-                <th>الصورة</th>
-                <th>الكمية</th>
-                <th>السعر</th>
-            </tr>
-        </thead>
+        <!-- جدول المنتجات -->
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>صورة المنتج</th>
+                    <th>اسم المنتج</th>
+                    <th>وصف المنتج</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody id="productsTableBody">
+                <tr><td colspan="7" style="text-align:center;">جاري التحميل...</td></tr>
+            </tbody>
+        </table>
 
-        <tbody id="itemsTable"></tbody>
-    </table>
+        <!-- الإجماليات -->
+        <div class="totals">
+            <div class="totals-row">
+                <span>المجموع الفرعي:</span>
+                <span id="subtotal">0.00 ريال</span>
+            </div>
+            <div class="totals-row">
+                <span>إجمالي الخصم:</span>
+                <span id="discount" style="color: #dc2626;">0.00 ريال</span>
+            </div>
+            <div class="totals-row">
+                <span>ضريبة القيمة المضافة (15%):</span>
+                <span id="tax">0.00 ريال</span>
+            </div>
+            <div class="totals-row total">
+                <span>الإجمالي النهائي شامل الضريبة:</span>
+                <span id="total" style="color: #1e40af; font-size: 20px;">0.00 ريال</span>
+            </div>
+        </div>
 
-    <!-- TOTALS -->
-    <section class="totals">
-        <p>المجموع الفرعي: <span id="subtotal"></span></p>
-        <p>الخصم: <span id="discount"></span></p>
-        <p>الضريبة: <span id="vat"></span></p>
-        <h2>الإجمالي: <span id="total"></span></h2>
-    </section>
+        <!-- باركود هيئة الزكاة والضريبة -->
+        <div class="qrcode-section">
+            <div class="qrcode" id="qrcode"></div>
+            <div style="text-align: left;">
+                <div style="font-weight: bold; color: #1e40af; margin-bottom: 5px;">
+                    <i class="fas fa-qrcode"></i> باركود هيئة الزكاة والضريبة
+                </div>
+                <div style="font-size: 11px; color: #6b7280;">للتأكد من صحة الفاتورة إلكترونياً</div>
+            </div>
+        </div>
 
-    <!-- QR -->
-    <div class="qr">
-        <canvas id="qrcode"></canvas>
+        <!-- تذييل الصفحة الأولى -->
+        <div class="footer">
+            <div class="footer-contacts">
+                <span><i class="fas fa-phone"></i> 966534051317</span>
+                <span><i class="fab fa-whatsapp"></i> 966545312021</span>
+                <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
+                <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
+            </div>
+            <div style="margin: 10px 0;">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+            <div style="font-size: 12px; color: #1e40af;">شكراً لتسوقكم معنا</div>
+        </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer>
-        <p>شكراً لتسوقكم معنا</p>
-        <p>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</p>
-    </footer>
+    <!-- ========== الصفحة الثانية: الشروط والأحكام ========== -->
+    <div class="page page-break">
+        <h2 style="color: #1e40af; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #1e40af; padding-bottom: 10px;">
+            <i class="fas fa-file-contract"></i> الشروط والأحكام
+        </h2>
+        
+        <div style="background: #fef3c7; padding: 15px; border-radius: 12px; margin-bottom: 25px; border-right: 4px solid #f59e0b;">
+            <p style="font-size: 13px; line-height: 1.7;">
+                يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين،
+                ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا
+                بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل
+                العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.
+            </p>
+        </div>
 
+        <div class="terms-grid">
+            <div class="terms-column">
+                <h4><i class="fas fa-clock"></i> أولاً: صلاحية العرض والتنفيذ</h4>
+                <p><strong>1. مدة صلاحية العرض:</strong> يكون هذا العرض صالحًا لمدة ثلاثة (3) أيام عمل فقط من تاريخ إصداره.</p>
+                <p><strong>2. بدء التنفيذ:</strong> تبدأ أعمال التنفيذ بعد استلام الدفعة المقدمة المتفق عليها.</p>
+                <p><strong>3. مدة التنفيذ:</strong> تُحتسب مدة التنفيذ من تاريخ اكتمال استلام جميع المتطلبات.</p>
+                <p><strong>4. التأخير:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن أي تأخير ناتج عن ظروف خارجة عن إرادته.</p>
+                <p><strong>5. الموافقات الخارجية:</strong> تخضع جميع الموافقات لسياسات الجهات الخارجية.</p>
+            </div>
+            <div class="terms-column">
+                <h4><i class="fas fa-money-bill-wave"></i> ثانياً: التكاليف والمسؤوليات المالية</h4>
+                <p><strong>6. الرسوم الخارجية:</strong> لا تشمل قيمة هذا العرض أي رسوم أو تكاليف خاصة بالجهات الخارجية.</p>
+                <p><strong>7. خدمات الطرف الثالث:</strong> تخضع لسياسات تلك الجهات.</p>
+                <p><strong>8. المدفوعات الخارجية:</strong> جميع المبالغ التي يتم دفعها لجهات خارجية لا يمكن استرجاعها.</p>
+                <p><strong>9. الدفع نيابة عن العميل:</strong> تُعد تلك المبالغ دينًا مستحقًا على العميل.</p>
+                <p><strong>10. الضريبة:</strong> جميع الأسعار لا تشمل ضريبة القيمة المضافة وتضاف بنسبة 15%.</p>
+            </div>
+        </div>
+
+        <div class="terms-grid">
+            <div class="terms-column">
+                <h4><i class="fas fa-box"></i> ثالثاً: التسليم والملكية</h4>
+                <p><strong>11. نطاق التسليم:</strong> يتم التنفيذ وفق النطاق المحدد فقط.</p>
+                <p><strong>12. المنتج النهائي:</strong> يقتصر التسليم على المنتج النهائي الجاهز للاستخدام.</p>
+                <p><strong>13. الكود المصدري:</strong> يبقى ملكًا حصريًا لمقدم الخدمة.</p>
+                <p><strong>14. نقل الملكية:</strong> لا يتم نقل الملكية إلا بعد اتفاق مكتوب وسداد كامل المقابل.</p>
+                <p><strong>15. عدم طلب التسليم:</strong> في حال عدم الطلب لا يلتزم مقدم الخدمة بتسليم أي أعمال.</p>
+                <p><strong>16. حق إعادة الاستخدام:</strong> يحتفظ مقدم الخدمة بحقه في إعادة استخدام الأعمال.</p>
+            </div>
+            <div class="terms-column">
+                <h4><i class="fas fa-hand-holding-usd"></i> رابعاً: الدفعات والاسترجاع</h4>
+                <p><strong>17. نظام الدفع:</strong> يتم السداد وفق الآلية المتفق عليها.</p>
+                <p><strong>18. تأخر السداد:</strong> يحق لمقدم الخدمة إيقاف العمل فوراً.</p>
+                <p><strong>19. عدم الاسترجاع:</strong> لا يحق للعميل المطالبة باسترجاع أي مبلغ بعد بدء التنفيذ.</p>
+                <p><strong>20. إيقاف المشروع:</strong> يحق إيقاف المشروع في حال مخالفة العميل للشروط.</p>
+                <p><strong>21. احتساب الأعمال:</strong> يتم احتساب قيمة الأعمال المنفذة بناءً على نسبة الإنجاز الفعلية.</p>
+                <p><strong>22. الرسوم الإدارية:</strong> تُضاف رسوم تشغيلية وإدارية بنسبة 20% على الأعمال المنفذة.</p>
+            </div>
+        </div>
+
+        <div class="terms-grid">
+            <div class="terms-column">
+                <h4><i class="fas fa-shield-alt"></i> خامساً: الضمان</h4>
+                <p><strong>23. الضمان:</strong> يتم تحديد الضمان وفق الخطة التشغيلية للمشروع.</p>
+                <p><strong>24. نطاق الضمان:</strong> يقتصر على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط.</p>
+                <p><strong>25. الاستثناءات:</strong> لا يشمل الضمان المشاكل الناتجة عن عوامل خارجية أو سوء استخدام.</p>
+            </div>
+            <div class="terms-column">
+                <h4><i class="fas fa-gavel"></i> سادساً: انتهاء العلاقة والمسؤولية</h4>
+                <p><strong>26. انتهاء العلاقة:</strong> تنتهي العلاقة فور تسليم المشروع.</p>
+                <p><strong>27. المسؤولية بعد التسليم:</strong> لا يتحمل مقدم الخدمة أي مسؤولية لاحقة.</p>
+                <p><strong>28. التشغيل:</strong> يتحمل العميل المسؤولية الكاملة عن التشغيل.</p>
+                <p><strong>29. البيانات:</strong> يتحمل العميل مسؤولية حفظ النسخ الاحتياطية.</p>
+                <p><strong>30. براءة الذمة:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن خدمات الأطراف الثالثة.</p>
+            </div>
+        </div>
+
+        <div class="footer" style="margin-top: 20px;">
+            <div class="footer-contacts">
+                <span><i class="fas fa-phone"></i> 966534051317</span>
+                <span><i class="fab fa-whatsapp"></i> 966545312021</span>
+                <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
+                <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
+            </div>
+            <div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+        </div>
+    </div>
+
+    <!-- ========== الصفحة الثالثة: استكمال الشروط والإقرار ========== -->
+    <div class="page page-break">
+        <div class="terms-grid">
+            <div class="terms-column">
+                <h4><i class="fas fa-comments"></i> سابعاً: التواصل والتنفيذ</h4>
+                <p><strong>31. وسائل التواصل:</strong> تُعتمد وسائل التواصل الرسمية المسجلة فقط.</p>
+                <p><strong>32. التفويض:</strong> يلتزم العميل بإشعار مقدم الخدمة رسمياً بتفويض أي شخص.</p>
+                <p><strong>33. النسخ الإلكترونية:</strong> تُعتبر جميع النسخ الإلكترونية معتمدة.</p>
+            </div>
+            <div class="terms-column">
+                <h4><i class="fas fa-balance-scale"></i> ثامناً: البنود القانونية</h4>
+                <p><strong>34. طبيعة العلاقة:</strong> علاقة تعاقدية مستقلة لا تنشئ شراكة.</p>
+                <p><strong>35. كامل الاتفاق:</strong> يمثل هذا المستند كامل الاتفاق بين الطرفين.</p>
+                <p><strong>36. الأخطاء غير المقصودة:</strong> لا تؤثر على صحة باقي البنود.</p>
+                <p><strong>37. عدم التنازل:</strong> عدم استخدام الحقوق لا يُعد تنازلاً عنها.</p>
+                <p><strong>38. اللغة المعتمدة:</strong> تُعتمد النسخة العربية في التفسير.</p>
+            </div>
+        </div>
+
+        <div class="terms-grid">
+            <div class="terms-column">
+                <h4><i class="fas fa-gavel"></i> تاسعاً: النزاعات</h4>
+                <p><strong>39. حل النزاعات:</strong> يتم السعي لحل أي نزاع بشكل ودي.</p>
+                <p><strong>40. الجهة المختصة:</strong> يحق لمقدم الخدمة تحديد الجهة القضائية المختصة.</p>
+            </div>
+            <div class="terms-column">
+                <h4><i class="fas fa-chart-line"></i> عاشراً: البنود المتقدمة</h4>
+                <p><strong>41. القوة القاهرة:</strong> لا يتحمل مقدم الخدمة مسؤولية التأخير الناتج عن ظروف خارجة عن الإرادة.</p>
+                <p><strong>42. السرية:</strong> يلتزم الطرفان بالمحافظة على السرية.</p>
+                <p><strong>43. التعديلات خارج النطاق:</strong> يتم تنفيذها بموجب عرض وسعر مستقل.</p>
+                <p><strong>44. التوقف المؤقت:</strong> يحق لمقدم الخدمة إيقاف المشروع مؤقتاً.</p>
+                <p><strong>45. الاستلام الحكمي:</strong> يُعد المشروع مستلماً بعد مضي سبعة أيام.</p>
+                <p><strong>46. الاعتراض:</strong> يجب تقديم الاعتراض خلال سبعة أيام.</p>
+            </div>
+        </div>
+
+        <div class="terms-grid">
+            <div class="terms-column">
+                <h4><i class="fas fa-chart-pie"></i> حادي عشر: البنود المالية المتقدمة</h4>
+                <p><strong>47. المدفوعات الخارجية:</strong> لا تُعد مستحقة لمقدم الخدمة.</p>
+                <p><strong>48. المدفوعات بالنيابة:</strong> تُحتسب ضمن تكاليف المشروع.</p>
+                <p><strong>49. تفسير البنود:</strong> يتم تفسيرها بما يحقق الغرض منها.</p>
+                <p><strong>50. حق رفض الخدمة:</strong> يحتفظ مقدم الخدمة بحقه في رفض الخدمة.</p>
+            </div>
+            <div class="terms-column">
+                <h4><i class="fas fa-copyright"></i> ثاني عشر: الحماية القانونية</h4>
+                <p><strong>51. التنازل عن المطالبات:</strong> يتنازل العميل عن أي مطالبات تتجاوز قيمة الفاتورة.</p>
+                <p><strong>52. حدود المسؤولية:</strong> لا تتجاوز المسؤولية إجمالي المبلغ المدفوع.</p>
+                <p><strong>53. الاستخدام غير المشروع:</strong> لا يتحمل مقدم الخدمة أي مسؤولية.</p>
+                <p><strong>54. الملكية الفكرية:</strong> تبقى جميع الحقوق محفوظة لمقدم الخدمة.</p>
+                <p><strong>55. تحديث الشروط:</strong> يحق لمقدم الخدمة تحديث الشروط مستقبلاً.</p>
+                <p><strong>56. استقلالية البنود:</strong> يتم تفسير كل بند بشكل مستقل.</p>
+                <p><strong>57. الشروط الإضافية:</strong> يتم توثيقها في ملحق اتفاق مستقل.</p>
+            </div>
+        </div>
+
+        <!-- الإقرار -->
+        <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #bbf7d0;">
+            <h4 style="color: #166534; margin-bottom: 15px;"><i class="fas fa-check-circle"></i> الإقرار</h4>
+            <p style="font-size: 14px; line-height: 1.6;">
+                أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل 
+                وأتعهد بالالتزام بها دون أي استثناء.
+            </p>
+        </div>
+
+        <!-- التوقيع -->
+        <div class="signature">
+            <div class="signature-item">
+                <div><i class="fas fa-signature"></i> التوقيع</div>
+                <div class="signature-line"></div>
+                <div style="font-size: 12px; margin-top: 5px;" id="customerNameSign">—</div>
+            </div>
+            <div class="signature-item">
+                <div><i class="fas fa-calendar-alt"></i> التاريخ</div>
+                <div class="signature-line"></div>
+                <div style="font-size: 12px; margin-top: 5px;" id="signatureDate">—</div>
+            </div>
+        </div>
+
+        <!-- تذييل الصفحة الثالثة -->
+        <div class="footer">
+            <div class="footer-contacts">
+                <span><i class="fas fa-phone"></i> 966534051317</span>
+                <span><i class="fab fa-whatsapp"></i> 966545312021</span>
+                <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
+                <span><i class="fas fa-globe"></i> www.khidmatik.com</span>
+            </div>
+            <div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+        </div>
+    </div>
 </div>
 
-<script type="module" src="js/print.js"></script>
+<!-- أزرار التحكم -->
+<div class="print-buttons no-print">
+    <button class="print-btn" onclick="printInvoice()"><i class="fas fa-print"></i> طباعة</button>
+    <button class="print-btn" onclick="downloadAsPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+    <button class="print-btn" onclick="downloadAsPNG()"><i class="fas fa-image"></i> PNG</button>
+    <button class="print-btn" onclick="downloadAsZIP()"><i class="fas fa-file-archive"></i> ZIP</button>
+</div>
+
+<script type="module">
+    // ========== استيراد الدوال ==========
+    import { getOrderFromFirebase, getAllOrdersFromFirebase } from '../js/order.js';
+    import { generateZATCAQRCode, downloadPDF, downloadPNG, downloadZIP, printInvoice } from '../js/print.js';
+    
+    // ========== الحصول على بيانات الطلب من URL ==========
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id');
+    const autoPrint = urlParams.get('auto') === 'print';
+    const autoPDF = urlParams.get('auto') === 'pdf';
+    const autoPNG = urlParams.get('auto') === 'png';
+    
+    let currentOrder = null;
+    
+    // ========== دوال مساعدة ==========
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message' + (isError ? ' toast-error' : '');
+        toast.textContent = isError ? '❌ ' + message : '✅ ' + message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function showLoading(show) {
+        let loader = document.getElementById('globalLoader');
+        if (show) {
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'globalLoader';
+                loader.className = 'loading-overlay';
+                loader.innerHTML = `
+                    <div class="loading-content">
+                        <div class="loading-spinner"></div>
+                        <div id="loadingText">جاري تحميل الفاتورة...</div>
+                    </div>
+                `;
+                document.body.appendChild(loader);
+            }
+            loader.style.display = 'flex';
+        } else if (loader) {
+            loader.style.display = 'none';
+        }
+    }
+    
+    // ========== حساب الإجماليات ==========
+    function calculateTotals(order) {
+        let subtotal = 0;
+        (order.items || []).forEach(item => {
+            subtotal += (item.price || 0) * (item.quantity || 1);
+        });
+        
+        const discount = order.discount || 0;
+        const discountAmount = order.discountType === 'percent' ? (subtotal * discount / 100) : discount;
+        const afterDiscount = subtotal - discountAmount;
+        const tax = afterDiscount * 0.15;
+        const total = afterDiscount + tax;
+        
+        return { subtotal, discount: discountAmount, tax, total };
+    }
+    
+    // ========== تعبئة بيانات الفاتورة ==========
+    function populateInvoice(order) {
+        currentOrder = order;
+        
+        // معلومات الفاتورة
+        document.getElementById('invoiceNumber').textContent = order.orderNumber || 'KF-0000000000';
+        document.getElementById('invoiceDate').textContent = order.orderDate || new Date().toLocaleDateString('ar-SA');
+        document.getElementById('invoiceTime').textContent = order.orderTime || '';
+        document.getElementById('orderStatus').textContent = order.status || 'جديد';
+        
+        // حالة الطلب بالألوان
+        const statusSpan = document.getElementById('orderStatus');
+        const statusColors = {
+            'جديد': '#3b82f6',
+            'تحت التنفيذ': '#f59e0b',
+            'تم التنفيذ': '#10b981',
+            'تحت المراجعة': '#8b5cf6',
+            'مسترجع': '#ef4444',
+            'ملغي': '#6b7280'
+        };
+        statusSpan.style.color = statusColors[order.status] || '#3b82f6';
+        statusSpan.style.fontWeight = 'bold';
+        
+        // معلومات العميل
+        const customerName = order.customer || order.customerName || 'غير معروف';
+        document.getElementById('customerName').textContent = customerName;
+        document.getElementById('customerName2').textContent = customerName;
+        document.getElementById('customerNameSign').textContent = customerName;
+        document.getElementById('customerPhone').textContent = order.phone || '—';
+        document.getElementById('customerEmail').textContent = order.email || '—';
+        
+        const address = order.shippingAddress || {};
+        const fullAddress = [address.city, address.street, address.additionalNo].filter(Boolean).join(' - ') || '—';
+        document.getElementById('customerAddress').textContent = fullAddress;
+        document.getElementById('customerAddress2').textContent = fullAddress;
+        
+        // طريقة الدفع
+        const paymentMethod = order.paymentMethodName || order.paymentMethod || '—';
+        document.getElementById('paymentMethod').textContent = paymentMethod;
+        
+        if (order.approvalCode) {
+            document.getElementById('approvalCodeInfo').style.display = 'block';
+            document.getElementById('approvalCode').textContent = order.approvalCode;
+        }
+        
+        // طريقة الاستلام
+        const shippingMethodText = {
+            'pickup': '🏪 استلام من المقر',
+            'delivery': '🚚 شحن منزلي',
+            'noship': '📥 لا يتطلب شحن'
+        };
+        document.getElementById('shippingMethod').textContent = shippingMethodText[order.shippingMethod] || order.shippingMethod || '—';
+        
+        if (order.shippingMethod === 'delivery' && order.shippingAddress) {
+            document.getElementById('shippingAddressInfo').style.display = 'block';
+            const shipAddress = order.shippingAddress;
+            const shipAddressText = [shipAddress.city, shipAddress.street, shipAddress.additionalNo].filter(Boolean).join(' - ');
+            document.getElementById('shippingAddress').textContent = shipAddressText;
+        }
+        
+        // تاريخ التوقيع
+        document.getElementById('signatureDate').textContent = order.orderDate || new Date().toLocaleDateString('ar-SA');
+        
+        // جدول المنتجات
+        const productsBody = document.getElementById('productsTableBody');
+        const items = order.items || [];
+        
+        if (items.length === 0) {
+            productsBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">لا توجد منتجات</td></tr>`;
+        } else {
+            productsBody.innerHTML = items.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        ${item.image ? 
+                            `<img src="${item.image}" class="product-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'width:50px;height:50px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;\\'><i class=\\'fas fa-image\\' style=\\'color:#9ca3af;\\'></i></div>'">` : 
+                            '<div style="width:50px;height:50px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-image" style="color:#9ca3af;"></i></div>'
+                        }
+                    </td>
+                    <td style="font-weight: bold;">${escapeHtml(item.name)}</td>
+                    <td style="text-align: right; max-width: 200px;">${item.description ? escapeHtml(item.description.substring(0, 100)) : '—'}</td>
+                    <td>${item.quantity || 1}</td>
+                    <td>${(item.price || 0).toFixed(2)} ريال</td>
+                    <td style="font-weight: bold;">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال</td>
+                </tr>
+            `).join('');
+        }
+        
+        // الإجماليات
+        const { subtotal, discount, tax, total } = calculateTotals(order);
+        document.getElementById('subtotal').textContent = subtotal.toFixed(2) + ' ريال';
+        document.getElementById('discount').textContent = discount.toFixed(2) + ' ريال';
+        document.getElementById('tax').textContent = tax.toFixed(2) + ' ريال';
+        document.getElementById('total').textContent = total.toFixed(2) + ' ريال';
+        
+        // إنشاء باركود هيئة الزكاة
+        generateZATCAQRCode('qrcode', {
+            total: total,
+            tax: tax
+        });
+    }
+    
+    // ========== دوال التصدير ==========
+    window.printInvoice = () => {
+        window.print();
+        showToast('تم فتح نافذة الطباعة');
+    };
+    
+    window.downloadAsPDF = async () => {
+        showLoading(true);
+        try {
+            await downloadPDF('invoiceContainer', `فاتورة_${currentOrder?.orderNumber || 'invoice'}`);
+        } catch (error) {
+            console.error(error);
+            showToast('حدث خطأ في إنشاء PDF', true);
+        } finally {
+            showLoading(false);
+        }
+    };
+    
+    window.downloadAsPNG = async () => {
+        showLoading(true);
+        try {
+            await downloadPNG('invoiceContainer', `فاتورة_${currentOrder?.orderNumber || 'invoice'}`);
+        } catch (error) {
+            console.error(error);
+            showToast('حدث خطأ في إنشاء PNG', true);
+        } finally {
+            showLoading(false);
+        }
+    };
+    
+    window.downloadAsZIP = async () => {
+        showLoading(true);
+        try {
+            await downloadZIP('invoiceContainer', `فاتورة_${currentOrder?.orderNumber || 'invoice'}`);
+        } catch (error) {
+            console.error(error);
+            showToast('حدث خطأ في إنشاء الملف المضغوط', true);
+        } finally {
+            showLoading(false);
+        }
+    };
+    
+    // ========== تحميل البيانات ==========
+    async function loadOrder() {
+        showLoading(true);
+        
+        try {
+            if (orderId && orderId !== 'null' && orderId !== 'undefined') {
+                const order = await getOrderFromFirebase(orderId);
+                if (order) {
+                    populateInvoice(order);
+                    
+                    // التنفيذ التلقائي بناءً على المعاملات
+                    if (autoPrint) {
+                        setTimeout(() => window.print(), 1000);
+                    }
+                    if (autoPDF) {
+                        setTimeout(() => window.downloadAsPDF(), 1000);
+                    }
+                    if (autoPNG) {
+                        setTimeout(() => window.downloadAsPNG(), 1000);
+                    }
+                } else {
+                    document.getElementById('productsTableBody').innerHTML = 
+                        '<tr><td colspan="7" style="text-align:center;color:red;">❌ الطلب غير موجود</td></tr>';
+                    showToast('الطلب غير موجود', true);
+                }
+            } else {
+                // بيانات تجريبية للعرض
+                const demoOrder = {
+                    orderNumber: 'KF-DEMO-001',
+                    orderDate: new Date().toLocaleDateString('ar-SA'),
+                    orderTime: new Date().toLocaleTimeString('ar-SA'),
+                    status: 'تم التنفيذ',
+                    customer: 'عميل تجريبي',
+                    phone: '0500000000',
+                    email: 'demo@example.com',
+                    paymentMethod: 'مدى',
+                    paymentMethodName: 'مدى',
+                    shippingMethod: 'pickup',
+                    items: [
+                        { name: 'منتج تجريبي 1', price: 1000, quantity: 2, description: 'وصف المنتج التجريبي الأول', image: '' },
+                        { name: 'منتج تجريبي 2', price: 500, quantity: 1, description: 'وصف المنتج التجريبي الثاني', image: '' },
+                        { name: 'منتج تجريبي 3', price: 750, quantity: 3, description: 'وصف المنتج التجريبي الثالث', image: '' }
+                    ],
+                    discount: 250,
+                    discountType: 'fixed'
+                };
+                populateInvoice(demoOrder);
+                showToast('عرض تجريبي - البيانات غير محفوظة');
+            }
+        } catch (error) {
+            console.error('Error loading order:', error);
+            document.getElementById('productsTableBody').innerHTML = 
+                '<tr><td colspan="7" style="text-align:center;color:red;">❌ حدث خطأ في تحميل البيانات</td></tr>';
+            showToast('حدث خطأ في تحميل البيانات', true);
+        } finally {
+            showLoading(false);
+        }
+    }
+    
+    // ========== بدء التشغيل ==========
+    loadOrder();
+</script>
 </body>
 </html>
