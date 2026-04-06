@@ -1439,8 +1439,9 @@ window.deleteOrderHandler = async (id) => {
 };
 
 window.printOrder = function(orderId) {
-    window.open(`print.html?id=${orderId}&auto=print`, "_blank");
-};
+    // المسار الصحيح - print.html في نفس مستوى admin/modules
+    window.open(`../../print.html?id=${orderId}&auto=print`, "_blank");
+};;
 
 // ========== ربط الأحداث ==========
 function bindEvents() {
