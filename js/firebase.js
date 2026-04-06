@@ -138,7 +138,7 @@ export async function getAllOrdersFull(limitCount = 100) {
     try {
         await loadCustomersAndProducts();
         
-        const orders = await getCollection('orders', [], { field: 'orderDate', direction: 'desc' }, limitCount);
+        const orders = await getCollection('orders', [], { field: 'createdAt', direction: 'desc' }, limitCount);
         
         const fullOrders = orders.map(order => {
             const customer = customersMap.get(order.customerId) || {};
@@ -175,7 +175,7 @@ export async function getAllOrdersFull(limitCount = 100) {
 export function calculateTotals(items = [], discount = 0, discountType = 'fixed') {
     let subtotal = 0;
     items.forEach(i => {
-        subtotal += (i.price || 0) * (i.quantity || 0);
+        subtotal += (i.price || 0) * (i.quantity || 1);
     });
 
     let discountAmount = discountType === 'percent' ? (subtotal * discount) / 100 : discount;
@@ -194,9 +194,9 @@ export function calculateTotals(items = [], discount = 0, discountType = 'fixed'
 // ================= Products =================
 export const loadProducts = () => getCollection('products');
 export const loadCustomers = () => getCollection('customers', [], { field: 'name', direction: 'asc' });
-export const loadOrders = () => getCollection('orders', [], { field: 'orderDate', direction: 'desc' });
+export const loadOrders = () => getCollection('orders', [], { field: 'createdAt', direction: 'desc' });
 
-// ================= CRUD محسن =================
+// ================= CRUD =================
 export const addProduct = (data) =>
     addDoc(collection(db, 'products'), { 
         ...data, 
@@ -274,23 +274,6 @@ export async function updateProductImage(productId, imageUrl) {
     } catch (error) {
         console.error('❌ خطأ في تحديث صورة المنتج:', error);
         return false;
-    }
-}
-
-export async function getProductWithImage(productId) {
-    try {
-        const product = await getDocument('products', productId);
-        if (!product) return null;
-        
-        return {
-            ...product,
-            image: product.image || '',
-            imageUrl: product.image || ''
-        };
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب المنتج:', error);
-        return null;
     }
 }
 
