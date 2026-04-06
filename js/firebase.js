@@ -427,6 +427,11 @@ export const addOrder = async (data) => {
         const docRef = await addDoc(collection(db, 'orders'), orderData);
         console.log('✅ تم إضافة الطلب:', docRef.id);
         
+        // تحديث الكاش
+        if (orderData.customerId) {
+            // تحديث الكاش مؤقتاً (اختياري)
+        }
+        
         return { id: docRef.id, ...orderData };
     } catch (error) {
         console.error('❌ خطأ في إضافة الطلب:', error);
@@ -436,14 +441,17 @@ export const addOrder = async (data) => {
 
 export const updateOrder = async (id, data) => {
     try {
-        const itemsWithImages = (data.items || []).map(item => ({
+        // ✅ إزالة createdAt من البيانات إذا كانت موجودة (لمنع إرسال undefined)
+        const { createdAt, ...cleanData } = data;
+        
+        const itemsWithImages = (cleanData.items || []).map(item => ({
             ...item,
             image: item.image || '',
             productId: item.productId || null
         }));
         
         await updateDoc(doc(db, 'orders', id), { 
-            ...data, 
+            ...cleanData, 
             items: itemsWithImages,
             updatedAt: nowISO() 
         });
@@ -643,7 +651,7 @@ export async function refreshCache() {
     console.log('✅ تم تحديث الكاش بنجاح');
 }
 
-// ================= دالة للبحث =================
+// ================= دوال للبحث =================
 export async function searchProducts(searchTerm) {
     try {
         const products = await loadProducts();
