@@ -4,18 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>في خدمتك - فاتورة إلكترونية</title>
-    <!-- html2canvas + jspdf + jszip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- QR Code Library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
-        /* ========================================
-           print.css - أنماط الطباعة الاحترافية
-           لمنصة في خدمتك - الفواتير الإلكترونية
-           ======================================== */
-        
         * {
             margin: 0;
             padding: 0;
@@ -32,7 +25,6 @@
             min-height: 100vh;
         }
 
-        /* حاوية الفاتورة - مقاس A4 */
         .invoice-wrapper {
             max-width: 210mm;
             margin: 0 auto;
@@ -41,7 +33,6 @@
             border-radius: 4px;
         }
 
-        /* صفحة الفاتورة */
         .invoice-page {
             width: 210mm;
             min-height: 297mm;
@@ -54,13 +45,11 @@
             box-sizing: border-box;
         }
 
-        /* منع انقسام الصف بين صفحات */
         .invoice-table tr {
             break-inside: avoid;
             page-break-inside: avoid;
         }
 
-        /* رأس الصفحة */
         .header-top {
             display: flex;
             justify-content: space-between;
@@ -102,7 +91,6 @@
             line-height: 1.4;
         }
 
-        /* شريط معلومات الطلب */
         .info-row {
             display: flex;
             justify-content: space-between;
@@ -126,7 +114,6 @@
             font-size: 12px;
         }
 
-        /* العناوين - عمودين متساويين */
         .addresses {
             display: flex;
             gap: 20px;
@@ -150,7 +137,6 @@
             color: #1e3a5f;
         }
 
-        /* طرق الدفع والاستلام */
         .payment-approval {
             display: flex;
             gap: 20px;
@@ -165,7 +151,6 @@
             font-size: 13px;
         }
 
-        /* جدول المنتجات */
         .invoice-table {
             width: 100%;
             border-collapse: collapse;
@@ -195,7 +180,6 @@
             background: #f1f5f9;
         }
 
-        /* الإجماليات */
         .totals {
             width: 280px;
             margin-right: auto;
@@ -221,7 +205,6 @@
             padding-top: 8px;
         }
 
-        /* باركود ZATCA */
         .barcode-qr {
             display: flex;
             justify-content: center;
@@ -240,7 +223,6 @@
             height: 100px;
         }
 
-        /* تذييل الفاتورة */
         .footer-note {
             margin-top: 20px;
             font-size: 11px;
@@ -258,7 +240,6 @@
             margin: 10px 0;
         }
 
-        /* ترقيم الصفحات */
         .page-number {
             text-align: left;
             font-size: 11px;
@@ -267,7 +248,6 @@
             direction: ltr;
         }
 
-        /* صفحة الشروط والأحكام */
         .terms-page {
             width: 210mm;
             min-height: 297mm;
@@ -308,7 +288,6 @@
             margin-bottom: 10px;
         }
 
-        /* صفحة الإقرار */
         .declaration-page {
             width: 210mm;
             min-height: 297mm;
@@ -333,7 +312,6 @@
             border-top: 1px solid #e2e8f0;
         }
 
-        /* أزرار التحكم (تظهر فقط على الشاشة) */
         .action-buttons {
             display: flex;
             justify-content: center;
@@ -380,7 +358,6 @@
             color: white;
         }
 
-        /* أنماط الطباعة */
         @media print {
             body {
                 background: white;
@@ -414,7 +391,6 @@
             }
         }
 
-        /* شاشات صغيرة */
         @media screen and (max-width: 768px) {
             .invoice-page, .terms-page, .declaration-page {
                 padding: 10mm 8mm;
@@ -441,7 +417,6 @@
             }
         }
 
-        /* أنماط التحميل */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -522,7 +497,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     // Firebase Config
     const firebaseConfig = {
@@ -538,6 +513,7 @@
     const db = getFirestore(app);
 
     let orderData = null;
+    let customerData = null;
 
     // دوال مساعدة
     function showLoading(message = 'جاري التحميل...') {
@@ -584,32 +560,80 @@
         });
     }
 
-    // جلب بيانات الطلب
+    // جلب بيانات العميل من Firebase
+    async function fetchCustomerData(customerId) {
+        if (!customerId) return null;
+        
+        try {
+            console.log('🔄 جلب بيانات العميل:', customerId);
+            const customerRef = doc(db, 'customers', customerId);
+            const customerSnap = await getDoc(customerRef);
+            
+            if (customerSnap.exists()) {
+                console.log('✅ تم جلب بيانات العميل بنجاح');
+                return { id: customerSnap.id, ...customerSnap.data() };
+            } else {
+                console.warn('⚠️ العميل غير موجود:', customerId);
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ خطأ في جلب بيانات العميل:', error);
+            return null;
+        }
+    }
+
+    // جلب بيانات الطلب من Firebase
     async function fetchOrderData() {
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('id');
         const autoPrint = urlParams.get('print') === 'true' || urlParams.get('auto') === 'print';
         
+        console.log('🔍 معاملات الرابط:', { orderId, autoPrint });
+        
         if (orderId && orderId !== 'null' && orderId !== 'undefined') {
             try {
                 showLoading('جاري تحميل بيانات الطلب...');
+                
+                // جلب الطلب
                 const orderRef = doc(db, 'orders', orderId);
-                const snap = await getDoc(orderRef);
-                if (snap.exists()) {
-                    orderData = { id: snap.id, ...snap.data() };
+                const orderSnap = await getDoc(orderRef);
+                
+                if (orderSnap.exists()) {
+                    orderData = { id: orderSnap.id, ...orderSnap.data() };
+                    console.log('✅ تم جلب الطلب بنجاح:', orderData.orderNumber);
+                    
+                    // جلب بيانات العميل إذا وجد customerId
+                    if (orderData.customerId) {
+                        customerData = await fetchCustomerData(orderData.customerId);
+                        if (customerData) {
+                            console.log('✅ تم جلب بيانات العميل:', customerData.name);
+                            // دمج بيانات العميل مع الطلب
+                            orderData.customerName = customerData.name;
+                            orderData.customerPhone = customerData.phone;
+                            orderData.customerEmail = customerData.email;
+                            orderData.customerAddress = `${customerData.city || ''} ${customerData.street || ''}`.trim();
+                        }
+                    }
+                    
                     showToast('تم تحميل الفاتورة بنجاح', 'success');
+                    
                     if (autoPrint) {
-                        setTimeout(() => printInvoice(), 500);
+                        setTimeout(() => printInvoice(), 1000);
                     }
                     return;
+                } else {
+                    console.error('❌ الطلب غير موجود:', orderId);
+                    showToast('الطلب غير موجود', 'error');
                 }
             } catch(e) { 
-                console.warn('Firebase error:', e);
+                console.error('❌ خطأ في جلب البيانات:', e);
                 showToast('خطأ في جلب البيانات من Firebase', 'error');
             }
+        } else {
+            console.log('ℹ️ لا يوجد orderId في الرابط، سيتم استخدام بيانات تجريبية');
         }
         
-        // بيانات تجريبية للعرض (مطابقة للمتطلبات)
+        // بيانات تجريبية للعرض (في حالة عدم وجود orderId)
         orderData = {
             id: "demo_001",
             orderNumber: "KF-2603290287",
@@ -617,8 +641,9 @@
             orderTime: "03:21 صباحاً",
             status: "تم التنفيذ",
             customerName: "أحمد محمد السالم",
-            phone: "+966 55 123 4567",
-            email: "ahmed@example.com",
+            customerPhone: "+966 55 123 4567",
+            customerEmail: "ahmed@example.com",
+            customerAddress: "الرياض، حي المروج، شارع الأمير فيصل، رقم 2215",
             addressFrom: "المملكة العربية السعودية - حائل : حي النقرة : شارع سعد المشاط - رقم المبنى: 3085 الرقم الإضافي: 7718 الرمز البريدي: 55431",
             addressTo: "الرياض، حي المروج، شارع الأمير فيصل، رقم 2215",
             subtotal: 19282.00,
@@ -686,6 +711,12 @@
         const tax = order.tax || ((subtotal - discount) * 0.15);
         const finalTotal = order.total || (subtotal - discount + tax);
         
+        // استخدام بيانات العميل من Firebase أو من الطلب
+        const customerDisplayName = order.customerName || order.customer || 'عميل';
+        const customerPhoneDisplay = order.customerPhone || order.phone || '';
+        const customerEmailDisplay = order.customerEmail || order.email || '';
+        const customerAddressDisplay = order.addressTo || order.customerAddress || 'الرياض، حي المروج';
+        
         return `
             <div class="invoice-page">
                 <div class="header-top">
@@ -716,10 +747,10 @@
                     </div>
                     <div class="address-box">
                         <strong>مصدرة إلى</strong>
-                        ${escapeHtml(order.customerName || order.customer || 'عميل')}<br>
-                        ${order.addressTo || 'الرياض، حي المروج'}<br>
-                        <strong>رقم الجوال:</strong> ${order.phone || ''}<br>
-                        <strong>البريد الإلكتروني:</strong> ${order.email || ''}
+                        ${escapeHtml(customerDisplayName)}<br>
+                        ${escapeHtml(customerAddressDisplay)}<br>
+                        <strong>رقم الجوال:</strong> ${escapeHtml(customerPhoneDisplay)}<br>
+                        <strong>البريد الإلكتروني:</strong> ${escapeHtml(customerEmailDisplay)}
                     </div>
                 </div>
                 
@@ -767,7 +798,7 @@
         `;
     }
 
-    // بناء صفحة الشروط والأحكام (الصفحة الثانية)
+    // بناء صفحة الشروط والأحكام
     function buildTermsPage(pageNum, totalPages) {
         return `
             <div class="terms-page">
@@ -843,8 +874,9 @@
         `;
     }
 
-    // بناء صفحة الإقرار (الصفحة الثالثة)
+    // بناء صفحة الإقرار
     function buildDeclarationPage(pageNum, totalPages) {
+        const customerName = orderData?.customerName || orderData?.customer || '_________________';
         return `
             <div class="declaration-page">
                 <h3 style="color:#1e3a5f; margin-bottom:20px;">الإقرار والتوقيع</h3>
@@ -876,7 +908,7 @@
                 </div>
                 
                 <div class="signature-line">
-                    <div><strong>الاسم:</strong> ${escapeHtml(orderData?.customerName || '_________________')}</div>
+                    <div><strong>الاسم:</strong> ${escapeHtml(customerName)}</div>
                     <div><strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}</div>
                 </div>
                 <div style="margin-top:15px;"><strong>التوقيع:</strong> _________________</div>
@@ -889,6 +921,18 @@
     // عرض الفاتورة كاملة
     async function renderFullInvoice() {
         await fetchOrderData();
+        
+        if (!orderData) {
+            document.getElementById('invoiceRoot').innerHTML = `
+                <div class="loading-box" style="text-align: center; padding: 50px;">
+                    <p style="color: red;">❌ حدث خطأ في تحميل الفاتورة</p>
+                    <button onclick="window.close()" style="margin-top: 20px; padding: 10px 20px;">إغلاق</button>
+                </div>
+            `;
+            hideLoading();
+            return;
+        }
+        
         const page1 = buildInvoicePage(orderData, 1, 3);
         const page2 = buildTermsPage(2, 3);
         const page3 = buildDeclarationPage(3, 3);
