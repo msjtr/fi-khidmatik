@@ -11,8 +11,8 @@ import {
     query, 
     orderBy, 
     limit,
-    where,      // إضافة - مهم للبحث والتصفية
-    Timestamp   // إضافة - للتعامل مع التواريخ
+    where,
+    Timestamp
 } from './firebase.js';
 
 // ========== دوال مساعدة ==========
@@ -20,17 +20,36 @@ import {
  * تحويل بيانات الطلب إلى صيغة آمنة للتخزين
  */
 function sanitizeOrderData(orderData) {
+    // معالجة المنتجات مع الحفاظ على الصور
+    const items = (orderData.items || orderData.cart || []).map(item => ({
+        productId: item.productId || null,
+        name: item.name || '',
+        price: parseFloat(item.price) || 0,
+        quantity: parseInt(item.quantity) || 1,
+        barcode: item.barcode || '',
+        image: item.image || '',  // ✅ الحفاظ على الصورة
+        description: item.description || '',
+        // دعم للبيانات القديمة
+        productDetails: item.productDetails || null
+    }));
+    
     return {
         customer: orderData.customer || '',
         customerId: orderData.customerId || null,
         phone: orderData.phone || '',
-        cart: orderData.cart || orderData.items || [],
-        items: orderData.items || orderData.cart || [],  // توافق مع النظام القديم
+        cart: items,
+        items: items,  // توافق مع النظام القديم
         total: orderData.total || 0,
         payment: orderData.payment || '',
         paymentMethod: orderData.paymentMethod || orderData.payment || '',
+        paymentMethodName: orderData.paymentMethodName || '',
         shipping: orderData.shipping || '',
         shippingMethod: orderData.shippingMethod || orderData.shipping || 'pickup',
+        shippingAddress: orderData.shippingAddress || null,
+        extraEmail: orderData.extraEmail || null,
+        approvalCode: orderData.approvalCode || null,
+        otherPaymentText: orderData.otherPaymentText || null,
+        subtotal: orderData.subtotal || 0,
         discount: orderData.discount || 0,
         discountType: orderData.discountType || 'fixed',
         tax: orderData.tax || 0,
@@ -47,11 +66,13 @@ export async function saveOrderToFirebase(orderData) {
         
         // إنشاء رقم طلب فريد
         const timestamp = Date.now();
-        const orderNumber = `ORD-${timestamp.toString().slice(-8)}`;
+        const orderNumber = orderData.orderNumber || `KF-${timestamp.toString().slice(-8)}`;
         
         const docRef = await addDoc(ordersRef, {
             ...safeData,
             orderNumber: orderNumber,
+            orderDate: orderData.orderDate || new Date().toISOString().split('T')[0],
+            orderTime: orderData.orderTime || new Date().toLocaleTimeString('en-US', { hour12: false }),
             createdAt: new Date().toISOString(),
             timestamp: timestamp,
             updatedAt: new Date().toISOString(),
@@ -82,9 +103,15 @@ export async function getOrderFromFirebase(orderId) {
             return {
                 id: docSnap.id,
                 ...data,
-                // توافق مع كل من cart و items
-                items: data.items || data.cart || [],
-                cart: data.cart || data.items || []
+                // توافق مع كل من cart و items مع الحفاظ على الصور
+                items: (data.items || data.cart || []).map(item => ({
+                    ...item,
+                    image: item.image || ''  // ✅ التأكد من وجود حقل الصورة
+                })),
+                cart: (data.cart || data.items || []).map(item => ({
+                    ...item,
+                    image: item.image || ''
+                }))
             };
         }
 
@@ -98,7 +125,7 @@ export async function getOrderFromFirebase(orderId) {
 }
 
 // ========== جلب جميع الطلبات ==========
-export async function getAllOrdersFromFirebase(limitCount = 100) {
+export async function getAllOrdersFromFirebase(limitCount = 500) {
     try {
         const ordersRef = collection(db, 'orders');
         
@@ -113,10 +140,16 @@ export async function getAllOrdersFromFirebase(limitCount = 100) {
         const orders = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            const items = (data.items || data.cart || []).map(item => ({
+                ...item,
+                image: item.image || ''  // ✅ التأكد من وجود حقل الصورة
+            }));
+            
             orders.push({ 
                 id: doc.id, 
                 ...data,
-                items: data.items || data.cart || []
+                items: items,
+                cart: items
             });
         });
 
@@ -145,13 +178,18 @@ export async function getFilteredOrders(filters = {}) {
             constraints.push(where('customerId', '==', filters.customerId));
         }
         
+        // إضافة فلتر طريقة الاستلام
+        if (filters.shippingMethod && filters.shippingMethod !== '') {
+            constraints.push(where('shippingMethod', '==', filters.shippingMethod));
+        }
+        
         // إضافة فلتر التاريخ
         if (filters.startDate) {
-            constraints.push(where('timestamp', '>=', new Date(filters.startDate).getTime()));
+            constraints.push(where('orderDate', '>=', filters.startDate));
         }
         
         if (filters.endDate) {
-            constraints.push(where('timestamp', '<=', new Date(filters.endDate).getTime()));
+            constraints.push(where('orderDate', '<=', filters.endDate));
         }
         
         // إضافة حد للنتائج
@@ -164,7 +202,16 @@ export async function getFilteredOrders(filters = {}) {
         
         const orders = [];
         querySnapshot.forEach((doc) => {
-            orders.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            const items = (data.items || data.cart || []).map(item => ({
+                ...item,
+                image: item.image || ''
+            }));
+            orders.push({ 
+                id: doc.id, 
+                ...data,
+                items: items
+            });
         });
         
         return orders;
@@ -211,6 +258,8 @@ export async function updateOrderInFirebase(orderId, orderData) {
         
         await updateDoc(docRef, {
             ...safeData,
+            orderDate: orderData.orderDate,
+            orderTime: orderData.orderTime,
             updatedAt: new Date().toISOString()
         });
         
@@ -245,7 +294,7 @@ export async function deleteOrderFromFirebase(orderId) {
 // ========== إحصائيات الطلبات ==========
 export async function getOrdersStatistics() {
     try {
-        const orders = await getAllOrdersFromFirebase(1000); // جلب آخر 1000 طلب
+        const orders = await getAllOrdersFromFirebase(1000);
         
         const stats = {
             total: orders.length,
@@ -259,19 +308,15 @@ export async function getOrdersStatistics() {
         const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
         
         orders.forEach(order => {
-            // المجموع الكلي
             stats.totalRevenue += order.total || 0;
             
-            // حسب الحالة
             const status = order.status || 'غير محدد';
             stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
             
-            // آخر 30 يوم
             if (order.timestamp && order.timestamp >= thirtyDaysAgo) {
                 stats.last30Days++;
             }
             
-            // اليوم
             if (order.createdAt && order.createdAt.split('T')[0] === today) {
                 stats.today++;
             }
@@ -308,18 +353,27 @@ export async function searchOrders(searchTerm) {
     }
 }
 
-// ========== طباعة الفاتورة (مباشرة) ==========
+// ========== طباعة الفاتورة مع الصور ==========
 export function printOrder(order) {
     try {
         const printWindow = window.open('', '_blank', 'width=800,height=600');
         
+        // دالة لعرض الصورة في الطباعة
+        const getProductImageHtml = (imageUrl, productName) => {
+            if (imageUrl && imageUrl.trim() !== '') {
+                return `<img src="${imageUrl}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;" onerror="this.style.display='none'">`;
+            }
+            return `<div style="width: 40px; height: 40px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">📦</div>`;
+        };
+        
         const itemsHtml = (order.items || order.cart || []).map((item, index) => `
             <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${getProductImageHtml(item.image, item.name)}</td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${item.name}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${item.quantity || 1}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${(item.price || 0).toFixed(2)}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.quantity || 1}</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${(item.price || 0).toFixed(2)}</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
             </tr>
         `).join('');
         
@@ -336,8 +390,8 @@ export function printOrder(order) {
                     .header { text-align: center; margin-bottom: 30px; }
                     .info { margin-bottom: 20px; }
                     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-                    th { background: #f2f2f2; }
+                    th, td { border: 1px solid #ddd; padding: 8px; }
+                    th { background: #f2f2f2; text-align: center; }
                     .total { text-align: left; font-size: 18px; font-weight: bold; margin-top: 20px; }
                     @media print {
                         button { display: none; }
@@ -352,14 +406,16 @@ export function printOrder(order) {
                 
                 <div class="info">
                     <p><strong>رقم الفاتورة:</strong> ${order.orderNumber}</p>
-                    <p><strong>التاريخ:</strong> ${new Date(order.createdAt).toLocaleDateString('ar-SA')}</p>
+                    <p><strong>التاريخ:</strong> ${order.orderDate || new Date(order.createdAt).toLocaleDateString('ar-SA')}</p>
+                    <p><strong>الوقت:</strong> ${order.orderTime || ''}</p>
                     <p><strong>العميل:</strong> ${order.customer}</p>
                     <p><strong>الجوال:</strong> ${order.phone}</p>
+                    <p><strong>حالة الطلب:</strong> ${order.status || 'جديد'}</p>
                 </div>
                 
                 <table>
                     <thead>
-                        <tr><th>#</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                        <tr><th>#</th><th>الصورة</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
                     </thead>
                     <tbody>
                         ${itemsHtml}
@@ -386,6 +442,50 @@ export function printOrder(order) {
         
     } catch (error) {
         console.error('❌ خطأ في الطباعة:', error);
+        throw error;
+    }
+}
+
+// ========== تصدير المنتجات مع الصور ==========
+export async function exportOrdersToCSV(orders) {
+    try {
+        const headers = ['رقم الطلب', 'التاريخ', 'العميل', 'الجوال', 'المنتجات', 'الإجمالي', 'الحالة', 'طريقة الدفع'];
+        
+        const rows = orders.map(order => {
+            const productsList = (order.items || []).map(item => 
+                `${item.name} (${item.quantity} × ${item.price})`
+            ).join(' | ');
+            
+            return [
+                order.orderNumber,
+                order.orderDate,
+                order.customer,
+                order.phone,
+                productsList,
+                order.total,
+                order.status,
+                order.paymentMethodName || order.paymentMethod
+            ];
+        });
+        
+        const csvContent = [headers, ...rows]
+            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+        
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', `orders_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ خطأ في التصدير:', error);
         throw error;
     }
 }
