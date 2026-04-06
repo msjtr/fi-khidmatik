@@ -4,80 +4,172 @@
 <meta charset="UTF-8">
 <title>إدارة الطلبات</title>
 
+<link rel="icon" href="data:,">
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 
 <style>
-body {background:#f3f4f6;font-family:Tajawal}
-.card {background:#fff;padding:15px;border-radius:12px;margin-bottom:10px}
+body { background:#f3f4f6; font-family: system-ui }
+.card { background:#fff; padding:15px; border-radius:12px; margin-bottom:10px }
+.modal { display:none }
+.modal.show { display:flex }
 </style>
 </head>
 
 <body class="p-6">
 
-<h1 class="text-2xl font-bold mb-6">إدارة الطلبات</h1>
-
-<button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded mb-4">
+<div class="flex justify-between mb-6">
+<h1 class="text-2xl font-bold">إدارة الطلبات</h1>
+<button id="newOrderBtn" class="bg-blue-600 text-white px-4 py-2 rounded">
 + طلب جديد
 </button>
+</div>
 
 <div id="ordersContainer"></div>
 
+<!-- ================= MODAL ================= -->
+<div id="orderModal" class="modal fixed inset-0 bg-black/50 items-center justify-center">
+
+<div class="bg-white p-6 rounded-xl w-full max-w-md">
+
+<h2 class="font-bold mb-4">طلب</h2>
+
+<input id="orderNumber" placeholder="رقم الطلب" class="border w-full p-2 mb-2">
+<input id="orderTotal" type="number" placeholder="المبلغ" class="border w-full p-2 mb-2">
+
+<select id="orderStatus" class="border w-full p-2 mb-3">
+<option>جديد</option>
+<option>تم التنفيذ</option>
+</select>
+
+<div class="flex justify-end gap-2">
+<button id="cancelBtn">إلغاء</button>
+<button id="saveBtn" class="bg-blue-600 text-white px-3 py-1 rounded">حفظ</button>
+</div>
+
+</div>
+</div>
+
 <script type="module">
 
+// ================= Firebase =================
 import {
     loadOrders,
-    loadCustomersAndProducts,
-    customersMap,
     addOrder,
     updateOrder,
     deleteOrder
-} from "./js/firebase.js";
+} from "../../js/firebase.js";
 
+// ================= State =================
 let orders = [];
-let currentOrderId = null;
+let currentId = null;
 
-// INIT
+// ================= INIT =================
 async function init(){
-    await loadCustomersAndProducts();
     orders = await loadOrders();
     renderOrders();
 }
 init();
 
-// RENDER
-function renderOrders(){
-    const el = document.getElementById('ordersContainer');
+// ================= UI =================
+const modal = document.getElementById('orderModal');
 
-    el.innerHTML = orders.map(o=>{
-        const customer = customersMap.get(o.customerId)||{};
-        return `
-        <div class="card">
-            <b>${o.orderNumber}</b>
-            <div>${customer.name||'-'}</div>
-            <div>${(o.total||0).toFixed(2)} ريال</div>
-
-            <div class="flex gap-2 mt-2">
-                <button onclick="printOrder('${o.id}')">🖨</button>
-                <button onclick="editOrder('${o.id}')">✏️</button>
-                <button onclick="deleteOrderHandler('${o.id}')">🗑</button>
-            </div>
-        </div>
-        `;
-    }).join('');
+function openModal(){
+    modal.classList.add('show');
 }
 
-// PRINT
-window.printOrder = id=>{
-    window.open(`print.html?id=${id}&auto=print`);
+function closeModal(){
+    modal.classList.remove('show');
+}
+
+// ================= Buttons =================
+document.getElementById('newOrderBtn').addEventListener('click', ()=>{
+    currentId = null;
+    document.getElementById('orderNumber').value = '';
+    document.getElementById('orderTotal').value = '';
+    openModal();
+});
+
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+// ================= Save =================
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+
+    const data = {
+        orderNumber: document.getElementById('orderNumber').value,
+        total: parseFloat(document.getElementById('orderTotal').value || 0),
+        status: document.getElementById('orderStatus').value,
+        createdAt: new Date().toISOString()
+    };
+
+    if(currentId){
+        await updateOrder(currentId, data);
+    }else{
+        await addOrder(data);
+    }
+
+    orders = await loadOrders();
+
+    closeModal();
+    renderOrders();
+});
+
+// ================= Render =================
+function renderOrders(){
+
+    const el = document.getElementById('ordersContainer');
+
+    if(!orders.length){
+        el.innerHTML = "لا يوجد طلبات";
+        return;
+    }
+
+    el.innerHTML = orders.map(o=>`
+        <div class="card">
+
+            <div class="flex justify-between">
+                <b>${o.orderNumber || '-'}</b>
+                <span>${o.status || '-'}</span>
+            </div>
+
+            <div class="text-green-600">
+                ${(o.total || 0).toFixed(2)} ريال
+            </div>
+
+            <div class="flex gap-2 mt-2">
+
+                <button onclick="editOrder('${o.id}')">✏️</button>
+                <button onclick="printOrder('${o.id}')">🖨</button>
+                <button onclick="removeOrder('${o.id}')">🗑</button>
+
+            </div>
+
+        </div>
+    `).join('');
+}
+
+// ================= Global Actions =================
+window.editOrder = (id)=>{
+    const o = orders.find(x=>x.id===id);
+    currentId = id;
+
+    document.getElementById('orderNumber').value = o.orderNumber;
+    document.getElementById('orderTotal').value = o.total;
+    document.getElementById('orderStatus').value = o.status;
+
+    openModal();
 };
 
-// DELETE
-window.deleteOrderHandler = async id=>{
+window.removeOrder = async(id)=>{
+    if(!confirm('حذف؟')) return;
+
     await deleteOrder(id);
+
     orders = orders.filter(o=>o.id!==id);
     renderOrders();
+};
+
+window.printOrder = (id)=>{
+    window.open(`../../print.html?id=${id}&auto=print`);
 };
 
 </script>
