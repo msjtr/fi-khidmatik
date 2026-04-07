@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="terms.js"></script>
     <style>
-        /* كل الأنماط كما هي - لم تتغير */
+        /* جميع الأنماط كما هي - لم تتغير */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #e9ecef; font-family: 'Segoe UI', 'Cairo', 'Tahoma', sans-serif; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; }
         .invoice-wrapper { max-width: 210mm; margin: 0 auto; background: white; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border-radius: 8px; }
@@ -113,9 +113,9 @@
             ]);
             customersSnap.forEach(d => customersMap.set(d.id, d.data()));
             productsSnap.forEach(d => productsMap.set(d.id, d.data()));
-            console.log(`✅ تم تحميل ${customersMap.size} عميل و ${productsMap.size} منتج`);
+            console.log(`تم تحميل ${customersMap.size} عميل و ${productsMap.size} منتج`);
         } catch (error) {
-            console.error('❌ خطأ في تحميل الكاش:', error);
+            console.error('خطأ في تحميل الكاش:', error);
         }
     }
 
@@ -156,7 +156,7 @@
                 items
             };
         } catch (err) {
-            console.error("❌ خطأ في جلب الطلب:", err);
+            console.error("خطأ في جلب الطلب:", err);
             return null;
         }
     }
@@ -198,7 +198,14 @@
         ov.style.display = 'flex';
     }
     function hideLoading() { let ov = document.getElementById('loadingOverlay'); if(ov) ov.style.display = 'none'; }
-    function showToast(msg) { let t = document.createElement('div'); t.className = 'toast-message'; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
+    function showToast(msg, isError = false) { 
+        let t = document.createElement('div'); 
+        t.className = 'toast-message'; 
+        t.textContent = (isError ? '❌ ' : '✅ ') + msg; 
+        t.style.background = isError ? '#ef4444' : '#10b981';
+        document.body.appendChild(t); 
+        setTimeout(()=>t.remove(),3000); 
+    }
 
     function formatTime12(t) { if(!t) return ''; let [h,m]=t.split(':'); let hour=parseInt(h); let ap=hour>=12?'مساءً':'صباحاً'; hour=hour%12||12; return `${hour}:${m} ${ap}`; }
     function formatDateYMD(d) { if(!d) return ''; let p=d.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d; }
@@ -258,7 +265,7 @@
                 <div class="payment-box"><strong>طريقة الاستلام:</strong> ${shipText}</div>
                 <div class="approval-box"><strong>رمز الموافقة:</strong> ${order.approvalCode || 'غير مطلوب'}</div>
             </div>
-            <table class="invoice-table"><thead><tr><th>#</th><th>الصورة</th><th>المنتج / الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></tr>
+            <table class="invoice-table"><thead><tr><th>#</th><th>الصورة</th><th>المنتج / الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></table>
             <div class="totals">
                 <div><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
                 <div><span>الخصم:</span><span>- ${discount.toFixed(2)} ريال</span></div>
@@ -282,7 +289,7 @@
             await loadCustomersAndProducts();
             order = await getOrderFull(orderId);
             if (!order) {
-                showToast('لم يتم العثور على الطلب، سيتم عرض بيانات تجريبية', 'error');
+                showToast('لم يتم العثور على الطلب، سيتم عرض بيانات تجريبية', true);
                 order = getDemoData();
             } else {
                 showToast('تم تحميل بيانات الطلب بنجاح');
@@ -329,7 +336,7 @@
             const orderId = new URLSearchParams(window.location.search).get('id') || 'demo';
             pdf.save(`فاتورة_${orderId}.pdf`);
             showToast('تم حفظ PDF بنجاح');
-        } catch(e) { showToast('خطأ في إنشاء PDF'); console.error(e); }
+        } catch(e) { showToast('خطأ في إنشاء PDF', true); console.error(e); }
         finally { hideLoading(); }
     }
 
