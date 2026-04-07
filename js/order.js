@@ -166,3 +166,13 @@ async function saveOrder(e) {
         showToast('خطأ في الحفظ: ' + (err.message || 'حدث خطأ غير متوقع'), 'error');
     }
 }
+// ================= تصدير الدوال المطلوبة للفاتورة =================
+export { 
+    db, 
+    getOrderFull, 
+    loadCustomersAndProducts,
+    getDocument,
+    getCollection,
+    calculateTotals,
+    testConnection
+};
