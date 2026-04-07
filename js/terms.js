@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>شروط وأحكام منصة في خدمتك</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: white;
+            font-family: 'Segoe UI', 'Cairo', 'Tahoma', sans-serif;
+            padding: 15mm 12mm;
+            max-width: 210mm;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        .terms-main-container {
+            width: 100%;
+        }
+
+        .main-title {
+            color: #1e3a5f;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 10px;
+        }
+
+        .legal-intro {
+            background: #fef3c7;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-right: 5px solid #f59e0b;
+            font-size: 12px;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .terms-block {
+            background: #fafafa;
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .terms-block h3 {
+            background: #1e3a5f;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            margin-bottom: 14px;
+            display: inline-block;
+        }
+
+        .terms-block p {
+            font-size: 11.5px;
+            line-height: 1.85;
+            color: #2d3a4a;
+        }
+
+        .declaration {
+            background: #f0f4f9;
+            padding: 20px;
+            border-radius: 14px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .declaration p {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .signature {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="terms-main-container">
+        <div class="main-title">📜 الشروط والأحكام</div>
+        <div class="legal-intro">
+            <strong>⚖️ إقرار ملزم قانونياً:</strong> يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين،
+            ويعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا
+            بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل
+            مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.
+        </div>
+
+        <div class="two-columns">
+            <div class="col">
+                <div class="terms-block">
+                    <h3>أولاً: صلاحية العرض والتنفيذ</h3>
+                    <p><strong>1.</strong> مدة صلاحية العرض: 3 أيام عمل فقط.<br>
+                        <strong>2.</strong> بدء التنفيذ بعد استلام الدفعة المقدمة والمتطلبات.<br>
+                        <strong>3.</strong> مدة التنفيذ تحتسب من اكتمال المتطلبات.<br>
+                        <strong>4.</strong> لا مسؤولية عن تأخير خارج الإرادة.<br>
+                        <strong>5.</strong> الموافقات الخارجية وفق سياسات الجهات.</p>
+                </div>
+                <div class="terms-block">
+                    <h3>ثانياً: التكاليف والمسؤوليات المالية</h3>
+                    <p><strong>6.</strong> الرسوم الخارجية غير مشمولة.<br>
+                        <strong>7.</strong> خدمات الطرف الثالث تخضع لسياساتها.<br>
+                        <strong>8.</strong> المدفوعات الخارجية غير قابلة للاسترجاع.<br>
+                        <strong>9.</strong> الدفع نيابة عن العميل دين مستحق.<br>
+                        <strong>10.</strong> الضريبة 15% تضاف حسب الأنظمة.</p>
+                </div>
+                <div class="terms-block">
+                    <h3>ثالثاً: التسليم والملكية</h3>
+                    <p><strong>11.</strong> التسليم حسب النطاق المحدد.<br>
+                        <strong>12.</strong> المنتج النهائي فقط.<br>
+                        <strong>13.</strong> الكود المصدري ملكية حصرية لمقدم الخدمة.<br>
+                        <strong>14.</strong> نقل الملكية باتفاق وسداد كامل.<br>
+                        <strong>15.</strong> عدم طلب التسليم يلغي الالتزام.<br>
+                        <strong>16.</strong> حق إعادة الاستخدام محفوظ.</p>
+                </div>
+                <div class="terms-block">
+                    <h3>رابعاً: الدفعات والاسترجاع</h3>
+                    <p><strong>17.</strong> نظام الدفع وفق الآلية المتفق عليها.<br>
+                        <strong>18.</strong> تأخر السداد يؤدي لإيقاف العمل.<br>
+                        <strong>19.</strong> عدم استرجاع بعد البدء.<br>
+                        <strong>20.</strong> إيقاف المشروع عند المخالفة.<br>
+                        <strong>21.</strong> احتساب الأعمال المنفذة بنسبة الإنجاز.<br>
+                        <strong>22.</strong> رسوم إدارية 20% على الأعمال المنفذة.</p>
+                </div>
+            </div>
+            <div class="col">
+                <div class="terms-block">
+                    <h3>خامساً: الضمان</h3>
+                    <p><strong>23.</strong> الضمان حسب طبيعة المشروع.<br>
+                        <strong>24.</strong> يقتصر على الأخطاء الفنية لمقدم الخدمة.<br>
+                        <strong>25.</strong> استثناءات: سوء استخدام أو تعديلات خارجية.</p>
+                </div>
+                <div class="terms-block">
+                    <h3>سادساً: انتهاء العلاقة والمسؤولية</h3>
+                    <p><strong>26.</strong> تنتهي العلاقة بعد التسليم.<br>
+                        <strong>27.</strong> لا مسؤولية لاحقة.<br>
+                        <strong>28.</strong> تشغيل المشروع على العميل.<br>
+                        <strong>29.</strong> حفظ النسخ الاحتياطية على العميل.<br>
+                        <strong>30.</strong> براءة ذمة من خدمات الأطراف الثالثة.</p>
+                </div>
+                <div class="terms-block">
+                    <h3>سابعاً: التواصل والتنفيذ</h3>
+                    <p><strong>31.</strong> وسائل التواصل الرسمية فقط.<br>
+                        <strong>32.</strong> التفويض بإشعار رسمي.<br>
+                        <strong>33.</strong> النسخ الإلكترونية معتمدة قانونياً.</p>
+                </div>
+                <div class="terms-block">
+                    <h3>ثامناً: البنود القانونية</h3>
+                    <p><strong>34.</strong> علاقة تعاقدية مستقلة.<br>
+                        <strong>35.</strong> كامل الاتفاق.<br>
+                        <strong>36.</strong> الأخطاء غير المقصودة لا تبطل البنود.<br>
+                        <strong>37.</strong> عدم التنازل عن الحقوق.<br>
+                        <strong>38.</strong> اللغة العربية المعتمدة.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
