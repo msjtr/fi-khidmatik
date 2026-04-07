@@ -14,7 +14,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     
-    <script src="js/firebase.js"></script>
+    <!-- ترتيب تحميل الملفات مهم جداً -->
+    <script src="js/firebase-config.js"></script>
     <script src="js/zatca.js"></script>
     <script src="js/terms.js"></script>
     <script src="js/invoice.js"></script>
@@ -28,13 +29,13 @@
     <button class="btn btn-primary" id="printBtn"><i class="fas fa-print"></i> طباعة</button>
     <button class="btn btn-secondary" id="previewBtn"><i class="fas fa-eye"></i> معاينة</button>
     <button class="btn btn-purple" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
-    <button class="btn" id="pngBtn" style="background:#059669;color:white;"><i class="fas fa-image"></i> PNG</button>
     <button class="btn btn-danger" id="closeBtn"><i class="fas fa-times"></i> إغلاق</button>
 </div>
 
 <script>
-    (function() {
-        // تكوين Firebase
+    // انتظر تحميل جميع الملفات ثم ابدأ
+    document.addEventListener('DOMContentLoaded', function() {
+        // تهيئة Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
             authDomain: "msjt301-974bb.firebaseapp.com",
@@ -44,23 +45,35 @@
             appId: "1:186209858482:web:186ca610780799ef562aab"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.firestore();
         
         // ربط الأزرار
-        document.getElementById('printBtn').onclick = () => printInvoice();
-        document.getElementById('previewBtn').onclick = () => previewPrint();
-        document.getElementById('pdfBtn').onclick = () => exportToPDF();
-        document.getElementById('pngBtn').onclick = () => exportToPNG();
-        document.getElementById('closeBtn').onclick = () => window.close();
+        const printBtn = document.getElementById('printBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const pdfBtn = document.getElementById('pdfBtn');
+        const closeBtn = document.getElementById('closeBtn');
         
-        // تحميل الفاتورة وتهيئة وحدة الطباعة
-        loadInvoice(db).then((order) => {
-            if (order) {
-                initPrintModule(order, db);
-            }
-        });
-    })();
+        if (printBtn) printBtn.onclick = function() { if (typeof printInvoice === 'function') printInvoice(); else console.error('printInvoice not defined'); };
+        if (previewBtn) previewBtn.onclick = function() { if (typeof previewPrint === 'function') previewPrint(); else console.error('previewPrint not defined'); };
+        if (pdfBtn) pdfBtn.onclick = function() { if (typeof exportToPDF === 'function') exportToPDF(); else console.error('exportToPDF not defined'); };
+        if (closeBtn) closeBtn.onclick = function() { window.close(); };
+        
+        // تحميل الفاتورة
+        if (typeof loadInvoice === 'function') {
+            loadInvoice(db).then(function(order) {
+                if (order && typeof initPrintModule === 'function') {
+                    initPrintModule(order, db);
+                }
+            }).catch(function(error) {
+                console.error('Error loading invoice:', error);
+            });
+        } else {
+            console.error('loadInvoice function not found. Check if invoice.js loaded correctly.');
+        }
+    });
 </script>
 </body>
 </html>
