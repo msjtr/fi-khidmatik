@@ -2,9 +2,9 @@
 // صفحات الشروط والأحكام
 // ========================================
 
-function buildTermsPage1(pageNum, totalPages, sellerData, buildHeader, buildFooter) {
+function buildTermsPage1(pageNum, totalPages) {
     return '<div class="page">' +
-        buildHeader("الشروط والأحكام") +
+        window.buildHeader("الشروط والأحكام") +
         '<div class="terms-container">' +
             '<div class="terms-title">الشروط والأحكام والتعليمات</div>' +
             '<div class="legal-notice">' +
@@ -49,13 +49,13 @@ function buildTermsPage1(pageNum, totalPages, sellerData, buildHeader, buildFoot
                 '</div>' +
             '</div>' +
         '</div>' +
-        buildFooter(pageNum, totalPages) +
+        window.buildFooter(pageNum, totalPages) +
     '</div>';
 }
 
-function buildTermsPage2(pageNum, totalPages, sellerData, buildHeader, buildFooter) {
+function buildTermsPage2(pageNum, totalPages) {
     return '<div class="page">' +
-        buildHeader("الشروط والأحكام") +
+        window.buildHeader("الشروط والأحكام") +
         '<div class="terms-container">' +
             '<div class="terms-grid">' +
                 '<div>' +
@@ -100,14 +100,15 @@ function buildTermsPage2(pageNum, totalPages, sellerData, buildHeader, buildFoot
                 '</div>' +
             '</div>' +
         '</div>' +
-        buildFooter(pageNum, totalPages) +
+        window.buildFooter(pageNum, totalPages) +
     '</div>';
 }
 
-function buildTermsPage3(order, pageNum, totalPages, sellerData, buildHeader, buildFooter, formatDate, formatTime, escapeHtml) {
-    var dateStr = formatDate(order.orderDate) + ' - ' + formatTime(order.orderTime);
+function buildTermsPage3(order, pageNum, totalPages) {
+    var dateStr = (order.orderDate ? formatDate(order.orderDate) : '') + ' - ' + (order.orderTime ? formatTime(order.orderTime) : '');
+    
     return '<div class="page">' +
-        buildHeader("الشروط والأحكام") +
+        window.buildHeader("الشروط والأحكام") +
         '<div class="terms-container">' +
             '<div class="terms-grid">' +
                 '<div>' +
@@ -132,15 +133,20 @@ function buildTermsPage3(order, pageNum, totalPages, sellerData, buildHeader, bu
             '</div>' +
             '<div class="declaration">' +
                 '<p><strong>إقرار وتعهد</strong></p>' +
-                '<p>أقر أنا العميل <strong id="customerNameDisplay">' + escapeHtml(order.customerName) + '</strong></p>' +
+                '<p>أقر أنا العميل <strong>' + escapeHtml(order.customerName) + '</strong></p>' +
                 '<p>بأنني اطلعت على جميع الشروط والأحكام الواردة في هذا المستند<br>وأوافق عليها بالكامل وأتعهد بالالتزام بها.</p>' +
             '</div>' +
             '<div class="signature-area">' +
-                '<div><strong>العميل:</strong> <span id="customerSignDisplay">' + escapeHtml(order.customerName) + '</span></div>' +
-                '<div><strong>التاريخ:</strong> <span id="dateSignDisplay">' + dateStr + '</span></div>' +
+                '<div><strong>العميل:</strong> ' + escapeHtml(order.customerName) + '</div>' +
+                '<div><strong>التاريخ:</strong> ' + dateStr + '</div>' +
             '</div>' +
-            '<div class="mt-2"><strong>التوقيع:</strong> _________________</div>' +
+            '<div style="margin-top:20px;"><strong>التوقيع:</strong> _________________</div>' +
         '</div>' +
-        buildFooter(pageNum, totalPages) +
+        window.buildFooter(pageNum, totalPages) +
     '</div>';
 }
+
+// تصدير الدوال للاستخدام العام
+window.buildTermsPage1 = buildTermsPage1;
+window.buildTermsPage2 = buildTermsPage2;
+window.buildTermsPage3 = buildTermsPage3;
