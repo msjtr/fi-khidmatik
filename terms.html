@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>شروط وأحكام منصة في خدمتك - الوثيقة الكاملة</title>
+    <title>الشروط والأحكام - منصة في خدمتك (نسخة معتمدة للطباعة)</title>
     <style>
         * {
             margin: 0;
@@ -11,6 +11,47 @@
             box-sizing: border-box;
         }
 
+        /* إعدادات الطباعة الأساسية */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .legal-document {
+                box-shadow: none;
+                padding: 8mm 10mm;
+                max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+            .terms-card, .binding-statement, .final-acknowledgment, .footer-fixed, .invoice-header {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .two-col-grid {
+                break-inside: avoid;
+                page-break-after: avoid;
+            }
+            .full-width-section {
+                break-inside: avoid;
+            }
+            .extra-grid {
+                break-inside: avoid;
+            }
+            .footer-fixed {
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                margin-top: 20px;
+                background: #f8fafc;
+            }
+            body {
+                margin-bottom: 2cm;
+            }
+        }
+
+        /* تصميم الشاشة */
         body {
             background: #eef2f5;
             font-family: 'Segoe UI', 'Cairo', 'Tahoma', 'Helvetica Neue', sans-serif;
@@ -19,7 +60,6 @@
             color: #1a2c3e;
         }
 
-        /* محاكاة الورقة القانونية */
         .legal-document {
             max-width: 1200px;
             margin: 0 auto;
@@ -30,7 +70,7 @@
             padding: 20px 24px 40px 24px;
         }
 
-        /* رأس ثابت (شعار + فاتورة) */
+        /* رأس ثابت */
         .invoice-header {
             display: flex;
             flex-wrap: wrap;
@@ -67,7 +107,6 @@
             margin: 4px 0;
         }
 
-        /* الإقرار الافتتاحي الملزم */
         .binding-statement {
             background: #fef9e6;
             border-right: 6px solid #e67e22;
@@ -79,7 +118,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        /* نظام الأعمدة الرئيسية (شبكة مرنة) */
         .two-col-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -87,7 +125,6 @@
             margin-bottom: 32px;
         }
 
-        /* كل مجموعة بنود (card) */
         .terms-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -119,12 +156,7 @@
             margin-bottom: 8px;
             color: #1e2f3f;
         }
-        .sub-clause {
-            margin-right: 12px;
-            font-size: 0.78rem;
-        }
 
-        /* أقسام إضافية تغطي باقي البنود (الصفحة الثانية + الثالثة) */
         .full-width-section {
             margin: 24px 0 20px 0;
             border-top: 1px solid #cfdee9;
@@ -137,7 +169,6 @@
             margin-top: 15px;
         }
 
-        /* الإقرار النهائي مع التوقيع */
         .final-acknowledgment {
             background: #f1f6fd;
             border-radius: 24px;
@@ -170,7 +201,6 @@
             margin-top: 12px;
         }
 
-        /* تذييل ثابت في كل الصفحات (محاكاة) */
         .footer-fixed {
             margin-top: 40px;
             background: #f4f7fb;
@@ -193,42 +223,34 @@
             font-size: 0.7rem;
         }
 
-        /* ضمان عرض احترافي للطباعة */
         @media print {
-            body {
-                background: white;
-                padding: 0;
+            .footer-fixed {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
                 margin: 0;
+                border-radius: 0;
+                background: #f4f7fb;
+                border-top: 1px solid #ccc;
             }
             .legal-document {
-                box-shadow: none;
-                padding: 15px;
-                max-width: 100%;
-            }
-            .terms-card {
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-            .footer-fixed {
-                break-inside: avoid;
+                padding-bottom: 1.5cm;
             }
         }
 
-        hr {
-            margin: 12px 0;
-        }
         .small-note {
             font-size: 0.7rem;
             color: #4a627a;
         }
-        .bold {
-            font-weight: 700;
+        hr {
+            margin: 12px 0;
         }
     </style>
 </head>
 <body>
 <div class="legal-document">
-    <!-- رأس ثابت (فاتورة إلكترونية + بيانات) -->
+    <!-- رأس ثابت (فاتورة) -->
     <div class="invoice-header">
         <div class="logo-area">منصة في خدمتك</div>
         <div class="invoice-title">فاتورة إلكترونية</div>
@@ -238,14 +260,14 @@
         </div>
     </div>
 
-    <!-- إقرار افتتاحي قوي: نفس النص الأصلي -->
+    <!-- الإقرار الافتتاحي -->
     <div class="binding-statement">
-        <strong>📌 إقرار ملزم قانونياً:</strong> يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين،
+        <strong>⚖️ إقرار ملزم قانونياً:</strong> يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين،
         ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ،
         كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.
     </div>
 
-    <!-- الشروط الأساسية على عمودين (أولاً إلى رابعاً جزئياً + خامساً.. ثامناً) -->
+    <!-- القسم الرئيسي: عمودين (أولاً حتى رابعاً + خامساً حتى ثامناً) -->
     <div class="two-col-grid">
         <!-- العمود الأيمن -->
         <div>
@@ -342,7 +364,7 @@
         </div>
     </div>
 
-    <!-- الصفحة الثانية وما بعدها: بنود متقدمة (تاسعاً، عاشراً، حادي عشر، ثاني عشر وصولاً إلى نهاية الشروط) -->
+    <!-- استكمال باقي البنود (تاسعاً، عاشراً، حادي عشر، ثاني عشر) -->
     <div class="full-width-section">
         <div class="extra-grid">
             <!-- تاسعاً: النزاعات -->
@@ -353,7 +375,7 @@
                     <p><strong>40.</strong> الجهة المختصة: في حال عدم التوصل إلى حل يحق لمقدم الخدمة تحديد الجهة القضائية أو التحكيمية المختصة.</p>
                 </div>
             </div>
-            <!-- عاشراً: البنود المتقدمة (41-46) -->
+            <!-- عاشراً: البنود المتقدمة -->
             <div class="terms-card">
                 <div class="card-header">عاشراً: البنود المتقدمة</div>
                 <div class="terms-content">
@@ -365,7 +387,7 @@
                     <p><strong>46.</strong> الاعتراض: يجب على العميل تقديم أي اعتراض بشكل مكتوب وواضح خلال مدة سبعة أيام من تاريخ التسليم.</p>
                 </div>
             </div>
-            <!-- حادي عشر: البنود المالية والقانونية المتقدمة (47-50) -->
+            <!-- حادي عشر: البنود المالية المتقدمة -->
             <div class="terms-card">
                 <div class="card-header">حادي عشر: البنود المالية المتقدمة</div>
                 <div class="terms-content">
@@ -375,7 +397,7 @@
                     <p><strong>50.</strong> حق رفض الخدمة: يحتفظ مقدم الخدمة بحقه في رفض تقديم الخدمة أو إيقافها في أي مرحلة مع احتساب الأعمال المنفذة.</p>
                 </div>
             </div>
-            <!-- ثاني عشر: الحماية القانونية (51-57) مع الشرط الإضافي الطويل -->
+            <!-- ثاني عشر: الحماية القانونية (51-57) -->
             <div class="terms-card">
                 <div class="card-header">ثاني عشر: الحماية القانونية</div>
                 <div class="terms-content">
@@ -391,12 +413,11 @@
         </div>
     </div>
 
-    <!-- الإقرار النهائي والتوقيعات -->
+    <!-- الإقرار النهائي والتوقيع -->
     <div class="final-acknowledgment">
-        <p>📄 <strong>الإقرار</strong><br>
-        أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
+        <p><strong>📄 الإقرار</strong><br>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
         <div class="signature-row">
-            <div class="sig-item"><strong>الاسم:</strong> <span style="border-bottom: 1px solid #6c8aae; min-width: 160px; display: inline-block; width: 70%;"></span></div>
+            <div class="sig-item"><strong>الاسم:</strong> <span style="border-bottom: 1px solid #6c8aae; display: inline-block; width: 70%;"></span></div>
             <div class="sig-item"><strong>التاريخ:</strong> <span style="border-bottom: 1px solid #6c8aae; display: inline-block; width: 70%;"></span></div>
         </div>
         <div class="signature-row" style="border-top: none; padding-top: 0;">
@@ -404,7 +425,7 @@
         </div>
     </div>
 
-    <!-- تذييل ثابت في كل الصفحات (بيانات التواصل) -->
+    <!-- التذييل الثابت (يظهر في كل صفحة عند الطباعة) -->
     <div class="footer-fixed">
         <div class="footer-contact">
             <span>📞 الهاتف: 966534051317</span>
@@ -414,9 +435,8 @@
         </div>
         <div class="legal-note">📌 هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
     </div>
-    <!-- ختم احترافي: ملاحظة بأن جميع الشروط قد تم تضمينها دون نقصان -->
     <div class="small-note" style="text-align: center; margin-top: 20px; border-top: 1px solid #e2edf7; padding-top: 12px;">
-        * يشمل هذا المستند جميع الشروط والأحكام والتعليمات الواردة في الوثيقة الأصلية (46 بنداً + المواد الإضافية حتى 57) بنصها الكامل، دون أي حذف أو إخلال.
+        * يشمل هذا المستند جميع الشروط والأحكام والتعليمات الواردة في الوثيقة الأصلية (57 بنداً) بنصها الكامل، دون أي حذف أو إخلال، ومعتمدة للطباعة.
     </div>
 </div>
 </body>
