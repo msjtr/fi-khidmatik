@@ -3,441 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>الشروط والأحكام - منصة في خدمتك (نسخة معتمدة للطباعة)</title>
+    <title>الشروط والأحكام - منصة في خدمتك</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* إعدادات الطباعة الأساسية */
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .legal-document {
-                box-shadow: none;
-                padding: 8mm 10mm;
-                max-width: 100%;
-                margin: 0;
-                border-radius: 0;
-            }
-            .terms-card, .binding-statement, .final-acknowledgment, .footer-fixed, .invoice-header {
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-            .two-col-grid {
-                break-inside: avoid;
-                page-break-after: avoid;
-            }
-            .full-width-section {
-                break-inside: avoid;
-            }
-            .extra-grid {
-                break-inside: avoid;
-            }
-            .footer-fixed {
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                margin-top: 20px;
-                background: #f8fafc;
-            }
-            body {
-                margin-bottom: 2cm;
-            }
-        }
-
-        /* تصميم الشاشة */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #eef2f5;
-            font-family: 'Segoe UI', 'Cairo', 'Tahoma', 'Helvetica Neue', sans-serif;
-            padding: 20px 16px;
-            line-height: 1.65;
-            color: #1a2c3e;
-        }
-
-        .legal-document {
-            max-width: 1200px;
-            margin: 0 auto;
             background: white;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
-            border-radius: 8px;
-            overflow: hidden;
-            padding: 20px 24px 40px 24px;
+            font-family: 'Segoe UI', 'Cairo', 'Tahoma', sans-serif;
+            padding: 15mm 12mm;
+            max-width: 210mm;
+            margin: 0 auto;
+            line-height: 1.8;
         }
-
-        /* رأس ثابت */
-        .invoice-header {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
+        .terms-main-container { width: 100%; }
+        .main-title {
+            color: #1e3a5f;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
             border-bottom: 2px solid #1e3a5f;
-            padding-bottom: 18px;
-            margin-bottom: 20px;
-            gap: 15px;
+            padding-bottom: 10px;
         }
-        .logo-area {
-            font-size: 1.6rem;
-            font-weight: bold;
-            background: #1e3a5f;
-            color: white;
-            padding: 8px 18px;
-            border-radius: 40px;
-            display: inline-block;
+        .legal-intro {
+            background: #fef3c7;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-right: 5px solid #f59e0b;
+            font-size: 12px;
         }
-        .invoice-title {
-            font-size: 1.7rem;
-            font-weight: bold;
-            color: #0b2b42;
-        }
-        .cert-numbers {
-            text-align: left;
-            background: #f8fafc;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            border: 1px solid #cbd5e1;
-        }
-        .cert-numbers p {
-            margin: 4px 0;
-        }
-
-        .binding-statement {
-            background: #fef9e6;
-            border-right: 6px solid #e67e22;
-            padding: 16px 20px;
-            margin: 20px 0 28px 0;
-            border-radius: 14px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .two-col-grid {
+        .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 28px;
-            margin-bottom: 32px;
+            gap: 25px;
+            margin-bottom: 30px;
         }
-
-        .terms-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 8px 0 12px 0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
-            transition: all 0.2s;
+        .col { display: flex; flex-direction: column; gap: 20px; }
+        .terms-block {
+            background: #fafafa;
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
             break-inside: avoid;
             page-break-inside: avoid;
         }
-        .card-header {
+        .terms-block h3 {
             background: #1e3a5f;
             color: white;
-            padding: 10px 20px;
+            padding: 6px 16px;
             border-radius: 30px;
-            font-size: 1rem;
-            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 14px;
             display: inline-block;
-            margin-right: 20px;
-            margin-bottom: 12px;
-            letter-spacing: 0.3px;
         }
-        .terms-content {
-            padding: 8px 20px 18px 20px;
-        }
-        .terms-content p {
-            font-size: 0.8rem;
+        .terms-block p {
+            font-size: 11px;
             line-height: 1.85;
+            color: #2d3a4a;
             margin-bottom: 8px;
-            color: #1e2f3f;
         }
-
-        .full-width-section {
-            margin: 24px 0 20px 0;
-            border-top: 1px solid #cfdee9;
-            padding-top: 20px;
-        }
-        .extra-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-            margin-top: 15px;
-        }
-
-        .final-acknowledgment {
-            background: #f1f6fd;
-            border-radius: 24px;
-            padding: 22px 25px;
-            margin: 30px 0 20px;
+        .declaration {
+            background: #f0f4f9;
+            padding: 20px;
+            border-radius: 14px;
             text-align: center;
-            border: 1px solid #cbdff2;
+            margin: 20px 0;
         }
-        .final-acknowledgment p {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 20px;
-        }
-        .signature-row {
+        .declaration p { font-size: 13px; font-weight: bold; }
+        .signature {
             display: flex;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            border-top: 1px dashed #b9cfec;
+            margin-top: 25px;
             padding-top: 20px;
+            border-top: 1px solid #cbd5e1;
         }
-        .sig-item {
-            flex: 1;
-            min-width: 180px;
-            text-align: right;
-            border-bottom: 1px solid #8ba0bc;
-            padding-bottom: 6px;
-            margin-top: 12px;
-        }
-
-        .footer-fixed {
-            margin-top: 40px;
-            background: #f4f7fb;
-            padding: 14px 20px;
-            border-radius: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            border: 1px solid #dce5ef;
-            color: #1f3a4b;
-        }
-        .footer-contact span {
-            margin-left: 18px;
-            display: inline-block;
-        }
-        .legal-note {
-            font-weight: bold;
-            font-size: 0.7rem;
-        }
-
         @media print {
-            .footer-fixed {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                margin: 0;
-                border-radius: 0;
-                background: #f4f7fb;
-                border-top: 1px solid #ccc;
-            }
-            .legal-document {
-                padding-bottom: 1.5cm;
-            }
+            body { padding: 0; margin: 0; }
+            .terms-block { break-inside: avoid; }
         }
-
-        .small-note {
-            font-size: 0.7rem;
-            color: #4a627a;
-        }
-        hr {
-            margin: 12px 0;
+        @media (max-width: 768px) {
+            .two-columns { grid-template-columns: 1fr; gap: 15px; }
         }
     </style>
 </head>
 <body>
-<div class="legal-document">
-    <!-- رأس ثابت (فاتورة) -->
-    <div class="invoice-header">
-        <div class="logo-area">منصة في خدمتك</div>
-        <div class="invoice-title">فاتورة إلكترونية</div>
-        <div class="cert-numbers">
-            <p><strong>رقم شهادة العمل الحر:</strong> FL-765735204</p>
-            <p><strong>الرقم الضريبي:</strong> 312495447600003</p>
-        </div>
-    </div>
-
-    <!-- الإقرار الافتتاحي -->
-    <div class="binding-statement">
+<div class="terms-main-container" id="termsContainer">
+    <div class="main-title">📜 الشروط والأحكام</div>
+    <div class="legal-intro">
         <strong>⚖️ إقرار ملزم قانونياً:</strong> يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين،
-        ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ،
-        كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.
+        ويعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا
+        بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ.
     </div>
-
-    <!-- القسم الرئيسي: عمودين (أولاً حتى رابعاً + خامساً حتى ثامناً) -->
-    <div class="two-col-grid">
-        <!-- العمود الأيمن -->
-        <div>
-            <!-- أولاً: صلاحية العرض والتنفيذ -->
-            <div class="terms-card">
-                <div class="card-header">أولاً: صلاحية العرض والتنفيذ</div>
-                <div class="terms-content">
-                    <p><strong>1.</strong> مدة صلاحية العرض: يكون هذا عرض السعر / الفاتورة صالحًا لمدة ثلاثة (3) أيام عمل فقط من تاريخ إصداره، ويُعد لاغيًا تلقائيًا بعد انتهاء هذه المدة دون الحاجة إلى إشعار مسبق، ولا يترتب على مقدم الخدمة أي التزام بعد ذلك.</p>
-                    <p><strong>2.</strong> بدء التنفيذ: تبدأ أعمال التنفيذ بعد استلام الدفعة المقدمة المتفق عليها، واستلام جميع المتطلبات والمعلومات اللازمة من العميل بشكل كامل وواضح.</p>
-                    <p><strong>3.</strong> مدة التنفيذ: تُحتسب مدة التنفيذ من تاريخ اكتمال استلام جميع المتطلبات، ولا يُعتد بأي مدة يترتب عليها تأخير بسبب العميل أو أي طرف خارجي.</p>
-                    <p><strong>4.</strong> التأخير: لا يتحمل مقدم الخدمة أي مسؤولية عن أي تأخير ناتج عن ظروف خارجة عن إرادته، أو عن أطراف ثالثة، أو عن تأخر العميل في تزويد المتطلبات.</p>
-                    <p><strong>5.</strong> الموافقات الخارجية: تخضع جميع الموافقات أو التراخيص الصادرة من الجهات الحكومية أو الجهات الخارجية لسياسات تلك الجهات، ولا يضمن مقدم الخدمة الحصول عليها بأي حال من الأحوال.</p>
-                </div>
+    <div class="two-columns">
+        <div class="col">
+            <div class="terms-block"><h3>أولاً: صلاحية العرض والتنفيذ</h3>
+                <p><strong>1.</strong> مدة صلاحية العرض: 3 أيام عمل فقط.<br><strong>2.</strong> بدء التنفيذ بعد استلام الدفعة المقدمة والمتطلبات.<br><strong>3.</strong> مدة التنفيذ تحتسب من اكتمال المتطلبات.<br><strong>4.</strong> لا مسؤولية عن تأخير خارج الإرادة.<br><strong>5.</strong> الموافقات الخارجية وفق سياسات الجهات.</p>
             </div>
-            <!-- ثانياً: التكاليف والمسؤوليات المالية -->
-            <div class="terms-card">
-                <div class="card-header">ثانياً: التكاليف والمسؤوليات المالية</div>
-                <div class="terms-content">
-                    <p><strong>6.</strong> الرسوم الخارجية: لا تشمل قيمة هذا عرض السعر / الفاتورة أي رسوم أو تكاليف خاصة بالجهات الخارجية مثل السيرفرات أو النطاقات أو التراخيص أو الرسوم الحكومية أو بوابات الدفع أو أي مزود خدمة طرف ثالث، ما لم يتم النص على خلاف ذلك بشكل صريح.</p>
-                    <p><strong>7.</strong> خدمات الطرف الثالث: أي خدمات يتم تقديمها من خلال أطراف ثالثة تخضع لسياسات تلك الجهات، ولا يتحمل مقدم الخدمة أي مسؤولية عن أدائها أو جودتها أو توقفها أو تعديل سياساتها.</p>
-                    <p><strong>8.</strong> المدفوعات الخارجية: جميع المبالغ التي يتم دفعها إلى جهات خارجية سواء بشكل مباشر من قبل العميل أو من خلال مقدم الخدمة لا يمكن استرجاعها تحت أي ظرف.</p>
-                    <p><strong>9.</strong> الدفع نيابة عن العميل: في حال قيام مقدم الخدمة بسداد أي مبالغ نيابة عن العميل فإن تلك المبالغ تُعد دينًا مستحقًا على العميل ويلتزم بسدادها عند الطلب ولا تدخل ضمن أي تسوية أو استرجاع.</p>
-                    <p><strong>10.</strong> الضريبة: جميع الأسعار المذكورة لا تشمل ضريبة القيمة المضافة ويتم إضافتها وفق الأنظمة المعمول بها.</p>
-                </div>
+            <div class="terms-block"><h3>ثانياً: التكاليف والمسؤوليات المالية</h3>
+                <p><strong>6.</strong> الرسوم الخارجية غير مشمولة.<br><strong>7.</strong> خدمات الطرف الثالث تخضع لسياساتها.<br><strong>8.</strong> المدفوعات الخارجية غير قابلة للاسترجاع.<br><strong>9.</strong> الدفع نيابة عن العميل دين مستحق.<br><strong>10.</strong> الضريبة 15% تضاف حسب الأنظمة.</p>
             </div>
-            <!-- ثالثاً: التسليم والملكية -->
-            <div class="terms-card">
-                <div class="card-header">ثالثاً: التسليم والملكية</div>
-                <div class="terms-content">
-                    <p><strong>11.</strong> نطاق التسليم: يتم تنفيذ وتسليم الأعمال وفق النطاق المحدد في هذا عرض السعر / الفاتورة فقط ولا يشمل أي أعمال إضافية غير مذكورة.</p>
-                    <p><strong>12.</strong> المنتج النهائي: يقتصر التسليم على المنتج النهائي الجاهز للاستخدام ولا يشمل الملفات المفتوحة أو الكود المصدري أو أي مواد إنتاج داخلية.</p>
-                    <p><strong>13.</strong> الكود المصدري: يبقى الكود المصدري ملكًا حصريًا لمقدم الخدمة ولا يتم تسليمه إلا بموجب اتفاق مستقل ومقابل مالي يتم تحديده بشكل منفصل.</p>
-                    <p><strong>14.</strong> نقل الملكية: لا يتم نقل ملكية أي من الأعمال أو المواد أو المخرجات إلا بعد اتفاق مكتوب وصريح وسداد كامل المقابل المالي الخاص بنقل الملكية.</p>
-                    <p><strong>15.</strong> عدم طلب التسليم: في حال عدم طلب العميل نقل الملكية أو تسليم المخرجات وفق ما سبق لا يلتزم مقدم الخدمة بتسليم أي أعمال أو ملفات.</p>
-                    <p><strong>16.</strong> حق إعادة الاستخدام: يحتفظ مقدم الخدمة بحقه الكامل في إعادة استخدام أو تطوير أو الاستفادة من الأعمال المنفذة بأي شكل من الأشكال ما لم يتم الاتفاق على خلاف ذلك كتابةً.</p>
-                </div>
+            <div class="terms-block"><h3>ثالثاً: التسليم والملكية</h3>
+                <p><strong>11.</strong> التسليم حسب النطاق المحدد.<br><strong>12.</strong> المنتج النهائي فقط.<br><strong>13.</strong> الكود المصدري ملكية حصرية لمقدم الخدمة.<br><strong>14.</strong> نقل الملكية باتفاق وسداد كامل.<br><strong>15.</strong> عدم طلب التسليم يلغي الالتزام.<br><strong>16.</strong> حق إعادة الاستخدام محفوظ.</p>
             </div>
-            <!-- رابعاً: الدفعات والاسترجاع -->
-            <div class="terms-card">
-                <div class="card-header">رابعاً: الدفعات والاسترجاع</div>
-                <div class="terms-content">
-                    <p><strong>17.</strong> نظام الدفع: يتم سداد قيمة هذا عرض السعر / الفاتورة وفق الآلية المتفق عليها بين الطرفين سواء دفعة واحدة أو على دفعات.</p>
-                    <p><strong>18.</strong> تأخر السداد: يحق لمقدم الخدمة إيقاف العمل بشكل فوري في حال تأخر العميل عن سداد أي دفعة مستحقة.</p>
-                    <p><strong>19.</strong> عدم الاسترجاع: لا يحق للعميل المطالبة باسترجاع أي مبلغ مالي بعد بدء التنفيذ أو في حال الانسحاب أو عدم استكمال المشروع لأي سبب كان.</p>
-                    <p><strong>20.</strong> إيقاف المشروع من مقدم الخدمة: يحق لمقدم الخدمة إيقاف المشروع في حال مخالفة العميل لأي من الشروط أو عدم التزامه بالمتطلبات أو السداد.</p>
-                    <p><strong>21.</strong> احتساب الأعمال: يتم احتساب قيمة الأعمال المنفذة بناءً على نسبة الإنجاز الفعلية حتى تاريخ الإيقاف.</p>
-                    <p><strong>22.</strong> الرسوم الإدارية: تُضاف رسوم تشغيلية وإدارية بنسبة 20% على قيمة الأعمال المنفذة.</p>
-                </div>
+            <div class="terms-block"><h3>رابعاً: الدفعات والاسترجاع</h3>
+                <p><strong>17.</strong> نظام الدفع وفق الآلية المتفق عليها.<br><strong>18.</strong> تأخر السداد يؤدي لإيقاف العمل.<br><strong>19.</strong> عدم استرجاع بعد البدء.<br><strong>20.</strong> إيقاف المشروع عند المخالفة.<br><strong>21.</strong> احتساب الأعمال المنفذة بنسبة الإنجاز.<br><strong>22.</strong> رسوم إدارية 20% على الأعمال المنفذة.</p>
             </div>
         </div>
-
-        <!-- العمود الأيسر -->
-        <div>
-            <!-- خامساً: الضمان -->
-            <div class="terms-card">
-                <div class="card-header">خامساً: الضمان</div>
-                <div class="terms-content">
-                    <p><strong>23.</strong> الضمان: يتم تحديد الضمان إن وجد وفق الخطة التشغيلية للمشروع وطبيعته.</p>
-                    <p><strong>24.</strong> نطاق الضمان: يقتصر الضمان على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط.</p>
-                    <p><strong>25.</strong> الاستثناءات: لا يشمل الضمان أي مشاكل ناتجة عن عوامل خارجية أو سوء استخدام أو تعديلات من طرف العميل أو طرف ثالث.</p>
-                </div>
+        <div class="col">
+            <div class="terms-block"><h3>خامساً: الضمان</h3>
+                <p><strong>23.</strong> الضمان حسب طبيعة المشروع.<br><strong>24.</strong> يقتصر على الأخطاء الفنية لمقدم الخدمة.<br><strong>25.</strong> استثناءات: سوء استخدام أو تعديلات خارجية.</p>
             </div>
-            <!-- سادساً: انتهاء العلاقة والمسؤولية -->
-            <div class="terms-card">
-                <div class="card-header">سادساً: انتهاء العلاقة والمسؤولية</div>
-                <div class="terms-content">
-                    <p><strong>26.</strong> انتهاء العلاقة: تنتهي العلاقة التعاقدية بين الطرفين فور تسليم المشروع وفق النطاق المتفق عليه.</p>
-                    <p><strong>27.</strong> المسؤولية بعد التسليم: لا يتحمل مقدم الخدمة أي مسؤولية لاحقة عن المشروع بعد التسليم.</p>
-                    <p><strong>28.</strong> التشغيل: يتحمل العميل المسؤولية الكاملة عن تشغيل المشروع وإدارته.</p>
-                    <p><strong>29.</strong> البيانات: يتحمل العميل مسؤولية حفظ النسخ الاحتياطية للبيانات.</p>
-                    <p><strong>30.</strong> براءة الذمة: لا يتحمل مقدم الخدمة أي مسؤولية عن أي خدمات مقدمة من أطراف ثالثة أو توقفها.</p>
-                </div>
+            <div class="terms-block"><h3>سادساً: انتهاء العلاقة والمسؤولية</h3>
+                <p><strong>26.</strong> تنتهي العلاقة بعد التسليم.<br><strong>27.</strong> لا مسؤولية لاحقة.<br><strong>28.</strong> تشغيل المشروع على العميل.<br><strong>29.</strong> حفظ النسخ الاحتياطية على العميل.<br><strong>30.</strong> براءة ذمة من خدمات الأطراف الثالثة.</p>
             </div>
-            <!-- سابعاً: التواصل والتنفيذ -->
-            <div class="terms-card">
-                <div class="card-header">سابعاً: التواصل والتنفيذ</div>
-                <div class="terms-content">
-                    <p><strong>31.</strong> وسائل التواصل: تُعتمد وسائل التواصل الرسمية المسجلة فقط كقنوات معتمدة بين الطرفين.</p>
-                    <p><strong>32.</strong> التفويض: يلتزم العميل بإشعار مقدم الخدمة رسميًا في حال تفويض أي شخص للتواصل نيابة عنه.</p>
-                    <p><strong>33.</strong> النسخ الإلكترونية: تُعتبر جميع النسخ الإلكترونية من هذا عرض السعر / الفاتورة بما في ذلك المرسلة عبر البريد الإلكتروني أو وسائل التواصل نسخًا معتمدة ولها نفس القوة القانونية.</p>
-                </div>
+            <div class="terms-block"><h3>سابعاً: التواصل والتنفيذ</h3>
+                <p><strong>31.</strong> وسائل التواصل الرسمية فقط.<br><strong>32.</strong> التفويض بإشعار رسمي.<br><strong>33.</strong> النسخ الإلكترونية معتمدة قانونياً.</p>
             </div>
-            <!-- ثامناً: البنود القانونية -->
-            <div class="terms-card">
-                <div class="card-header">ثامناً: البنود القانونية</div>
-                <div class="terms-content">
-                    <p><strong>34.</strong> طبيعة العلاقة: تُعد العلاقة بين الطرفين علاقة تعاقدية مستقلة ولا تُنشئ أي شراكة أو وكالة أو تمثيل قانوني.</p>
-                    <p><strong>35.</strong> كامل الاتفاق: يمثل هذا المستند كامل الاتفاق بين الطرفين ويلغي أي اتفاقات أو تفاهمات سابقة سواء كانت شفهية أو مكتوبة.</p>
-                    <p><strong>36.</strong> الأخطاء غير المقصودة: في حال وجود أي خطأ غير مقصود في الصياغة فإنه لا يؤثر على صحة باقي البنود وتبقى سارية وملزمة.</p>
-                    <p><strong>37.</strong> عدم التنازل: عدم استخدام مقدم الخدمة لأي من حقوقه لا يُعد تنازلًا عنها ويحتفظ بحقه في استخدامها في أي وقت لاحق.</p>
-                    <p><strong>38.</strong> اللغة المعتمدة: في حال ترجمة هذا المستند إلى أي لغة أخرى تُعتمد النسخة العربية في التفسير.</p>
-                </div>
+            <div class="terms-block"><h3>ثامناً: البنود القانونية</h3>
+                <p><strong>34.</strong> علاقة تعاقدية مستقلة.<br><strong>35.</strong> كامل الاتفاق.<br><strong>36.</strong> الأخطاء غير المقصودة لا تبطل البنود.<br><strong>37.</strong> عدم التنازل عن الحقوق.<br><strong>38.</strong> اللغة العربية المعتمدة.</p>
             </div>
         </div>
     </div>
-
-    <!-- استكمال باقي البنود (تاسعاً، عاشراً، حادي عشر، ثاني عشر) -->
-    <div class="full-width-section">
-        <div class="extra-grid">
-            <!-- تاسعاً: النزاعات -->
-            <div class="terms-card">
-                <div class="card-header">تاسعاً: النزاعات</div>
-                <div class="terms-content">
-                    <p><strong>39.</strong> حل النزاعات: يتم السعي لحل أي نزاع ينشأ بين الطرفين بشكل ودي خلال مدة مناسبة من تاريخ الإشعار.</p>
-                    <p><strong>40.</strong> الجهة المختصة: في حال عدم التوصل إلى حل يحق لمقدم الخدمة تحديد الجهة القضائية أو التحكيمية المختصة.</p>
-                </div>
+    <div class="two-columns">
+        <div class="col">
+            <div class="terms-block"><h3>تاسعاً: النزاعات</h3>
+                <p><strong>39.</strong> حل النزاعات ودياً.<br><strong>40.</strong> الجهة المختصة يحددها مقدم الخدمة.</p>
             </div>
-            <!-- عاشراً: البنود المتقدمة -->
-            <div class="terms-card">
-                <div class="card-header">عاشراً: البنود المتقدمة</div>
-                <div class="terms-content">
-                    <p><strong>41.</strong> القوة القاهرة: لا يتحمل مقدم الخدمة أي مسؤولية عن التأخير أو عدم التنفيذ الناتج عن ظروف خارجة عن الإرادة.</p>
-                    <p><strong>42.</strong> السرية: يلتزم الطرفان بالمحافظة على سرية المعلومات وعدم الإفصاح عنها لأي طرف ثالث دون موافقة خطية.</p>
-                    <p><strong>43.</strong> التعديلات خارج النطاق: أي طلبات أو تعديلات خارج نطاق هذا المستند يتم تنفيذها بموجب عرض وسعر مستقل.</p>
-                    <p><strong>44.</strong> التوقف المؤقت: يحق لمقدم الخدمة إيقاف المشروع مؤقتًا في حال عدم تجاوب العميل أو عدم توفير المتطلبات.</p>
-                    <p><strong>45.</strong> الاستلام الحكمي: يُعد المشروع مستلمًا ومقبولًا من قبل العميل بعد مضي سبعة أيام من تاريخ تسليمه في حال عدم تقديم اعتراض رسمي.</p>
-                    <p><strong>46.</strong> الاعتراض: يجب على العميل تقديم أي اعتراض بشكل مكتوب وواضح خلال مدة سبعة أيام من تاريخ التسليم.</p>
-                </div>
+            <div class="terms-block"><h3>عاشراً: البنود المتقدمة</h3>
+                <p><strong>41.</strong> القوة القاهرة.<br><strong>42.</strong> السرية.<br><strong>43.</strong> التعديلات خارج النطاق بعرض منفصل.<br><strong>44.</strong> التوقف المؤقت عند عدم تجاوب العميل.<br><strong>45.</strong> الاستلام الحكمي بعد 7 أيام.<br><strong>46.</strong> الاعتراض خلال 7 أيام كتابياً.</p>
             </div>
-            <!-- حادي عشر: البنود المالية المتقدمة -->
-            <div class="terms-card">
-                <div class="card-header">حادي عشر: البنود المالية المتقدمة</div>
-                <div class="terms-content">
-                    <p><strong>47.</strong> المدفوعات الخارجية: لا تُعد أي مبالغ تُدفع لجهات خارجية مستحقة لمقدم الخدمة ولا يحق المطالبة بها أو استرجاعها.</p>
-                    <p><strong>48.</strong> المدفوعات بالنيابة: تُحتسب أي مدفوعات يقوم بها مقدم الخدمة نيابة عن العميل ضمن تكاليف المشروع ويلتزم العميل بسدادها.</p>
-                    <p><strong>49.</strong> تفسير البنود: يتم تفسير بنود هذا المستند بما يحقق الغرض منها وبما يحفظ حقوق مقدم الخدمة.</p>
-                    <p><strong>50.</strong> حق رفض الخدمة: يحتفظ مقدم الخدمة بحقه في رفض تقديم الخدمة أو إيقافها في أي مرحلة مع احتساب الأعمال المنفذة.</p>
-                </div>
+        </div>
+        <div class="col">
+            <div class="terms-block"><h3>حادي عشر: البنود المالية المتقدمة</h3>
+                <p><strong>47.</strong> المدفوعات الخارجية غير مستحقة لمقدم الخدمة.<br><strong>48.</strong> المدفوعات بالنيابة ضمن تكاليف المشروع.<br><strong>49.</strong> تفسير البنود بما يحفظ حقوق مقدم الخدمة.<br><strong>50.</strong> حق رفض الخدمة أو إيقافها.</p>
             </div>
-            <!-- ثاني عشر: الحماية القانونية (51-57) -->
-            <div class="terms-card">
-                <div class="card-header">ثاني عشر: الحماية القانونية</div>
-                <div class="terms-content">
-                    <p><strong>51.</strong> التنازل عن المطالبات: يتنازل العميل عن أي مطالبات أو تعويضات تتجاوز قيمة هذا عرض السعر / الفاتورة.</p>
-                    <p><strong>52.</strong> حدود المسؤولية: لا تتجاوز مسؤولية مقدم الخدمة في جميع الأحوال إجمالي المبلغ المدفوع من قبل العميل.</p>
-                    <p><strong>53.</strong> الاستخدام غير المشروع: لا يتحمل مقدم الخدمة أي مسؤولية عن استخدام العميل للمخرجات بشكل مخالف للأنظمة.</p>
-                    <p><strong>54.</strong> الملكية الفكرية: تبقى جميع حقوق الملكية الفكرية محفوظة لمقدم الخدمة ما لم يتم الاتفاق على نقلها بشكل مكتوب.</p>
-                    <p><strong>55.</strong> تحديث الشروط: يحق لمقدم الخدمة تحديث أو تعديل هذه الشروط مستقبلاً وتسري على الأعمال الجديدة.</p>
-                    <p><strong>56.</strong> استقلالية البنود: يتم تفسير كل بند من بنود هذا المستند بشكل مستقل دون التأثير على بقية البنود.</p>
-                    <p><strong>57.</strong> الشروط الإضافية والملحقات: في حال وجود أي شروط أو طلبات أو متطلبات إضافية من قبل العميل سواء كانت فنية أو تشغيلية أو مالية أو تنظيمية ولم تكن ضمن نطاق هذا عرض السعر / الفاتورة فإنه يتم توثيقها حصراً في ملحق اتفاق مستقل يتم إعداده واعتماده من قبل الطرفين بشكل خطي ورسمي، ولا تُعد تلك الشروط أو الطلبات الإضافية جزءًا من هذا المستند ولا يترتب عليها أي تعديل أو تأثير على أي من بنوده ما لم يتم النص على ذلك صراحةً وبشكل مكتوب في ذلك الملحق، كما لا يُعتد بأي اتفاقات أو تفاهمات أو مراسلات سواء كانت شفهية أو غير موثقة ما لم يتم تضمينها في ملحق رسمي معتمد.</p>
-                </div>
+            <div class="terms-block"><h3>ثاني عشر: الحماية القانونية</h3>
+                <p><strong>51.</strong> التنازل عن المطالبات التي تتجاوز قيمة الفاتورة.<br><strong>52.</strong> حدود المسؤولية = إجمالي المبلغ المدفوع.<br><strong>53.</strong> لا مسؤولية عن الاستخدام غير المشروع.<br><strong>54.</strong> الملكية الفكرية محفوظة لمقدم الخدمة.<br><strong>55.</strong> حق تحديث الشروط مستقبلاً.<br><strong>56.</strong> استقلالية البنود.<br><strong>57.</strong> الشروط الإضافية توثق في ملحق مستقل.</p>
             </div>
         </div>
     </div>
-
-    <!-- الإقرار النهائي والتوقيع -->
-    <div class="final-acknowledgment">
-        <p><strong>📄 الإقرار</strong><br>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
-        <div class="signature-row">
-            <div class="sig-item"><strong>الاسم:</strong> <span style="border-bottom: 1px solid #6c8aae; display: inline-block; width: 70%;"></span></div>
-            <div class="sig-item"><strong>التاريخ:</strong> <span style="border-bottom: 1px solid #6c8aae; display: inline-block; width: 70%;"></span></div>
-        </div>
-        <div class="signature-row" style="border-top: none; padding-top: 0;">
-            <div class="sig-item"><strong>التوقيع:</strong> <span style="border-bottom: 1px solid #6c8aae; display: inline-block; width: 80%;"></span></div>
-        </div>
+    <div class="declaration">
+        <p>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
     </div>
-
-    <!-- التذييل الثابت (يظهر في كل صفحة عند الطباعة) -->
-    <div class="footer-fixed">
-        <div class="footer-contact">
-            <span>📞 الهاتف: 966534051317</span>
-            <span>📱 الواتس اب: 966545312021</span>
-            <span>✉️ info@fi-khidmatik.com</span>
-            <span>🌐 www.khidmatik.com</span>
-        </div>
-        <div class="legal-note">📌 هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+    <div class="signature">
+        <div><strong>الاسم:</strong> _________________</div>
+        <div><strong>التاريخ:</strong> _________________</div>
     </div>
-    <div class="small-note" style="text-align: center; margin-top: 20px; border-top: 1px solid #e2edf7; padding-top: 12px;">
-        * يشمل هذا المستند جميع الشروط والأحكام والتعليمات الواردة في الوثيقة الأصلية (57 بنداً) بنصها الكامل، دون أي حذف أو إخلال، ومعتمدة للطباعة.
-    </div>
+    <div style="margin-top: 15px;"><strong>التوقيع:</strong> _________________</div>
 </div>
 </body>
 </html>
