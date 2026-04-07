@@ -7,13 +7,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="terms.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             background: #e9ecef;
             font-family: 'Segoe UI', 'Cairo', 'Tahoma', sans-serif;
@@ -22,16 +22,14 @@
             flex-direction: column;
             align-items: center;
         }
-
         .invoice-wrapper {
             max-width: 210mm;
             margin: 0 auto;
             background: white;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             border-radius: 8px;
         }
-
-        .invoice-page {
+        .invoice-page, .terms-section-page {
             width: 210mm;
             min-height: 297mm;
             background: white;
@@ -40,18 +38,6 @@
             break-inside: avoid;
             position: relative;
         }
-
-        .terms-section-page {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            padding: 15mm 12mm;
-            page-break-after: always;
-            break-inside: avoid;
-            position: relative;
-        }
-
-        /* ترويسة موحدة */
         .header-top {
             display: flex;
             justify-content: space-between;
@@ -61,44 +47,36 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-
         .logo-area {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
         .logo-img {
             width: 65px;
             height: 65px;
             object-fit: contain;
         }
-
         .platform-name {
             font-size: 20px;
             font-weight: bold;
             color: #1e3a5f;
         }
-
         .platform-slogan {
             font-size: 10px;
             color: #6c757d;
         }
-
         .invoice-title {
             font-size: 24px;
             font-weight: bold;
             color: #1e3a5f;
         }
-
         .legal-numbers {
             text-align: left;
             font-size: 10px;
             color: #4a5568;
             line-height: 1.5;
         }
-
-        /* معلومات الفاتورة */
         .info-row {
             display: flex;
             justify-content: space-between;
@@ -108,7 +86,6 @@
             margin: 15px 0;
             border: 1px solid #e2e8f0;
         }
-
         .status-badge {
             background: #10b981;
             color: white;
@@ -117,15 +94,12 @@
             font-size: 11px;
             display: inline-block;
         }
-
-        /* العناوين (مصدرة من / إلى) */
         .addresses {
             display: flex;
             gap: 20px;
             margin: 20px 0;
             flex-wrap: wrap;
         }
-
         .address-box {
             flex: 1;
             background: #f9f9fb;
@@ -135,7 +109,6 @@
             font-size: 11px;
             line-height: 1.7;
         }
-
         .address-box strong {
             display: block;
             margin-bottom: 10px;
@@ -143,38 +116,29 @@
             border-right: 3px solid #1e3a5f;
             padding-right: 8px;
         }
-
-        /* الدفع والتوصيل */
         .payment-approval {
             display: flex;
             gap: 15px;
             margin: 15px 0;
         }
-
-        .payment-box,
-        .approval-box {
+        .payment-box, .approval-box {
             flex: 1;
             background: #f1f5f9;
             padding: 10px 12px;
             border-radius: 10px;
             font-size: 11px;
         }
-
-        .payment-box strong,
-        .approval-box strong {
+        .payment-box strong, .approval-box strong {
             display: block;
             margin-bottom: 5px;
             color: #1e3a5f;
         }
-
-        /* جدول المنتجات */
         .invoice-table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             font-size: 11px;
         }
-
         .invoice-table th {
             background: #1e3a5f;
             color: white;
@@ -182,13 +146,11 @@
             border: 1px solid #2d4a7a;
             text-align: center;
         }
-
         .invoice-table td {
             border: 1px solid #cbd5e1;
             padding: 10px 8px;
             vertical-align: middle;
         }
-
         .product-img {
             width: 50px;
             height: 50px;
@@ -196,8 +158,6 @@
             border-radius: 8px;
             background: #f1f5f9;
         }
-
-        /* الإجماليات */
         .totals {
             width: 280px;
             margin-right: auto;
@@ -205,14 +165,12 @@
             border-top: 2px solid #e2e8f0;
             padding-top: 12px;
         }
-
         .totals div {
             display: flex;
             justify-content: space-between;
             padding: 6px 0;
             font-size: 12px;
         }
-
         .grand-total {
             font-weight: bold;
             font-size: 16px;
@@ -221,8 +179,6 @@
             margin-top: 6px;
             padding-top: 10px;
         }
-
-        /* باركود */
         .barcodes-container {
             display: flex;
             justify-content: center;
@@ -232,13 +188,10 @@
             border: 1px solid #e2e8f0;
             border-radius: 12px;
         }
-
         .qr-placeholder {
             width: 100px;
             height: 100px;
         }
-
-        /* تذييل موحد */
         .footer-note {
             margin-top: 30px;
             font-size: 10px;
@@ -246,7 +199,6 @@
             border-top: 1px solid #e2e8f0;
             padding-top: 15px;
         }
-
         .contact-info {
             display: flex;
             justify-content: center;
@@ -257,7 +209,6 @@
             background: #f1f5f9;
             border-radius: 10px;
         }
-
         .page-number {
             text-align: left;
             font-size: 10px;
@@ -265,8 +216,6 @@
             margin-top: 12px;
             direction: ltr;
         }
-
-        /* أزرار التحكم */
         .action-buttons {
             display: flex;
             justify-content: center;
@@ -279,10 +228,9 @@
             background: white;
             padding: 10px 25px;
             border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             z-index: 1000;
         }
-
         .btn {
             padding: 8px 20px;
             border: none;
@@ -291,60 +239,29 @@
             font-weight: bold;
             font-size: 14px;
         }
-
-        .btn-primary {
-            background: #1e3a5f;
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #334155;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
+        .btn-primary { background: #1e3a5f; color: white; }
+        .btn-secondary { background: #334155; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
         @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-
-            .action-buttons {
-                display: none !important;
-            }
-
-            .invoice-page,
-            .terms-section-page {
-                page-break-after: always;
-            }
+            body { background: white; padding: 0; margin: 0; }
+            .action-buttons { display: none !important; }
+            .invoice-page, .terms-section-page { page-break-after: always; }
         }
-
-        /* تحميل */
         .loading-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.7);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
         }
-
         .loading-box {
             background: white;
             padding: 30px;
             border-radius: 16px;
             text-align: center;
         }
-
         .loading-spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #1e3a5f;
@@ -354,17 +271,7 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .toast-message {
             position: fixed;
             bottom: 80px;
@@ -377,389 +284,331 @@
             z-index: 10000;
             font-size: 14px;
         }
-
+        /* أنماط الشروط */
+        .terms-main-container {
+            width: 100%;
+        }
+        .main-title {
+            color: #1e3a5f;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 10px;
+        }
+        .legal-intro {
+            background: #fef3c7;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-right: 5px solid #f59e0b;
+            font-size: 12px;
+        }
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .terms-block {
+            background: #fafafa;
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        .terms-block h3 {
+            background: #1e3a5f;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            margin-bottom: 14px;
+            display: inline-block;
+        }
+        .terms-block p {
+            font-size: 11.5px;
+            line-height: 1.85;
+            color: #2d3a4a;
+        }
+        .declaration {
+            background: #f0f4f9;
+            padding: 20px;
+            border-radius: 14px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .declaration p {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .signature {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #cbd5e1;
+        }
         @media screen and (max-width: 768px) {
-            .invoice-page {
-                padding: 8mm 6mm;
-            }
-
-            .addresses,
-            .payment-approval {
-                flex-direction: column;
-            }
-
-            .action-buttons {
-                gap: 8px;
-                padding: 8px 15px;
-            }
-
-            .btn {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
+            .invoice-page { padding: 8mm 6mm; }
+            .addresses, .payment-approval { flex-direction: column; }
+            .action-buttons { gap: 8px; padding: 8px 15px; }
+            .btn { padding: 6px 12px; font-size: 12px; }
+            .two-columns { grid-template-columns: 1fr; gap: 15px; }
         }
     </style>
 </head>
 <body>
-    <div class="invoice-wrapper" id="invoiceRoot"></div>
-    <div class="action-buttons">
-        <button class="btn btn-primary" id="printBtn">🖨️ طباعة</button>
-        <button class="btn btn-secondary" id="pdfBtn">📄 PDF</button>
-        <button class="btn btn-danger" id="backBtn" onclick="window.close()">✖️ إغلاق</button>
-    </div>
+<div class="invoice-wrapper" id="invoiceRoot"></div>
+<div class="action-buttons">
+    <button class="btn btn-primary" id="printBtn">🖨️ طباعة</button>
+    <button class="btn btn-secondary" id="pdfBtn">📄 PDF</button>
+    <button class="btn btn-danger" id="backBtn" onclick="window.close()">✖️ إغلاق</button>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-            authDomain: "msjt301-974bb.firebaseapp.com",
-            projectId: "msjt301-974bb",
-            storageBucket: "msjt301-974bb.firebasestorage.app",
-            messagingSenderId: "186209858482",
-            appId: "1:186209858482:web:186ca610780799ef562aab"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+        authDomain: "msjt301-974bb.firebaseapp.com",
+        projectId: "msjt301-974bb",
+        storageBucket: "msjt301-974bb.firebasestorage.app",
+        messagingSenderId: "186209858482",
+        appId: "1:186209858482:web:186ca610780799ef562aab"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        let orderData = null;
-        let termsHtml = '';
+    let orderData = null;
+    const sellerData = {
+        name: "منصة في خدمتك",
+        taxNumber: "312495447600003",
+        licenseNumber: "FL-765735204",
+        address: "حائل - حي النقرة - شارع سعد المشاط - مبنى 3085 - الرمز البريدي 55431",
+        phone: "966534051317",
+        whatsapp: "966545312021",
+        email: "info@fi-khidmatik.com",
+        website: "www.khidmatik.com"
+    };
 
-        const sellerData = {
-            name: "منصة في خدمتك",
-            taxNumber: "312495447600003",
-            licenseNumber: "FL-765735204",
-            address: "حائل - حي النقرة - شارع سعد المشاط - مبنى 3085 - الرمز البريدي 55431",
-            phone: "966534051317",
-            whatsapp: "966545312021",
-            email: "info@fi-khidmatik.com",
-            website: "www.khidmatik.com"
-        };
-
-        function showLoading(msg) {
-            let ov = document.getElementById('loadingOverlay');
-            if (!ov) {
-                ov = document.createElement('div');
-                ov.id = 'loadingOverlay';
-                ov.className = 'loading-overlay';
-                ov.innerHTML = `<div class="loading-box"><div class="loading-spinner"></div><p id="loadingMsg">${msg}</p></div>`;
-                document.body.appendChild(ov);
-            }
-            document.getElementById('loadingMsg').textContent = msg;
-            ov.style.display = 'flex';
+    function showLoading(msg) {
+        let ov = document.getElementById('loadingOverlay');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = 'loadingOverlay';
+            ov.className = 'loading-overlay';
+            ov.innerHTML = `<div class="loading-box"><div class="loading-spinner"></div><p id="loadingMsg">${msg}</p></div>`;
+            document.body.appendChild(ov);
         }
+        document.getElementById('loadingMsg').textContent = msg;
+        ov.style.display = 'flex';
+    }
+    function hideLoading() { let ov = document.getElementById('loadingOverlay'); if(ov) ov.style.display = 'none'; }
+    function showToast(msg) { let t = document.createElement('div'); t.className = 'toast-message'; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
 
-        function hideLoading() {
-            let ov = document.getElementById('loadingOverlay');
-            if (ov) ov.style.display = 'none';
-        }
+    function cleanHtmlText(html) {
+        if (!html) return '';
+        let text = String(html);
+        text = text.replace(/<[^>]*>/g, ' ');
+        text = text.replace(/data-[a-z]+="[^"]*"/gi, '');
+        text = text.replace(/\b(strong|p|div|span|br|data-start|data-end)\b/gi, '');
+        text = text.replace(/\s+/g, ' ').trim();
+        return text;
+    }
 
-        function showToast(msg) {
-            let t = document.createElement('div');
-            t.className = 'toast-message';
-            t.textContent = msg;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
-
-        // تنظيف النصوص من أي أكواد HTML
-        function cleanHtmlText(html) {
-            if (!html) return '';
-            let text = String(html);
-            text = text.replace(/<[^>]*>/g, ' ');
-            text = text.replace(/data-[a-z]+="[^"]*"/gi, '');
-            text = text.replace(/\b(strong|p|div|span|br|data-start|data-end)\b/gi, '');
-            text = text.replace(/\s+/g, ' ').trim();
-            return text;
-        }
-
-        async function loadTerms() {
+    async function fetchOrderData() {
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('id');
+        if (orderId && orderId !== 'null') {
             try {
-                const response = await fetch('terms.html');
-                if (!response.ok) throw new Error('فشل تحميل ملف الشروط');
-                let html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                // نبحث عن الحاوية الرئيسية للشروط
-                const content = doc.querySelector('.terms-main-container');
-                if (content) termsHtml = content.innerHTML;
-                else termsHtml = '<div style="padding:20px;color:red;">لم يتم العثور على محتوى الشروط</div>';
-            } catch (e) {
-                console.error(e);
-                termsHtml = '<div style="padding:20px;color:red;">خطأ في تحميل الشروط والأحكام</div>';
-            }
-        }
-
-        async function fetchOrderData() {
-            const params = new URLSearchParams(window.location.search);
-            const orderId = params.get('id');
-            if (orderId && orderId !== 'null') {
-                try {
-                    const orderSnap = await getDoc(doc(db, 'orders', orderId));
-                    if (orderSnap.exists()) {
-                        orderData = { id: orderSnap.id, ...orderSnap.data() };
-                        if (orderData.customerId) {
-                            const custSnap = await getDoc(doc(db, 'customers', orderData.customerId));
-                            if (custSnap.exists()) {
-                                const c = custSnap.data();
-                                orderData.customerName = c.name || c.customerName;
-                                orderData.customerPhone = c.phone || c.mobile;
-                                orderData.customerEmail = c.email;
-                                const addrParts = [];
-                                if (c.city) addrParts.push(c.city);
-                                if (c.street) addrParts.push(c.street);
-                                if (c.buildingNo) addrParts.push(`مبنى رقم ${c.buildingNo}`);
-                                if (c.postalCode) addrParts.push(`الرمز البريدي ${c.postalCode}`);
-                                orderData.customerAddress = addrParts.join(' - ') || 'لا يوجد عنوان';
-                            }
+                const orderSnap = await getDoc(doc(db, 'orders', orderId));
+                if (orderSnap.exists()) {
+                    orderData = { id: orderSnap.id, ...orderSnap.data() };
+                    if (orderData.customerId) {
+                        const custSnap = await getDoc(doc(db, 'customers', orderData.customerId));
+                        if (custSnap.exists()) {
+                            const c = custSnap.data();
+                            orderData.customerName = c.name || c.customerName;
+                            orderData.customerPhone = c.phone || c.mobile;
+                            orderData.customerEmail = c.email;
+                            const addrParts = [];
+                            if (c.city) addrParts.push(c.city);
+                            if (c.street) addrParts.push(c.street);
+                            if (c.buildingNo) addrParts.push(`مبنى رقم ${c.buildingNo}`);
+                            if (c.postalCode) addrParts.push(`الرمز البريدي ${c.postalCode}`);
+                            orderData.customerAddress = addrParts.join(' - ') || 'لا يوجد عنوان';
                         }
-                        if (orderData.items) {
-                            for (let item of orderData.items) {
-                                item.name = cleanHtmlText(item.name);
-                                item.description = cleanHtmlText(item.description);
-                            }
-                        }
-                        return;
                     }
-                } catch (e) { console.error(e); }
-            }
-            // بيانات تجريبية
-            orderData = {
-                orderNumber: "INV-2026-0407-001",
-                orderDate: "2026-04-07",
-                orderTime: "14:30",
-                status: "مكتمل",
-                customerName: "أحمد محمد السالم",
-                customerPhone: "+966551234567",
-                customerEmail: "ahmed@example.com",
-                customerAddress: "الرياض - حي المروج - مبنى 2215 - الرمز البريدي 12282",
-                subtotal: 19282,
-                discount: 5784.60,
-                tax: 2024.61,
-                total: 15522.01,
-                paymentMethodName: "تحويل بنكي",
-                shippingMethod: "delivery",
-                approvalCode: "AP-8821X9",
-                items: [
-                    { name: "الباقة المتقدمة في تصميم المتاجر الإلكترونية", description: "تصميم متكامل + لوحة تحكم + بوابة دفع", image: "https://picsum.photos/id/48/200/200", quantity: 1, price: 12500 },
-                    { name: "استضافة سحابية", description: "استضافة لمدة عام + دعم فني 24/7", image: "https://picsum.photos/id/0/200/200", quantity: 2, price: 2391 }
-                ]
-            };
+                    if (orderData.items) {
+                        for (let item of orderData.items) {
+                            item.name = cleanHtmlText(item.name);
+                            item.description = cleanHtmlText(item.description);
+                        }
+                    }
+                    return;
+                }
+            } catch(e) { console.error(e); }
         }
+        // بيانات تجريبية
+        orderData = {
+            orderNumber: "INV-2026-0407-001",
+            orderDate: "2026-04-07",
+            orderTime: "14:30",
+            status: "مكتمل",
+            customerName: "أحمد محمد السالم",
+            customerPhone: "+966551234567",
+            customerEmail: "ahmed@example.com",
+            customerAddress: "الرياض - حي المروج - مبنى 2215 - الرمز البريدي 12282",
+            subtotal: 19282,
+            discount: 5784.60,
+            tax: 2024.61,
+            total: 15522.01,
+            paymentMethodName: "تحويل بنكي",
+            shippingMethod: "delivery",
+            approvalCode: "AP-8821X9",
+            items: [
+                { name: "الباقة المتقدمة في تصميم المتاجر الإلكترونية", description: "تصميم متكامل + لوحة تحكم + بوابة دفع", image: "https://picsum.photos/id/48/200/200", quantity: 1, price: 12500 },
+                { name: "استضافة سحابية", description: "استضافة لمدة عام + دعم فني 24/7", image: "https://picsum.photos/id/0/200/200", quantity: 2, price: 2391 }
+            ]
+        };
+    }
 
-        function formatTime12(t) {
-            if (!t) return '';
-            let [h, m] = t.split(':');
-            let hour = parseInt(h);
-            let ap = hour >= 12 ? 'مساءً' : 'صباحاً';
-            hour = hour % 12 || 12;
-            return `${hour}:${m} ${ap}`;
-        }
+    function formatTime12(t) { if(!t) return ''; let [h,m]=t.split(':'); let hour=parseInt(h); let ap=hour>=12?'مساءً':'صباحاً'; hour=hour%12||12; return `${hour}:${m} ${ap}`; }
+    function formatDateYMD(d) { if(!d) return ''; let p=d.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d; }
+    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function getShippingMethodText(method) {
+        if (method === 'delivery') return 'شحن منزلي';
+        if (method === 'pickup') return 'استلام من المقر';
+        if (method === 'noship') return 'لا يحتاج شحن (منتج رقمي)';
+        return method || 'غير محدد';
+    }
 
-        function formatDateYMD(d) {
-            if (!d) return '';
-            let p = d.split('-');
-            return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
-        }
-
-        function getShippingMethodText(method) {
-            if (method === 'delivery') return 'شحن منزلي';
-            if (method === 'pickup') return 'استلام من المقر';
-            if (method === 'noship') return 'لا يحتاج شحن (منتج رقمي)';
-            return method || 'غير محدد';
-        }
-
-        function buildInvoicePage(pageNum, totalPages) {
-            const itemsHtml = (orderData.items || []).map((item, idx) => `
-                <tr>
-                    <td style="text-align:center">${idx + 1}</td>
-                    <td style="text-align:center"><img src="${item.image}" class="product-img" crossorigin="anonymous" onerror="this.style.display='none'"></td>
-                    <td style="text-align:right"><strong>${escapeHtml(item.name)}</strong><br><small>${escapeHtml(item.description)}</small></td>
-                    <td style="text-align:center">${item.quantity}</td>
-                    <td style="text-align:center">${item.price.toFixed(2)} ريال</td>
-                    <td style="text-align:center">${(item.price * item.quantity).toFixed(2)} ريال</td>
-                </tr>
-            `).join('');
-            const subtotal = orderData.subtotal || orderData.items.reduce((s, i) => s + (i.price * i.quantity), 0);
-            const total = orderData.total || (subtotal - orderData.discount + orderData.tax);
-            const shipText = getShippingMethodText(orderData.shippingMethod);
-            return `
-            <div class="invoice-page">
-                <div class="header-top">
-                    <div class="logo-area">
-                        <img src="images/logo.svg" class="logo-img" onerror="this.src='https://placehold.co/65x65/1e3a5f/white?text=في+خدمتك'">
-                        <div>
-                            <div class="platform-name">${sellerData.name}</div>
-                            <div class="platform-slogan">خدمات تقنية متكاملة</div>
-                        </div>
-                    </div>
-                    <div class="invoice-title">فاتورة إلكترونية</div>
-                    <div class="legal-numbers">
-                        <div>رقم شهادة العمل الحر: ${sellerData.licenseNumber}</div>
-                        <div>الرقم الضريبي: ${sellerData.taxNumber}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div><strong>رقم الفاتورة:</strong> ${orderData.orderNumber}</div>
-                    <div><strong>التاريخ:</strong> ${formatDateYMD(orderData.orderDate)} - ${formatTime12(orderData.orderTime)}</div>
-                    <div><span class="status-badge">${orderData.status}</span></div>
-                </div>
-                <div class="addresses">
-                    <div class="address-box"><strong>مصدرة من</strong>${sellerData.name}<br>المملكة العربية السعودية<br>${sellerData.address}<br>📞 ${sellerData.phone}<br>✉️ ${sellerData.email}</div>
-                    <div class="address-box"><strong>مصدرة إلى</strong>${escapeHtml(orderData.customerName)}<br>${escapeHtml(orderData.customerAddress)}<br>📞 ${escapeHtml(orderData.customerPhone)}<br>✉️ ${escapeHtml(orderData.customerEmail)}</div>
-                </div>
-                <div class="payment-approval">
-                    <div class="payment-box"><strong>طريقة الدفع:</strong> ${orderData.paymentMethodName}</div>
-                    <div class="payment-box"><strong>طريقة الاستلام:</strong> ${shipText}</div>
-                    <div class="approval-box"><strong>رمز الموافقة:</strong> ${orderData.approvalCode}</div>
-                </div>
-                <table class="invoice-table">
-                    <thead>
-                        <tr><th>#</th><th>الصورة</th><th>المنتج / الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
-                    </thead>
-                    <tbody>${itemsHtml}</tbody>
-                </table>
-                <div class="totals">
-                    <div><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                    <div><span>الخصم:</span><span>- ${orderData.discount.toFixed(2)} ريال</span></div>
-                    <div><span>ضريبة القيمة المضافة 15%:</span><span>${orderData.tax.toFixed(2)} ريال</span></div>
-                    <div class="grand-total"><span>الإجمالي النهائي:</span><span>${total.toFixed(2)} ريال</span></div>
-                </div>
-                <div class="barcodes-container">
-                    <div class="barcode-item">
-                        <div id="platformQR" class="qr-placeholder"></div>
-                    </div>
-                </div>
-                <div class="footer-note">
-                    <div class="contact-info"><span>📞 ${sellerData.phone}</span><span>💬 ${sellerData.whatsapp}</span><span>✉️ ${sellerData.email}</span><span>🌐 ${sellerData.website}</span></div>
-                    <div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
-                    <div class="page-number">صفحة ${pageNum} من ${totalPages}</div>
-                </div>
-            </div>`;
-        }
-
-        async function renderCompleteInvoice() {
-            showLoading('جاري تحميل الفاتورة والشروط...');
-            await loadTerms();
-            await fetchOrderData();
-
-            const invoiceHtml = buildInvoicePage(1, 3);
-            // إضافة الشروط في صفحة منفصلة
-            const finalHtml = invoiceHtml + `
-                <div class="terms-section-page">
-                    ${buildTermsHeader()}
-                    ${termsHtml}
-                    ${buildTermsFooter(2, 3)}
-                </div>
-                <div class="terms-section-page">
-                    ${buildTermsHeader()}
-                    ${buildTermsPage2()}
-                    ${buildTermsFooter(3, 3)}
-                </div>
-            `;
-            document.getElementById('invoiceRoot').innerHTML = finalHtml;
-
-            setTimeout(() => {
-                const qr = document.getElementById('platformQR');
-                if (qr && typeof QRCode !== 'undefined') new QRCode(qr, { text: `https://${sellerData.website}`, width: 100, height: 100 });
-            }, 100);
-            hideLoading();
-        }
-
-        function buildTermsHeader() {
-            return `
+    function buildInvoicePage(pageNum, totalPages) {
+        const itemsHtml = (orderData.items || []).map((item, idx) => `
+            <tr>
+                <td style="text-align:center">${idx+1}</td>
+                <td style="text-align:center"><img src="${item.image}" class="product-img" crossorigin="anonymous" onerror="this.style.display='none'"></td>
+                <td style="text-align:right"><strong>${escapeHtml(item.name)}</strong><br><small>${escapeHtml(item.description)}</small></td>
+                <td style="text-align:center">${item.quantity}</td>
+                <td style="text-align:center">${item.price.toFixed(2)} ريال</td>
+                <td style="text-align:center">${(item.price*item.quantity).toFixed(2)} ريال</td>
+            </tr>
+        `).join('');
+        const subtotal = orderData.subtotal || orderData.items.reduce((s,i)=>s+(i.price*i.quantity),0);
+        const total = orderData.total || (subtotal - orderData.discount + orderData.tax);
+        const shipText = getShippingMethodText(orderData.shippingMethod);
+        return `<div class="invoice-page">
             <div class="header-top">
-                <div class="logo-area">
-                    <img src="images/logo.svg" class="logo-img" onerror="this.src='https://placehold.co/65x65/1e3a5f/white?text=في+خدمتك'">
-                    <div>
-                        <div class="platform-name">${sellerData.name}</div>
-                        <div class="platform-slogan">خدمات تقنية متكاملة</div>
-                    </div>
-                </div>
-                <div class="invoice-title">الشروط والأحكام</div>
-                <div class="legal-numbers">
-                    <div>رقم شهادة العمل الحر: ${sellerData.licenseNumber}</div>
-                    <div>الرقم الضريبي: ${sellerData.taxNumber}</div>
-                </div>
-            </div>`;
-        }
-
-        function buildTermsFooter(pageNum, totalPages) {
-            return `
+                <div class="logo-area"><img src="images/logo.svg" class="logo-img" onerror="this.src='https://placehold.co/65x65/1e3a5f/white?text=في+خدمتك'"><div><div class="platform-name">${sellerData.name}</div><div class="platform-slogan">خدمات تقنية متكاملة</div></div></div>
+                <div class="invoice-title">فاتورة إلكترونية</div>
+                <div class="legal-numbers"><div>رقم شهادة العمل الحر: ${sellerData.licenseNumber}</div><div>الرقم الضريبي: ${sellerData.taxNumber}</div></div>
+            </div>
+            <div class="info-row">
+                <div><strong>رقم الفاتورة:</strong> ${orderData.orderNumber}</div>
+                <div><strong>التاريخ:</strong> ${formatDateYMD(orderData.orderDate)} - ${formatTime12(orderData.orderTime)}</div>
+                <div><span class="status-badge">${orderData.status}</span></div>
+            </div>
+            <div class="addresses">
+                <div class="address-box"><strong>مصدرة من</strong>${sellerData.name}<br>المملكة العربية السعودية<br>${sellerData.address}<br>📞 ${sellerData.phone}<br>✉️ ${sellerData.email}</div>
+                <div class="address-box"><strong>مصدرة إلى</strong>${escapeHtml(orderData.customerName)}<br>${escapeHtml(orderData.customerAddress)}<br>📞 ${escapeHtml(orderData.customerPhone)}<br>✉️ ${escapeHtml(orderData.customerEmail)}</div>
+            </div>
+            <div class="payment-approval">
+                <div class="payment-box"><strong>طريقة الدفع:</strong> ${orderData.paymentMethodName}</div>
+                <div class="payment-box"><strong>طريقة الاستلام:</strong> ${shipText}</div>
+                <div class="approval-box"><strong>رمز الموافقة:</strong> ${orderData.approvalCode}</div>
+            </div>
+            <table class="invoice-table"><thead><tr><th>#</th><th>الصورة</th><th>المنتج / الوصف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+            <div class="totals">
+                <div><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
+                <div><span>الخصم:</span><span>- ${orderData.discount.toFixed(2)} ريال</span></div>
+                <div><span>ضريبة القيمة المضافة 15%:</span><span>${orderData.tax.toFixed(2)} ريال</span></div>
+                <div class="grand-total"><span>الإجمالي النهائي:</span><span>${total.toFixed(2)} ريال</span></div>
+            </div>
+            <div class="barcodes-container"><div class="barcode-item"><div id="platformQR" class="qr-placeholder"></div></div></div>
             <div class="footer-note">
                 <div class="contact-info"><span>📞 ${sellerData.phone}</span><span>💬 ${sellerData.whatsapp}</span><span>✉️ ${sellerData.email}</span><span>🌐 ${sellerData.website}</span></div>
                 <div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
                 <div class="page-number">صفحة ${pageNum} من ${totalPages}</div>
-            </div>`;
-        }
+            </div>
+        </div>`;
+    }
 
-        function buildTermsPage2() {
-            return `
-            <div style="margin-top: 20px;">
-                <div class="two-columns" style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
-                    <div class="col" style="display: flex; flex-direction: column; gap: 20px;">
-                        <div class="terms-block" style="background: #fafafa; padding: 16px 18px; border-radius: 14px; border: 1px solid #e5e7eb;">
-                            <h3 style="background: #1e3a5f; color: white; padding: 6px 16px; border-radius: 30px; font-size: 14px; margin-bottom: 14px; display: inline-block;">تاسعاً: النزاعات</h3>
-                            <p style="font-size: 11.5px; line-height: 1.85;"><strong>39.</strong> حل النزاعات ودياً.<br><strong>40.</strong> الجهة المختصة يحددها مقدم الخدمة.</p>
-                        </div>
-                        <div class="terms-block" style="background: #fafafa; padding: 16px 18px; border-radius: 14px; border: 1px solid #e5e7eb;">
-                            <h3 style="background: #1e3a5f; color: white; padding: 6px 16px; border-radius: 30px; font-size: 14px; margin-bottom: 14px; display: inline-block;">عاشراً: البنود المتقدمة</h3>
-                            <p style="font-size: 11.5px; line-height: 1.85;"><strong>41.</strong> القوة القاهرة.<br><strong>42.</strong> السرية.<br><strong>43.</strong> التعديلات خارج النطاق بعرض منفصل.<br><strong>44.</strong> التوقف المؤقت عند عدم تجاوب العميل.<br><strong>45.</strong> الاستلام الحكمي بعد 7 أيام.<br><strong>46.</strong> الاعتراض خلال 7 أيام كتابياً.</p>
-                        </div>
-                    </div>
-                    <div class="col" style="display: flex; flex-direction: column; gap: 20px;">
-                        <div class="terms-block" style="background: #fafafa; padding: 16px 18px; border-radius: 14px; border: 1px solid #e5e7eb;">
-                            <h3 style="background: #1e3a5f; color: white; padding: 6px 16px; border-radius: 30px; font-size: 14px; margin-bottom: 14px; display: inline-block;">حادي عشر: البنود المالية والقانونية المتقدمة</h3>
-                            <p style="font-size: 11.5px; line-height: 1.85;"><strong>47.</strong> المدفوعات الخارجية غير مستحقة لمقدم الخدمة.<br><strong>48.</strong> المدفوعات بالنيابة ضمن تكاليف المشروع.<br><strong>49.</strong> تفسير البنود بما يحفظ حقوق مقدم الخدمة.<br><strong>50.</strong> حق رفض الخدمة أو إيقافها.</p>
-                        </div>
-                        <div class="terms-block" style="background: #fafafa; padding: 16px 18px; border-radius: 14px; border: 1px solid #e5e7eb;">
-                            <h3 style="background: #1e3a5f; color: white; padding: 6px 16px; border-radius: 30px; font-size: 14px; margin-bottom: 14px; display: inline-block;">ثاني عشر: الحماية القانونية</h3>
-                            <p style="font-size: 11.5px; line-height: 1.85;"><strong>51.</strong> التنازل عن المطالبات التي تتجاوز قيمة الفاتورة.<br><strong>52.</strong> حدود المسؤولية = إجمالي المبلغ المدفوع.<br><strong>53.</strong> لا مسؤولية عن الاستخدام غير المشروع.<br><strong>54.</strong> الملكية الفكرية محفوظة لمقدم الخدمة.<br><strong>55.</strong> حق تحديث الشروط مستقبلاً.<br><strong>56.</strong> استقلالية البنود.<br><strong>57.</strong> الشروط الإضافية توثق في ملحق مستقل.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="declaration" style="background: #f0f4f9; padding: 20px; border-radius: 14px; text-align: center; margin: 20px 0;">
-                    <p style="font-size: 13px; font-weight: bold;">أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
-                </div>
-                <div class="signature" style="display: flex; justify-content: space-between; margin-top: 25px; padding-top: 20px; border-top: 1px solid #cbd5e1;">
-                    <div><strong>الاسم:</strong> ${escapeHtml(orderData.customerName)}</div>
-                    <div><strong>التاريخ:</strong> ${formatDateYMD(orderData.orderDate)} - ${formatTime12(orderData.orderTime)}</div>
-                </div>
-                <div style="margin-top: 15px;"><strong>التوقيع:</strong> _________________</div>
-            </div>`;
-        }
+    function buildHeader() {
+        return `
+        <div class="header-top">
+            <div class="logo-area"><img src="images/logo.svg" class="logo-img" onerror="this.src='https://placehold.co/65x65/1e3a5f/white?text=في+خدمتك'"><div><div class="platform-name">${sellerData.name}</div><div class="platform-slogan">خدمات تقنية متكاملة</div></div></div>
+            <div class="invoice-title">الشروط والأحكام</div>
+            <div class="legal-numbers"><div>رقم شهادة العمل الحر: ${sellerData.licenseNumber}</div><div>الرقم الضريبي: ${sellerData.taxNumber}</div></div>
+        </div>`;
+    }
 
-        async function generatePDF() {
-            const root = document.getElementById('invoiceRoot');
-            const pages = root.querySelectorAll('.invoice-page, .terms-section-page');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            showLoading('جاري إنشاء PDF...');
-            try {
-                for (let i = 0; i < pages.length; i++) {
-                    const canvas = await html2canvas(pages[i], { scale: 3, useCORS: true, backgroundColor: '#fff' });
-                    if (i !== 0) pdf.addPage();
-                    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
-                }
-                pdf.save(`فاتورة_${orderData.orderNumber}.pdf`);
-                showToast('تم حفظ PDF بنجاح');
-            } catch (e) {
-                showToast('خطأ في إنشاء PDF');
-                console.error(e);
-            } finally {
-                hideLoading();
+    function buildFooter(pageNum, totalPages) {
+        return `
+        <div class="footer-note">
+            <div class="contact-info"><span>📞 ${sellerData.phone}</span><span>💬 ${sellerData.whatsapp}</span><span>✉️ ${sellerData.email}</span><span>🌐 ${sellerData.website}</span></div>
+            <div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+            <div class="page-number">صفحة ${pageNum} من ${totalPages}</div>
+        </div>`;
+    }
+
+    async function renderCompleteInvoice() {
+        showLoading('جاري تحميل الفاتورة والشروط...');
+        await fetchOrderData();
+        // بناء محتوى الشروط باستخدام المتغيرات من terms.js
+        const termsHtml1 = termsContent;      // من terms.js
+        const termsHtml2 = termsPage2Content; // من terms.js
+
+        const invoiceHtml = buildInvoicePage(1, 3);
+        const finalHtml = invoiceHtml + `
+            <div class="terms-section-page">
+                ${buildHeader()}
+                ${termsHtml1}
+                ${buildFooter(2, 3)}
+            </div>
+            <div class="terms-section-page">
+                ${buildHeader()}
+                ${termsHtml2}
+                ${buildFooter(3, 3)}
+            </div>
+        `;
+        document.getElementById('invoiceRoot').innerHTML = finalHtml;
+        setTimeout(() => {
+            const qr = document.getElementById('platformQR');
+            if (qr && typeof QRCode !== 'undefined') new QRCode(qr, { text: `https://${sellerData.website}`, width: 100, height: 100 });
+        }, 100);
+        hideLoading();
+    }
+
+    async function generatePDF() {
+        const root = document.getElementById('invoiceRoot');
+        const pages = root.querySelectorAll('.invoice-page, .terms-section-page');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        showLoading('جاري إنشاء PDF...');
+        try {
+            for (let i = 0; i < pages.length; i++) {
+                const canvas = await html2canvas(pages[i], { scale: 3, useCORS: true, backgroundColor: '#fff' });
+                if (i !== 0) pdf.addPage();
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
             }
-        }
+            pdf.save(`فاتورة_${orderData.orderNumber}.pdf`);
+            showToast('تم حفظ PDF بنجاح');
+        } catch(e) { showToast('خطأ في إنشاء PDF'); console.error(e); }
+        finally { hideLoading(); }
+    }
 
-        document.getElementById('printBtn').onclick = () => window.print();
-        document.getElementById('pdfBtn').onclick = generatePDF;
-        renderCompleteInvoice();
-    </script>
+    document.getElementById('printBtn').onclick = () => window.print();
+    document.getElementById('pdfBtn').onclick = generatePDF;
+    renderCompleteInvoice();
+</script>
 </body>
 </html>
