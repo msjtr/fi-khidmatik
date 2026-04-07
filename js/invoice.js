@@ -403,3 +403,5 @@ async function loadInvoice(firebaseDb) {
         hideLoading();
     }
 }
+// في نهاية دالة loadInvoice، بعد hideLoading()
+return currentOrder;
