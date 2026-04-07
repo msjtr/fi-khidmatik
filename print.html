@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="terms.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #e9ecef; font-family: 'Segoe UI', 'Cairo', 'Tahoma', sans-serif; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; }
@@ -77,7 +78,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-    // تهيئة Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
         authDomain: "msjt301-974bb.firebaseapp.com",
@@ -104,7 +104,6 @@
         website: "www.khidmatik.com"
     };
 
-    // تحميل العملاء والمنتجات للكاش
     async function loadCustomersAndProducts() {
         try {
             const [customersSnap, productsSnap] = await Promise.all([
@@ -119,7 +118,6 @@
         }
     }
 
-    // جلب الطلب كامل مع بيانات العميل والمنتجات
     async function getOrderFull(orderId) {
         try {
             if (!orderId) return null;
@@ -128,11 +126,8 @@
             if (!orderSnap.exists()) return null;
             
             const order = { id: orderSnap.id, ...orderSnap.data() };
-            
-            // جلب بيانات العميل
             const customer = customersMap.get(order.customerId) || { name: 'غير معروف', phone: '', email: '', city: '', street: '', buildingNo: '', postalCode: '' };
             
-            // تجهيز عناصر الطلب مع صور المنتجات
             const items = (order.items || []).map(item => {
                 const product = productsMap.get(item.productId) || {};
                 return {
@@ -144,7 +139,6 @@
                 };
             });
             
-            // تجهيز عنوان العميل
             const addrParts = [];
             if (customer.city) addrParts.push(customer.city);
             if (customer.street) addrParts.push(customer.street);
@@ -166,7 +160,6 @@
         }
     }
 
-    // بيانات تجريبية في حال عدم وجود orderId أو فشل الجلب
     function getDemoData() {
         return {
             orderNumber: "DEMO-001",
@@ -191,16 +184,6 @@
         };
     }
 
-
-    // بعد تحميل orderData
-setTimeout(() => {
-    const nameSpan = document.querySelector('.customer-name-display');
-    const dateSpan = document.querySelector('.customer-date-display');
-    if (nameSpan) nameSpan.textContent = orderData.customerName || '_________________';
-    if (dateSpan) dateSpan.textContent = `${formatDateYMD(orderData.orderDate)} - ${formatTime12(orderData.orderTime)}`;
-}, 200);
-
-    
     function showLoading(msg) {
         let ov = document.getElementById('loadingOverlay');
         if (!ov) {
@@ -241,79 +224,6 @@ setTimeout(() => {
             <div class="page-number">صفحة ${pageNum} من ${totalPages}</div>
         </div>`;
     }
-
-    // محتوى الشروط (الصفحة الأولى)
-    const termsContent = `
-    <div class="terms-main-container">
-        <div class="main-title">📜 الشروط والأحكام</div>
-        <div class="legal-intro">
-            <strong>⚖️ إقرار ملزم قانونياً:</strong> يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين،
-            ويعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا
-            بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ.
-        </div>
-        <div class="two-columns">
-            <div class="col">
-                <div class="terms-block"><h3>أولاً: صلاحية العرض والتنفيذ</h3>
-                    <p><strong>1.</strong> مدة صلاحية العرض: 3 أيام عمل فقط.<br><strong>2.</strong> بدء التنفيذ بعد استلام الدفعة المقدمة والمتطلبات.<br><strong>3.</strong> مدة التنفيذ تحتسب من اكتمال المتطلبات.<br><strong>4.</strong> لا مسؤولية عن تأخير خارج الإرادة.<br><strong>5.</strong> الموافقات الخارجية وفق سياسات الجهات.</p>
-                </div>
-                <div class="terms-block"><h3>ثانياً: التكاليف والمسؤوليات المالية</h3>
-                    <p><strong>6.</strong> الرسوم الخارجية غير مشمولة.<br><strong>7.</strong> خدمات الطرف الثالث تخضع لسياساتها.<br><strong>8.</strong> المدفوعات الخارجية غير قابلة للاسترجاع.<br><strong>9.</strong> الدفع نيابة عن العميل دين مستحق.<br><strong>10.</strong> الضريبة 15% تضاف حسب الأنظمة.</p>
-                </div>
-                <div class="terms-block"><h3>ثالثاً: التسليم والملكية</h3>
-                    <p><strong>11.</strong> التسليم حسب النطاق المحدد.<br><strong>12.</strong> المنتج النهائي فقط.<br><strong>13.</strong> الكود المصدري ملكية حصرية لمقدم الخدمة.<br><strong>14.</strong> نقل الملكية باتفاق وسداد كامل.<br><strong>15.</strong> عدم طلب التسليم يلغي الالتزام.<br><strong>16.</strong> حق إعادة الاستخدام محفوظ.</p>
-                </div>
-                <div class="terms-block"><h3>رابعاً: الدفعات والاسترجاع</h3>
-                    <p><strong>17.</strong> نظام الدفع وفق الآلية المتفق عليها.<br><strong>18.</strong> تأخر السداد يؤدي لإيقاف العمل.<br><strong>19.</strong> عدم استرجاع بعد البدء.<br><strong>20.</strong> إيقاف المشروع عند المخالفة.<br><strong>21.</strong> احتساب الأعمال المنفذة بنسبة الإنجاز.<br><strong>22.</strong> رسوم إدارية 20% على الأعمال المنفذة.</p>
-                </div>
-            </div>
-            <div class="col">
-                <div class="terms-block"><h3>خامساً: الضمان</h3>
-                    <p><strong>23.</strong> الضمان حسب طبيعة المشروع.<br><strong>24.</strong> يقتصر على الأخطاء الفنية لمقدم الخدمة.<br><strong>25.</strong> استثناءات: سوء استخدام أو تعديلات خارجية.</p>
-                </div>
-                <div class="terms-block"><h3>سادساً: انتهاء العلاقة والمسؤولية</h3>
-                    <p><strong>26.</strong> تنتهي العلاقة بعد التسليم.<br><strong>27.</strong> لا مسؤولية لاحقة.<br><strong>28.</strong> تشغيل المشروع على العميل.<br><strong>29.</strong> حفظ النسخ الاحتياطية على العميل.<br><strong>30.</strong> براءة ذمة من خدمات الأطراف الثالثة.</p>
-                </div>
-                <div class="terms-block"><h3>سابعاً: التواصل والتنفيذ</h3>
-                    <p><strong>31.</strong> وسائل التواصل الرسمية فقط.<br><strong>32.</strong> التفويض بإشعار رسمي.<br><strong>33.</strong> النسخ الإلكترونية معتمدة قانونياً.</p>
-                </div>
-                <div class="terms-block"><h3>ثامناً: البنود القانونية</h3>
-                    <p><strong>34.</strong> علاقة تعاقدية مستقلة.<br><strong>35.</strong> كامل الاتفاق.<br><strong>36.</strong> الأخطاء غير المقصودة لا تبطل البنود.<br><strong>37.</strong> عدم التنازل عن الحقوق.<br><strong>38.</strong> اللغة العربية المعتمدة.</p>
-                </div>
-            </div>
-        </div>
-    </div>`;
-
-    // محتوى الشروط (الصفحة الثانية مع الإقرار)
-    const termsPage2Content = `
-    <div class="terms-main-container">
-        <div class="main-title">📜 الشروط والأحكام (تابع)</div>
-        <div class="two-columns">
-            <div class="col">
-                <div class="terms-block"><h3>تاسعاً: النزاعات</h3>
-                    <p><strong>39.</strong> حل النزاعات ودياً.<br><strong>40.</strong> الجهة المختصة يحددها مقدم الخدمة.</p>
-                </div>
-                <div class="terms-block"><h3>عاشراً: البنود المتقدمة</h3>
-                    <p><strong>41.</strong> القوة القاهرة.<br><strong>42.</strong> السرية.<br><strong>43.</strong> التعديلات خارج النطاق بعرض منفصل.<br><strong>44.</strong> التوقف المؤقت عند عدم تجاوب العميل.<br><strong>45.</strong> الاستلام الحكمي بعد 7 أيام.<br><strong>46.</strong> الاعتراض خلال 7 أيام كتابياً.</p>
-                </div>
-            </div>
-            <div class="col">
-                <div class="terms-block"><h3>حادي عشر: البنود المالية المتقدمة</h3>
-                    <p><strong>47.</strong> المدفوعات الخارجية غير مستحقة لمقدم الخدمة.<br><strong>48.</strong> المدفوعات بالنيابة ضمن تكاليف المشروع.<br><strong>49.</strong> تفسير البنود بما يحفظ حقوق مقدم الخدمة.<br><strong>50.</strong> حق رفض الخدمة أو إيقافها.</p>
-                </div>
-                <div class="terms-block"><h3>ثاني عشر: الحماية القانونية</h3>
-                    <p><strong>51.</strong> التنازل عن المطالبات التي تتجاوز قيمة الفاتورة.<br><strong>52.</strong> حدود المسؤولية = إجمالي المبلغ المدفوع.<br><strong>53.</strong> لا مسؤولية عن الاستخدام غير المشروع.<br><strong>54.</strong> الملكية الفكرية محفوظة لمقدم الخدمة.<br><strong>55.</strong> حق تحديث الشروط مستقبلاً.<br><strong>56.</strong> استقلالية البنود.<br><strong>57.</strong> الشروط الإضافية توثق في ملحق مستقل.</p>
-                </div>
-            </div>
-        </div>
-        <div class="declaration">
-            <p>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
-        </div>
-        <div class="signature">
-            <div><strong>الاسم:</strong> _________________</div>
-            <div><strong>التاريخ:</strong> _________________</div>
-        </div>
-        <div style="margin-top: 15px;"><strong>التوقيع:</strong> _________________</div>
-    </div>`;
 
     function buildInvoicePage(order) {
         const itemsHtml = (order.items || []).map((item, idx) => `
@@ -362,16 +272,13 @@ setTimeout(() => {
     async function renderCompleteInvoice() {
         showLoading('جاري تحميل الفاتورة...');
         
-        // جلب orderId من الرابط
         const params = new URLSearchParams(window.location.search);
         const orderId = params.get('id');
         
         let order = null;
         
         if (orderId && orderId !== 'null') {
-            // تحميل العملاء والمنتجات أولاً
             await loadCustomersAndProducts();
-            // جلب الطلب من Firebase
             order = await getOrderFull(orderId);
             if (!order) {
                 showToast('لم يتم العثور على الطلب، سيتم عرض بيانات تجريبية', 'error');
@@ -380,18 +287,27 @@ setTimeout(() => {
                 showToast('تم تحميل بيانات الطلب بنجاح');
             }
         } else {
-            // لا يوجد orderId، عرض بيانات تجريبية
             order = getDemoData();
             showToast('عرض بيانات تجريبية (لم يتم تحديد طلب)');
         }
         
+        // تخزين orderData للاستخدام في الإقرار
+        orderData = order;
+        
+        // بناء الصفحات باستخدام المتغيرات من terms.js
         const finalHtml = buildInvoicePage(order) + 
             `<div class="terms-section-page">${buildHeader("الشروط والأحكام")}${termsContent}${buildFooter(2, 3)}</div>` +
             `<div class="terms-section-page">${buildHeader("الشروط والأحكام (تابع)")}${termsPage2Content}${buildFooter(3, 3)}</div>`;
         
         document.getElementById('invoiceRoot').innerHTML = finalHtml;
         
+        // تحديث اسم العميل والتاريخ في الإقرار
         setTimeout(() => {
+            const nameSpan = document.querySelector('.customer-name-display');
+            const dateSpan = document.querySelector('.customer-date-display');
+            if (nameSpan) nameSpan.textContent = order.customerName || '_________________';
+            if (dateSpan) dateSpan.textContent = `${formatDateYMD(order.orderDate)} - ${formatTime12(order.orderTime)}`;
+            
             const qr = document.getElementById('platformQR');
             if (qr && typeof QRCode !== 'undefined') {
                 new QRCode(qr, { text: `https://${sellerData.website}`, width: 100, height: 100 });
