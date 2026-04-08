@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>طباعة الفاتورة</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖨️</text></svg>">
+    
+    <!-- إضافة الشعار كـ favicon -->
+    <link rel="icon" type="image/svg+xml" href="/fi-khidmatik/images/logo.svg">
+    <link rel="shortcut icon" type="image/svg+xml" href="/fi-khidmatik/images/logo.svg">
     
     <!-- المكتبات الخارجية -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -78,7 +81,33 @@
             margin-top: 50px;
             font-size: 18px;
         }
-        /* أنماط إضافية للفاتورة */
+        
+        /* تنسيق الشعار في الهيدر */
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .platform-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        .platform-slogan {
+            font-size: 10px;
+            color: #6c757d;
+        }
+        
+        /* أنماط الفاتورة */
         .invoice-header {
             margin-bottom: 20px;
         }
@@ -170,6 +199,16 @@
             return `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
         // بناء صفحة الفاتورة
         function buildInvoicePage(order, customer) {
             const items = order.items || [];
@@ -195,13 +234,7 @@
 
             return `
                 <div class="page">
-                    <div class="page-header">
-                        <div class="header-right"></div>
-                        <div class="header-center">
-                            <div class="page-title">فاتورة رسمية</div>
-                        </div>
-                        <div class="header-left"></div>
-                    </div>
+                    ${window.buildHeader('فاتورة رسمية')}
                     
                     <div class="invoice-header">
                         <div class="invoice-title">فاتورة رقم: ${escapeHtml(order.orderNumber)}</div>
@@ -240,20 +273,13 @@
                         <div class="totals-row grand-total"><span>الإجمالي:</span><span>${total.toFixed(2)} ريال</span></div>
                     </div>
                     
-                    <div class="page-footer">
-                        <div class="contact-info">
-                            <span><i class="fas fa-phone"></i> 0530000000</span>
-                            <span><i class="fas fa-envelope"></i> info@example.com</span>
-                        </div>
-                        <div class="page-number">صفحة 1 من 4</div>
-                    </div>
+                    ${window.buildFooter(1, 4)}
                 </div>
             `;
         }
 
         async function renderCompleteInvoice(orderId) {
             try {
-                // جلب الطلب
                 const orderRef = doc(db, "orders", orderId);
                 const orderSnap = await getDoc(orderRef);
                 if (!orderSnap.exists()) {
@@ -262,7 +288,6 @@
                 }
                 const order = { id: orderSnap.id, ...orderSnap.data() };
                 
-                // جلب العميل
                 let customer = null;
                 if (order.customerId) {
                     const customerRef = doc(db, "customers", order.customerId);
@@ -270,22 +295,21 @@
                     if (customerSnap.exists()) customer = customerSnap.data();
                 }
                 
-                // بناء صفحات الفاتورة
                 let html = buildInvoicePage(order, customer);
                 
-                // إضافة صفحات الشروط والأحكام من terms.js (إذا كانت الدوال موجودة)
                 if (typeof window.buildTermsPage1 === 'function') {
                     html += window.buildTermsPage1(2, 4);
                     html += window.buildTermsPage2(3, 4);
-                    html += window.buildTermsPage3(order, customer, formatDate(order.orderDate), formatTime(order.orderTime), 4, 4);
+                    // تأكد من أن buildTermsPage3 تستقبل المعاملات بالشكل الصحيح (order, customer, date, time, pageNum, totalPages)
+                    if (typeof window.buildTermsPage3 === 'function') {
+                        html += window.buildTermsPage3(order, customer, formatDate(order.orderDate), formatTime(order.orderTime), 4, 4);
+                    }
                 } else {
-                    // تنبيه للمطور
                     console.warn('⚠️ دوال buildTermsPage مفقودة من terms.js');
                 }
                 
                 document.getElementById('printContent').innerHTML = html;
                 
-                // طباعة تلقائية إذا أرسلنا auto=print
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('auto') === 'print') {
                     setTimeout(() => window.print(), 500);
@@ -296,7 +320,6 @@
             }
         }
 
-        // بدء التشغيل
         const params = new URLSearchParams(window.location.search);
         const orderId = params.get('id');
         if (!orderId) {
