@@ -1,5 +1,5 @@
 // ========================================
-// صفحات الشروط والأحكام - نسخة CSS منفصل
+// صفحات الشروط والأحكام - نسخة محسنة
 // ========================================
 
 function buildTermsPage1(pageNum, totalPages) {
@@ -14,7 +14,7 @@ function buildTermsPage1(pageNum, totalPages) {
                 '<span>يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.</span>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-1">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">📋</span>' +
                     '<h4>أولاً: صلاحية العرض والتنفيذ</h4>' +
@@ -28,7 +28,7 @@ function buildTermsPage1(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-2">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">💰</span>' +
                     '<h4>ثانياً: التكاليف والمسؤوليات المالية</h4>' +
@@ -42,7 +42,7 @@ function buildTermsPage1(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-3">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">📦</span>' +
                     '<h4>ثالثاً: التسليم والملكية</h4>' +
@@ -57,7 +57,7 @@ function buildTermsPage1(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-4">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">💳</span>' +
                     '<h4>رابعاً: الدفعات والاسترجاع</h4>' +
@@ -81,7 +81,7 @@ function buildTermsPage2(pageNum, totalPages) {
         window.buildHeader("الشروط والأحكام") +
         '<div class="terms-container">' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-5">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">🛡️</span>' +
                     '<h4>خامساً: الضمان</h4>' +
@@ -93,7 +93,7 @@ function buildTermsPage2(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-6">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">🔚</span>' +
                     '<h4>سادساً: انتهاء العلاقة والمسؤولية</h4>' +
@@ -107,7 +107,7 @@ function buildTermsPage2(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-7">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">📞</span>' +
                     '<h4>سابعاً: التواصل والتنفيذ</h4>' +
@@ -119,7 +119,7 @@ function buildTermsPage2(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-8">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">⚖️</span>' +
                     '<h4>ثامناً: البنود القانونية</h4>' +
@@ -133,7 +133,7 @@ function buildTermsPage2(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-9">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">🏛️</span>' +
                     '<h4>تاسعاً: النزاعات</h4>' +
@@ -144,7 +144,7 @@ function buildTermsPage2(pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-10">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">🌪️</span>' +
                     '<h4>عاشراً: البنود المتقدمة</h4>' +
@@ -170,7 +170,7 @@ function buildTermsPage3(order, pageNum, totalPages) {
         window.buildHeader("الشروط والأحكام") +
         '<div class="terms-container">' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-11">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">📊</span>' +
                     '<h4>حادي عشر: البنود المالية والقانونية المتقدمة</h4>' +
@@ -183,7 +183,7 @@ function buildTermsPage3(order, pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-12">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">🔒</span>' +
                     '<h4>ثاني عشر: الحماية القانونية</h4>' +
@@ -198,7 +198,7 @@ function buildTermsPage3(order, pageNum, totalPages) {
                 '</div>' +
             '</div>' +
 
-            '<div class="terms-section">' +
+            '<div class="terms-section terms-section-13">' +
                 '<div class="terms-section-header">' +
                     '<span class="terms-section-icon">📎</span>' +
                     '<h4>الشروط الإضافية والملحقات</h4>' +
