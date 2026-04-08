@@ -157,7 +157,8 @@ function previewPrint() {
                     '.preview-buttons button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }' +
                     '.btn-print { background: #1e3a5f; color: white; }' +
                     '.btn-pdf { background: #dc2626; color: white; }' +
-                    '.btn-close { background: #ef4444; color: white; }' +
+                    '.btn-png { background: #16a34a; color: white; }' +
+                    '.btn-close { background: #6c757d; color: white; }' +
                 '</style>' +
             '</head>' +
             '<body>' +
@@ -165,6 +166,7 @@ function previewPrint() {
             '<div class="preview-buttons no-print">' +
                 '<button class="btn-print" onclick="window.print()">🖨️ طباعة</button>' +
                 '<button class="btn-pdf" onclick="window.exportToPDF()">📄 PDF</button>' +
+                '<button class="btn-png" onclick="window.exportToPNG()">🖼️ PNG</button>' +
                 '<button class="btn-close" onclick="window.close()">✖️ إغلاق</button>' +
             '</div>' +
             '</body>' +
@@ -180,7 +182,7 @@ function previewPrint() {
 }
 
 // ========================================
-// تصدير إلى PDF بدقة عالية واسم ملف مخصص
+// تصدير إلى PDF بدقة عالية
 // ========================================
 
 async function exportToPDF() {
@@ -272,6 +274,47 @@ async function exportToPDF() {
 }
 
 // ========================================
+// تصدير إلى PNG
+// ========================================
+
+async function exportToPNG() {
+    var pages = document.querySelectorAll('.page');
+    if (!pages.length) {
+        printShowToast('لا توجد فاتورة للتصدير', true);
+        return;
+    }
+    
+    if (typeof html2canvas === 'undefined') {
+        printShowToast('جاري تحميل المكتبات... الرجاء المحاولة مرة أخرى', true);
+        return;
+    }
+    
+    printShowLoading('جاري إنشاء PNG...');
+    
+    try {
+        for (var i = 0; i < pages.length; i++) {
+            var canvas = await html2canvas(pages[i], { 
+                scale: 3, 
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+            var link = document.createElement('a');
+            var fileName = `invoice_page_${i+1}.png`;
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        printShowToast('تم حفظ PNG بنجاح', false);
+    } catch(error) {
+        console.error('PNG Export Error:', error);
+        printShowToast('خطأ في إنشاء PNG: ' + error.message, true);
+    } finally {
+        printHideLoading();
+    }
+}
+
+// ========================================
 // تهيئة وحدة الطباعة
 // ========================================
 
@@ -288,4 +331,5 @@ function initPrintModule(order, db, customers = []) {
 window.printInvoice = printInvoice;
 window.previewPrint = previewPrint;
 window.exportToPDF = exportToPDF;
+window.exportToPNG = exportToPNG;
 window.initPrintModule = initPrintModule;
