@@ -1,5 +1,5 @@
 // ========================================
-// print.js - دوال الطباعة المتقدمة (بدون تكرار CSS)
+// print.js - دوال الطباعة المتقدمة (نسخة نهائية)
 // ========================================
 
 let printCurrentOrder = null;
@@ -72,7 +72,7 @@ window.buildFooter = function(pageNum, totalPages) {
                 <span><i class="fas fa-phone"></i> 0530000000</span>
                 <span><i class="fas fa-envelope"></i> info@example.com</span>
             </div>
-            <div class="page-number">الصفحة ${pageNum} من ${totalPages}</div>
+            <div class="page-number">صفحة ${pageNum} من ${totalPages}</div>
         </div>
     `;
 };
@@ -156,6 +156,7 @@ function previewPrint() {
                     '.preview-buttons { text-align: center; padding: 20px; position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }' +
                     '.preview-buttons button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }' +
                     '.btn-print { background: #1e3a5f; color: white; }' +
+                    '.btn-pdf { background: #dc2626; color: white; }' +
                     '.btn-close { background: #ef4444; color: white; }' +
                 '</style>' +
             '</head>' +
@@ -163,6 +164,7 @@ function previewPrint() {
             pagesContent +
             '<div class="preview-buttons no-print">' +
                 '<button class="btn-print" onclick="window.print()">🖨️ طباعة</button>' +
+                '<button class="btn-pdf" onclick="window.exportToPDF()">📄 PDF</button>' +
                 '<button class="btn-close" onclick="window.close()">✖️ إغلاق</button>' +
             '</div>' +
             '</body>' +
@@ -207,12 +209,10 @@ async function exportToPDF() {
         var pdf = new jsPDF('p', 'mm', 'a4');
         
         for (var i = 0; i < pages.length; i++) {
-            console.log('جاري معالجة الصفحة:', i + 1);
-            
             var canvas = await html2canvas(pages[i], { 
-                scale: 3,
+                scale: 3, 
                 useCORS: true,
-                backgroundColor: '#ffffff',
+                backgroundColor: '#ffffff', 
                 logging: false,
                 allowTaint: false,
                 windowWidth: pages[i].scrollWidth,
@@ -223,46 +223,33 @@ async function exportToPDF() {
             var imgData = canvas.toDataURL('image/png');
             var imgWidth = 210;
             var imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
             if (imgHeight > 297) {
                 var ratio = 297 / imgHeight;
                 imgHeight = 297;
                 imgWidth = imgWidth * ratio;
             }
-            
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         }
         
-        // استخراج بيانات اسم الملف
+        // استخراج اسم العميل ورقم الطلب والتاريخ
         let customerName = 'عميل';
         let orderNumber = 'فاتورة';
         let orderDate = '';
         
-        if (printCurrentOrder) {
-            orderNumber = printCurrentOrder.orderNumber || 'فاتورة';
-            orderDate = printCurrentOrder.orderDate ? window.formatDate(printCurrentOrder.orderDate) : '';
-            if (printCurrentOrder.customerId && window.customersList) {
-                const customer = window.customersList.find(c => c.id === printCurrentOrder.customerId);
-                if (customer) customerName = customer.name;
-            }
-        } else {
-            // محاولة استخراج من DOM
-            const orderNumberElem = document.querySelector('.invoice-title');
-            if (orderNumberElem) {
-                let text = orderNumberElem.innerText;
-                let match = text.match(/رقم:\s*(.+)/);
-                if (match) orderNumber = match[1];
-            }
-            const customerNameElem = document.querySelector('.customer-info');
-            if (customerNameElem) {
-                let match = customerNameElem.innerText.match(/الاسم:\s*(.+)/);
-                if (match) customerName = match[1];
-            }
-            const dateElem = document.querySelector('.order-info');
-            if (dateElem) {
-                let match = dateElem.innerText.match(/التاريخ:\s*(.+)/);
-                if (match) orderDate = match[1];
-            }
+        const customerNameElem = document.querySelector('.customer-info');
+        if (customerNameElem) {
+            let match = customerNameElem.innerText.match(/الاسم:\s*(.+)/);
+            if (match) customerName = match[1].trim();
+        }
+        const orderNumberElem = document.querySelector('.invoice-title');
+        if (orderNumberElem) {
+            let match = orderNumberElem.innerText.match(/رقم:\s*(.+)/);
+            if (match) orderNumber = match[1].trim();
+        }
+        const dateElem = document.querySelector('.order-info');
+        if (dateElem) {
+            let match = dateElem.innerText.match(/التاريخ:\s*(.+)/);
+            if (match) orderDate = match[1].trim();
         }
         
         customerName = customerName.replace(/[\\/*?:"<>|]/g, '');
