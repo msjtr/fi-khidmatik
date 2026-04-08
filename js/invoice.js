@@ -195,12 +195,21 @@ function calculateTotals(order) {
 }
 
 // ========================================
-// بناء رأس الصفحة (نسخة نظيفة)
+// بناء رأس الصفحة مع رسالة خطأ للشعار
 // ========================================
 function buildHeader(title) {
-    // القسم الأيمن
+    // مسار الشعار
+    const logoPath = "images/logo.svg";
+    
+    // رسالة الخطأ التي ستظهر عند فشل تحميل الشعار
+    const errorHtml = '<div class="logo-error">شعار<br>في خدمتك</div>';
+    
+    // القسم الأيمن: الشعار والاسم
     var rightSection = '<div class="header-right">' +
         '<div class="logo-area">' +
+            '<div class="logo-img-wrapper">' +
+                '<img src="' + logoPath + '" class="logo-img" alt="شعار في خدمتك" onerror="this.outerHTML = \'' + errorHtml + '\'">' +
+            '</div>' +
             '<div class="logo-text">' +
                 '<div class="platform-name">في خدمتك</div>' +
                 '<div class="platform-slogan">Fi Khidmatik</div>' +
@@ -208,12 +217,12 @@ function buildHeader(title) {
         '</div>' +
     '</div>';
     
-    // القسم الأوسط
+    // القسم الأوسط: عنوان الصفحة
     var centerSection = '<div class="header-center">' +
         '<div class="page-title">' + title + '</div>' +
     '</div>';
     
-    // القسم الأيسر
+    // القسم الأيسر: الأرقام القانونية
     var leftSection = '<div class="header-left">' +
         '<div class="legal-numbers">' +
             '<div>شهادة العمل الحر: ' + sellerData.licenseNumber + '</div>' +
