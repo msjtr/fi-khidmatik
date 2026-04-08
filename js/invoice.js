@@ -199,7 +199,7 @@ function calculateTotals(order) {
 // ========================================
 function buildHeader(title) {
     var logoHtml = '<div class="logo-area">' +
-        '<img src="images/logo.svg" class="logo-img" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=\\\'logo-placeholder\\\'>' + sellerData.name.charAt(0) + '</div>\'">' +
+        '<div class="logo-placeholder">' + sellerData.name.charAt(0) + '</div>' +
         '<div>' +
             '<div class="platform-name">' + sellerData.name + '</div>' +
             '<div class="platform-slogan">خدمات تقنية متكاملة</div>' +
@@ -244,7 +244,7 @@ function buildInvoicePage(order, pageNum, totalPages) {
         itemsHtml += '<tr>' +
             '<td style="text-align:center">' + (i+1) + '</td>' +
             '<td style="text-align:center">' +
-                (item.image ? '<img src="' + item.image + '" class="product-img" onerror="this.style.display=\'none\'">' : '<div style="width:50px;height:50px;background:#e2e8f0;border-radius:8px;"></div>') +
+                (item.image ? '<img src="' + item.image + '" class="product-img" onerror="this.style.display=\'none\'" crossorigin="anonymous">' : '<div style="width:50px;height:50px;background:#e2e8f0;border-radius:8px;"></div>') +
             '</td>' +
             '<td style="text-align:right"><strong>' + escapeHtml(item.productName) + '</strong><br><small style="color:#666;">' + escapeHtml(item.description) + '</small></td>' +
             '<td style="text-align:center">' + item.quantity + '</td>' +
@@ -301,7 +301,7 @@ function buildInvoicePage(order, pageNum, totalPages) {
 }
 
 // ========================================
-// تصدير PDF
+// تصدير PDF - نسخة معدلة لتجنب مشكلة CORS
 // ========================================
 async function generatePDF() {
     var pages = document.querySelectorAll('.page');
@@ -312,12 +312,28 @@ async function generatePDF() {
     
     showLoading('جاري إنشاء PDF...');
     
+    // إخفاء الأزرار مؤقتاً
+    var buttons = document.querySelector('.action-buttons');
+    var originalDisplay = null;
+    if (buttons) {
+        originalDisplay = buttons.style.display;
+        buttons.style.display = 'none';
+    }
+    
     try {
         var { jsPDF } = window.jspdf;
         var pdf = new jsPDF('p', 'mm', 'a4');
         
         for (var i = 0; i < pages.length; i++) {
-            var canvas = await html2canvas(pages[i], { scale: 2, useCORS: false, backgroundColor: '#ffffff', logging: false, allowTaint: true });
+            var canvas = await html2canvas(pages[i], { 
+                scale: 2, 
+                useCORS: false,
+                backgroundColor: '#ffffff', 
+                logging: false,
+                allowTaint: true,
+                foreignObjectRendering: false
+            });
+            
             if (i !== 0) pdf.addPage();
             var imgData = canvas.toDataURL('image/png');
             var imgWidth = 210;
@@ -327,143 +343,15 @@ async function generatePDF() {
         
         pdf.save('فاتورة_' + (currentOrder?.orderNumber || 'invoice') + '.pdf');
         showToast('تم حفظ PDF بنجاح', false);
+        
     } catch(error) {
         console.error('PDF Error:', error);
-        showToast('خطأ في إنشاء PDF', true);
+        showToast('خطأ في إنشاء PDF: ' + error.message, true);
     } finally {
+        if (buttons) {
+            buttons.style.display = originalDisplay || 'flex';
+        }
         hideLoading();
-    }
-}
-
-// ========================================
-// دوال ربط باركود التحميل بقاعدة البيانات
-// ========================================
-
-/**
- * إنشاء رابط تحميل الفاتورة وحفظه في قاعدة البيانات
- */
-async function saveInvoiceDownloadUrl(orderId) {
-    try {
-        const baseUrl = window.location.origin + window.location.pathname;
-        const downloadUrl = `${baseUrl}?id=${orderId}&auto=download`;
-        
-        await db.collection('orders').doc(orderId).update({
-            invoiceUrl: downloadUrl,
-            invoiceLastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        console.log('تم حفظ رابط التحميل في قاعدة البيانات:', downloadUrl);
-        return downloadUrl;
-        
-    } catch (error) {
-        try {
-            await db.collection('orders').doc(orderId).set({
-                invoiceUrl: downloadUrl,
-                invoiceLastUpdated: new Date().toISOString()
-            }, { merge: true });
-            return downloadUrl;
-        } catch(e) {
-            console.error('فشل في حفظ الرابط:', e);
-            return null;
-        }
-    }
-}
-
-/**
- * جلب رابط تحميل الفاتورة من قاعدة البيانات
- */
-async function getInvoiceDownloadUrl(orderId) {
-    try {
-        const orderDoc = await db.collection('orders').doc(orderId).get();
-        if (orderDoc.exists) {
-            return orderDoc.data().invoiceUrl || null;
-        }
-        return null;
-    } catch (error) {
-        console.error('خطأ في جلب رابط التحميل:', error);
-        return null;
-    }
-}
-
-/**
- * تحديث إحصائيات تحميل الفاتورة
- */
-async function incrementInvoiceDownloadCount(orderId) {
-    try {
-        await db.collection('orders').doc(orderId).update({
-            invoiceDownloadCount: firebase.firestore.FieldValue.increment(1),
-            invoiceLastDownload: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log('تم تحديث عدد التحميلات');
-    } catch (error) {
-        console.error('خطأ في تحديث عدد التحميلات:', error);
-    }
-}
-
-/**
- * إنشاء باركود التحميل وعرضه
- */
-async function createDownloadQRCode(orderId, elementId) {
-    try {
-        let downloadUrl = await getInvoiceDownloadUrl(orderId);
-        
-        if (!downloadUrl) {
-            downloadUrl = await saveInvoiceDownloadUrl(orderId);
-        }
-        
-        const element = document.getElementById(elementId);
-        if (element && typeof QRCode !== 'undefined' && downloadUrl) {
-            element.innerHTML = '';
-            new QRCode(element, { 
-                text: downloadUrl, 
-                width: 90, 
-                height: 90 
-            });
-            
-            element.style.cursor = 'pointer';
-            element.onclick = function() {
-                window.open(downloadUrl, '_blank');
-            };
-            
-            console.log('تم إنشاء باركود التحميل:', downloadUrl);
-            return downloadUrl;
-        }
-        return null;
-    } catch (error) {
-        console.error('خطأ في إنشاء باركود التحميل:', error);
-        return null;
-    }
-}
-
-/**
- * تحميل الفاتورة مع تتبع الإحصائيات
- */
-async function downloadInvoiceWithTracking() {
-    if (!currentOrder || !currentOrder.orderNumber) {
-        showToast('لا توجد فاتورة للتحميل', true);
-        return;
-    }
-    
-    const orderId = new URLSearchParams(window.location.search).get('id');
-    if (orderId) {
-        await incrementInvoiceDownloadCount(orderId);
-    }
-    
-    await generatePDF();
-}
-
-/**
- * نسخ رابط الفاتورة إلى الحافظة
- */
-async function copyInvoiceLink(orderId) {
-    const baseUrl = window.location.origin + window.location.pathname;
-    const link = `${baseUrl}?id=${orderId}`;
-    try {
-        await navigator.clipboard.writeText(link);
-        showToast('تم نسخ رابط الفاتورة', false);
-    } catch (error) {
-        console.error('خطأ في النسخ:', error);
-        showToast('فشل نسخ الرابط', true);
     }
 }
 
@@ -497,8 +385,7 @@ async function loadInvoice(firebaseDb) {
         
         document.getElementById('invoiceRoot').innerHTML = html;
         
-        // إنشاء QR Codes
-        setTimeout(async function() {
+        setTimeout(function() {
             if (typeof QRCode !== 'undefined') {
                 var zatcaDiv = document.getElementById('zatcaQR');
                 if (zatcaDiv) {
@@ -518,7 +405,8 @@ async function loadInvoice(firebaseDb) {
                 var downloadDiv = document.getElementById('downloadQR');
                 if (downloadDiv) {
                     try {
-                        await createDownloadQRCode(orderId, 'downloadQR');
+                        var downloadUrl = window.location.origin + window.location.pathname + '?id=' + orderId;
+                        new QRCode(downloadDiv, { text: downloadUrl, width: 90, height: 90 });
                     } catch(e) { console.log('Download QR Error:', e); }
                 }
             }
@@ -550,11 +438,3 @@ window.escapeHtml = escapeHtml;
 window.showToast = showToast;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
-
-// تصدير دوال الباركود الجديدة
-window.saveInvoiceDownloadUrl = saveInvoiceDownloadUrl;
-window.getInvoiceDownloadUrl = getInvoiceDownloadUrl;
-window.createDownloadQRCode = createDownloadQRCode;
-window.downloadInvoiceWithTracking = downloadInvoiceWithTracking;
-window.copyInvoiceLink = copyInvoiceLink;
-window.incrementInvoiceDownloadCount = incrementInvoiceDownloadCount;
