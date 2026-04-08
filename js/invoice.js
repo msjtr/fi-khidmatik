@@ -2,7 +2,7 @@
 // بيانات البائع
 // ========================================
 const sellerData = {
-    name: "منصة في خدمتك",
+    name: "في خدمتك",
     taxNumber: "312495447600003",
     licenseNumber: "FL-765735204",
     address: "حائل - حي النقرة - شارع سعد المشاط - مبنى 3085 - الرمز البريدي 55431",
@@ -29,7 +29,7 @@ function formatDate(d) {
     if (!d) return '';
     var parts = d.split('-');
     if (parts.length === 3) {
-        return parseInt(parts[2]) + '/' + parseInt(parts[1]) + '/' + parseInt(parts[0]);
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
     }
     return d;
 }
@@ -39,7 +39,7 @@ function formatTime(time24) {
     var parts = time24.split(':');
     var hour = parseInt(parts[0]);
     var minute = parts[1];
-    var ap = hour >= 12 ? 'مساءً' : 'صباحاً';
+    var ap = hour >= 12 ? 'مساء' : 'صباح';
     hour = hour % 12 || 12;
     return hour + ':' + minute + ' ' + ap;
 }
@@ -107,7 +107,7 @@ function showToast(msg, isError) {
     var t = document.createElement('div');
     t.className = 'toast-message';
     t.style.background = isError ? '#ef4444' : '#10b981';
-    t.innerHTML = (isError ? '❌ ' : '✅ ') + msg;
+    t.innerHTML = (isError ? 'خطأ ' : 'تم ') + msg;
     document.body.appendChild(t);
     setTimeout(function() { t.remove(); }, 3000);
 }
@@ -195,24 +195,12 @@ function calculateTotals(order) {
 }
 
 // ========================================
-// بناء رأس الصفحة (يمين - وسط - يسار) مع شعار من images/logo.svg
+// بناء رأس الصفحة (نسخة نظيفة)
 // ========================================
 function buildHeader(title) {
-    // مسار الشعار من مجلد images
-    const logoPath = "images/logo.svg";
-    
-    // شعار احتياطي (SVG مدمج) في حالة فشل تحميل الصورة
-    const fallbackLogo = `<svg width="65" height="65" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100" height="100" rx="20" fill="#1e3a5f"/>
-        <text x="50" y="68" text-anchor="middle" fill="white" font-size="42" font-weight="bold" font-family="Cairo, sans-serif">خ</text>
-    </svg>`;
-    
-    // القسم الأيمن: الشعار والاسم
+    // القسم الأيمن
     var rightSection = '<div class="header-right">' +
         '<div class="logo-area">' +
-            '<div class="logo-img-wrapper">' +
-                '<img src="' + logoPath + '" class="logo-img" alt="شعار في خدمتك" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'' + fallbackLogo + '\'">' +
-            '</div>' +
             '<div class="logo-text">' +
                 '<div class="platform-name">في خدمتك</div>' +
                 '<div class="platform-slogan">Fi Khidmatik</div>' +
@@ -220,16 +208,16 @@ function buildHeader(title) {
         '</div>' +
     '</div>';
     
-    // القسم الأوسط: عنوان الصفحة
+    // القسم الأوسط
     var centerSection = '<div class="header-center">' +
         '<div class="page-title">' + title + '</div>' +
     '</div>';
     
-    // القسم الأيسر: الأرقام القانونية
+    // القسم الأيسر
     var leftSection = '<div class="header-left">' +
         '<div class="legal-numbers">' +
-            '<div><i class="fas fa-certificate"></i> شهادة العمل الحر: ' + sellerData.licenseNumber + '</div>' +
-            '<div><i class="fas fa-building"></i> الرقم الضريبي: ' + sellerData.taxNumber + '</div>' +
+            '<div>شهادة العمل الحر: ' + sellerData.licenseNumber + '</div>' +
+            '<div>الرقم الضريبي: ' + sellerData.taxNumber + '</div>' +
         '</div>' +
     '</div>';
     
@@ -246,12 +234,12 @@ function buildHeader(title) {
 function buildFooter(pageNum, totalPages) {
     return '<div class="page-footer">' +
         '<div class="contact-info">' +
-            '<span><i class="fas fa-phone"></i> ' + sellerData.phone + '</span>' +
-            '<span><i class="fab fa-whatsapp"></i> ' + sellerData.whatsapp + '</span>' +
-            '<span><i class="fas fa-envelope"></i> ' + sellerData.email + '</span>' +
-            '<span><i class="fas fa-globe"></i> ' + sellerData.website + '</span>' +
+            '<span>هاتف: ' + sellerData.phone + '</span>' +
+            '<span>واتساب: ' + sellerData.whatsapp + '</span>' +
+            '<span>بريد: ' + sellerData.email + '</span>' +
+            '<span>موقع: ' + sellerData.website + '</span>' +
         '</div>' +
-        '<div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>' +
+        '<div>هذه الفاتورة إلكترونية - نسخة معتمدة قانونيا</div>' +
         '<div class="page-number">صفحة ' + pageNum + ' من ' + totalPages + '</div>' +
     '</div>';
 }
@@ -268,9 +256,9 @@ function buildInvoicePage(order, pageNum, totalPages) {
         itemsHtml += '<tr>' +
             '<td style="text-align:center">' + (i+1) + '</td>' +
             '<td style="text-align:center">' +
-                (item.image ? '<img src="' + item.image + '" class="product-img" onerror="this.style.display=\'none\'" crossorigin="anonymous">' : '<div style="width:50px;height:50px;background:#e2e8f0;border-radius:8px;"></div>') +
+                (item.image ? '<img src="' + item.image + '" class="product-img" onerror="this.style.display=\'none\'">' : '<div style="width:50px;height:50px;background:#e2e8f0;border-radius:8px;"></div>') +
             '</td>' +
-            '<td style="text-align:right"><strong>' + escapeHtml(item.productName) + '</strong><br><small style="color:#666;">' + escapeHtml(item.description) + '</small></td>' +
+            '<td style="text-align:right"><strong>' + escapeHtml(item.productName) + '</strong><br><small>' + escapeHtml(item.description) + '</small></td>' +
             '<td style="text-align:center">' + item.quantity + '</td>' +
             '<td style="text-align:center">' + item.price.toFixed(2) + ' ريال</td>' +
             '<td style="text-align:center">' + (item.price * item.quantity).toFixed(2) + ' ريال</td>' +
@@ -306,7 +294,9 @@ function buildInvoicePage(order, pageNum, totalPages) {
             '<div class="payment-card"><strong>رمز الموافقة</strong>' + (order.approvalCode || 'غير مطلوب') + '</div>' +
         '</div>' +
         '<table class="products-table">' +
-            '<thead><tr><th>#</th><th>الصورة</th><th>المنتج / الخدمة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>' +
+            '<thead>' +
+                '<tr><th>#</th><th>الصورة</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>' +
+            '</thead>' +
             '<tbody>' + itemsHtml + '</tbody>' +
         '</table>' +
         '<div class="totals-box">' +
@@ -319,19 +309,19 @@ function buildInvoicePage(order, pageNum, totalPages) {
             '<div class="barcode-right">' +
                 '<div class="barcode-item">' +
                     '<div id="zatcaQR" class="qr-code"></div>' +
-                    '<p><i class="fas fa-shield-alt"></i> باركود هيئة الزكاة والضريبة</p>' +
+                    '<p>باركود هيئة الزكاة</p>' +
                 '</div>' +
             '</div>' +
             '<div class="barcode-center">' +
                 '<div class="barcode-item">' +
                     '<div id="orderQR" class="qr-code"></div>' +
-                    '<p><i class="fas fa-tag"></i> باركود الطلب</p>' +
+                    '<p>باركود الطلب</p>' +
                 '</div>' +
             '</div>' +
             '<div class="barcode-left">' +
                 '<div class="barcode-item">' +
                     '<div id="downloadQR" class="qr-code"></div>' +
-                    '<p><i class="fas fa-download"></i> باركود التحميل</p>' +
+                    '<p>باركود التحميل</p>' +
                 '</div>' +
             '</div>' +
         '</div>' +
@@ -340,7 +330,7 @@ function buildInvoicePage(order, pageNum, totalPages) {
 }
 
 // ========================================
-// تصدير PDF - نسخة معدلة لتجنب مشكلة CORS
+// تصدير PDF
 // ========================================
 async function generatePDF() {
     var pages = document.querySelectorAll('.page');
@@ -351,7 +341,6 @@ async function generatePDF() {
     
     showLoading('جاري إنشاء PDF...');
     
-    // إخفاء الأزرار مؤقتاً
     var buttons = document.querySelector('.action-buttons');
     var originalDisplay = null;
     if (buttons) {
@@ -369,8 +358,7 @@ async function generatePDF() {
                 useCORS: false,
                 backgroundColor: '#ffffff', 
                 logging: false,
-                allowTaint: true,
-                foreignObjectRendering: false
+                allowTaint: true
             });
             
             if (i !== 0) pdf.addPage();
@@ -385,7 +373,7 @@ async function generatePDF() {
         
     } catch(error) {
         console.error('PDF Error:', error);
-        showToast('خطأ في إنشاء PDF: ' + error.message, true);
+        showToast('خطأ في إنشاء PDF', true);
     } finally {
         if (buttons) {
             buttons.style.display = originalDisplay || 'flex';
@@ -404,7 +392,7 @@ async function loadInvoice(firebaseDb) {
     var orderId = params.get('id');
     
     if (!orderId || orderId === 'null') {
-        document.getElementById('invoiceRoot').innerHTML = '<div class="page" style="text-align:center;display:flex;align-items:center;justify-content:center;"><div><h2 style="color:#ef4444;">خطأ</h2><p>لم يتم تحديد رقم الطلب</p></div></div>';
+        document.getElementById('invoiceRoot').innerHTML = '<div class="page" style="text-align:center"><div><h2>خطأ</h2><p>لم يتم تحديد رقم الطلب</p></div></div>';
         return;
     }
     
@@ -455,7 +443,7 @@ async function loadInvoice(firebaseDb) {
         
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('invoiceRoot').innerHTML = '<div class="page" style="text-align:center;display:flex;align-items:center;justify-content:center;"><div><h2 style="color:#ef4444;">خطأ</h2><p>' + error.message + '</p><button onclick="location.reload()" style="margin-top:20px;padding:8px 16px;background:#1e3a5f;color:white;border:none;border-radius:8px;cursor:pointer;">إعادة المحاولة</button></div></div>';
+        document.getElementById('invoiceRoot').innerHTML = '<div class="page" style="text-align:center"><div><h2>خطأ</h2><p>' + error.message + '</p><button onclick="location.reload()">إعادة المحاولة</button></div></div>';
         showToast(error.message, true);
     } finally {
         hideLoading();
@@ -463,7 +451,7 @@ async function loadInvoice(firebaseDb) {
 }
 
 // ========================================
-// تصدير الدوال للاستخدام العام
+// تصدير الدوال
 // ========================================
 window.loadInvoice = loadInvoice;
 window.generatePDF = generatePDF;
