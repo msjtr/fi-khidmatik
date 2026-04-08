@@ -51,13 +51,34 @@ function previewPrint() {
         }
         
         var pages = document.querySelectorAll('.page');
-        var printContent = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>معاينة الفاتورة</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"><link rel="stylesheet" href="css/invoice.css"><style>body{background:white;padding:20px;}@media print{body{padding:0;}}</style></head><body>';
+        var printContent = '<!DOCTYPE html>' +
+            '<html dir="rtl" lang="ar">' +
+            '<head>' +
+                '<meta charset="UTF-8">' +
+                '<title>معاينة الفاتورة</title>' +
+                '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">' +
+                '<link rel="stylesheet" href="css/invoice.css">' +
+                '<style>' +
+                    'body { background: white; padding: 20px; margin: 0; }' +
+                    '@media print { body { padding: 0; } .no-print { display: none !important; } }' +
+                    '.preview-buttons { text-align: center; padding: 20px; position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }' +
+                    '.preview-buttons button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }' +
+                    '.btn-print { background: #1e3a5f; color: white; }' +
+                    '.btn-close { background: #ef4444; color: white; }' +
+                '</style>' +
+            '</head>' +
+            '<body>';
         
         pages.forEach(function(page) {
             printContent += page.outerHTML;
         });
         
-        printContent += '<div class="no-print" style="text-align:center;padding:20px;position:fixed;bottom:0;left:0;right:0;background:white;"><button onclick="window.print()" style="padding:10px 20px;margin:5px;background:#1e3a5f;color:white;border:none;border-radius:5px;">🖨️ طباعة</button><button onclick="window.close()" style="padding:10px 20px;margin:5px;background:#ef4444;color:white;border:none;border-radius:5px;">✖️ إغلاق</button></div></body></html>';
+        printContent += '<div class="preview-buttons no-print">' +
+            '<button class="btn-print" onclick="window.print()">🖨️ طباعة</button>' +
+            '<button class="btn-close" onclick="window.close()">✖️ إغلاق</button>' +
+            '</div>' +
+            '</body>' +
+            '</html>';
         
         printWindow.document.write(printContent);
         printWindow.document.close();
@@ -71,6 +92,17 @@ async function exportToPDF() {
     var pages = document.querySelectorAll('.page');
     if (!pages.length) {
         printShowToast('لا توجد فاتورة للتصدير', true);
+        return;
+    }
+    
+    // التحقق من وجود المكتبات المطلوبة
+    if (typeof html2canvas === 'undefined') {
+        printShowToast('جاري تحميل المكتبات... الرجاء المحاولة مرة أخرى', true);
+        return;
+    }
+    
+    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+        printShowToast('جاري تحميل مكتبة PDF... الرجاء المحاولة مرة أخرى', true);
         return;
     }
     
@@ -91,22 +123,33 @@ async function exportToPDF() {
                 useCORS: false,
                 backgroundColor: '#ffffff', 
                 logging: false,
-                allowTaint: true
+                allowTaint: true,
+                windowWidth: pages[i].scrollWidth,
+                windowHeight: pages[i].scrollHeight
             });
             
             if (i !== 0) pdf.addPage();
             var imgData = canvas.toDataURL('image/png');
-            var imgWidth = 210;
+            var imgWidth = 210; // عرض A4 بالملليمتر
             var imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // التحقق من أن الارتفاع لا يتجاوز الصفحة
+            if (imgHeight > 297) {
+                var ratio = 297 / imgHeight;
+                imgHeight = 297;
+                imgWidth = imgWidth * ratio;
+            }
+            
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         }
         
-        pdf.save('فاتورة_' + (printCurrentOrder?.orderNumber || 'invoice') + '.pdf');
+        var fileName = 'فاتورة_' + (printCurrentOrder?.orderNumber || 'invoice') + '.pdf';
+        pdf.save(fileName);
         printShowToast('تم حفظ PDF بنجاح', false);
         
     } catch(error) {
         console.error('PDF Export Error:', error);
-        printShowToast('خطأ في إنشاء PDF', true);
+        printShowToast('خطأ في إنشاء PDF: ' + error.message, true);
     } finally {
         if (buttons) {
             buttons.style.display = 'flex';
@@ -118,9 +161,20 @@ async function exportToPDF() {
 function initPrintModule(order, db) {
     printCurrentOrder = order;
     printDb = db;
+    
+    // إضافة مستمع لحدث الطباعة
+    window.addEventListener('beforeprint', function() {
+        console.log('استعداد للطباعة...');
+    });
+    
+    window.addEventListener('afterprint', function() {
+        console.log('تم الانتهاء من الطباعة');
+    });
+    
     console.log('تم تهيئة وحدة الطباعة بنجاح');
 }
 
+// تصدير الدوال للاستخدام العام
 window.printInvoice = printInvoice;
 window.previewPrint = previewPrint;
 window.exportToPDF = exportToPDF;
