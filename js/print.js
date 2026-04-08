@@ -1,5 +1,5 @@
 // ========================================
-// print.js - دوال الطباعة الأساسية (بدون تكرار CSS)
+// print.js - دوال الطباعة المتقدمة (بدون تكرار CSS)
 // ========================================
 
 let printCurrentOrder = null;
@@ -119,7 +119,7 @@ function printInvoice() {
 }
 
 // ========================================
-// معاينة الطباعة (بدون تضمين CSS مكرر)
+// معاينة الطباعة
 // ========================================
 
 function previewPrint() {
@@ -141,12 +141,12 @@ function previewPrint() {
             pagesContent += page.outerHTML;
         });
         
-        // استخدام invoice.css الموجود، مع إضافة أنماط المعاينة البسيطة فقط
         var printContent = '<!DOCTYPE html>' +
             '<html dir="rtl" lang="ar">' +
             '<head>' +
                 '<meta charset="UTF-8">' +
                 '<title>معاينة الفاتورة</title>' +
+                '<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">' +
                 '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">' +
                 '<link rel="stylesheet" href="/fi-khidmatik/css/invoice.css">' +
                 '<style>' +
@@ -178,7 +178,7 @@ function previewPrint() {
 }
 
 // ========================================
-// تصدير إلى PDF
+// تصدير إلى PDF بدقة عالية واسم ملف مخصص
 // ========================================
 
 async function exportToPDF() {
@@ -198,7 +198,7 @@ async function exportToPDF() {
         return;
     }
     
-    printShowLoading('جاري إنشاء PDF...');
+    printShowLoading('جاري إنشاء PDF بدقة عالية...');
     var buttons = document.querySelector('.action-buttons');
     if (buttons) buttons.style.display = 'none';
     
@@ -207,26 +207,72 @@ async function exportToPDF() {
         var pdf = new jsPDF('p', 'mm', 'a4');
         
         for (var i = 0; i < pages.length; i++) {
+            console.log('جاري معالجة الصفحة:', i + 1);
+            
             var canvas = await html2canvas(pages[i], { 
-                scale: 2, 
-                useCORS: false,
-                backgroundColor: '#ffffff', 
+                scale: 3,
+                useCORS: true,
+                backgroundColor: '#ffffff',
                 logging: false,
-                allowTaint: true
+                allowTaint: false,
+                windowWidth: pages[i].scrollWidth,
+                windowHeight: pages[i].scrollHeight
             });
+            
             if (i !== 0) pdf.addPage();
             var imgData = canvas.toDataURL('image/png');
             var imgWidth = 210;
             var imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
             if (imgHeight > 297) {
                 var ratio = 297 / imgHeight;
                 imgHeight = 297;
                 imgWidth = imgWidth * ratio;
             }
+            
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         }
         
-        var fileName = 'فاتورة_' + (printCurrentOrder?.orderNumber || 'invoice') + '.pdf';
+        // استخراج بيانات اسم الملف
+        let customerName = 'عميل';
+        let orderNumber = 'فاتورة';
+        let orderDate = '';
+        
+        if (printCurrentOrder) {
+            orderNumber = printCurrentOrder.orderNumber || 'فاتورة';
+            orderDate = printCurrentOrder.orderDate ? window.formatDate(printCurrentOrder.orderDate) : '';
+            if (printCurrentOrder.customerId && window.customersList) {
+                const customer = window.customersList.find(c => c.id === printCurrentOrder.customerId);
+                if (customer) customerName = customer.name;
+            }
+        } else {
+            // محاولة استخراج من DOM
+            const orderNumberElem = document.querySelector('.invoice-title');
+            if (orderNumberElem) {
+                let text = orderNumberElem.innerText;
+                let match = text.match(/رقم:\s*(.+)/);
+                if (match) orderNumber = match[1];
+            }
+            const customerNameElem = document.querySelector('.customer-info');
+            if (customerNameElem) {
+                let match = customerNameElem.innerText.match(/الاسم:\s*(.+)/);
+                if (match) customerName = match[1];
+            }
+            const dateElem = document.querySelector('.order-info');
+            if (dateElem) {
+                let match = dateElem.innerText.match(/التاريخ:\s*(.+)/);
+                if (match) orderDate = match[1];
+            }
+        }
+        
+        customerName = customerName.replace(/[\\/*?:"<>|]/g, '');
+        orderNumber = orderNumber.replace(/[\\/*?:"<>|]/g, '');
+        orderDate = orderDate.replace(/[\\/*?:"<>|]/g, '');
+        
+        let fileName = `${customerName} - ${orderNumber}`;
+        if (orderDate) fileName += ` - ${orderDate}`;
+        fileName += '.pdf';
+        
         pdf.save(fileName);
         printShowToast('تم حفظ PDF بنجاح', false);
     } catch(error) {
@@ -242,9 +288,10 @@ async function exportToPDF() {
 // تهيئة وحدة الطباعة
 // ========================================
 
-function initPrintModule(order, db) {
+function initPrintModule(order, db, customers = []) {
     printCurrentOrder = order;
     printDb = db;
+    window.customersList = customers;
     window.addEventListener('beforeprint', () => console.log('استعداد للطباعة...'));
     window.addEventListener('afterprint', () => console.log('تم الانتهاء من الطباعة'));
     console.log('تم تهيئة وحدة الطباعة بنجاح');
