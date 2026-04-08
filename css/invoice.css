@@ -54,7 +54,7 @@ body {
 }
 
 /* ========================================
-   رأس الصفحة - توزيع ثلاثي (يمين - وسط - يسار)
+   رأس الصفحة - توزيع ثلاثي
    ======================================== */
 .page-header {
     display: flex;
@@ -87,35 +87,8 @@ body {
 .logo-area {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     justify-content: flex-start;
-}
-
-.logo-img-wrapper {
-    width: 65px;
-    height: 65px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.logo-img-wrapper svg {
-    width: 100%;
-    height: 100%;
-    border-radius: 16px;
-}
-
-.logo-placeholder {
-    width: 65px;
-    height: 65px;
-    background: linear-gradient(135deg, #1e3a5f, #2d4a7a);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 28px;
-    font-weight: bold;
 }
 
 .logo-text {
@@ -132,7 +105,6 @@ body {
 .platform-slogan {
     font-size: 11px;
     color: #6c757d;
-    direction: ltr;
 }
 
 .page-title {
@@ -147,12 +119,6 @@ body {
     font-size: 10px;
     color: #4a5568;
     line-height: 1.6;
-}
-
-.legal-numbers i {
-    width: 16px;
-    margin-left: 4px;
-    color: #1e3a5f;
 }
 
 /* ========================================
@@ -346,7 +312,7 @@ body {
 }
 
 /* ========================================
-   الباركودات - توزيع ثلاثي (يمين - وسط - يسار)
+   الباركودات - توزيع ثلاثي
    ======================================== */
 .barcodes {
     display: flex;
@@ -386,11 +352,6 @@ body {
     font-size: 10px;
     margin-top: 8px;
     color: #666;
-}
-
-.barcode-item i {
-    margin-left: 4px;
-    color: #1e3a5f;
 }
 
 .qr-code {
@@ -454,10 +415,6 @@ body {
     margin-bottom: 8px;
 }
 
-.terms-card strong {
-    color: #1e3a5f;
-}
-
 .declaration {
     background: #f0f4f9;
     padding: 18px;
@@ -481,7 +438,6 @@ body {
     display: flex;
     justify-content: center;
     gap: 12px;
-    margin: 20px auto;
     position: fixed;
     bottom: 20px;
     left: 50%;
