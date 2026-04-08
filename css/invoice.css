@@ -26,6 +26,15 @@ body {
     position: relative;
     overflow-x: hidden;
     word-wrap: break-word;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    orphans: 0;
+    widows: 0;
+}
+
+.page:empty {
+    display: none;
 }
 
 @media print {
@@ -39,18 +48,17 @@ body {
     }
     .page {
         margin: 0;
-        padding: 0;
+        padding: 5mm;
         box-shadow: none;
         page-break-after: always;
-        page-break-inside: avoid;
     }
-    .preview-buttons, .no-print {
+    .preview-buttons {
         display: none !important;
     }
 }
 
 /* ========================================
-   رأس الصفحة
+   رأس الصفحة (الشعار)
    ======================================== */
 .page-header {
     display: flex;
@@ -68,12 +76,12 @@ body {
     font-size: 18px;
     font-weight: bold;
     color: #1e3a5f;
-    font-family: 'Tajawal', sans-serif;
 }
 .logo-area {
     display: flex;
     align-items: center;
     gap: 8px;
+    direction: ltr;
 }
 .logo-img {
     width: 40px;
@@ -83,6 +91,7 @@ body {
 .logo-text {
     display: flex;
     flex-direction: column;
+    line-height: 1.2;
 }
 .platform-name {
     font-size: 14px;
@@ -90,8 +99,15 @@ body {
     color: #1e3a5f;
 }
 .platform-slogan {
-    font-size: 10px;
+    font-size: 9px;
     color: #6c757d;
+}
+.legal-numbers {
+    font-size: 9px;
+    text-align: left;
+}
+.legal-numbers div {
+    margin-bottom: 2px;
 }
 
 /* ========================================
@@ -112,7 +128,7 @@ body {
     margin-bottom: 5px;
 }
 .page-number {
-    text-align: center;
+    margin-top: 5px;
     font-size: 9px;
     color: #6c757d;
 }
@@ -120,18 +136,33 @@ body {
 /* ========================================
    معلومات الفاتورة
    ======================================== */
-.invoice-info {
+.info-grid {
     display: flex;
     justify-content: space-between;
     background: #f8fafc;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 10px;
 }
-.invoice-info div {
+.info-item {
+    text-align: center;
+}
+.info-label {
+    font-size: 10px;
+    color: #6c757d;
+}
+.info-value {
+    font-weight: bold;
     font-size: 12px;
+}
+.status-badge {
+    background: #10b981;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
 }
 
 /* ========================================
@@ -146,7 +177,7 @@ body {
 .address-card {
     flex: 1;
     background: #f9fafb;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     font-size: 11px;
@@ -154,73 +185,63 @@ body {
 }
 .address-card strong {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     color: #1e3a5f;
-    font-size: 13px;
     border-right: 3px solid #1e3a5f;
-    padding-right: 8px;
+    padding-right: 6px;
 }
 
 /* ========================================
    طريقة الدفع والاستلام
    ======================================== */
-.payment-shipping {
+.payment-grid {
     display: flex;
-    gap: 20px;
+    gap: 15px;
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
-.payment-card, .shipping-card {
+.payment-card {
     flex: 1;
     background: #f1f5f9;
-    padding: 10px;
+    padding: 8px;
     border-radius: 8px;
     font-size: 11px;
+    text-align: center;
 }
 
 /* ========================================
-   جدول المنتجات - الإصلاح الأهم
+   جدول المنتجات (مضبوط لمنع التمدد)
    ======================================== */
 .products-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
-    table-layout: fixed; /* يمنع تمدد الجدول */
+    table-layout: fixed;
     font-size: 10px;
 }
-
-/* تحديد عرض الأعمدة بنسب مئوية */
-.products-table th:nth-child(1) { width: 5%; }   /* # */
-.products-table th:nth-child(2) { width: 20%; }  /* اسم المنتج */
-.products-table th:nth-child(3) { width: 25%; }  /* وصف المنتج */
-.products-table th:nth-child(4) { width: 12%; }  /* صورة المنتج */
-.products-table th:nth-child(5) { width: 8%; }   /* الكمية */
-.products-table th:nth-child(6) { width: 15%; }  /* سعر الوحدة */
-
-.products-table th,
-.products-table td {
+.products-table th:nth-child(1) { width: 5%; }
+.products-table th:nth-child(2) { width: 12%; }
+.products-table th:nth-child(3) { width: 30%; }
+.products-table th:nth-child(4) { width: 8%; }
+.products-table th:nth-child(5) { width: 10%; }
+.products-table th:nth-child(6) { width: 10%; }
+.products-table th, .products-table td {
     border: 1px solid #cbd5e1;
-    padding: 8px 4px;
+    padding: 6px 4px;
     text-align: center;
     vertical-align: middle;
     word-break: break-word;
 }
-
 .products-table th {
     background: #1e3a5f;
     color: white;
-    font-weight: 600;
 }
-
-/* صورة المنتج */
 .product-img {
     width: 40px !important;
     height: 40px !important;
     object-fit: cover;
     border-radius: 6px;
 }
-
-/* منع انقسام صف المنتج بين صفحتين */
 .products-table tr {
     page-break-inside: avoid;
     break-inside: avoid;
@@ -233,61 +254,56 @@ body {
     width: 280px;
     margin-right: auto;
     margin-top: 15px;
-    padding: 12px;
+    margin-bottom: 15px;
+    padding: 10px;
     background: #f8fafc;
     border-radius: 8px;
 }
 .totals-row {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
+    padding: 4px 0;
     font-size: 11px;
 }
 .grand-total {
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
     border-top: 2px solid #1e3a5f;
-    margin-top: 8px;
-    padding-top: 8px;
+    margin-top: 6px;
+    padding-top: 6px;
 }
 
 /* ========================================
-   الباركود و QR
+   الباركودات و QR
    ======================================== */
 .barcodes {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 25px;
-    padding: 15px;
+    gap: 15px;
+    margin: 20px 0;
+    padding: 10px;
     background: #f8fafc;
     border-radius: 8px;
     flex-wrap: wrap;
-    gap: 15px;
 }
-.qr-code, #zatca-qr-container {
+.barcode-item {
+    text-align: center;
+    flex: 1;
+}
+.qr-code {
     width: 80px;
     height: 80px;
+    margin: 0 auto;
 }
-.barcode-info p {
-    font-size: 10px;
-    margin: 2px 0;
-}
-
-/* ========================================
-   تذييل الفاتورة الداخلي
-   ======================================== */
-.invoice-footer {
-    text-align: center;
-    margin-top: 25px;
-    font-size: 11px;
-}
-.invoice-footer p {
-    margin: 5px 0;
+.barcode-item p {
+    font-size: 9px;
+    margin-top: 5px;
+    color: #6c757d;
 }
 
 /* ========================================
-   الشروط والأحكام (من terms.js)
+   الشروط والأحكام
    ======================================== */
 .terms-container {
     direction: rtl;
@@ -299,47 +315,47 @@ body {
     text-align: center;
     margin: 15px 0;
     border-bottom: 2px solid #1e3a5f;
-    padding-bottom: 8px;
+    padding-bottom: 6px;
 }
 .terms-section {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     page-break-inside: avoid;
 }
 .terms-section-header {
     background: linear-gradient(135deg, #1e3a5f, #2c4c7a);
     color: white;
-    padding: 8px 15px;
+    padding: 8px 12px;
     border-radius: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 10px;
 }
 .terms-section-icon {
-    font-size: 20px;
+    font-size: 18px;
     background: rgba(255,255,255,0.2);
     padding: 4px 8px;
     border-radius: 6px;
 }
 .terms-section-header h4 {
     margin: 0;
-    font-size: 15px;
+    font-size: 14px;
 }
 .terms-section-content p {
     font-size: 10px;
-    line-height: 1.6;
+    line-height: 1.5;
     margin-bottom: 6px;
 }
 .declaration {
     background: #e0f2fe;
     border-right: 4px solid #0284c7;
     padding: 12px;
-    margin: 20px 0;
+    margin: 15px 0;
     border-radius: 8px;
 }
 .signature-area {
     margin-top: 20px;
-    padding: 15px;
+    padding: 12px;
     background: #f8fafc;
     border-radius: 8px;
 }
@@ -347,21 +363,21 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
 }
 .signature-label {
     font-weight: 600;
-    min-width: 100px;
+    min-width: 90px;
 }
 .signature-placeholder {
     border-bottom: 1px solid #94a3b8;
     min-width: 200px;
     display: inline-block;
-    height: 24px;
+    height: 22px;
 }
 
-/* ألوان الأقسام المختلفة */
+/* ألوان أقسام الشروط */
 .terms-section-1 .terms-section-header { background: linear-gradient(135deg, #1e3a5f, #2c4c7a); }
 .terms-section-2 .terms-section-header { background: linear-gradient(135deg, #14532d, #166534); }
 .terms-section-3 .terms-section-header { background: linear-gradient(135deg, #4c1d95, #5b21b6); }
@@ -385,11 +401,10 @@ body {
         font-size: 8px;
         padding: 4px 2px;
     }
-    .product-img {
-        width: 30px !important;
-        height: 30px !important;
-    }
     .totals-box {
         width: 100%;
+    }
+    .barcodes {
+        flex-direction: column;
     }
 }
