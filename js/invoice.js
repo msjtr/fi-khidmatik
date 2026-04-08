@@ -403,7 +403,169 @@ async function loadInvoice(firebaseDb) {
     }
 }
 // ... باقي الكود ...
+// ========================================
+// دوال ربط باركود التحميل بقاعدة البيانات
+// ========================================
 
+/**
+ * إنشاء رابط تحميل الفاتورة وحفظه في قاعدة البيانات
+ * @param {string} orderId - معرف الطلب
+ * @returns {Promise<string>} - رابط التحميل
+ */
+async function saveInvoiceDownloadUrl(orderId) {
+    try {
+        // إنشاء رابط التحميل (يمكن أن يكون رابط الصفحة الحالية مع معامل auto=download)
+        const baseUrl = window.location.origin + window.location.pathname;
+        const downloadUrl = `${baseUrl}?id=${orderId}&auto=download`;
+        
+        // حفظ الرابط في مستند الطلب
+        await db.collection('orders').doc(orderId).update({
+            invoiceUrl: downloadUrl,
+            invoiceLastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log('تم حفظ رابط التحميل في قاعدة البيانات:', downloadUrl);
+        return downloadUrl;
+        
+    } catch (error) {
+        console.error('خطأ في حفظ رابط التحميل:', error);
+        
+        // إذا كان المستند لا يحتوي على الحقل، حاول إنشائه
+        try {
+            await db.collection('orders').doc(orderId).set({
+                invoiceUrl: downloadUrl,
+                invoiceLastUpdated: new Date().toISOString()
+            }, { merge: true });
+            
+            return downloadUrl;
+        } catch(e) {
+            console.error('فشل في حفظ الرابط:', e);
+            return null;
+        }
+    }
+}
+
+/**
+ * جلب رابط تحميل الفاتورة من قاعدة البيانات
+ * @param {string} orderId - معرف الطلب
+ * @returns {Promise<string|null>} - رابط التحميل أو null
+ */
+async function getInvoiceDownloadUrl(orderId) {
+    try {
+        const orderDoc = await db.collection('orders').doc(orderId).get();
+        if (orderDoc.exists) {
+            const data = orderDoc.data();
+            return data.invoiceUrl || null;
+        }
+        return null;
+    } catch (error) {
+        console.error('خطأ في جلب رابط التحميل:', error);
+        return null;
+    }
+}
+
+/**
+ * تحديث إحصائيات تحميل الفاتورة
+ * @param {string} orderId - معرف الطلب
+ */
+async function incrementInvoiceDownloadCount(orderId) {
+    try {
+        await db.collection('orders').doc(orderId).update({
+            invoiceDownloadCount: firebase.firestore.FieldValue.increment(1),
+            invoiceLastDownload: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log('تم تحديث عدد التحميلات');
+    } catch (error) {
+        console.error('خطأ في تحديث عدد التحميلات:', error);
+    }
+}
+
+/**
+ * إنشاء باركود التحميل وعرضه
+ * @param {string} orderId - معرف الطلب
+ * @param {string} elementId - معرف العنصر لعرض الباركود فيه
+ */
+async function createDownloadQRCode(orderId, elementId) {
+    try {
+        // محاولة جلب الرابط من قاعدة البيانات أولاً
+        let downloadUrl = await getInvoiceDownloadUrl(orderId);
+        
+        // إذا لم يكن موجوداً، قم بإنشائه وحفظه
+        if (!downloadUrl) {
+            downloadUrl = await saveInvoiceDownloadUrl(orderId);
+        }
+        
+        // عرض الباركود
+        const element = document.getElementById(elementId);
+        if (element && typeof QRCode !== 'undefined' && downloadUrl) {
+            element.innerHTML = '';
+            new QRCode(element, { 
+                text: downloadUrl, 
+                width: 90, 
+                height: 90 
+            });
+            
+            // إضافة حدث عند النقر على الباركود لفتح الرابط
+            element.style.cursor = 'pointer';
+            element.onclick = function() {
+                window.open(downloadUrl, '_blank');
+            };
+            
+            console.log('تم إنشاء باركود التحميل:', downloadUrl);
+            return downloadUrl;
+        }
+        
+        return null;
+        
+    } catch (error) {
+        console.error('خطأ في إنشاء باركود التحميل:', error);
+        return null;
+    }
+}
+
+/**
+ * تحميل الفاتورة كملف PDF وحفظ الإحصاءات
+ */
+async function downloadInvoiceWithTracking() {
+    if (!currentOrder || !currentOrder.orderNumber) {
+        showToast('لا توجد فاتورة للتحميل', true);
+        return;
+    }
+    
+    // تحديث عدد التحميلات في قاعدة البيانات
+    const orderId = new URLSearchParams(window.location.search).get('id');
+    if (orderId) {
+        await incrementInvoiceDownloadCount(orderId);
+    }
+    
+    // تنفيذ التحميل
+    await generatePDF();
+    
+    // تسجيل حدث التحميل
+    console.log('تم تحميل الفاتورة:', currentOrder.orderNumber);
+}
+
+/**
+ * إنشاء رابط مباشر للفاتورة (للنسخ أو المشاركة)
+ */
+function getInvoiceShareLink(orderId) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    return `${baseUrl}?id=${orderId}`;
+}
+
+/**
+ * نسخ رابط الفاتورة إلى الحافظة
+ */
+async function copyInvoiceLink(orderId) {
+    const link = getInvoiceShareLink(orderId);
+    try {
+        await navigator.clipboard.writeText(link);
+        showToast('تم نسخ رابط الفاتورة', false);
+    } catch (error) {
+        console.error('خطأ في النسخ:', error);
+        showToast('فشل نسخ الرابط', true);
+    }
+}
 // ========================================
 // تصدير الدوال للاستخدام العام
 // ========================================
