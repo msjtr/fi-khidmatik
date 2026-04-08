@@ -73,7 +73,6 @@
             } else {
                 const customer = order.customerId ? await loadCustomer(order.customerId) : null;
                 
-                // تحضير بيانات الطلب بالشكل الذي تتوقعه buildInvoicePage
                 const orderData = {
                     orderNumber: order.orderNumber,
                     orderDate: order.orderDate,
@@ -111,24 +110,27 @@
                 
                 document.getElementById('printContent').innerHTML = html;
                 
-                // إنشاء QR Codes
+                // إنشاء QR Codes (باستخدام الروابط الجديدة)
                 setTimeout(() => {
+                    // 1. باركود الزكاة (رابط البحث عن المكلف)
                     const zatcaDiv = document.getElementById('zatcaQR');
                     if (zatcaDiv && typeof QRCode !== 'undefined') {
                         zatcaDiv.innerHTML = '';
-                        new QRCode(zatcaDiv, { text: `https://zatca.gov.sa/${order.orderNumber}`, width: 80, height: 80 });
+                        new QRCode(zatcaDiv, { text: "https://zatca.gov.sa/ar/eServices/Pages/TaxpayerLookup.aspx", width: 90, height: 90 });
                     }
-                    const orderDiv = document.getElementById('orderQR');
-                    if (orderDiv && typeof QRCode !== 'undefined') {
-                        orderDiv.innerHTML = '';
-                        new QRCode(orderDiv, { text: window.location.href, width: 80, height: 80 });
+                    // 2. باركود الموقع السريع (رابط linktr.ee)
+                    const websiteDiv = document.getElementById('websiteQR');
+                    if (websiteDiv && typeof QRCode !== 'undefined') {
+                        websiteDiv.innerHTML = '';
+                        new QRCode(websiteDiv, { text: "https://linktr.ee/fikhidmatik", width: 90, height: 90 });
                     }
+                    // 3. باركود تحميل الفاتورة
                     const downloadDiv = document.getElementById('downloadQR');
                     if (downloadDiv && typeof QRCode !== 'undefined') {
                         downloadDiv.innerHTML = '';
-                        new QRCode(downloadDiv, { text: window.location.origin + window.location.pathname + '?id=' + orderId, width: 80, height: 80 });
+                        new QRCode(downloadDiv, { text: window.location.origin + window.location.pathname + '?id=' + orderId, width: 90, height: 90 });
                     }
-                }, 200);
+                }, 300);
                 
                 if (params.get('auto') === 'print') setTimeout(() => window.print(), 500);
             }
