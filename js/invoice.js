@@ -588,3 +588,135 @@ window.downloadInvoiceWithTracking = downloadInvoiceWithTracking;
 window.copyInvoiceLink = copyInvoiceLink;
 window.getInvoiceShareLink = getInvoiceShareLink;
 window.incrementInvoiceDownloadCount = incrementInvoiceDownloadCount;
+
+// ========================================
+// دوال ربط باركود التحميل بقاعدة البيانات
+// ========================================
+
+/**
+ * إنشاء رابط تحميل الفاتورة وحفظه في قاعدة البيانات
+ */
+async function saveInvoiceDownloadUrl(orderId) {
+    try {
+        const baseUrl = window.location.origin + window.location.pathname;
+        const downloadUrl = `${baseUrl}?id=${orderId}&auto=download`;
+        
+        await db.collection('orders').doc(orderId).update({
+            invoiceUrl: downloadUrl,
+            invoiceLastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log('تم حفظ رابط التحميل في قاعدة البيانات:', downloadUrl);
+        return downloadUrl;
+        
+    } catch (error) {
+        try {
+            await db.collection('orders').doc(orderId).set({
+                invoiceUrl: downloadUrl,
+                invoiceLastUpdated: new Date().toISOString()
+            }, { merge: true });
+            return downloadUrl;
+        } catch(e) {
+            console.error('فشل في حفظ الرابط:', e);
+            return null;
+        }
+    }
+}
+
+/**
+ * جلب رابط تحميل الفاتورة من قاعدة البيانات
+ */
+async function getInvoiceDownloadUrl(orderId) {
+    try {
+        const orderDoc = await db.collection('orders').doc(orderId).get();
+        if (orderDoc.exists) {
+            return orderDoc.data().invoiceUrl || null;
+        }
+        return null;
+    } catch (error) {
+        console.error('خطأ في جلب رابط التحميل:', error);
+        return null;
+    }
+}
+
+/**
+ * تحديث إحصائيات تحميل الفاتورة
+ */
+async function incrementInvoiceDownloadCount(orderId) {
+    try {
+        await db.collection('orders').doc(orderId).update({
+            invoiceDownloadCount: firebase.firestore.FieldValue.increment(1),
+            invoiceLastDownload: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log('تم تحديث عدد التحميلات');
+    } catch (error) {
+        console.error('خطأ في تحديث عدد التحميلات:', error);
+    }
+}
+
+/**
+ * إنشاء باركود التحميل وعرضه
+ */
+async function createDownloadQRCode(orderId, elementId) {
+    try {
+        let downloadUrl = await getInvoiceDownloadUrl(orderId);
+        
+        if (!downloadUrl) {
+            downloadUrl = await saveInvoiceDownloadUrl(orderId);
+        }
+        
+        const element = document.getElementById(elementId);
+        if (element && typeof QRCode !== 'undefined' && downloadUrl) {
+            element.innerHTML = '';
+            new QRCode(element, { 
+                text: downloadUrl, 
+                width: 90, 
+                height: 90 
+            });
+            
+            element.style.cursor = 'pointer';
+            element.onclick = function() {
+                window.open(downloadUrl, '_blank');
+            };
+            
+            console.log('تم إنشاء باركود التحميل:', downloadUrl);
+            return downloadUrl;
+        }
+        return null;
+    } catch (error) {
+        console.error('خطأ في إنشاء باركود التحميل:', error);
+        return null;
+    }
+}
+
+/**
+ * تحميل الفاتورة مع تتبع الإحصائيات
+ */
+async function downloadInvoiceWithTracking() {
+    if (!currentOrder || !currentOrder.orderNumber) {
+        showToast('لا توجد فاتورة للتحميل', true);
+        return;
+    }
+    
+    const orderId = new URLSearchParams(window.location.search).get('id');
+    if (orderId) {
+        await incrementInvoiceDownloadCount(orderId);
+    }
+    
+    await generatePDF();
+}
+
+/**
+ * نسخ رابط الفاتورة إلى الحافظة
+ */
+async function copyInvoiceLink(orderId) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const link = `${baseUrl}?id=${orderId}`;
+    try {
+        await navigator.clipboard.writeText(link);
+        showToast('تم نسخ رابط الفاتورة', false);
+    } catch (error) {
+        console.error('خطأ في النسخ:', error);
+        showToast('فشل نسخ الرابط', true);
+    }
+}
