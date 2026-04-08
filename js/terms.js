@@ -1,5 +1,5 @@
 // ========================================
-// صفحات الشروط والأحكام - نسخة عمودية مع ألوان وأيقونات للأقسام
+// صفحات الشروط والأحكام - نسخة بألوان متناسقة للأقسام
 // ========================================
 
 function buildTermsPage1(pageNum, totalPages) {
@@ -8,16 +8,16 @@ function buildTermsPage1(pageNum, totalPages) {
         '<div class="terms-container" style="display: block;">' +
             '<div class="terms-title">الشروط والأحكام والتعليمات</div>' +
             
-            '<div class="legal-notice" style="background-color: #f8d7da; border-right: 4px solid #721c24; padding: 15px; margin-bottom: 25px;">' +
-                '<strong>إقرار مسؤولية البيانات والمعلومات:</strong><br>' +
-                'يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها أو تم إدراجها في هذا المستند صحيحة ودقيقة ومكتملة، ويتحمل وحده كامل المسؤولية عنها، كما يتحمل كافة الآثار القانونية والمالية والفنية المترتبة على أي خطأ أو نقص أو عدم دقة فيها، ويلتزم بتعويض مقدم الخدمة تعويضًا كاملاً عن أي أضرار أو خسائر أو مطالبات تنشأ نتيجة لذلك، دون أدنى مسؤولية على مقدم الخدمة.<br><br>' +
-                'يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.' +
+            '<div class="legal-notice" style="background-color: #fef3c7; border-right: 4px solid #f59e0b; padding: 15px; margin-bottom: 25px; border-radius: 8px;">' +
+                '<strong style="color: #92400e;">⚠️ إقرار مسؤولية البيانات والمعلومات:</strong><br>' +
+                '<span style="color: #78350f;">يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها أو تم إدراجها في هذا المستند صحيحة ودقيقة ومكتملة، ويتحمل وحده كامل المسؤولية عنها، كما يتحمل كافة الآثار القانونية والمالية والفنية المترتبة على أي خطأ أو نقص أو عدم دقة فيها، ويلتزم بتعويض مقدم الخدمة تعويضًا كاملاً عن أي أضرار أو خسائر أو مطالبات تنشأ نتيجة لذلك، دون أدنى مسؤولية على مقدم الخدمة.</span><br><br>' +
+                '<span style="color: #78350f;">يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.</span>' +
             '</div>' +
             
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">📋</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">أولاً: صلاحية العرض والتنفيذ</h4>' +
+                '<div style="background: linear-gradient(135deg, #1e3a5f 0%, #2c4c7a 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">📋</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">أولاً: صلاحية العرض والتنفيذ</h4>' +
                 '</div>' +
                 '<p><strong>1. مدة صلاحية العرض:</strong> يكون هذا عرض السعر / الفاتورة صالحًا لمدة ثلاثة (3) أيام عمل فقط من تاريخ إصداره، ويُعد لاغيًا تلقائيًا بعد انتهاء هذه المدة دون الحاجة إلى إشعار مسبق، ولا يترتب على مقدم الخدمة أي التزام بعد ذلك.</p>' +
                 '<p><strong>2. بدء التنفيذ:</strong> تبدأ أعمال التنفيذ بعد استلام الدفعة المقدمة المتفق عليها، واستلام جميع المتطلبات والمعلومات اللازمة من العميل بشكل كامل وواضح.</p>' +
@@ -27,9 +27,9 @@ function buildTermsPage1(pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">💰</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثانياً: التكاليف والمسؤوليات المالية</h4>' +
+                '<div style="background: linear-gradient(135deg, #14532d 0%, #166534 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">💰</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">ثانياً: التكاليف والمسؤوليات المالية</h4>' +
                 '</div>' +
                 '<p><strong>6. الرسوم الخارجية:</strong> لا تشمل قيمة هذا عرض السعر / الفاتورة أي رسوم أو تكاليف خاصة بالجهات الخارجية مثل السيرفرات أو النطاقات أو التراخيص أو الرسوم الحكومية أو بوابات الدفع أو أي مزود خدمة طرف ثالث، ما لم يتم النص على خلاف ذلك بشكل صريح.</p>' +
                 '<p><strong>7. خدمات الطرف الثالث:</strong> أي خدمات يتم تقديمها من خلال أطراف ثالثة تخضع لسياسات تلك الجهات، ولا يتحمل مقدم الخدمة أي مسؤولية عن أدائها أو جودتها أو توقفها أو تعديل سياساتها.</p>' +
@@ -39,9 +39,9 @@ function buildTermsPage1(pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">📦</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثالثاً: التسليم والملكية</h4>' +
+                '<div style="background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">📦</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">ثالثاً: التسليم والملكية</h4>' +
                 '</div>' +
                 '<p><strong>11. نطاق التسليم:</strong> يتم تنفيذ وتسليم الأعمال وفق النطاق المحدد في هذا عرض السعر / الفاتورة فقط ولا يشمل أي أعمال إضافية غير مذكورة.</p>' +
                 '<p><strong>12. المنتج النهائي:</strong> يقتصر التسليم على المنتج النهائي الجاهز للاستخدام ولا يشمل الملفات المفتوحة أو الكود المصدري أو أي مواد إنتاج داخلية.</p>' +
@@ -52,9 +52,9 @@ function buildTermsPage1(pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">💳</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">رابعاً: الدفعات والاسترجاع</h4>' +
+                '<div style="background: linear-gradient(135deg, #b45309 0%, #c2410c 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">💳</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">رابعاً: الدفعات والاسترجاع</h4>' +
                 '</div>' +
                 '<p><strong>17. نظام الدفع:</strong> يتم سداد قيمة هذا عرض السعر / الفاتورة وفق الآلية المتفق عليها بين الطرفين سواء دفعة واحدة أو على دفعات.</p>' +
                 '<p><strong>18. تأخر السداد:</strong> يحق لمقدم الخدمة إيقاف العمل بشكل فوري في حال تأخر العميل عن سداد أي دفعة مستحقة.</p>' +
@@ -74,9 +74,9 @@ function buildTermsPage2(pageNum, totalPages) {
         '<div class="terms-container" style="display: block;">' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">🛡️</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">خامساً: الضمان</h4>' +
+                '<div style="background: linear-gradient(135deg, #065f46 0%, #047857 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">🛡️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">خامساً: الضمان</h4>' +
                 '</div>' +
                 '<p><strong>23. الضمان:</strong> يتم تحديد الضمان إن وجد وفق الخطة التشغيلية للمشروع وطبيعته.</p>' +
                 '<p><strong>24. نطاق الضمان:</strong> يقتصر الضمان على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط.</p>' +
@@ -84,9 +84,9 @@ function buildTermsPage2(pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">🔚</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">سادساً: انتهاء العلاقة والمسؤولية</h4>' +
+                '<div style="background: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">🔚</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">سادساً: انتهاء العلاقة والمسؤولية</h4>' +
                 '</div>' +
                 '<p><strong>26. انتهاء العلاقة:</strong> تنتهي العلاقة التعاقدية بين الطرفين فور تسليم المشروع وفق النطاق المتفق عليه.</p>' +
                 '<p><strong>27. المسؤولية بعد التسليم:</strong> لا يتحمل مقدم الخدمة أي مسؤولية لاحقة عن المشروع بعد التسليم.</p>' +
@@ -96,9 +96,9 @@ function buildTermsPage2(pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">📞</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">سابعاً: التواصل والتنفيذ</h4>' +
+                '<div style="background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">📞</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">سابعاً: التواصل والتنفيذ</h4>' +
                 '</div>' +
                 '<p><strong>31. وسائل التواصل:</strong> تُعتمد وسائل التواصل الرسمية المسجلة فقط كقنوات معتمدة بين الطرفين.</p>' +
                 '<p><strong>32. التفويض:</strong> يلتزم العميل بإشعار مقدم الخدمة رسميًا في حال تفويض أي شخص للتواصل نيابة عنه.</p>' +
@@ -106,9 +106,9 @@ function buildTermsPage2(pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">⚖️</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثامناً: البنود القانونية</h4>' +
+                '<div style="background: linear-gradient(135deg, #831843 0%, #9d174d 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">⚖️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">ثامناً: البنود القانونية</h4>' +
                 '</div>' +
                 '<p><strong>34. طبيعة العلاقة:</strong> تُعد العلاقة بين الطرفين علاقة تعاقدية مستقلة ولا تُنشئ أي شراكة أو وكالة أو تمثيل قانوني.</p>' +
                 '<p><strong>35. كامل الاتفاق:</strong> يمثل هذا المستند كامل الاتفاق بين الطرفين ويلغي أي اتفاقات أو تفاهمات سابقة سواء كانت شفهية أو مكتوبة.</p>' +
@@ -118,18 +118,18 @@ function buildTermsPage2(pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">🏛️</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">تاسعاً: النزاعات</h4>' +
+                '<div style="background: linear-gradient(135deg, #374151 0%, #4b5563 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">🏛️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">تاسعاً: النزاعات</h4>' +
                 '</div>' +
                 '<p><strong>39. حل النزاعات:</strong> يتم السعي لحل أي نزاع ينشأ بين الطرفين بشكل ودي خلال مدة مناسبة من تاريخ الإشعار.</p>' +
                 '<p><strong>40. الجهة المختصة:</strong> في حال عدم التوصل إلى حل يحق لمقدم الخدمة تحديد الجهة القضائية أو التحكيمية المختصة.</p>' +
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">🌪️</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">عاشراً: البنود المتقدمة</h4>' +
+                '<div style="background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">🌪️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">عاشراً: البنود المتقدمة</h4>' +
                 '</div>' +
                 '<p><strong>41. القوة القاهرة:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن التأخير أو عدم التنفيذ الناتج عن ظروف خارجة عن الإرادة.</p>' +
                 '<p><strong>42. السرية:</strong> يلتزم الطرفان بالمحافظة على سرية المعلومات وعدم الإفصاح عنها لأي طرف ثالث دون موافقة خطية.</p>' +
@@ -151,9 +151,9 @@ function buildTermsPage3(order, pageNum, totalPages) {
         '<div class="terms-container" style="display: block;">' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">📊</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">حادي عشر: البنود المالية والقانونية المتقدمة</h4>' +
+                '<div style="background: linear-gradient(135deg, #854d0e 0%, #a16207 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">📊</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">حادي عشر: البنود المالية والقانونية المتقدمة</h4>' +
                 '</div>' +
                 '<p><strong>47. المدفوعات الخارجية:</strong> لا تُعد أي مبالغ تُدفع لجهات خارجية مستحقة لمقدم الخدمة ولا يحق المطالبة بها أو استرجاعها.</p>' +
                 '<p><strong>48. المدفوعات بالنيابة:</strong> تُحتسب أي مدفوعات يقوم بها مقدم الخدمة نيابة عن العميل ضمن تكاليف المشروع ويلتزم العميل بسدادها.</p>' +
@@ -162,9 +162,9 @@ function buildTermsPage3(order, pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">🔒</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثاني عشر: الحماية القانونية</h4>' +
+                '<div style="background: linear-gradient(135deg, #701a75 0%, #86198f 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">🔒</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">ثاني عشر: الحماية القانونية</h4>' +
                 '</div>' +
                 '<p><strong>51. التنازل عن المطالبات:</strong> يتنازل العميل عن أي مطالبات أو تعويضات تتجاوز قيمة هذا عرض السعر / الفاتورة.</p>' +
                 '<p><strong>52. حدود المسؤولية:</strong> لا تتجاوز مسؤولية مقدم الخدمة في جميع الأحوال إجمالي المبلغ المدفوع من قبل العميل.</p>' +
@@ -175,22 +175,37 @@ function buildTermsPage3(order, pageNum, totalPages) {
             '</div>' +
 
             '<div style="margin-bottom: 30px;">' +
-                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="font-size: 22px;">📎</span>' +
-                    '<h4 style="margin: 0; color: white; font-size: 18px;">الشروط الإضافية والملحقات</h4>' +
+                '<div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">' +
+                    '<span style="font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px;">📎</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">الشروط الإضافية والملحقات</h4>' +
                 '</div>' +
                 '<p><strong>57. الشروط الإضافية والملحقات:</strong> في حال وجود أي شروط أو طلبات أو متطلبات إضافية من قبل العميل سواء كانت فنية أو تشغيلية أو مالية أو تنظيمية ولم تكن ضمن نطاق هذا عرض السعر / الفاتورة فإنه يتم توثيقها حصراً في ملحق اتفاق مستقل يتم إعداده واعتماده من قبل الطرفين بشكل خطي ورسمي، ولا تُعد تلك الشروط أو الطلبات الإضافية جزءًا من هذا المستند ولا يترتب عليها أي تعديل أو تأثير على أي من بنوده ما لم يتم النص على ذلك صراحةً وبشكل مكتوب في ذلك الملحق، كما لا يُعتد بأي اتفاقات أو تفاهمات أو مراسلات سواء كانت شفهية أو غير موثقة ما لم يتم تضمينها في ملحق رسمي معتمد.</p>' +
             '</div>' +
 
-            '<div class="declaration" style="background-color: #e8f4fd; border-right: 4px solid #004085; padding: 15px; margin: 20px 0;">' +
-                '<p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">📝 الإقرار</p>' +
-                '<p>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>' +
+            '<div class="declaration" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-right: 4px solid #0284c7; padding: 20px; margin: 20px 0; border-radius: 12px;">' +
+                '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">' +
+                    '<span style="font-size: 28px;">📝</span>' +
+                    '<p style="font-size: 18px; font-weight: bold; margin: 0; color: #0369a1;">الإقرار</p>' +
+                '</div>' +
+                '<p style="margin: 0; color: #075985; font-size: 15px;">أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>' +
             '</div>' +
 
-            '<div class="signature-area" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">' +
-                '<div style="margin-bottom: 10px;"><strong>👤 اسم العميل:</strong> ' + window.escapeHtml(order.customerName) + '</div>' +
-                '<div style="margin-bottom: 10px;"><strong>📅 التاريخ:</strong> ' + dateStr + '</div>' +
-                '<div><strong>✍️ التوقيع:</strong> _________________</div>' +
+            '<div class="signature-area" style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 1px solid #e2e8f0;">' +
+                '<div style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 20px;">👤</span>' +
+                    '<strong style="font-size: 16px;">اسم العميل:</strong> ' + 
+                    '<span style="color: #1e293b; font-weight: 500;">' + window.escapeHtml(order.customerName) + '</span>' +
+                '</div>' +
+                '<div style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 20px;">📅</span>' +
+                    '<strong style="font-size: 16px;">التاريخ:</strong> ' + 
+                    '<span style="color: #1e293b; font-weight: 500;">' + dateStr + '</span>' +
+                '</div>' +
+                '<div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 20px;">✍️</span>' +
+                    '<strong style="font-size: 16px;">التوقيع:</strong> ' + 
+                    '<span style="border-bottom: 1px solid #94a3b8; min-width: 200px; display: inline-block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>' +
+                '</div>' +
             '</div>' +
         '</div>' +
         window.buildFooter(pageNum, totalPages) +
