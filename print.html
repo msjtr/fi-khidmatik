@@ -2,333 +2,74 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طباعة الفاتورة</title>
-    
-    <!-- إضافة الشعار كـ favicon -->
-    <link rel="icon" type="image/svg+xml" href="/fi-khidmatik/images/logo.svg">
-    <link rel="shortcut icon" type="image/svg+xml" href="/fi-khidmatik/images/logo.svg">
-    
-    <!-- خط Google للعناوين -->
+    <title>الفاتورة الإلكترونية</title>
+    <link rel="icon" href="/fi-khidmatik/images/logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
-    <!-- المكتبات الخارجية -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/fi-khidmatik/css/invoice.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- ملفات المشروع -->
-    <link rel="stylesheet" href="/fi-khidmatik/css/invoice.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="/fi-khidmatik/js/print.js"></script>
     <script src="/fi-khidmatik/js/terms.js"></script>
-    <script src="/fi-khidmatik/js/zatca.js"></script>
-    
+    <script src="/fi-khidmatik/js/invoice.js"></script>
     <style>
-        /* أنماط إضافية لشاشة المعاينة (غير موجودة في invoice.css) */
-        body {
-            background: #e9ecef;
-            font-family: 'Segoe UI', 'Cairo', sans-serif;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .page {
-            background: white;
-            max-width: 210mm;
-            margin: 0 auto 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        @media print {
-            body { background: white; padding: 0; }
-            .page { margin: 0; box-shadow: none; }
-            .no-print { display: none !important; }
-        }
-        .preview-buttons {
-            text-align: center;
-            padding: 20px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-        .preview-buttons button {
-            padding: 10px 20px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        /* أنماط المعاينة فقط */
+        body { background: #e9ecef; padding: 20px; }
+        .page { margin: 0 auto 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        @media print { body { background: white; padding: 0; } .page { margin: 0; box-shadow: none; } }
+        .preview-buttons { position: fixed; bottom: 0; left: 0; right: 0; background: white; text-align: center; padding: 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
+        .preview-buttons button { padding: 8px 16px; margin: 0 5px; border: none; border-radius: 6px; cursor: pointer; }
         .btn-print { background: #1e3a5f; color: white; }
         .btn-pdf { background: #dc2626; color: white; }
-        .btn-close { background: #ef4444; color: white; }
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1e3a5f;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 50px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .error-message {
-            text-align: center;
-            color: red;
-            margin-top: 50px;
-            font-size: 18px;
-        }
-        
-        /* تنسيق الشعار في الهيدر (إذا لم يكن موجوداً في invoice.css) */
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .logo-img {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-        }
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-        }
-        .platform-name {
-            font-size: 14px;
-            font-weight: bold;
-            color: #1e3a5f;
-        }
-        .platform-slogan {
-            font-size: 10px;
-            color: #6c757d;
-        }
-        
-        /* أنماط الفاتورة */
-        .invoice-header {
-            margin-bottom: 20px;
-        }
-        .invoice-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1e3a5f;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .customer-info, .order-info {
-            background: #f8fafc;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .product-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-        }
-        .product-table th, .product-table td {
-            border: 1px solid #cbd5e1;
-            padding: 8px;
-            text-align: center;
-            font-size: 12px;
-        }
-        .product-table th {
-            background: #1e3a5f;
-            color: white;
-        }
-        .totals {
-            width: 300px;
-            margin-right: auto;
-            margin-top: 15px;
-        }
-        .totals-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-        }
-        .grand-total {
-            font-weight: bold;
-            font-size: 16px;
-            border-top: 1px solid #1e3a5f;
-            margin-top: 5px;
-            padding-top: 5px;
-        }
+        .btn-png { background: #16a34a; color: white; }
+        .btn-close { background: #6c757d; color: white; }
+        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1e3a5f; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div id="printContent" style="min-height: 100vh;">
-        <div class="loading-spinner"></div>
-    </div>
+    <div id="printContent"><div class="loading-spinner"></div></div>
     <div class="preview-buttons no-print">
         <button class="btn-print" onclick="window.print()">🖨️ طباعة</button>
         <button class="btn-pdf" onclick="window.exportToPDF()">📄 PDF</button>
+        <button class="btn-png" onclick="window.exportToPNG()">🖼️ PNG</button>
         <button class="btn-close" onclick="window.close()">✖️ إغلاق</button>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-            authDomain: "msjt301-974bb.firebaseapp.com",
-            projectId: "msjt301-974bb",
-            storageBucket: "msjt301-974bb.firebasestorage.app",
-            messagingSenderId: "186209858482",
-            appId: "1:186209858482:web:186ca610780799ef562aab"
-        };
-
+        const firebaseConfig = { /* ضع إعداداتك هنا */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // دوال مساعدة
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const d = new Date(dateStr);
-            return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('ar-EG');
+        async function loadOrder(orderId) {
+            const snap = await getDoc(doc(db, "orders", orderId));
+            return snap.exists() ? { id: snap.id, ...snap.data() } : null;
         }
-
-        function formatTime(time24) {
-            if (!time24) return '';
-            let [h, m] = time24.split(':');
-            let hour = parseInt(h);
-            let ampm = hour >= 12 ? 'مساءً' : 'صباحاً';
-            hour = hour % 12 || 12;
-            return `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
+        async function loadCustomer(customerId) {
+            const snap = await getDoc(doc(db, "customers", customerId));
+            return snap.exists() ? snap.data() : null;
         }
+        async function loadProducts() { /* جلب المنتجات إذا لزم */ return []; }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        function buildInvoicePage(order, customer) {
-            const items = order.items || [];
-            const subtotal = order.subtotal || 0;
-            const discount = order.discount || 0;
-            const tax = order.tax || 0;
-            const total = order.total || 0;
-
-            const productsHtml = items.map(item => `
-                <tr>
-                    <td>${escapeHtml(item.name)}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.price.toFixed(2)} ريال</td>
-                    <td>${(item.quantity * item.price).toFixed(2)} ريال</td>
-                </tr>
-            `).join('');
-
-            const shippingMethodText = {
-                'pickup': 'استلام من المقر',
-                'delivery': 'شحن منزلي',
-                'noship': 'لا يتطلب شحن'
-            }[order.shippingMethod] || order.shippingMethod;
-
-            return `
-                <div class="page">
-                    ${window.buildHeader('فاتورة رسمية')}
-                    
-                    <div class="invoice-header">
-                        <div class="invoice-title">فاتورة رقم: ${escapeHtml(order.orderNumber)}</div>
-                    </div>
-                    
-                    <div class="customer-info">
-                        <strong>بيانات العميل:</strong><br>
-                        الاسم: ${escapeHtml(customer?.name || 'غير معروف')}<br>
-                        الجوال: ${escapeHtml(customer?.phone || '')}<br>
-                        البريد: ${escapeHtml(customer?.email || '')}<br>
-                        ${order.shippingMethod === 'delivery' ? `العنوان: ${escapeHtml(order.shippingAddress?.city || '')} - ${escapeHtml(order.shippingAddress?.street || '')}` : ''}
-                    </div>
-                    
-                    <div class="order-info">
-                        <strong>معلومات الطلب:</strong><br>
-                        التاريخ: ${formatDate(order.orderDate)}<br>
-                        الوقت: ${formatTime(order.orderTime)}<br>
-                        حالة الطلب: ${order.status}<br>
-                        طريقة الاستلام: ${shippingMethodText}<br>
-                        طريقة الدفع: ${order.paymentMethodName || order.paymentMethod}
-                    </div>
-                    
-                    <table class="product-table">
-                        <thead>
-                            <tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
-                        </thead>
-                        <tbody>
-                            ${productsHtml}
-                        </tbody>
-                    </table>
-                    
-                    <div class="totals">
-                        <div class="totals-row"><span>المجموع الفرعي:</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                        <div class="totals-row"><span>الخصم:</span><span>${discount.toFixed(2)} ريال</span></div>
-                        <div class="totals-row"><span>الضريبة (15%):</span><span>${tax.toFixed(2)} ريال</span></div>
-                        <div class="totals-row grand-total"><span>الإجمالي:</span><span>${total.toFixed(2)} ريال</span></div>
-                    </div>
-                    
-                    ${window.buildFooter(1, 4)}
-                </div>
-            `;
-        }
-
-        async function renderCompleteInvoice(orderId) {
-            try {
-                const orderRef = doc(db, "orders", orderId);
-                const orderSnap = await getDoc(orderRef);
-                if (!orderSnap.exists()) {
-                    document.getElementById('printContent').innerHTML = '<div class="error-message">⚠️ الطلب غير موجود</div>';
-                    return;
-                }
-                const order = { id: orderSnap.id, ...orderSnap.data() };
-                
-                let customer = null;
-                if (order.customerId) {
-                    const customerRef = doc(db, "customers", order.customerId);
-                    const customerSnap = await getDoc(customerRef);
-                    if (customerSnap.exists()) customer = customerSnap.data();
-                }
-                
-                let html = buildInvoicePage(order, customer);
-                
-                if (typeof window.buildTermsPage1 === 'function') {
-                    html += window.buildTermsPage1(2, 4);
-                    html += window.buildTermsPage2(3, 4);
-                    if (typeof window.buildTermsPage3 === 'function') {
-                        html += window.buildTermsPage3(order, customer, formatDate(order.orderDate), formatTime(order.orderTime), 4, 4);
-                    }
-                } else {
-                    console.warn('⚠️ دوال buildTermsPage مفقودة من terms.js');
-                }
-                
-                document.getElementById('printContent').innerHTML = html;
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('auto') === 'print') {
-                    setTimeout(() => window.print(), 500);
-                }
-            } catch (err) {
-                console.error(err);
-                document.getElementById('printContent').innerHTML = `<div class="error-message">❌ خطأ: ${err.message}</div>`;
-            }
-        }
-
-        const params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(location.search);
         const orderId = params.get('id');
-        if (!orderId) {
-            document.getElementById('printContent').innerHTML = '<div class="error-message">❌ لم يتم تحديد رقم الطلب</div>';
-        } else {
-            renderCompleteInvoice(orderId);
+        if (!orderId) { document.getElementById('printContent').innerHTML = '<div class="error-message">لا يوجد رقم طلب</div>'; }
+        else {
+            const order = await loadOrder(orderId);
+            if (!order) { document.getElementById('printContent').innerHTML = '<div class="error-message">الطلب غير موجود</div>'; }
+            else {
+                const customer = order.customerId ? await loadCustomer(order.customerId) : null;
+                const products = await loadProducts();
+                let html = buildInvoicePage(order, customer, products, 1, 3); // الصفحة 1
+                if (typeof window.buildTermsPage1 === 'function') {
+                    html += window.buildTermsPage1(2, 3);
+                    html += window.buildTermsPage2(3, 3);
+                }
+                document.getElementById('printContent').innerHTML = html;
+                if (params.get('auto') === 'print') setTimeout(() => window.print(), 500);
+            }
         }
     </script>
 </body>
