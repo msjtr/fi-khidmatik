@@ -2,6 +2,64 @@
 // print.js - دوال الطباعة المتقدمة (نسخة محسنة)
 // ========================================
 
+// ========================================
+// الدوال المساعدة التي تحتاجها terms.js
+// ========================================
+
+window.formatDate = function(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+};
+
+window.formatTime = function(time24) {
+    if (!time24) return '';
+    let [h, m] = time24.split(':');
+    let hour = parseInt(h);
+    let ampm = hour >= 12 ? 'مساءً' : 'صباحاً';
+    hour = hour % 12 || 12;
+    return `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
+};
+
+window.escapeHtml = function(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+};
+
+window.buildHeader = function(title) {
+    return `
+        <div class="page-header">
+            <div class="header-right"></div>
+            <div class="header-center">
+                <div class="page-title">${title}</div>
+            </div>
+            <div class="header-left"></div>
+        </div>
+    `;
+};
+
+window.buildFooter = function(pageNum, totalPages) {
+    return `
+        <div class="page-footer">
+            <div class="contact-info">
+                <span><i class="fas fa-phone"></i> 0530000000</span>
+                <span><i class="fas fa-envelope"></i> info@example.com</span>
+            </div>
+            <div class="page-number">الصفحة ${pageNum} من ${totalPages}</div>
+        </div>
+    `;
+};
+
+// ========================================
+// بقية دوال الطباعة
+// ========================================
+
 let printCurrentOrder = null;
 let printDb = null;
 
