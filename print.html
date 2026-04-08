@@ -15,7 +15,7 @@
     <script src="/fi-khidmatik/js/invoice.js"></script>
     <style>
         body { background: #e9ecef; padding: 20px; }
-        .page { margin: 0 auto 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .page { margin: 0 auto 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); background: white; }
         @media print { body { background: white; padding: 0; } .page { margin: 0; box-shadow: none; } }
         .preview-buttons { position: fixed; bottom: 0; left: 0; right: 0; background: white; text-align: center; padding: 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
         .preview-buttons button { padding: 8px 16px; margin: 0 5px; border: none; border-radius: 6px; cursor: pointer; }
@@ -73,41 +73,60 @@
             } else {
                 const customer = order.customerId ? await loadCustomer(order.customerId) : null;
                 
-                // بناء صفحة الفاتورة (تأكد من تطابق المعاملات مع تعريف buildInvoicePage في invoice.js)
-                // إذا كانت buildInvoicePage تتوقع (order, pageNum, totalPages) فقط:
-                let html = window.buildInvoicePage(order, 1, 4);
-                // أو إذا كانت تتوقع (order, customer, products, pageNum, totalPages):
-                // let html = window.buildInvoicePage(order, customer, [], 1, 4);
+                // تحضير بيانات الطلب بالشكل الذي تتوقعه buildInvoicePage
+                const orderData = {
+                    orderNumber: order.orderNumber,
+                    orderDate: order.orderDate,
+                    orderTime: order.orderTime,
+                    status: order.status,
+                    customerName: customer?.name || 'غير معروف',
+                    customerPhone: customer?.phone || '',
+                    customerEmail: customer?.email || '',
+                    customerAddress: customer?.address || '',
+                    shippingMethod: order.shippingMethod,
+                    paymentMethod: order.paymentMethod,
+                    approvalCode: order.approvalCode,
+                    items: (order.items || []).map(item => ({
+                        name: item.name,
+                        description: item.description,
+                        image: item.image,
+                        quantity: item.quantity,
+                        price: item.price
+                    })),
+                    subtotal: order.subtotal,
+                    discount: order.discount,
+                    tax: order.tax,
+                    total: order.total
+                };
                 
-                // إضافة صفحات الشروط والأحكام
+                let html = window.buildInvoicePage(orderData, 1, 4);
+                
                 if (typeof window.buildTermsPage1 === 'function') {
                     html += window.buildTermsPage1(2, 4);
                     html += window.buildTermsPage2(3, 4);
                     if (typeof window.buildTermsPage3 === 'function') {
-                        html += window.buildTermsPage3(order, customer, window.formatDate(order.orderDate), window.formatTime(order.orderTime), 4, 4);
+                        html += window.buildTermsPage3(orderData, customer, window.formatDate(order.orderDate), window.formatTime(order.orderTime), 4, 4);
                     }
-                } else {
-                    console.warn('⚠️ دوال buildTermsPage مفقودة من terms.js');
                 }
                 
                 document.getElementById('printContent').innerHTML = html;
                 
-                // إنشاء QR Code (باستخدام id الصحيح من invoice.js)
-                // إذا كان invoice.js يستخدم id ثابت "zatcaQR"
+                // إنشاء QR Codes
                 setTimeout(() => {
-                    const qrDiv = document.getElementById('zatcaQR');
-                    if (qrDiv && typeof QRCode !== 'undefined') {
-                        qrDiv.innerHTML = ''; // مسح أي محتوى سابق
-                        new QRCode(qrDiv, {
-                            text: `https://zatca.gov.sa/${order.orderNumber}`,
-                            width: 80,
-                            height: 80,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.H
-                        });
-                    } else {
-                        console.warn('⚠️ عنصر zatcaQR غير موجود في الصفحة');
+                    const zatcaDiv = document.getElementById('zatcaQR');
+                    if (zatcaDiv && typeof QRCode !== 'undefined') {
+                        zatcaDiv.innerHTML = '';
+                        new QRCode(zatcaDiv, { text: `https://zatca.gov.sa/${order.orderNumber}`, width: 80, height: 80 });
+                    }
+                    const orderDiv = document.getElementById('orderQR');
+                    if (orderDiv && typeof QRCode !== 'undefined') {
+                        orderDiv.innerHTML = '';
+                        new QRCode(orderDiv, { text: window.location.href, width: 80, height: 80 });
+                    }
+                    const downloadDiv = document.getElementById('downloadQR');
+                    if (downloadDiv && typeof QRCode !== 'undefined') {
+                        downloadDiv.innerHTML = '';
+                        new QRCode(downloadDiv, { text: window.location.origin + window.location.pathname + '?id=' + orderId, width: 80, height: 80 });
                     }
                 }, 200);
                 
