@@ -195,24 +195,43 @@ function calculateTotals(order) {
 }
 
 // ========================================
-// بناء رأس الصفحة
+// بناء رأس الصفحة (يمين - وسط - يسار)
 // ========================================
 function buildHeader(title) {
-    var logoHtml = '<div class="logo-area">' +
-        '<div class="logo-placeholder">' + sellerData.name.charAt(0) + '</div>' +
-        '<div>' +
-            '<div class="platform-name">' + sellerData.name + '</div>' +
-            '<div class="platform-slogan">خدمات تقنية متكاملة</div>' +
+    // شعار SVG مدمج لـ "في خدمتك"
+    const logoSvg = `<svg width="65" height="65" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="100" rx="20" fill="#1e3a5f"/>
+        <text x="50" y="68" text-anchor="middle" fill="white" font-size="42" font-weight="bold" font-family="Cairo, sans-serif">خ</text>
+    </svg>`;
+    
+    // القسم الأيمن: الشعار والاسم
+    var rightSection = '<div class="header-right">' +
+        '<div class="logo-area">' +
+            '<div class="logo-img-wrapper">' + logoSvg + '</div>' +
+            '<div class="logo-text">' +
+                '<div class="platform-name">في خدمتك</div>' +
+                '<div class="platform-slogan">Fi Khidmatik</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    // القسم الأوسط: عنوان الصفحة
+    var centerSection = '<div class="header-center">' +
+        '<div class="page-title">' + title + '</div>' +
+    '</div>';
+    
+    // القسم الأيسر: الأرقام القانونية
+    var leftSection = '<div class="header-left">' +
+        '<div class="legal-numbers">' +
+            '<div><i class="fas fa-certificate"></i> شهادة العمل الحر: ' + sellerData.licenseNumber + '</div>' +
+            '<div><i class="fas fa-building"></i> الرقم الضريبي: ' + sellerData.taxNumber + '</div>' +
         '</div>' +
     '</div>';
     
     return '<div class="page-header">' +
-        logoHtml +
-        '<div class="page-title">' + title + '</div>' +
-        '<div class="legal-numbers">' +
-            '<div>شهادة العمل الحر: ' + sellerData.licenseNumber + '</div>' +
-            '<div>الرقم الضريبي: ' + sellerData.taxNumber + '</div>' +
-        '</div>' +
+        rightSection +
+        centerSection +
+        leftSection +
     '</div>';
 }
 
@@ -282,7 +301,7 @@ function buildInvoicePage(order, pageNum, totalPages) {
             '<div class="payment-card"><strong>رمز الموافقة</strong>' + (order.approvalCode || 'غير مطلوب') + '</div>' +
         '</div>' +
         '<table class="products-table">' +
-            '<thead><tr><th>#</th><th>الصورة</th><th>المنتج / الخدمة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>' +
+            '<thead><tr><th>#</th><th>الصورة</th><th>المنتج / الخدمة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><tr></thead>' +
             '<tbody>' + itemsHtml + '</tbody>' +
         '</table>' +
         '<div class="totals-box">' +
@@ -292,9 +311,24 @@ function buildInvoicePage(order, pageNum, totalPages) {
             '<div class="totals-row grand-total"><span>الإجمالي النهائي</span><span>' + totals.total.toFixed(2) + ' ريال</span></div>' +
         '</div>' +
         '<div class="barcodes">' +
-            '<div class="barcode-item"><div id="zatcaQR" class="qr-code"></div><p>باركود هيئة الزكاة والضريبة</p></div>' +
-            '<div class="barcode-item"><div id="orderQR" class="qr-code"></div><p>باركود الطلب</p></div>' +
-            '<div class="barcode-item"><div id="downloadQR" class="qr-code"></div><p>باركود التحميل</p></div>' +
+            '<div class="barcode-right">' +
+                '<div class="barcode-item">' +
+                    '<div id="zatcaQR" class="qr-code"></div>' +
+                    '<p><i class="fas fa-shield-alt"></i> باركود هيئة الزكاة والضريبة</p>' +
+                '</div>' +
+            '</div>' +
+            '<div class="barcode-center">' +
+                '<div class="barcode-item">' +
+                    '<div id="orderQR" class="qr-code"></div>' +
+                    '<p><i class="fas fa-tag"></i> باركود الطلب</p>' +
+                '</div>' +
+            '</div>' +
+            '<div class="barcode-left">' +
+                '<div class="barcode-item">' +
+                    '<div id="downloadQR" class="qr-code"></div>' +
+                    '<p><i class="fas fa-download"></i> باركود التحميل</p>' +
+                '</div>' +
+            '</div>' +
         '</div>' +
         buildFooter(pageNum, totalPages) +
     '</div>';
@@ -390,7 +424,7 @@ async function loadInvoice(firebaseDb) {
                 var zatcaDiv = document.getElementById('zatcaQR');
                 if (zatcaDiv) {
                     try {
-                        var zatcaData = generateZATCAQRData(order);
+                        var zatcaData = window.generateZATCAQRData(order);
                         new QRCode(zatcaDiv, { text: zatcaData, width: 90, height: 90 });
                     } catch(e) { console.log('ZATCA QR Error:', e); }
                 }
