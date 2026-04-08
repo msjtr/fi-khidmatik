@@ -72,29 +72,44 @@
                 document.getElementById('printContent').innerHTML = '<div class="error-message">⚠️ الطلب غير موجود</div>';
             } else {
                 const customer = order.customerId ? await loadCustomer(order.customerId) : null;
-                let html = window.buildInvoicePage(order, customer, [], 1, 3);
+                
+                // بناء صفحة الفاتورة (تأكد من تطابق المعاملات مع تعريف buildInvoicePage في invoice.js)
+                // إذا كانت buildInvoicePage تتوقع (order, pageNum, totalPages) فقط:
+                let html = window.buildInvoicePage(order, 1, 4);
+                // أو إذا كانت تتوقع (order, customer, products, pageNum, totalPages):
+                // let html = window.buildInvoicePage(order, customer, [], 1, 4);
+                
+                // إضافة صفحات الشروط والأحكام
                 if (typeof window.buildTermsPage1 === 'function') {
-                    html += window.buildTermsPage1(2, 3);
-                    html += window.buildTermsPage2(3, 3);
+                    html += window.buildTermsPage1(2, 4);
+                    html += window.buildTermsPage2(3, 4);
                     if (typeof window.buildTermsPage3 === 'function') {
-                        html += window.buildTermsPage3(order, customer, window.formatDate(order.orderDate), window.formatTime(order.orderTime), 3, 3);
+                        html += window.buildTermsPage3(order, customer, window.formatDate(order.orderDate), window.formatTime(order.orderTime), 4, 4);
                     }
                 } else {
                     console.warn('⚠️ دوال buildTermsPage مفقودة من terms.js');
                 }
+                
                 document.getElementById('printContent').innerHTML = html;
                 
-                // إنشاء QR Code لكل صفحة فاتورة
+                // إنشاء QR Code (باستخدام id الصحيح من invoice.js)
+                // إذا كان invoice.js يستخدم id ثابت "zatcaQR"
                 setTimeout(() => {
-                    const qrDiv = document.getElementById(`zatca-qr-${order.id}`);
+                    const qrDiv = document.getElementById('zatcaQR');
                     if (qrDiv && typeof QRCode !== 'undefined') {
+                        qrDiv.innerHTML = ''; // مسح أي محتوى سابق
                         new QRCode(qrDiv, {
                             text: `https://zatca.gov.sa/${order.orderNumber}`,
                             width: 80,
-                            height: 80
+                            height: 80,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
                         });
+                    } else {
+                        console.warn('⚠️ عنصر zatcaQR غير موجود في الصفحة');
                     }
-                }, 100);
+                }, 200);
                 
                 if (params.get('auto') === 'print') setTimeout(() => window.print(), 500);
             }
