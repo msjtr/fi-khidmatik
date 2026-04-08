@@ -1,5 +1,5 @@
 // ========================================
-// صفحات الشروط والأحكام - نسخة عمودية (تحت بعض)
+// صفحات الشروط والأحكام - نسخة عمودية مع ألوان وأيقونات للأقسام
 // ========================================
 
 function buildTermsPage1(pageNum, totalPages) {
@@ -8,14 +8,17 @@ function buildTermsPage1(pageNum, totalPages) {
         '<div class="terms-container" style="display: block;">' +
             '<div class="terms-title">الشروط والأحكام والتعليمات</div>' +
             
-            '<div class="legal-notice" style="background-color: #f8d7da; border-right: 4px solid #721c24; padding: 15px; margin-bottom: 20px;">' +
+            '<div class="legal-notice" style="background-color: #f8d7da; border-right: 4px solid #721c24; padding: 15px; margin-bottom: 25px;">' +
                 '<strong>إقرار مسؤولية البيانات والمعلومات:</strong><br>' +
                 'يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها أو تم إدراجها في هذا المستند صحيحة ودقيقة ومكتملة، ويتحمل وحده كامل المسؤولية عنها، كما يتحمل كافة الآثار القانونية والمالية والفنية المترتبة على أي خطأ أو نقص أو عدم دقة فيها، ويلتزم بتعويض مقدم الخدمة تعويضًا كاملاً عن أي أضرار أو خسائر أو مطالبات تنشأ نتيجة لذلك، دون أدنى مسؤولية على مقدم الخدمة.<br><br>' +
                 'يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.' +
             '</div>' +
             
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">أولاً: صلاحية العرض والتنفيذ</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">📋</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">أولاً: صلاحية العرض والتنفيذ</h4>' +
+                '</div>' +
                 '<p><strong>1. مدة صلاحية العرض:</strong> يكون هذا عرض السعر / الفاتورة صالحًا لمدة ثلاثة (3) أيام عمل فقط من تاريخ إصداره، ويُعد لاغيًا تلقائيًا بعد انتهاء هذه المدة دون الحاجة إلى إشعار مسبق، ولا يترتب على مقدم الخدمة أي التزام بعد ذلك.</p>' +
                 '<p><strong>2. بدء التنفيذ:</strong> تبدأ أعمال التنفيذ بعد استلام الدفعة المقدمة المتفق عليها، واستلام جميع المتطلبات والمعلومات اللازمة من العميل بشكل كامل وواضح.</p>' +
                 '<p><strong>3. مدة التنفيذ:</strong> تُحتسب مدة التنفيذ من تاريخ اكتمال استلام جميع المتطلبات، ولا يُعتد بأي مدة يترتب عليها تأخير بسبب العميل أو أي طرف خارجي.</p>' +
@@ -23,8 +26,11 @@ function buildTermsPage1(pageNum, totalPages) {
                 '<p><strong>5. الموافقات الخارجية:</strong> تخضع جميع الموافقات أو التراخيص الصادرة من الجهات الحكومية أو الجهات الخارجية لسياسات تلك الجهات، ولا يضمن مقدم الخدمة الحصول عليها بأي حال من الأحوال.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">ثانياً: التكاليف والمسؤوليات المالية</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">💰</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثانياً: التكاليف والمسؤوليات المالية</h4>' +
+                '</div>' +
                 '<p><strong>6. الرسوم الخارجية:</strong> لا تشمل قيمة هذا عرض السعر / الفاتورة أي رسوم أو تكاليف خاصة بالجهات الخارجية مثل السيرفرات أو النطاقات أو التراخيص أو الرسوم الحكومية أو بوابات الدفع أو أي مزود خدمة طرف ثالث، ما لم يتم النص على خلاف ذلك بشكل صريح.</p>' +
                 '<p><strong>7. خدمات الطرف الثالث:</strong> أي خدمات يتم تقديمها من خلال أطراف ثالثة تخضع لسياسات تلك الجهات، ولا يتحمل مقدم الخدمة أي مسؤولية عن أدائها أو جودتها أو توقفها أو تعديل سياساتها.</p>' +
                 '<p><strong>8. المدفوعات الخارجية:</strong> جميع المبالغ التي يتم دفعها إلى جهات خارجية سواء بشكل مباشر من قبل العميل أو من خلال مقدم الخدمة لا يمكن استرجاعها تحت أي ظرف.</p>' +
@@ -32,8 +38,11 @@ function buildTermsPage1(pageNum, totalPages) {
                 '<p><strong>10. الضريبة:</strong> جميع الأسعار المذكورة لا تشمل ضريبة القيمة المضافة ويتم إضافتها وفق الأنظمة المعمول بها.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">ثالثاً: التسليم والملكية</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">📦</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثالثاً: التسليم والملكية</h4>' +
+                '</div>' +
                 '<p><strong>11. نطاق التسليم:</strong> يتم تنفيذ وتسليم الأعمال وفق النطاق المحدد في هذا عرض السعر / الفاتورة فقط ولا يشمل أي أعمال إضافية غير مذكورة.</p>' +
                 '<p><strong>12. المنتج النهائي:</strong> يقتصر التسليم على المنتج النهائي الجاهز للاستخدام ولا يشمل الملفات المفتوحة أو الكود المصدري أو أي مواد إنتاج داخلية.</p>' +
                 '<p><strong>13. الكود المصدري:</strong> يبقى الكود المصدري ملكًا حصريًا لمقدم الخدمة ولا يتم تسليمه إلا بموجب اتفاق مستقل ومقابل مالي يتم تحديده بشكل منفصل.</p>' +
@@ -42,8 +51,11 @@ function buildTermsPage1(pageNum, totalPages) {
                 '<p><strong>16. حق إعادة الاستخدام:</strong> يحتفظ مقدم الخدمة بحقه الكامل في إعادة استخدام أو تطوير أو الاستفادة من الأعمال المنفذة بأي شكل من الأشكال ما لم يتم الاتفاق على خلاف ذلك كتابةً.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">رابعاً: الدفعات والاسترجاع</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">💳</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">رابعاً: الدفعات والاسترجاع</h4>' +
+                '</div>' +
                 '<p><strong>17. نظام الدفع:</strong> يتم سداد قيمة هذا عرض السعر / الفاتورة وفق الآلية المتفق عليها بين الطرفين سواء دفعة واحدة أو على دفعات.</p>' +
                 '<p><strong>18. تأخر السداد:</strong> يحق لمقدم الخدمة إيقاف العمل بشكل فوري في حال تأخر العميل عن سداد أي دفعة مستحقة.</p>' +
                 '<p><strong>19. عدم الاسترجاع:</strong> لا يحق للعميل المطالبة باسترجاع أي مبلغ مالي بعد بدء التنفيذ أو في حال الانسحاب أو عدم استكمال المشروع لأي سبب كان.</p>' +
@@ -61,15 +73,21 @@ function buildTermsPage2(pageNum, totalPages) {
         window.buildHeader("الشروط والأحكام") +
         '<div class="terms-container" style="display: block;">' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">خامساً: الضمان</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">🛡️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">خامساً: الضمان</h4>' +
+                '</div>' +
                 '<p><strong>23. الضمان:</strong> يتم تحديد الضمان إن وجد وفق الخطة التشغيلية للمشروع وطبيعته.</p>' +
                 '<p><strong>24. نطاق الضمان:</strong> يقتصر الضمان على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط.</p>' +
                 '<p><strong>25. الاستثناءات:</strong> لا يشمل الضمان أي مشاكل ناتجة عن عوامل خارجية أو سوء استخدام أو تعديلات من طرف العميل أو طرف ثالث.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">سادساً: انتهاء العلاقة والمسؤولية</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">🔚</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">سادساً: انتهاء العلاقة والمسؤولية</h4>' +
+                '</div>' +
                 '<p><strong>26. انتهاء العلاقة:</strong> تنتهي العلاقة التعاقدية بين الطرفين فور تسليم المشروع وفق النطاق المتفق عليه.</p>' +
                 '<p><strong>27. المسؤولية بعد التسليم:</strong> لا يتحمل مقدم الخدمة أي مسؤولية لاحقة عن المشروع بعد التسليم.</p>' +
                 '<p><strong>28. التشغيل:</strong> يتحمل العميل المسؤولية الكاملة عن تشغيل المشروع وإدارته.</p>' +
@@ -77,15 +95,21 @@ function buildTermsPage2(pageNum, totalPages) {
                 '<p><strong>30. براءة الذمة:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن أي خدمات مقدمة من أطراف ثالثة أو توقفها.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">سابعاً: التواصل والتنفيذ</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">📞</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">سابعاً: التواصل والتنفيذ</h4>' +
+                '</div>' +
                 '<p><strong>31. وسائل التواصل:</strong> تُعتمد وسائل التواصل الرسمية المسجلة فقط كقنوات معتمدة بين الطرفين.</p>' +
                 '<p><strong>32. التفويض:</strong> يلتزم العميل بإشعار مقدم الخدمة رسميًا في حال تفويض أي شخص للتواصل نيابة عنه.</p>' +
                 '<p><strong>33. النسخ الإلكترونية:</strong> تُعتبر جميع النسخ الإلكترونية من هذا عرض السعر / الفاتورة بما في ذلك المرسلة عبر البريد الإلكتروني أو وسائل التواصل نسخًا معتمدة ولها نفس القوة القانونية.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">ثامناً: البنود القانونية</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">⚖️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثامناً: البنود القانونية</h4>' +
+                '</div>' +
                 '<p><strong>34. طبيعة العلاقة:</strong> تُعد العلاقة بين الطرفين علاقة تعاقدية مستقلة ولا تُنشئ أي شراكة أو وكالة أو تمثيل قانوني.</p>' +
                 '<p><strong>35. كامل الاتفاق:</strong> يمثل هذا المستند كامل الاتفاق بين الطرفين ويلغي أي اتفاقات أو تفاهمات سابقة سواء كانت شفهية أو مكتوبة.</p>' +
                 '<p><strong>36. الأخطاء غير المقصودة:</strong> في حال وجود أي خطأ غير مقصود في الصياغة فإنه لا يؤثر على صحة باقي البنود وتبقى سارية وملزمة.</p>' +
@@ -93,14 +117,20 @@ function buildTermsPage2(pageNum, totalPages) {
                 '<p><strong>38. اللغة المعتمدة:</strong> في حال ترجمة هذا المستند إلى أي لغة أخرى تُعتمد النسخة العربية في التفسير.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">تاسعاً: النزاعات</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">🏛️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">تاسعاً: النزاعات</h4>' +
+                '</div>' +
                 '<p><strong>39. حل النزاعات:</strong> يتم السعي لحل أي نزاع ينشأ بين الطرفين بشكل ودي خلال مدة مناسبة من تاريخ الإشعار.</p>' +
                 '<p><strong>40. الجهة المختصة:</strong> في حال عدم التوصل إلى حل يحق لمقدم الخدمة تحديد الجهة القضائية أو التحكيمية المختصة.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">عاشراً: البنود المتقدمة</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">🌪️</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">عاشراً: البنود المتقدمة</h4>' +
+                '</div>' +
                 '<p><strong>41. القوة القاهرة:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن التأخير أو عدم التنفيذ الناتج عن ظروف خارجة عن الإرادة.</p>' +
                 '<p><strong>42. السرية:</strong> يلتزم الطرفان بالمحافظة على سرية المعلومات وعدم الإفصاح عنها لأي طرف ثالث دون موافقة خطية.</p>' +
                 '<p><strong>43. التعديلات خارج النطاق:</strong> أي طلبات أو تعديلات خارج نطاق هذا المستند يتم تنفيذها بموجب عرض وسعر مستقل.</p>' +
@@ -120,16 +150,22 @@ function buildTermsPage3(order, pageNum, totalPages) {
         window.buildHeader("الشروط والأحكام") +
         '<div class="terms-container" style="display: block;">' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">حادي عشر: البنود المالية والقانونية المتقدمة</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">📊</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">حادي عشر: البنود المالية والقانونية المتقدمة</h4>' +
+                '</div>' +
                 '<p><strong>47. المدفوعات الخارجية:</strong> لا تُعد أي مبالغ تُدفع لجهات خارجية مستحقة لمقدم الخدمة ولا يحق المطالبة بها أو استرجاعها.</p>' +
                 '<p><strong>48. المدفوعات بالنيابة:</strong> تُحتسب أي مدفوعات يقوم بها مقدم الخدمة نيابة عن العميل ضمن تكاليف المشروع ويلتزم العميل بسدادها.</p>' +
                 '<p><strong>49. تفسير البنود:</strong> يتم تفسير بنود هذا المستند بما يحقق الغرض منها وبما يحفظ حقوق مقدم الخدمة.</p>' +
                 '<p><strong>50. حق رفض الخدمة:</strong> يحتفظ مقدم الخدمة بحقه في رفض تقديم الخدمة أو إيقافها في أي مرحلة مع احتساب الأعمال المنفذة.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">ثاني عشر: الحماية القانونية</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">🔒</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">ثاني عشر: الحماية القانونية</h4>' +
+                '</div>' +
                 '<p><strong>51. التنازل عن المطالبات:</strong> يتنازل العميل عن أي مطالبات أو تعويضات تتجاوز قيمة هذا عرض السعر / الفاتورة.</p>' +
                 '<p><strong>52. حدود المسؤولية:</strong> لا تتجاوز مسؤولية مقدم الخدمة في جميع الأحوال إجمالي المبلغ المدفوع من قبل العميل.</p>' +
                 '<p><strong>53. الاستخدام غير المشروع:</strong> لا يتحمل مقدم الخدمة أي مسؤولية عن استخدام العميل للمخرجات بشكل مخالف للأنظمة.</p>' +
@@ -138,20 +174,23 @@ function buildTermsPage3(order, pageNum, totalPages) {
                 '<p><strong>56. استقلالية البنود:</strong> يتم تفسير كل بند من بنود هذا المستند بشكل مستقل دون التأثير على بقية البنود.</p>' +
             '</div>' +
 
-            '<div class="terms-card" style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">' +
-                '<h4 style="color: #004085; margin-bottom: 15px;">الشروط الإضافية والملحقات</h4>' +
+            '<div style="margin-bottom: 30px;">' +
+                '<div style="background-color: #004085; color: white; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">' +
+                    '<span style="font-size: 22px;">📎</span>' +
+                    '<h4 style="margin: 0; color: white; font-size: 18px;">الشروط الإضافية والملحقات</h4>' +
+                '</div>' +
                 '<p><strong>57. الشروط الإضافية والملحقات:</strong> في حال وجود أي شروط أو طلبات أو متطلبات إضافية من قبل العميل سواء كانت فنية أو تشغيلية أو مالية أو تنظيمية ولم تكن ضمن نطاق هذا عرض السعر / الفاتورة فإنه يتم توثيقها حصراً في ملحق اتفاق مستقل يتم إعداده واعتماده من قبل الطرفين بشكل خطي ورسمي، ولا تُعد تلك الشروط أو الطلبات الإضافية جزءًا من هذا المستند ولا يترتب عليها أي تعديل أو تأثير على أي من بنوده ما لم يتم النص على ذلك صراحةً وبشكل مكتوب في ذلك الملحق، كما لا يُعتد بأي اتفاقات أو تفاهمات أو مراسلات سواء كانت شفهية أو غير موثقة ما لم يتم تضمينها في ملحق رسمي معتمد.</p>' +
             '</div>' +
 
             '<div class="declaration" style="background-color: #e8f4fd; border-right: 4px solid #004085; padding: 15px; margin: 20px 0;">' +
-                '<p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">الإقرار</p>' +
+                '<p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">📝 الإقرار</p>' +
                 '<p>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>' +
             '</div>' +
 
-            '<div class="signature-area" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">' +
-                '<div style="margin-bottom: 10px;"><strong>اسم العميل:</strong> ' + window.escapeHtml(order.customerName) + '</div>' +
-                '<div style="margin-bottom: 10px;"><strong>التاريخ:</strong> ' + dateStr + '</div>' +
-                '<div><strong>التوقيع:</strong> _________________</div>' +
+            '<div class="signature-area" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">' +
+                '<div style="margin-bottom: 10px;"><strong>👤 اسم العميل:</strong> ' + window.escapeHtml(order.customerName) + '</div>' +
+                '<div style="margin-bottom: 10px;"><strong>📅 التاريخ:</strong> ' + dateStr + '</div>' +
+                '<div><strong>✍️ التوقيع:</strong> _________________</div>' +
             '</div>' +
         '</div>' +
         window.buildFooter(pageNum, totalPages) +
