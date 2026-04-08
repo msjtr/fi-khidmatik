@@ -14,10 +14,10 @@ const sellerData = {
     website: "https://fi-khidmatik.com.sa"
 };
 
-// دوال مساعدة
+// دوال مساعدة لتنظيف النصوص من الرموز الغريبة
 function cleanText(text) {
     if (!text) return '';
-    // تنظيف النص من الرموز الغريبة مع الاحتفاظ بالعربية والإنجليزية والأرقام الأساسية
+    // السماح فقط بالعربية، الإنجليزية، الأرقام، والمسافات، وعلامات الترقيم الأساسية
     return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
 }
 
@@ -53,7 +53,7 @@ function getPaymentName(method) {
 }
 
 // ========================================
-// بناء رأس الصفحة (الشعار + البيانات القانونية)
+// بناء رأس الصفحة (الشعار أولاً ثم الجملة)
 // ========================================
 function buildInvoiceHeader(title) {
     return `
@@ -81,7 +81,7 @@ function buildInvoiceHeader(title) {
 }
 
 // ========================================
-// بناء تذييل الصفحة (مع التذليل والرابط الجديد)
+// بناء تذييل الصفحة (إصلاح الأرقام المعكوسة)
 // ========================================
 function buildInvoiceFooter(pageNum, totalPages) {
     return `
@@ -99,7 +99,7 @@ function buildInvoiceFooter(pageNum, totalPages) {
 }
 
 // ========================================
-// صفحة الفاتورة الرئيسية (مع تحسينات)
+// صفحة الفاتورة الرئيسية (مع جلب بيانات العميل الكاملة)
 // ========================================
 function buildInvoicePage(order, pageNum, totalPages) {
     const formatDate = window.formatDate || ((d) => d);
@@ -132,10 +132,14 @@ function buildInvoicePage(order, pageNum, totalPages) {
         `;
     }
     
-    // تفاصيل المصدر إليه مع أيقونات
+    // تفاصيل المصدر إليه (جلب العنوان والبريد)
+    const customerAddress = order.customerAddress || '';
+    const customerCity = order.customerCity || '';
+    const fullAddress = customerCity ? `${customerCity} - ${customerAddress}` : customerAddress;
+    
     const customerAddressHtml = `
         <p><i class="fas fa-user"></i> ${escape(order.customerName)}</p>
-        <p><i class="fas fa-map-marker-alt"></i> ${escape(order.customerAddress)}</p>
+        <p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress)}</p>
         <p><i class="fas fa-phone-alt"></i> ${escape(order.customerPhone)}</p>
         <p><i class="fas fa-envelope"></i> ${escape(order.customerEmail)}</p>
     `;
@@ -168,7 +172,6 @@ function buildInvoicePage(order, pageNum, totalPages) {
                 </div>
             </div>
             
-            <!-- ترتيب: طريقة الدفع | رمز الموافقة | طريقة الاستلام -->
             <div class="payment-grid">
                 <div class="payment-card"><i class="fas fa-credit-card"></i> <strong>طريقة الدفع</strong><br>${getPaymentName(order.paymentMethod)}</div>
                 <div class="payment-card"><i class="fas fa-check-circle"></i> <strong>رمز الموافقة على الطلب</strong><br>${order.approvalCode || 'غير مطلوب'}</div>
