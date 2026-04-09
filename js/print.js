@@ -56,8 +56,8 @@ window.buildHeader = function(title) {
             </div>
             <div class="header-left">
                 <div class="legal-numbers">
-                    <div>شهادة العمل الحر: ${sellerLegal.licenseNumber}</div>
-                    <div>الرقم الضريبي: ${sellerLegal.taxNumber}</div>
+                    <div><span>شهادة العمل الحر:</span> <span>${sellerLegal.licenseNumber}</span></div>
+                    <div><span>الرقم الضريبي:</span> <span>${sellerLegal.taxNumber}</span></div>
                 </div>
             </div>
         </div>
@@ -117,7 +117,7 @@ function printInvoice() {
     }
 }
 
-// معاينة الطباعة
+// معاينة الطباعة (متوافقة مع جميع المتصفحات)
 function previewPrint() {
     try {
         var pages = document.querySelectorAll('.page');
@@ -158,6 +158,27 @@ function previewPrint() {
     }
 }
 
+// تحويل الصور إلى Base64 لضمان ظهورها في PDF/PNG
+async function convertImagesToBase64(element) {
+    const images = element.querySelectorAll('img');
+    for (let img of images) {
+        if (img.src && !img.src.startsWith('data:')) {
+            try {
+                const response = await fetch(img.src);
+                const blob = await response.blob();
+                const reader = new FileReader();
+                const base64 = await new Promise((resolve) => {
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+                img.src = base64;
+            } catch(e) {
+                console.warn('فشل تحويل الصورة:', img.src, e);
+            }
+        }
+    }
+}
+
 // تصدير PDF (دقة عالية، جلب الصور، اسم مخصص)
 async function exportToPDF() {
     var pages = document.querySelectorAll('.page');
@@ -169,16 +190,25 @@ async function exportToPDF() {
         printShowToast('المكتبات غير محملة', true);
         return;
     }
-    printShowLoading('جاري إنشاء PDF بدقة عالية...');
+    printShowLoading('جاري تحويل الصور وإنشاء PDF...');
     var buttons = document.querySelector('.action-buttons');
     if (buttons) buttons.style.display = 'none';
+    
     try {
+        // نسخ الصفحات لتجنب التأثير على العرض الأصلي
+        var tempPages = [];
+        for (var i = 0; i < pages.length; i++) {
+            var clone = pages[i].cloneNode(true);
+            await convertImagesToBase64(clone);
+            tempPages.push(clone);
+        }
+        
         var { jsPDF } = window.jspdf;
         var pdf = new jsPDF('p', 'mm', 'a4');
-        for (var i = 0; i < pages.length; i++) {
-            var canvas = await html2canvas(pages[i], { 
-                scale: 4, 
-                useCORS: true,
+        for (var i = 0; i < tempPages.length; i++) {
+            var canvas = await html2canvas(tempPages[i], { 
+                scale: 3, 
+                useCORS: false,  // بعد التحويل إلى base64 لا نحتاج CORS
                 backgroundColor: '#ffffff', 
                 logging: false,
                 allowTaint: false
@@ -189,7 +219,8 @@ async function exportToPDF() {
             var imgHeight = (canvas.height * imgWidth) / canvas.width;
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         }
-        // استخراج اسم العميل ورقم الطلب والتاريخ لاسم الملف
+        
+        // استخراج اسم العميل ورقم الطلب والتاريخ
         let customerName = 'عميل';
         let orderNumber = 'فاتورة';
         let orderDate = '';
@@ -205,8 +236,7 @@ async function exportToPDF() {
         }
         const dateElem = document.querySelector('.info-item:nth-child(2) .info-value');
         if (dateElem) {
-            let fullDate = dateElem.innerText;
-            orderDate = fullDate.split(' - ')[0].trim();
+            orderDate = dateElem.innerText.split(' - ')[0].trim();
         }
         customerName = customerName.replace(/[\\/*?:"<>|]/g, '');
         orderNumber = orderNumber.replace(/[\\/*?:"<>|]/g, '');
@@ -225,7 +255,7 @@ async function exportToPDF() {
     }
 }
 
-// تصدير PNG (دقة عالية)
+// تصدير PNG (دقة عالية مع تحويل الصور)
 async function exportToPNG() {
     var pages = document.querySelectorAll('.page');
     if (!pages.length) {
@@ -236,10 +266,12 @@ async function exportToPNG() {
         printShowToast('جاري تحميل المكتبات...', true);
         return;
     }
-    printShowLoading('جاري إنشاء PNG بدقة عالية...');
+    printShowLoading('جاري تحويل الصور وإنشاء PNG...');
     try {
         for (var i = 0; i < pages.length; i++) {
-            var canvas = await html2canvas(pages[i], { scale: 4, useCORS: true, backgroundColor: '#ffffff' });
+            var clone = pages[i].cloneNode(true);
+            await convertImagesToBase64(clone);
+            var canvas = await html2canvas(clone, { scale: 3, useCORS: false, backgroundColor: '#ffffff' });
             var link = document.createElement('a');
             var fileName = `invoice_page_${i+1}.png`;
             link.download = fileName;
