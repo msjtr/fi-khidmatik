@@ -52,7 +52,7 @@ function getPaymentName(method) {
 }
 
 // ========================================
-// بناء رأس الصفحة (الشعار أولاً ثم الكلمات)
+// بناء رأس الصفحة (الشعار ثم "في خدمتك" ثم "من الإتقان بلس")
 // ========================================
 function buildInvoiceHeader(title) {
     return `
@@ -80,7 +80,7 @@ function buildInvoiceHeader(title) {
 }
 
 // ========================================
-// بناء تذييل الصفحة
+// بناء تذييل الصفحة (ترتيب: جوال، واتساب، بريد، موقع)
 // ========================================
 function buildInvoiceFooter(pageNum, totalPages) {
     return `
@@ -98,7 +98,7 @@ function buildInvoiceFooter(pageNum, totalPages) {
 }
 
 // ========================================
-// صفحة الفاتورة الرئيسية (مع جلب كامل بيانات العميل)
+// صفحة الفاتورة الرئيسية
 // ========================================
 function buildInvoicePage(order, pageNum, totalPages) {
     const formatDate = window.formatDate || ((d) => d);
@@ -124,13 +124,13 @@ function buildInvoicePage(order, pageNum, totalPages) {
                 </td>
                 <td style="text-align:right"><strong>${escape(cleanName)}</strong><br><small>${escape(cleanDesc)}</small></td>
                 <td style="text-align:center">${item.quantity}</td>
-                <td style="text-align:center">${(item.price || 0).toFixed(2)} ريال}‹
-                <td style="text-align:center">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال}‹
+                <td style="text-align:center; direction:ltr;">${(item.price || 0).toFixed(2)} ريال}‹
+                <td style="text-align:center; direction:ltr;">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال}‹
             </tr>
         `;
     }
     
-    // بناء العنوان الكامل للعميل باستخدام الحقول المفصلة
+    // بناء العنوان الكامل للعميل
     let fullAddress = '';
     if (order.customerStreet) fullAddress += order.customerStreet;
     if (order.customerAdditionalNo) fullAddress += ' - ' + order.customerAdditionalNo;
