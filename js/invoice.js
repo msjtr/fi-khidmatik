@@ -1,5 +1,5 @@
 // ========================================
-// invoice.js - دوال إنشاء الفاتورة الإلكترونية
+// invoice.js - دوال إنشاء الفاتورة الإلكترونية (نسخة نهائية)
 // ========================================
 
 // بيانات البائع (ثابتة)
@@ -17,7 +17,6 @@ const sellerData = {
 // دوال مساعدة لتنظيف النصوص من الرموز الغريبة
 function cleanText(text) {
     if (!text) return '';
-    // إزالة أي شيء ليس حرفًا عربيًا أو إنجليزيًا أو رقمًا أو مسافة أو علامات ترقيم أساسية
     return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
 }
 
@@ -53,7 +52,7 @@ function getPaymentName(method) {
 }
 
 // ========================================
-// بناء رأس الصفحة (الشعار أولاً ثم الجملة)
+// بناء رأس الصفحة (الشعار أولاً ثم الكلمات)
 // ========================================
 function buildInvoiceHeader(title) {
     return `
@@ -72,8 +71,8 @@ function buildInvoiceHeader(title) {
             </div>
             <div class="header-left">
                 <div class="legal-numbers">
-                    <div>شهادة العمل الحر: ${sellerData.licenseNumber}</div>
-                    <div>الرقم الضريبي: ${sellerData.taxNumber}</div>
+                    <div><span>شهادة العمل الحر:</span> <span>${sellerData.licenseNumber}</span></div>
+                    <div><span>الرقم الضريبي:</span> <span>${sellerData.taxNumber}</span></div>
                 </div>
             </div>
         </div>
@@ -81,7 +80,7 @@ function buildInvoiceHeader(title) {
 }
 
 // ========================================
-// بناء تذييل الصفحة (إصلاح الأرقام المعكوسة)
+// بناء تذييل الصفحة
 // ========================================
 function buildInvoiceFooter(pageNum, totalPages) {
     return `
@@ -115,7 +114,6 @@ function buildInvoicePage(order, pageNum, totalPages) {
     let itemsHtml = '';
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        // تنظيف النص من الرموز الغريبة
         const cleanName = cleanText(item.name);
         const cleanDesc = cleanText(item.description);
         itemsHtml += `
@@ -132,12 +130,17 @@ function buildInvoicePage(order, pageNum, totalPages) {
         `;
     }
     
-    // تجميع عنوان العميل الكامل
-    const fullAddress = [order.customerCity, order.customerAddress].filter(Boolean).join(' - ');
+    // بناء العنوان الكامل للعميل باستخدام الحقول المفصلة
+    let fullAddress = '';
+    if (order.customerStreet) fullAddress += order.customerStreet;
+    if (order.customerAdditionalNo) fullAddress += ' - ' + order.customerAdditionalNo;
+    if (order.customerCity) fullAddress += '، ' + order.customerCity;
+    if (order.customerPoBox) fullAddress += '، ص.ب: ' + order.customerPoBox;
+    if (order.customerAddress) fullAddress = fullAddress || order.customerAddress;
     
     const customerAddressHtml = `
         <p><i class="fas fa-user"></i> ${escape(order.customerName)}</p>
-        <p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress || 'غير محدد')}</p>
+        <p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress)}</p>
         <p><i class="fas fa-phone-alt"></i> ${escape(order.customerPhone)}</p>
         <p><i class="fas fa-envelope"></i> ${escape(order.customerEmail)}</p>
     `;
