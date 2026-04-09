@@ -73,7 +73,7 @@
             } else {
                 const customer = order.customerId ? await loadCustomer(order.customerId) : null;
                 
-                // بناء كائن orderData بكل البيانات المطلوبة
+                // بناء كائن orderData بكل البيانات المطلوبة من العميل
                 const orderData = {
                     orderNumber: order.orderNumber,
                     orderDate: order.orderDate,
@@ -84,6 +84,9 @@
                     customerEmail: customer?.email || '',
                     customerAddress: customer?.address || '',
                     customerCity: customer?.city || '',
+                    customerStreet: customer?.street || '',
+                    customerAdditionalNo: customer?.additionalNo || '',
+                    customerPoBox: customer?.poBox || '',
                     shippingMethod: order.shippingMethod,
                     paymentMethod: order.paymentMethod,
                     approvalCode: order.approvalCode,
