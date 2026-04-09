@@ -21,7 +21,7 @@ body {
     min-height: 297mm;
     margin: 0 auto 20px;
     background: white;
-    padding: 15mm 18mm;
+    padding: 12mm 15mm;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     position: relative;
     overflow-x: hidden;
@@ -35,10 +35,11 @@ body {
     display: none;
 }
 
+/* تحسين الطباعة لجميع المتصفحات */
 @media print {
     @page {
         size: A4;
-        margin: 1.5cm;
+        margin: 1.8cm;
     }
     body {
         background: white;
@@ -47,7 +48,7 @@ body {
     }
     .page {
         margin: 0;
-        padding: 1.5cm;
+        padding: 1.2cm;
         box-shadow: none;
         page-break-after: always;
         page-break-inside: avoid;
@@ -58,6 +59,7 @@ body {
     }
     .products-table tr {
         page-break-inside: avoid;
+        break-inside: avoid;
     }
     img {
         max-width: 100%;
@@ -66,12 +68,12 @@ body {
 }
 
 /* ========================================
-   رأس الصفحة (الشعار أولاً ثم الجملة)
+   رأس الصفحة (الشعار أولاً ثم الكلمات)
    ======================================== */
 .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     border-bottom: 2px solid #1e3a5f;
     padding-bottom: 12px;
     margin-bottom: 25px;
@@ -132,22 +134,27 @@ body {
     padding: 6px 10px;
     border-radius: 8px;
     direction: ltr;
+    white-space: nowrap;
 }
 .legal-numbers div {
     margin-bottom: 3px;
+    display: flex;
+    gap: 5px;
+}
+.legal-numbers div span:first-child {
+    font-weight: bold;
 }
 
 /* ========================================
    تذييل الصفحة (إصلاح الأرقام المعكوسة)
    ======================================== */
 .page-footer {
-    margin-top: 30px;
+    margin-top: 25px;
     font-size: 10px;
     text-align: center;
     border-top: 1px solid #cbd5e1;
     padding-top: 12px;
     direction: ltr;
-    unicode-bidi: embed;
 }
 .contact-info {
     display: flex;
@@ -155,7 +162,6 @@ body {
     gap: 18px;
     flex-wrap: wrap;
     margin-bottom: 5px;
-    direction: ltr;
 }
 .contact-info span {
     font-size: 10px;
@@ -210,7 +216,7 @@ body {
 }
 
 /* ========================================
-   بطاقات المصدر والمصدر إليه (جلب البيانات)
+   بطاقات المصدر والمصدر إليه (جلب كامل البيانات)
    ======================================== */
 .addresses {
     display: flex;
@@ -278,7 +284,7 @@ body {
 }
 
 /* ========================================
-   جدول المنتجات (بدون رموز غريبة)
+   جدول المنتجات (منع كسر الصفوف وإنشاء صفحات جديدة)
    ======================================== */
 .products-table {
     width: 100%;
@@ -291,7 +297,7 @@ body {
 .products-table th:nth-child(2) { width: 12%; }
 .products-table th:nth-child(3) { width: 32%; }
 .products-table th:nth-child(4) { width: 8%; }
-.products-table th:nth-child(5) { width: 8%; }
+.products-table th:nth-child(5) { width: 10%; }
 .products-table th:nth-child(6) { width: 10%; }
 .products-table th, .products-table td {
     border: 1px solid #cbd5e1;
@@ -316,11 +322,11 @@ body {
     break-inside: avoid;
 }
 /* إزالة أي علامة + أو رموز إضافية */
-.products-table td:first-child::before {
-    content: none !important;
-}
 .products-table td:first-child {
     text-align: center;
+}
+.products-table td:first-child::before {
+    content: none;
 }
 
 /* ========================================
@@ -383,22 +389,22 @@ body {
    ======================================== */
 .terms-container {
     direction: rtl;
-    margin-top: 35px;
+    margin-top: 30px;
 }
 .terms-title {
     font-size: 22px;
     font-weight: 800;
     color: #1e3a5f;
     text-align: center;
-    margin: 35px 0 25px;
+    margin: 30px 0 20px;
     border-bottom: 2px solid #1e3a5f;
-    padding-bottom: 12px;
+    padding-bottom: 10px;
 }
 .legal-notice {
     background: #fef3c7;
     border-right: 4px solid #f59e0b;
-    padding: 18px;
-    margin: 25px 0 35px;
+    padding: 15px;
+    margin: 20px 0 30px;
     border-radius: 12px;
 }
 .legal-notice strong {
@@ -411,7 +417,7 @@ body {
     color: #78350f;
 }
 .terms-section {
-    margin-bottom: 35px;
+    margin-bottom: 30px;
     page-break-inside: avoid;
 }
 .terms-section-header {
@@ -425,8 +431,8 @@ body {
     gap: 15px;
 }
 .terms-section-icon {
-    font-size: 28px;
-    background: rgba(255,255,255,0.25);
+    font-size: 26px;
+    background: rgba(255,255,255,0.2);
     padding: 8px 12px;
     border-radius: 12px;
 }
@@ -451,12 +457,12 @@ body {
     background: #e0f2fe;
     border-right: 5px solid #0284c7;
     padding: 18px;
-    margin: 30px 0;
+    margin: 25px 0;
     border-radius: 16px;
 }
 .signature-area {
-    margin-top: 35px;
-    padding: 20px;
+    margin-top: 30px;
+    padding: 18px;
     background: #f8fafc;
     border-radius: 16px;
 }
@@ -517,5 +523,8 @@ body {
     }
     .terms-section-content p {
         font-size: 13px;
+    }
+    .legal-numbers {
+        white-space: normal;
     }
 }
