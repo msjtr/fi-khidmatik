@@ -73,7 +73,6 @@
             } else {
                 const customer = order.customerId ? await loadCustomer(order.customerId) : null;
                 
-                // بناء كائن orderData بكل البيانات المطلوبة من العميل
                 const orderData = {
                     orderNumber: order.orderNumber,
                     orderDate: order.orderDate,
