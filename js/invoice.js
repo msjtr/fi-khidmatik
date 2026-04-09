@@ -17,7 +17,7 @@ const sellerData = {
 // دوال مساعدة لتنظيف النصوص من الرموز الغريبة
 function cleanText(text) {
     if (!text) return '';
-    // السماح فقط بالعربية، الإنجليزية، الأرقام، والمسافات، وعلامات الترقيم الأساسية
+    // إزالة أي شيء ليس حرفًا عربيًا أو إنجليزيًا أو رقمًا أو مسافة أو علامات ترقيم أساسية
     return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
 }
 
@@ -99,7 +99,7 @@ function buildInvoiceFooter(pageNum, totalPages) {
 }
 
 // ========================================
-// صفحة الفاتورة الرئيسية (مع جلب بيانات العميل الكاملة)
+// صفحة الفاتورة الرئيسية (مع جلب كامل بيانات العميل)
 // ========================================
 function buildInvoicePage(order, pageNum, totalPages) {
     const formatDate = window.formatDate || ((d) => d);
@@ -132,14 +132,12 @@ function buildInvoicePage(order, pageNum, totalPages) {
         `;
     }
     
-    // تفاصيل المصدر إليه (جلب العنوان والبريد)
-    const customerAddress = order.customerAddress || '';
-    const customerCity = order.customerCity || '';
-    const fullAddress = customerCity ? `${customerCity} - ${customerAddress}` : customerAddress;
+    // تجميع عنوان العميل الكامل
+    const fullAddress = [order.customerCity, order.customerAddress].filter(Boolean).join(' - ');
     
     const customerAddressHtml = `
         <p><i class="fas fa-user"></i> ${escape(order.customerName)}</p>
-        <p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress)}</p>
+        <p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress || 'غير محدد')}</p>
         <p><i class="fas fa-phone-alt"></i> ${escape(order.customerPhone)}</p>
         <p><i class="fas fa-envelope"></i> ${escape(order.customerEmail)}</p>
     `;
