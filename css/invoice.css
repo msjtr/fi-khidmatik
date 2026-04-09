@@ -35,7 +35,6 @@ body {
     display: none;
 }
 
-/* تحسين الطباعة لجميع المتصفحات (متطابق مع الشاشة) */
 @media print {
     @page {
         size: A4;
