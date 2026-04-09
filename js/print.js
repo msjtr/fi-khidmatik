@@ -117,7 +117,7 @@ function printInvoice() {
     }
 }
 
-// معاينة الطباعة (متوافقة مع جميع المتصفحات)
+// معاينة الطباعة
 function previewPrint() {
     try {
         var pages = document.querySelectorAll('.page');
@@ -177,7 +177,7 @@ async function exportToPDF() {
         var pdf = new jsPDF('p', 'mm', 'a4');
         for (var i = 0; i < pages.length; i++) {
             var canvas = await html2canvas(pages[i], { 
-                scale: 3, 
+                scale: 4, 
                 useCORS: true,
                 backgroundColor: '#ffffff', 
                 logging: false,
@@ -205,7 +205,8 @@ async function exportToPDF() {
         }
         const dateElem = document.querySelector('.info-item:nth-child(2) .info-value');
         if (dateElem) {
-            orderDate = dateElem.innerText.split(' - ')[0].trim();
+            let fullDate = dateElem.innerText;
+            orderDate = fullDate.split(' - ')[0].trim();
         }
         customerName = customerName.replace(/[\\/*?:"<>|]/g, '');
         orderNumber = orderNumber.replace(/[\\/*?:"<>|]/g, '');
@@ -238,7 +239,7 @@ async function exportToPNG() {
     printShowLoading('جاري إنشاء PNG بدقة عالية...');
     try {
         for (var i = 0; i < pages.length; i++) {
-            var canvas = await html2canvas(pages[i], { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+            var canvas = await html2canvas(pages[i], { scale: 4, useCORS: true, backgroundColor: '#ffffff' });
             var link = document.createElement('a');
             var fileName = `invoice_page_${i+1}.png`;
             link.download = fileName;
