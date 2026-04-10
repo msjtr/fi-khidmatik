@@ -1,5 +1,5 @@
 // ========================================
-// print.js - دوال الطباعة المتقدمة (نهائي - مع دعم CORS)
+// print.js - دوال الطباعة المتقدمة (نهائي - مع معالجة CORS)
 // ========================================
 
 let printCurrentOrder = null;
@@ -167,7 +167,7 @@ function previewPrint() {
     }
 }
 
-// تصدير PDF (دقة عالية مع دعم CORS)
+// تصدير PDF (مع معالجة أخطاء CORS)
 async function exportToPDF() {
     let pages = document.querySelectorAll('.page');
     if (!pages.length) {
@@ -179,27 +179,38 @@ async function exportToPDF() {
         return;
     }
     
-    printShowLoading('جاري إنشاء PDF بدقة عالية...');
+    printShowLoading('جاري إنشاء PDF... (قد لا تظهر بعض الصور بسبب قيود CORS)');
     let buttons = document.querySelector('.action-buttons');
     if (buttons) buttons.style.display = 'none';
+    
+    // تخزين الأخطاء
+    let corsErrors = false;
     
     try {
         let { jsPDF } = window.jspdf;
         let pdf = new jsPDF('p', 'mm', 'a4');
         
         for (let i = 0; i < pages.length; i++) {
-            let canvas = await html2canvas(pages[i], { 
-                scale: 4, 
-                useCORS: true,   // السماح بتحميل الصور عبر CORS
-                backgroundColor: '#ffffff', 
-                logging: false,
-                allowTaint: false
-            });
-            if (i !== 0) pdf.addPage();
-            let imgData = canvas.toDataURL('image/png');
-            let imgWidth = 210;
-            let imgHeight = (canvas.height * imgWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            try {
+                // محاولة الرسم مع تجاهل الأخطاء
+                let canvas = await html2canvas(pages[i], { 
+                    scale: 3,          // دقة عالية ولكن أقل من 4 لتجنب مشاكل الذاكرة
+                    useCORS: true,     // محاولة تحميل الصور عبر CORS
+                    backgroundColor: '#ffffff', 
+                    logging: false,
+                    allowTaint: false
+                });
+                if (i !== 0) pdf.addPage();
+                let imgData = canvas.toDataURL('image/png');
+                let imgWidth = 210;
+                let imgHeight = (canvas.height * imgWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            } catch(pageError) {
+                console.warn('خطأ في معالجة الصفحة:', pageError);
+                corsErrors = true;
+                // إذا فشلت صفحة، نضيف صفحة فارغة
+                if (i !== 0) pdf.addPage();
+            }
         }
         
         // استخراج اسم العميل ورقم الطلب والتاريخ
@@ -224,7 +235,11 @@ async function exportToPDF() {
         fileName += '.pdf';
         
         pdf.save(fileName);
-        printShowToast('تم حفظ PDF بنجاح', false);
+        if (corsErrors) {
+            printShowToast('تم حفظ PDF مع تحذير: بعض الصور لم تظهر بسبب قيود CORS', false);
+        } else {
+            printShowToast('تم حفظ PDF بنجاح', false);
+        }
     } catch(error) {
         console.error(error);
         printShowToast('خطأ في إنشاء PDF: ' + error.message, true);
@@ -234,7 +249,7 @@ async function exportToPDF() {
     }
 }
 
-// تصدير PNG (مع دعم CORS)
+// تصدير PNG (مع معالجة CORS)
 async function exportToPNG() {
     let pages = document.querySelectorAll('.page');
     if (!pages.length) {
@@ -245,20 +260,30 @@ async function exportToPNG() {
         printShowToast('جاري تحميل المكتبات...', true);
         return;
     }
-    printShowLoading('جاري إنشاء PNG...');
+    printShowLoading('جاري إنشاء PNG... (قد لا تظهر بعض الصور بسبب قيود CORS)');
+    let corsErrors = false;
     try {
         for (let i = 0; i < pages.length; i++) {
-            let canvas = await html2canvas(pages[i], { 
-                scale: 4, 
-                useCORS: true, 
-                backgroundColor: '#ffffff' 
-            });
-            let link = document.createElement('a');
-            link.download = `invoice_page_${i+1}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            try {
+                let canvas = await html2canvas(pages[i], { 
+                    scale: 3, 
+                    useCORS: true, 
+                    backgroundColor: '#ffffff' 
+                });
+                let link = document.createElement('a');
+                link.download = `invoice_page_${i+1}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch(pageError) {
+                console.warn('خطأ في معالجة الصفحة:', pageError);
+                corsErrors = true;
+            }
         }
-        printShowToast('تم حفظ PNG بنجاح', false);
+        if (corsErrors) {
+            printShowToast('تم حفظ PNG مع تحذير: بعض الصور لم تظهر بسبب قيود CORS', false);
+        } else {
+            printShowToast('تم حفظ PNG بنجاح', false);
+        }
     } catch(error) {
         console.error(error);
         printShowToast('خطأ في إنشاء PNG: ' + error.message, true);
