@@ -1,5 +1,5 @@
 // ========================================
-// invoice.js - دوال إنشاء الفاتورة الإلكترونية (نهائي - مع دعم placeholder للصور)
+// invoice.js - دوال إنشاء الفاتورة الإلكترونية (مع دعم CORS عبر وكيل)
 // ========================================
 
 // بيانات البائع (ثابتة)
@@ -14,7 +14,9 @@ const sellerData = {
     website: "https://fi-khidmatik.com.sa"
 };
 
-// صورة placeholder (صورة SVG بسيطة)
+// إعدادات الصور
+const USE_CORS_PROXY = true;  // قم بتغيير إلى false إذا رفعت الصور على خادمك
+const CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='2.18' ry='2.18'%3E%3C/rect%3E%3Cpath d='M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5'%3E%3C/path%3E%3C/svg%3E";
 
 // دوال مساعدة لتنظيف النصوص من الرموز الغريبة
@@ -23,11 +25,11 @@ function cleanText(text) {
     return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
 }
 
-// التحقق مما إذا كان رابط الصورة خارجياً ولا يدعم CORS
-function needsPlaceholder(imageUrl) {
-    if (!imageUrl) return true;
-    // قائمة بالنطاقات التي لا تدعم CORS
-    const blockedDomains = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
+// التحقق مما إذا كان رابط الصورة خارجياً ويحتاج إلى وكيل
+function needsCorsProxy(imageUrl) {
+    if (!imageUrl) return false;
+    // النطاقات التي تسبب CORS
+    const blockedDomains = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa', 's3.amazonaws.com'];
     try {
         const url = new URL(imageUrl);
         return blockedDomains.some(domain => url.hostname.includes(domain));
@@ -36,12 +38,13 @@ function needsPlaceholder(imageUrl) {
     }
 }
 
-// الحصول على رابط الصورة المناسب (أصلي أو placeholder)
+// الحصول على رابط الصورة المناسب (مع أو بدون وكيل)
 function getSafeImageUrl(imageUrl) {
-    if (needsPlaceholder(imageUrl)) {
-        return PLACEHOLDER_IMAGE;
+    if (!imageUrl) return PLACEHOLDER_IMAGE;
+    if (USE_CORS_PROXY && needsCorsProxy(imageUrl)) {
+        return CORS_PROXY_URL + imageUrl;
     }
-    return imageUrl || PLACEHOLDER_IMAGE;
+    return imageUrl;
 }
 
 function getStatusText(status) {
@@ -122,7 +125,7 @@ function buildInvoiceFooter(pageNum, totalPages) {
 }
 
 // ========================================
-// صفحة الفاتورة الرئيسية (مع جلب كامل بيانات العميل)
+// صفحة الفاتورة الرئيسية (مع جلب كامل بيانات العميل والصورة)
 // ========================================
 function buildInvoicePage(order, pageNum, totalPages) {
     const formatDate = window.formatDate || ((d) => d);
@@ -140,7 +143,7 @@ function buildInvoicePage(order, pageNum, totalPages) {
         const item = items[i];
         const cleanName = cleanText(item.name);
         const cleanDesc = cleanText(item.description);
-        // استبدال الرابط الأصلي بـ placeholder إذا كان من نطاق لا يدعم CORS
+        // جلب رابط الصورة من قاعدة البيانات (item.image)
         const originalImage = item.image;
         const safeImage = getSafeImageUrl(originalImage);
         
