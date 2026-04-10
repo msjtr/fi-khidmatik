@@ -1,91 +1,119 @@
-import { db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { loadTerms } from "./terms.js";
+
+// 🔥 Firebase v8
+const db = window.db;
 
 // 📌 قراءة ID من الرابط
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 // 🚀 تشغيل عند فتح الصفحة
-window.addEventListener("DOMContentLoaded", () => {
-  loadInvoice();
-});
+window.addEventListener("DOMContentLoaded", loadInvoice);
 
 // 🔥 تحميل الفاتورة
 async function loadInvoice() {
 
-  // ❌ إذا ما فيه ID
   if (!id) {
-    showError("لا يوجد رقم فاتورة في الرابط");
-    return;
+    return showError("❌ لا يوجد رقم فاتورة في الرابط");
   }
 
   try {
-    const ref = doc(db, "invoices", id);
-    const snap = await getDoc(ref);
 
-    // ❌ إذا الفاتورة غير موجودة
-    if (!snap.exists()) {
-      showError("الفاتورة غير موجودة");
-      return;
+    const snap = await db.collection("invoices").doc(id).get();
+
+    if (!snap.exists) {
+      return showError("❌ الفاتورة غير موجودة");
     }
 
     const data = snap.data();
 
-    // ✅ تعبئة البيانات
-    setText("invoiceNumber", "فاتورة " + (data.invoiceNumber || "-"));
-    setText("date", data.date || "-");
-    setText("clientName", data.clientName || "-");
-    setText("city", data.city || "-");
+    // =====================
+    // 🔷 بيانات الفاتورة
+    // =====================
+    setText("invoiceNumber", data.invoiceNumber);
+    setText("date", data.date);
+    setText("time", data.time || "-");
+    setText("status", data.status || "تم التنفيذ");
 
-    // 🧾 العناصر
+    // =====================
+    // 🔷 بيانات العميل
+    // =====================
+    setText("clientName", data.clientName);
+    setText("city", data.city);
+    setText("phone", data.phone || "-");
+    setText("email", data.email || "-");
+
+    // =====================
+    // 🔷 الدفع
+    // =====================
+    setText("paymentMethod", data.paymentMethod || "غير محدد");
+    setText("deliveryMethod", data.deliveryMethod || "غير محدد");
+
+    // =====================
+    // 🔷 المنتجات
+    // =====================
     const tbody = document.getElementById("items");
     tbody.innerHTML = "";
 
     let subtotal = 0;
 
     (data.items || []).forEach((item, i) => {
+
       const qty = Number(item.qty || 0);
       const price = Number(item.price || 0);
       const total = qty * price;
 
       subtotal += total;
 
-      const row = `
+      tbody.innerHTML += `
         <tr>
           <td>${i + 1}</td>
+          <td>
+            <img src="${item.image || 'admin/images/default-product.png'}" width="40">
+          </td>
           <td>${item.name || "-"}</td>
+          <td>${item.desc || "-"}</td>
           <td>${qty}</td>
-          <td>${total.toFixed(2)} ريال</td>
+          <td>${price}</td>
         </tr>
       `;
-
-      tbody.innerHTML += row;
     });
 
-    // 💰 الحسابات
-    const tax = subtotal * 0.15;
-    const total = subtotal + tax;
+    // =====================
+    // 🔷 الحسابات
+    // =====================
+    const discount = Number(data.discount || 0);
+    const afterDiscount = subtotal - discount;
+    const tax = afterDiscount * 0.15;
+    const total = afterDiscount + tax;
 
     setText("subtotal", formatMoney(subtotal));
+    setText("discount", "- " + formatMoney(discount));
     setText("tax", formatMoney(tax));
     setText("total", formatMoney(total));
 
-    // 🔳 QR
+    // =====================
+    // 🔳 QR Code
+    // =====================
     generateQR(total, tax, data.date);
 
+    // =====================
     // 📄 الشروط
+    // =====================
     loadTerms();
 
   } catch (error) {
     console.error(error);
-    showError("حدث خطأ أثناء تحميل الفاتورة");
+    showError("⚠️ حدث خطأ أثناء تحميل الفاتورة");
   }
 }
 
-// 🔳 توليد QR
+// =====================
+// 🔳 QR Code
+// =====================
 function generateQR(total, tax, date) {
   try {
+
     const qrText = `
 Seller: منصة في خدمتك
 VAT: 312495447600003
@@ -105,22 +133,28 @@ Date: ${date || ""}
   }
 }
 
-// 🧠 تنسيق فلوس
+// =====================
+// 💰 تنسيق العملة
+// =====================
 function formatMoney(amount) {
-  return amount.toFixed(2) + " ريال";
+  return Number(amount || 0).toFixed(2) + " ريال";
 }
 
-// 🛠️ مساعد لتعبئة النص
+// =====================
+// 🛠️ مساعد تعبئة
+// =====================
 function setText(id, value) {
   const el = document.getElementById(id);
-  if (el) el.innerText = value;
+  if (el) el.innerText = value || "-";
 }
 
+// =====================
 // ❌ عرض خطأ
+// =====================
 function showError(message) {
   document.body.innerHTML = `
     <div style="text-align:center; margin-top:100px; font-family:Tahoma;">
-      <h2>⚠️ ${message}</h2>
+      <h2>${message}</h2>
     </div>
   `;
 }
