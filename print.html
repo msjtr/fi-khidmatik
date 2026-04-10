@@ -2,7 +2,7 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>الفاتورة الإلكترونية</title>
+    <title>الفاتورة الإلكترونية - في خدمتك</title>
     <link rel="icon" href="/fi-khidmatik/images/logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -54,39 +54,52 @@
         const db = getFirestore(app);
 
         async function loadOrder(orderId) {
-            const snap = await getDoc(doc(db, "orders", orderId));
-            return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+            try {
+                const snap = await getDoc(doc(db, "orders", orderId));
+                return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+            } catch(e) {
+                console.error("خطأ في تحميل الطلب:", e);
+                return null;
+            }
         }
+        
         async function loadCustomer(customerId) {
             if (!customerId) return null;
-            const snap = await getDoc(doc(db, "customers", customerId));
-            return snap.exists() ? snap.data() : null;
+            try {
+                const snap = await getDoc(doc(db, "customers", customerId));
+                return snap.exists() ? snap.data() : null;
+            } catch(e) {
+                console.error("خطأ في تحميل العميل:", e);
+                return null;
+            }
         }
 
         const params = new URLSearchParams(location.search);
         const orderId = params.get('id');
+        
         if (!orderId) {
             document.getElementById('printContent').innerHTML = '<div class="error-message">❌ لم يتم تحديد رقم الطلب</div>';
         } else {
             const order = await loadOrder(orderId);
             if (!order) {
-                document.getElementById('printContent').innerHTML = '<div class="error-message">⚠️ الطلب غير موجود</div>';
+                document.getElementById('printContent').innerHTML = '<div class="error-message">⚠️ الطلب غير موجود (ID: ' + orderId + ')</div>';
             } else {
                 const customer = order.customerId ? await loadCustomer(order.customerId) : null;
                 
+                // تحويل بيانات الطلب إلى الصيغة المطلوبة بواسطة invoice.js
                 const orderData = {
                     orderNumber: order.orderNumber || 'بدون رقم',
                     orderDate: order.orderDate || new Date().toISOString().split('T')[0],
                     orderTime: order.orderTime || new Date().toLocaleTimeString('ar-SA'),
                     status: order.status || 'مكتمل',
-                    customerName: customer?.name || 'غير معروف',
-                    customerPhone: customer?.phone || '',
-                    customerEmail: customer?.email || '',
-                    customerAddress: customer?.address || '',
-                    customerCity: customer?.city || '',
-                    customerStreet: customer?.street || '',
-                    customerAdditionalNo: customer?.additionalNo || '',
-                    customerPoBox: customer?.poBox || '',
+                    customerName: customer?.name || order.customerName || 'غير معروف',
+                    customerPhone: customer?.phone || order.customerPhone || '',
+                    customerEmail: customer?.email || order.customerEmail || '',
+                    customerAddress: customer?.address || order.customerAddress || '',
+                    customerCity: customer?.city || order.customerCity || '',
+                    customerStreet: customer?.street || order.customerStreet || '',
+                    customerAdditionalNo: customer?.additionalNo || order.customerAdditionalNo || '',
+                    customerPoBox: customer?.poBox || order.customerPoBox || '',
                     shippingMethod: order.shippingMethod || 'noship',
                     paymentMethod: order.paymentMethod || 'mada',
                     approvalCode: order.approvalCode || '',
@@ -109,10 +122,10 @@
                     html += window.buildTermsPage1(2, 4);
                     html += window.buildTermsPage2(3, 4);
                     if (typeof window.buildTermsPage3 === 'function') {
-                        html += window.buildTermsPage3(orderData, customer, window.formatDate(orderData.orderDate), window.formatTime(orderData.orderTime), 4, 4);
+                        html += window.buildTermsPage3(orderData, 4, 4);
                     }
                 } else {
-                    // إذا لم توجد دوال الشروط، نضيف صفحات فارغة بسيطة
+                    // صفحات احتياطية إذا كانت دوال الشروط غير موجودة
                     for(let i=2; i<=4; i++) {
                         html += `<div class="page terms-page">${window.buildHeader('شروط وأحكام')}<p style="padding:50px;text-align:center;">شروط وأحكام الخدمة متاحة على الموقع الإلكتروني.</p>${window.buildFooter(i,4)}</div>`;
                     }
@@ -120,7 +133,7 @@
                 
                 document.getElementById('printContent').innerHTML = html;
                 
-                // إنشاء QR Codes
+                // إنشاء QR Codes بعد تحميل الصفحة
                 setTimeout(() => {
                     try {
                         const zatcaDiv = document.getElementById('zatcaQR');
@@ -136,12 +149,15 @@
                         const downloadDiv = document.getElementById('downloadQR');
                         if (downloadDiv && typeof QRCode !== 'undefined') {
                             downloadDiv.innerHTML = '';
-                            new QRCode(downloadDiv, { text: window.location.origin + window.location.pathname + '?id=' + orderId, width: 90, height: 90 });
+                            new QRCode(downloadDiv, { text: window.location.origin + '/fi-khidmatik/print.html?id=' + orderId, width: 90, height: 90 });
                         }
-                    } catch(e) { console.warn("QR Error:", e); }
+                    } catch(e) { console.warn("QR Code error:", e); }
                 }, 300);
                 
-                if (params.get('auto') === 'print') setTimeout(() => window.print(), 800);
+                // الطباعة التلقائية إذا أضيف auto=print
+                if (params.get('auto') === 'print') {
+                    setTimeout(() => window.print(), 800);
+                }
             }
         }
     </script>
