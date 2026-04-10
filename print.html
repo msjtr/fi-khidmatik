@@ -111,18 +111,18 @@
             });
         };
         
-        // دالة قوية لتنظيف النص من الرموز والأحرف الإنجليزية والعلامات الغريبة
+        // دالة تنظيف قوية: تزيل كل شيء ما عدا الحروف العربية والأرقام العربية والمسافات
         function cleanServiceText(text) {
             if (!text) return '';
-            // يحافظ على: الحروف العربية، الأرقام، المسافات، وعلامات الترقيم العربية البسيطة (، . ؛ ؟ !)
+            // يحافظ فقط على: الحروف العربية (٠-٩ والأرقام العربية) والمسافات
             let cleaned = String(text)
-                .replace(/[^\u0600-\u06FF\u0660-\u0669\s\u060C\u061B\u061F\u002E\u002C\u061F\u0021\-]/g, ' ')
-                .replace(/\s+/g, ' ')
+                .replace(/[^\u0600-\u06FF\u0660-\u0669\s]/g, ' ')  // إزالة أي شيء ليس عربياً أو رقماً عربياً أو مسافة
+                .replace(/\s+/g, ' ')                               // دمج المسافات المتعددة
                 .trim();
             return cleaned;
         }
         
-        // دالة تنظيف عامة للأسماء (تحتفظ ببعض الأحرف الإنجليزية إذا لزم الأمر، لكننا نفضل العربية فقط)
+        // دالة تنظيف للأسماء (قد تحتوي على أرقام إنجليزية أو نقاط)
         function cleanText(text) {
             if (!text) return '';
             return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
@@ -209,7 +209,7 @@
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
                 const productName = escape(cleanText(item.name));
-                // تنظيف وصف الخدمة من الرموز والأحرف الإنجليزية
+                // تنظيف وصف الخدمة من الرموز والشرطات والفواصل
                 const rawDesc = item.description || '---';
                 const cleanDesc = cleanServiceText(rawDesc);
                 const serviceDesc = escape(cleanDesc) || '---';
@@ -221,7 +221,7 @@
                         <td style="text-align:center">${item.quantity}</td>
                         <td style="text-align:center;direction:ltr">${(item.price || 0).toFixed(2)} ريال</td>
                         <td style="text-align:center;direction:ltr">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال</td>
-                    </tr>
+                    </table>
                 `;
             }
             
@@ -286,7 +286,6 @@
             `;
         }
         
-        // طباعة وتصدير
         async function waitForImages(element, timeout = 8000) {
             const imgs = Array.from(element.querySelectorAll('img'));
             await Promise.all(imgs.map(img => {
@@ -359,7 +358,6 @@
                 try { const custSnap = await db.collection('customers').doc(order.customerId).get(); if (custSnap.exists) customer = custSnap.data(); } catch(e) {}
             }
             
-            // تجهيز العناصر مع جلب وصف الخدمة من products
             let items = (order.items || []).map(item => ({
                 productId: item.productId,
                 name: item.name || 'منتج',
@@ -369,7 +367,7 @@
                 price: item.price || 0
             }));
             
-            // جلب وصف الخدمة من منتجات Firebase
+            // جلب وصف الخدمة من products collection
             for (let i = 0; i < items.length; i++) {
                 const it = items[i];
                 if (it.productId) {
@@ -379,20 +377,16 @@
                             const productData = productSnap.data();
                             it.description = productData.serviceDescription || productData.description || it.description;
                         }
-                    } catch(e) {
-                        console.warn(`فشل جلب وصف المنتج ${it.productId}:`, e);
-                    }
+                    } catch(e) { console.warn(`فشل جلب وصف المنتج ${it.productId}:`, e); }
                 }
-                // معالجة الصور (لن تظهر في الجدول لكن نحتاجها لأغراض أخرى)
+                // معالجة الصور (لن تظهر في الجدول)
                 const imgPath = it.image;
                 if (imgPath && !imgPath.startsWith('http') && !imgPath.startsWith('data:') && imgPath.includes('/')) {
                     try {
                         const url = await storage.ref(imgPath).getDownloadURL();
                         it.image = url;
                     } catch(e) { it.image = PLACEHOLDER_RAW; }
-                } else if (!imgPath) {
-                    it.image = PLACEHOLDER_RAW;
-                }
+                } else if (!imgPath) { it.image = PLACEHOLDER_RAW; }
             }
             
             const orderData = {
