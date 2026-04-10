@@ -2,13 +2,16 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    
     <title>نظام الفواتير - منصة في خدمتك</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS@master/dist/easy.qrcode.min.js"></script>
+    
     <style>
-        :root { --primary: #1e3a5f; --gray-bg: #f4f7f9; --text-dark: #333; }
+        /* التنسيقات العامة */
+        :root { --primary: #1e3a5f; --gray-bg: #f4f7f9; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #e9ecef; font-family: 'Tajawal', sans-serif; line-height: 1.6; }
+        body { font-family: 'Tajawal', sans-serif; background: #e9ecef; }
         
         .page { 
             width: 210mm; min-height: 297mm; padding: 15mm; 
@@ -16,160 +19,50 @@
             display: flex; flex-direction: column; page-break-after: always;
         }
 
-        /* الهيدر الثابت */
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
-        .platform-info h1 { color: var(--primary); font-size: 24px; font-weight: 800; }
-        .platform-info p { font-size: 11px; color: #666; }
-        .doc-type { background: var(--primary); color: white; padding: 5px 20px; border-radius: 20px; font-weight: bold; }
+        /* ترويسة ثابتة لكل الصفحات [cite: 1, 2] */
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; 
+        }
+        .header-info h1 { color: var(--primary); font-size: 22px; font-weight: 800; }
+        .header-info p { font-size: 11px; color: #555; }
+        .doc-label { background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; font-size: 13px; }
 
-        /* الأقسام القانونية */
-        .section-title { background: var(--gray-bg); color: var(--primary); padding: 5px 10px; border-right: 4px solid var(--primary); font-weight: 800; font-size: 14px; margin: 15px 0 10px; }
-        .terms-content { font-size: 10.5px; text-align: justify; }
-        .terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .legal-item { margin-bottom: 8px; position: relative; padding-right: 12px; }
-        .legal-item::before { content: "•"; position: absolute; right: 0; color: var(--primary); }
-
-        /* التذييل */
+        /* تذييل ثابت لكل الصفحات [cite: 8] */
         .footer { margin-top: auto; padding-top: 15px; border-top: 1px dashed #ccc; font-size: 10px; }
-        .contact-bar { background: var(--primary); color: white; padding: 8px; border-radius: 5px; display: flex; justify-content: space-between; margin-top: 10px; }
+        .contact-info { 
+            background: var(--primary); color: white; padding: 8px; 
+            border-radius: 5px; display: flex; justify-content: space-between; margin-top: 5px; 
+        }
         
-        .no-print { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
-        button { padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; background: var(--primary); color: white; font-weight: bold; font-family: 'Tajawal'; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-
-        @media print { .no-print { display: none; } body { background: white; } .page { margin: 0; box-shadow: none; width: 100%; } }
+        /* تنسيق الشروط والأحكام [cite: 11, 12, 13] */
+        .terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 10px; }
+        .section-h { background: var(--gray-bg); padding: 4px; font-weight: bold; color: var(--primary); margin-top: 10px; }
+        
+        @media print { .no-print { display: none; } body { background: white; } .page { margin: 0; width: 100%; box-shadow: none; } }
     </style>
 </head>
 <body>
 
-    <div id="render-area">
-        <div class="page">
-            <div class="header">
-                <div class="platform-info">
-                    <h1>منصة في خدمتك</h1>
-                    <p>رقم شهادة العمل الحر: FL-765735204 | الضريبي: 312495447600003 </p>
-                </div>
-                <div class="doc-type">فاتورة إلكترونية</div>
+    <div class="page">
+        <div class="header">
+            <div class="header-info">
+                <h1>منصة في خدمتك</h1>
+                <p>رقم شهادة العمل الحر: FL-765735204 [cite: 1]</p>
+                <p>الرقم الضريبي: 312495447600003 [cite: 1]</p>
             </div>
-            
-            <div style="border: 1px solid #eee; padding: 15px; border-radius: 8px; font-size: 12px; margin-bottom: 20px;">
-                <p><strong>رقم الفاتورة:</strong> KF-2603290287 | <strong>التاريخ:</strong> 29/03/2026 | <strong>الحالة:</strong> تم التنفيذ [cite: 3]</p>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <div style="width: 48%; border: 1px solid #eee; padding: 10px;">
-                    <h3 style="font-size:13px; color:var(--primary)">مصدرة من:</h3>
-                    <p style="font-size:11px;">منصة في خدمتك - حائل، حي النقرة، شارع سعد المشاط [cite: 4]</p>
-                </div>
-                <div style="width: 48%; border: 1px solid #eee; padding: 10px;">
-                    <h3 style="font-size:13px; color:var(--primary)">مصدرة إلى:</h3>
-                    <p style="font-size:11px;">اسم العميل: فهد العتيبي [cite: 4, 14]</p>
-                </div>
-            </div>
-
-            <table style="width:100%; border-collapse: collapse; font-size: 11px;">
-                <thead style="background:var(--primary); color:white;">
-                    <tr><th style="padding:10px">#</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
-                </thead>
-                <tbody style="text-align:center">
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding:10px">1</td><td>منتج تجريبي [cite: 6]</td><td>1</td><td>19,282.00</td><td>19,282.00</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="width: 250px; margin-right: auto; margin-top: 20px; font-size: 12px;">
-                <div style="display:flex; justify-content:space-between"><span>المجموع الفرعي:</span><span>19282.00 ريال [cite: 7]</span></div>
-                <div style="display:flex; justify-content:space-between; border-top: 2px solid var(--primary); font-weight:bold; margin-top:5px; padding-top:5px;"><span>الإجمالي النهائي:</span><span>15522.01 ريال [cite: 7]</span></div>
-            </div>
-
-            <div class="footer">
-                <div style="text-align:center; margin-bottom: 10px;">تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة [cite: 8]</div>
-                <div class="contact-bar">
-                    <span>📞 966534051317 [cite: 8]</span>
-                    <span>🌐 www.khidmatik.com [cite: 8]</span>
-                    <span>صفحة 1 من 3 </span>
-                </div>
-            </div>
+            <div class="doc-label">فاتورة إلكترونية</div>
         </div>
-
-        <div class="page">
-            <div class="header">
-                <div class="platform-info"><h1>منصة في خدمتك</h1></div>
-                <div class="doc-type">الشروط والأحكام (1)</div>
-            </div>
-            
-            <div class="terms-content">
-                <div style="background:#fff3cd; padding:10px; border-radius:5px; margin-bottom:15px; font-weight:bold;">
-                    إقرار مسؤولية البيانات والمعلومات: يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها صحيحة ودقيقة ومكتملة[cite: 10].
-                </div>
-
-                <div class="terms-grid">
-                    <div>
-                        <div class="section-title">أولاً: صلاحية العرض والتنفيذ [cite: 11]</div>
-                        <div class="legal-item">مدة صلاحية العرض: (3) أيام عمل فقط من تاريخ إصداره[cite: 11].</div>
-                        <div class="legal-item">تبدأ أعمال التنفيذ بعد استلام الدفعة المقدمة وجميع المتطلبات[cite: 11].</div>
-                        
-                        <div class="section-title">ثانياً: التكاليف والمسؤوليات المالية [cite: 11]</div>
-                        <div class="legal-item">لا تشمل التكاليف أي رسوم خارجية مثل السيرفرات أو الرسوم الحكومية[cite: 11].</div>
-                        <div class="legal-item">جميع المبالغ المدفوعة لجهات خارجية لا يمكن استرجاعها[cite: 11].</div>
-                    </div>
-                    <div>
-                        <div class="section-title">ثالثاً: التسليم والملكية [cite: 11]</div>
-                        <div class="legal-item">يقتصر التسليم على المنتج النهائي ولا يشمل الملفات المفتوحة أو الكود المصدري[cite: 11].</div>
-                        <div class="legal-item">يبقى الكود المصدري ملكاً حصرياً لمقدم الخدمة[cite: 11].</div>
-                        
-                        <div class="section-title">رابعاً: الدفعات والاسترجاع [cite: 11]</div>
-                        <div class="legal-item">لا يحق للعميل المطالبة باسترجاع أي مبلغ مالي بعد بدء التنفيذ[cite: 11].</div>
-                        <div class="legal-item">تُضاف رسوم إدارية بنسبة 20% عند الإيقاف[cite: 11].</div>
-                    </div>
-                </div>
-            </div>
-            <div class="footer"><div class="contact-bar"><span>صفحة 2 من 3</span></div></div>
-        </div>
-
-        <div class="page">
-            <div class="header">
-                <div class="platform-info"><h1>منصة في خدمتك</h1></div>
-                <div class="doc-type">الشروط والأحكام (2)</div>
-            </div>
-
-            <div class="terms-content">
-                <div class="terms-grid">
-                    <div>
-                        <div class="section-title">خامساً: الضمان [cite: 12]</div>
-                        <div class="legal-item">يقتصر الضمان على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط[cite: 12].</div>
-                        <div class="section-title">سادساً: انتهاء العلاقة والمسؤولية [cite: 12]</div>
-                        <div class="legal-item">تنتهي العلاقة التعاقدية فور تسليم المشروع وفق النطاق المتفق عليه[cite: 12].</div>
-                    </div>
-                    <div>
-                        <div class="section-title">تاسعاً: النزاعات [cite: 12]</div>
-                        <div class="legal-item">يتم السعي لحل النزاعات ودياً خلال مدة مناسبة[cite: 12].</div>
-                        <div class="section-title">ثاني عشر: الحماية القانونية [cite: 13]</div>
-                        <div class="legal-item">لا تتجاوز مسؤولية مقدم الخدمة إجمالي المبلغ المدفوع من قبل العميل[cite: 13].</div>
-                    </div>
-                </div>
-
-                <div style="margin-top:30px; border:2px solid var(--primary); padding:20px; border-radius:10px;">
-                    <h3 style="text-align:center; color:var(--primary); margin-bottom:10px;">الإقرار والتوقيع </h3>
-                    <p style="font-size:11px;">أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون استثناء.</p>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
-                        <div><strong>الاسم:</strong> فهد العتيبي </div>
-                        <div><strong>التاريخ:</strong> 11/04/2026</div>
-                        <div style="border-bottom:1px solid #000; height:40px;"><strong>التوقيع:</strong></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer">
-                <div style="text-align:center; font-weight:bold;">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً [cite: 8]</div>
-                <div class="contact-bar"><span>صفحة 3 من 3</span></div>
+        
+        <div class="footer">
+            <p style="text-align:center">تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة [cite: 8]</p>
+            <div class="contact-info">
+                <span>📞 966534051317 [cite: 8]</span>
+                <span>📧 info@fi-khidmatik.com [cite: 8]</span>
+                <span>صفحة 1 من 3</span>
             </div>
         </div>
     </div>
 
-    <div class="no-print">
-        <button onclick="window.print()">🖨️ طباعة المستند كاملاً</button>
-    </div>
-
-</body>
+    </body>
 </html>
