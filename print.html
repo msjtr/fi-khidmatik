@@ -195,7 +195,6 @@
             let itemsHtml = '';
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
-                // لم نعد نستخدم الصورة، فقط اسم المنتج ووصف الخدمة
                 const productName = escape(cleanText(item.name));
                 const serviceDesc = escape(cleanText(item.description)) || '---';
                 itemsHtml += `
@@ -344,22 +343,41 @@
                 try { const custSnap = await db.collection('customers').doc(order.customerId).get(); if (custSnap.exists) customer = custSnap.data(); } catch(e) {}
             }
             
+            // تجهيز العناصر مع جلب وصف الخدمة من products
             let items = (order.items || []).map(item => ({
+                productId: item.productId,
                 name: item.name || 'منتج',
                 description: item.description || '',
                 image: item.image || '',
                 quantity: item.quantity || 1,
                 price: item.price || 0
             }));
-            // تحويل صور Firebase Storage (إذا وجدت) لكننا لن نعرضها في الجدول، نحتاجها فقط لـ CORS في حال استخدامها مستقبلاً
+            
+            // جلب وصف الخدمة من منتجات Firebase
             for (let i = 0; i < items.length; i++) {
-                const imgPath = items[i].image;
+                const it = items[i];
+                if (it.productId) {
+                    try {
+                        const productSnap = await db.collection('products').doc(it.productId).get();
+                        if (productSnap.exists) {
+                            const productData = productSnap.data();
+                            // استخدام serviceDescription أولاً، ثم description العادي
+                            it.description = productData.serviceDescription || productData.description || it.description;
+                        }
+                    } catch(e) {
+                        console.warn(`فشل جلب وصف المنتج ${it.productId}:`, e);
+                    }
+                }
+                // معالجة الصور (لن تظهر في الجدول لكن نحتاجها لأغراض أخرى)
+                const imgPath = it.image;
                 if (imgPath && !imgPath.startsWith('http') && !imgPath.startsWith('data:') && imgPath.includes('/')) {
                     try {
                         const url = await storage.ref(imgPath).getDownloadURL();
-                        items[i].image = url; // لن تستخدم في الجدول لكن نحتفظ بها
-                    } catch(e) { items[i].image = PLACEHOLDER_RAW; }
-                } else if (!imgPath) items[i].image = PLACEHOLDER_RAW;
+                        it.image = url;
+                    } catch(e) { it.image = PLACEHOLDER_RAW; }
+                } else if (!imgPath) {
+                    it.image = PLACEHOLDER_RAW;
+                }
             }
             
             const orderData = {
