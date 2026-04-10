@@ -2,9 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>فاتورة</title>
+<title>طباعة الفاتورة</title>
 
-<!-- 🔥 حل مشكلة favicon -->
+<!-- حل favicon -->
 <link rel="icon" href="data:,">
 
 <style>
@@ -20,7 +20,6 @@ th{background:#2c3e50;color:#fff;padding:10px}
 td{padding:8px;border-bottom:1px solid #eee;text-align:center}
 .totals{margin-top:20px}
 #qr{margin-top:20px}
-.terms{margin-top:30px}
 .actions{text-align:center;margin:10px}
 @media print {.actions{display:none}}
 </style>
@@ -34,13 +33,11 @@ td{padding:8px;border-bottom:1px solid #eee;text-align:center}
 
 <div class="page">
 
-<!-- الهيدر -->
 <div class="header">
   <div>
     <h2>فاتورة إلكترونية</h2>
-    رقم الفاتورة: <span id="invoiceNumber"></span><br>
+    رقم: <span id="invoiceNumber"></span><br>
     التاريخ: <span id="date"></span><br>
-    الوقت: <span id="time"></span><br>
     الحالة: <span id="status"></span>
   </div>
 
@@ -50,21 +47,11 @@ td{padding:8px;border-bottom:1px solid #eee;text-align:center}
   </div>
 </div>
 
-<!-- العميل -->
 <div class="info">
-  الاسم: <span id="clientName"></span><br>
-  المدينة: <span id="city"></span><br>
-  الجوال: <span id="phone"></span><br>
-  البريد: <span id="email"></span>
+  العميل: <span id="clientName"></span><br>
+  الجوال: <span id="phone"></span>
 </div>
 
-<!-- الدفع -->
-<div class="info">
-  الدفع: <span id="paymentMethod"></span><br>
-  الاستلام: <span id="deliveryMethod"></span>
-</div>
-
-<!-- جدول -->
 <table>
 <thead>
 <tr>
@@ -77,22 +64,13 @@ td{padding:8px;border-bottom:1px solid #eee;text-align:center}
 <tbody id="items"></tbody>
 </table>
 
-<!-- الحساب -->
 <div class="totals">
   <div>المجموع: <span id="subtotal"></span></div>
-  <div>الخصم: <span id="discount"></span></div>
   <div>الضريبة: <span id="tax"></span></div>
   <div><strong>الإجمالي: <span id="total"></span></strong></div>
 </div>
 
-<!-- QR -->
 <div id="qr"></div>
-
-<!-- الشروط -->
-<div class="terms">
-<h3>الشروط والأحكام</h3>
-<div id="termsContent"></div>
-</div>
 
 </div>
 
@@ -104,7 +82,7 @@ td{padding:8px;border-bottom:1px solid #eee;text-align:center}
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <script>
-// 🔥 Firebase config
+// ================= Firebase =================
 const firebaseConfig = {
   apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
   authDomain: "msjt301-974bb.firebaseapp.com",
@@ -114,79 +92,86 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ID
+// ================= ID =================
 const id = new URLSearchParams(window.location.search).get("id");
 
-window.onload = loadInvoice;
+// ================= تشغيل =================
+window.onload = loadData;
 
-async function loadInvoice(){
+// ================= تحميل =================
+async function loadData(){
 
 if(!id){
-  return error("❌ لا يوجد رقم فاتورة");
+  return error("لا يوجد رقم");
 }
 
-const snap = await db.collection("invoices").doc(id).get();
+// نحاول أولاً orders (نظامك)
+let snap = await db.collection("orders").doc(id).get();
 
-if(!snap.exists){
-  return error("❌ الفاتورة غير موجودة");
+let data = null;
+let isOrder = false;
+
+if(snap.exists){
+  data = snap.data();
+  isOrder = true;
+}else{
+  snap = await db.collection("invoices").doc(id).get();
+  if(snap.exists){
+    data = snap.data();
+  }else{
+    return error("غير موجود");
+  }
 }
 
-const d = snap.data();
+// ================= تعبئة =================
+set("invoiceNumber", data.orderNumber || data.invoiceNumber);
+set("date", data.createdAt || data.date);
+set("status", data.status || "-");
 
-// بيانات
-set("invoiceNumber", d.invoiceNumber);
-set("date", d.date);
-set("time", d.time || "-");
-set("status", d.status || "-");
+// العميل
+if(isOrder){
+  set("clientName", data.customerName || "عميل");
+  set("phone", data.customerPhone || "-");
+}else{
+  set("clientName", data.clientName);
+  set("phone", data.phone || "-");
+}
 
-set("clientName", d.clientName);
-set("city", d.city);
-set("phone", d.phone || "-");
-set("email", d.email || "-");
-
-set("paymentMethod", d.paymentMethod || "-");
-set("deliveryMethod", d.deliveryMethod || "-");
-
-// منتجات
+// ================= المنتجات =================
 let subtotal = 0;
 document.getElementById("items").innerHTML = "";
 
-(d.items||[]).forEach((item,i)=>{
-  const total = item.qty * item.price;
+(data.items || []).forEach((item,i)=>{
+
+  const price = item.price || 0;
+  const qty = item.quantity || item.qty || 1;
+
+  const total = price * qty;
   subtotal += total;
 
   document.getElementById("items").innerHTML += `
   <tr>
     <td>${i+1}</td>
-    <td>${item.name}</td>
-    <td>${item.qty}</td>
-    <td>${total} ريال</td>
+    <td>${item.productName || item.name}</td>
+    <td>${qty}</td>
+    <td>${total.toFixed(2)} ريال</td>
   </tr>`;
 });
 
-// حساب
-const discount = d.discount || 0;
-const after = subtotal - discount;
-const tax = after * 0.15;
-const total = after + tax;
+// ================= الحساب =================
+const tax = subtotal * 0.15;
+const total = subtotal + tax;
 
-set("subtotal", subtotal + " ريال");
-set("discount", discount + " ريال");
-set("tax", tax.toFixed(2) + " ريال");
-set("total", total.toFixed(2) + " ريال");
+set("subtotal", subtotal.toFixed(2)+" ريال");
+set("tax", tax.toFixed(2)+" ريال");
+set("total", total.toFixed(2)+" ريال");
 
-// QR
+// ================= QR =================
 QRCode.toCanvas(document.getElementById("qr"),
-`Total:${total} Tax:${tax} Date:${d.date}`);
-
-// شروط
-document.getElementById("termsContent").innerHTML = `
-يتحمل العميل مسؤولية البيانات.<br>
-لا يوجد استرجاع بعد التنفيذ.<br>
-تطبق ضريبة القيمة المضافة.
-`;
+`Total:${total} Tax:${tax} Date:${data.createdAt || data.date}`);
 }
 
+// ================= أدوات =================
 function set(id,val){
 document.getElementById(id).innerText = val || "-";
 }
