@@ -6,8 +6,6 @@
     <link rel="icon" href="/fi-khidmatik/images/logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -20,6 +18,7 @@
             font-family: 'Tajawal', sans-serif;
             font-size: 14px;
         }
+        /* تنسيق الصفحة للشاشة */
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -29,11 +28,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            page-break-after: always;
             position: relative;
             word-wrap: break-word;
+            page-break-after: always;
             break-inside: avoid;
         }
+        /* تنسيق الطباعة */
         @media print {
             body {
                 background: white;
@@ -51,7 +51,7 @@
             }
             @page {
                 size: A4;
-                margin: 1.5cm;
+                margin: 1.8cm;
             }
         }
         /* رأس الصفحة */
@@ -59,41 +59,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 15px;
+            padding: 10px 20px;
             border-bottom: 2px solid #1e3a5f;
             background: #f8f9fa;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
         }
         .header-right .logo-area {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         .logo-img {
-            height: 40px;
+            height: 45px;
             width: auto;
         }
         .logo-text .platform-name {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 800;
             color: #1e3a5f;
         }
         .logo-text .platform-slogan {
-            font-size: 9px;
+            font-size: 10px;
             color: #6c757d;
         }
         .header-center .page-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             color: #1e3a5f;
             background: #e9ecef;
-            padding: 4px 12px;
+            padding: 4px 16px;
             border-radius: 40px;
         }
         .header-left .legal-numbers div {
-            font-size: 10px;
-            margin-bottom: 2px;
+            font-size: 11px;
+            margin-bottom: 3px;
             direction: ltr;
             white-space: nowrap;
         }
@@ -101,193 +101,194 @@
         .info-grid {
             display: grid;
             grid-template-columns: repeat(3,1fr);
-            gap: 10px;
-            padding: 10px 15px;
+            gap: 15px;
+            padding: 15px 20px;
             background: #f1f3f5;
-            margin: 10px 15px;
-            border-radius: 10px;
+            margin: 15px 20px;
+            border-radius: 12px;
         }
         .info-item {
             text-align: center;
         }
         .info-label {
-            font-size: 11px;
+            font-size: 13px;
             color: #6c757d;
         }
         .info-value {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 700;
             color: #1e3a5f;
-            word-break: break-word;
         }
         .status-badge {
             background: #10b981;
             color: white;
-            padding: 2px 8px;
+            padding: 3px 12px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 13px;
             display: inline-block;
         }
         /* العناوين */
         .addresses {
             display: flex;
-            gap: 15px;
-            padding: 0 15px;
-            margin-bottom: 10px;
+            gap: 20px;
+            padding: 0 20px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         .address-card {
             flex: 1;
             background: #f8f9fa;
-            padding: 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            line-height: 1.4;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
         }
         .address-card p {
-            margin: 3px 0;
+            margin: 5px 0;
         }
         .address-card i {
-            width: 18px;
+            width: 22px;
             color: #1e3a5f;
         }
         /* طرق الدفع */
         .payment-grid {
             display: grid;
             grid-template-columns: repeat(3,1fr);
-            gap: 10px;
-            padding: 0 15px;
-            margin-bottom: 10px;
+            gap: 15px;
+            padding: 0 20px;
+            margin-bottom: 20px;
         }
         .payment-card {
             background: #e9ecef;
-            padding: 6px;
-            border-radius: 10px;
+            padding: 10px;
+            border-radius: 12px;
             text-align: center;
-            font-size: 11px;
+            font-size: 13px;
         }
         .payment-card i {
-            font-size: 14px;
+            font-size: 18px;
             color: #1e3a5f;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
+            display: inline-block;
         }
         /* جدول المنتجات */
         .table-wrapper {
             overflow-x: auto;
-            margin: 0 15px 15px;
+            margin: 0 20px 20px;
         }
         .products-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
-            min-width: 500px;
+            font-size: 13px;
+            min-width: 550px;
         }
         .products-table th, .products-table td {
             border: 1px solid #dee2e6;
-            padding: 5px 3px;
+            padding: 8px 6px;
+            vertical-align: middle;
         }
         .products-table th {
             background: #1e3a5f;
             color: white;
+            font-weight: 600;
         }
         /* الإجماليات */
         .totals-box {
-            width: 240px;
-            margin: 0 15px 15px auto;
+            width: 280px;
+            margin: 0 20px 20px auto;
             background: #f8f9fa;
-            border-radius: 10px;
-            padding: 8px;
+            border-radius: 12px;
+            padding: 12px;
             border: 1px solid #dee2e6;
         }
         .totals-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
-            font-size: 11px;
+            padding: 6px 0;
+            font-size: 13px;
         }
         .grand-total {
             font-weight: 800;
-            font-size: 13px;
+            font-size: 16px;
             color: #1e3a5f;
-            border-top: 1px solid #1e3a5f;
-            margin-top: 3px;
-            padding-top: 5px;
+            border-top: 2px solid #1e3a5f;
+            margin-top: 5px;
+            padding-top: 8px;
         }
         /* الباركودات */
         .barcodes {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin: 10px 15px;
+            gap: 25px;
+            margin: 20px 20px;
             flex-wrap: wrap;
         }
         .barcode-item {
             text-align: center;
         }
         .barcode-item .qr-code {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             margin: 0 auto;
         }
         .barcode-item p {
-            font-size: 8px;
+            font-size: 10px;
             color: #6c757d;
-            margin-top: 4px;
+            margin-top: 6px;
         }
         /* تذييل الصفحة */
         .page-footer {
             background: #1e3a5f;
             color: white;
-            padding: 6px 15px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 9px;
+            font-size: 11px;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 8px;
             margin-top: auto;
         }
         .contact-info span {
-            margin-left: 8px;
+            margin-left: 12px;
             display: inline-block;
         }
         .contact-info i {
-            margin-left: 2px;
+            margin-left: 4px;
         }
         .legal-footer {
-            font-size: 8px;
+            font-size: 10px;
             opacity: 0.8;
         }
         .page-number {
-            font-size: 8px;
+            font-size: 10px;
         }
         /* محتوى الشروط */
         .terms-content {
-            padding: 10px 20px;
-            line-height: 1.5;
-            font-size: 12px;
+            padding: 20px 25px;
+            line-height: 1.6;
+            font-size: 13px;
             text-align: justify;
             flex: 1;
         }
         .terms-content h3 {
             color: #1e3a5f;
-            margin: 10px 0 5px;
-            font-size: 14px;
+            margin: 15px 0 8px;
+            font-size: 16px;
         }
         .terms-content .clause {
-            margin-right: 12px;
-            margin-bottom: 5px;
+            margin-right: 20px;
+            margin-bottom: 8px;
         }
         .signature-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 20px;
         }
         .signature-table td {
             border: 1px solid #dee2e6;
-            padding: 6px;
+            padding: 8px;
             text-align: center;
-            font-size: 12px;
         }
         /* أزرار الطباعة */
         .preview-buttons {
@@ -297,28 +298,26 @@
             right: 0;
             background: white;
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
         }
         .preview-buttons button {
-            padding: 5px 10px;
-            margin: 0 3px;
+            padding: 6px 15px;
+            margin: 0 5px;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 13px;
         }
         .btn-print { background: #1e3a5f; color: white; }
-        .btn-pdf { background: #dc2626; color: white; }
-        .btn-png { background: #16a34a; color: white; }
         .btn-close { background: #6c757d; color: white; }
         .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #1e3a5f;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3a5f;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
             margin: 50px auto;
         }
@@ -327,50 +326,33 @@
             text-align: center;
             color: red;
             margin-top: 50px;
-            font-size: 16px;
+            font-size: 18px;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: 10px;
         }
-        /* تحسينات الجوال */
+        /* استجابة الجوال */
         @media (max-width: 700px) {
-            body { padding: 5px; }
+            body { padding: 10px; }
             .page-header { flex-direction: column; text-align: center; }
             .header-left .legal-numbers div { white-space: normal; text-align: center; }
-            .info-grid { grid-template-columns: 1fr; gap: 5px; }
+            .info-grid { grid-template-columns: 1fr; gap: 10px; }
             .addresses { flex-direction: column; }
             .payment-grid { grid-template-columns: 1fr; }
-            .totals-box { width: auto; margin: 0 15px 15px; }
-            .terms-content { padding: 8px 12px; font-size: 11px; }
+            .totals-box { width: auto; margin: 0 20px 20px; }
+            .terms-content { padding: 15px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
     <div id="printContent"><div class="loading-spinner"></div></div>
     <div class="preview-buttons no-print">
-        <button class="btn-print" onclick="window.printInvoice()">🖨️ طباعة</button>
-        <button class="btn-pdf" onclick="window.exportToPDF()">📄 PDF</button>
-        <button class="btn-png" onclick="window.exportToPNG()">🖼️ PNG</button>
+        <button class="btn-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
         <button class="btn-close" onclick="window.close()">✖️ إغلاق</button>
     </div>
 
     <script>
-        // CORS Proxy
-        const CORS_BLOCKED_DOMAINS = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
-        const CORS_PROXY = "https://api.allorigins.win/raw?url=";
-        function getCorsSafeUrl(url) {
-            if (!url) return '';
-            if (url.startsWith('data:') || url.startsWith(CORS_PROXY)) return url;
-            try {
-                const urlObj = new URL(url);
-                if (CORS_BLOCKED_DOMAINS.some(domain => urlObj.hostname.includes(domain))) {
-                    return CORS_PROXY + encodeURIComponent(url);
-                }
-            } catch(e) {}
-            return url;
-        }
-        
-        // Helpers
+        // Helper functions
         window.formatDate = function(dateStr) {
             if (!dateStr) return '';
             const d = new Date(dateStr);
@@ -416,6 +398,7 @@
             email: "info@fi-khidmatik.com",
             website: "https://fi-khidmatik.com.sa"
         };
+        
         const PLACEHOLDER_RAW = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='2.18' ry='2.18'%3E%3C/rect%3E%3Cpath d='M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5'%3E%3C/path%3E%3C/svg%3E";
         
         function getStatusText(status) {
@@ -432,7 +415,7 @@
             return names[method] || method || 'مدى';
         }
         
-        // بناء الفاتورة
+        // بناء رأس وتذييل
         function buildInvoiceHeader(title) {
             return `
                 <div class="page-header">
@@ -472,12 +455,13 @@
             `;
         }
         
+        // صفحة الفاتورة
         function buildInvoicePage(order, pageNum, totalPages) {
             const formatDate = window.formatDate;
             const formatTime = window.formatTime;
             const escape = window.escapeHtml;
             const items = order.items || [];
-            let subtotal = order.subtotal || items.reduce((s,it) => s + (it.price||0)*(it.quantity||1), 0);
+            let subtotal = order.subtotal || items.reduce((s,i) => s + (i.price||0)*(i.quantity||1), 0);
             const discount = order.discount || 0;
             const tax = order.tax || ((subtotal - discount) * 0.15);
             const total = order.total || (subtotal - discount + tax);
@@ -488,13 +472,15 @@
                 const productName = escape(cleanText(item.name));
                 const serviceDesc = escape(cleanServiceText(item.description || '---'));
                 itemsHtml += `
-                    <tr><td style="text-align:center">${i+1}</td>
-                    <td style="text-align:right"><strong>${productName}</strong></td>
-                    <td style="text-align:right">${serviceDesc}</td>
-                    <td style="text-align:center">${item.quantity}</td>
-                    <td style="text-align:center;direction:ltr">${(item.price||0).toFixed(2)} ريال</td>
-                    <td style="text-align:center;direction:ltr">${((item.price||0)*(item.quantity||1)).toFixed(2)} ريال</td>
-                    </tr>`;
+                    <tr>
+                        <td style="text-align:center">${i+1}</td>
+                        <td style="text-align:right"><strong>${productName}</strong></td>
+                        <td style="text-align:right">${serviceDesc}</td>
+                        <td style="text-align:center">${item.quantity}</td>
+                        <td style="text-align:center;direction:ltr">${(item.price||0).toFixed(2)} ريال</td>
+                        <td style="text-align:center;direction:ltr">${((item.price||0)*(item.quantity||1)).toFixed(2)} ريال</td>
+                    </tr>
+                `;
             }
             
             let fullAddress = order.customerStreet || '';
@@ -508,7 +494,7 @@
             const discountRow = discount > 0 ? `<div class="totals-row"><span>الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>` : '';
             
             return `
-                <div class="page invoice-page">
+                <div class="page">
                     ${buildInvoiceHeader('فاتورة إلكترونية')}
                     <div class="info-grid">
                         <div class="info-item"><div class="info-label">رقم الفاتورة</div><div class="info-value">${escape(order.orderNumber)}</div></div>
@@ -556,7 +542,7 @@
             `;
         }
         
-        // محتوى الشروط مقسم على صفحتين
+        // محتوى الشروط والأحكام (مقسم على صفحتين)
         const disclaimer = `<p style="font-weight:bold;">إقرار مسؤولية البيانات والمعلومات:</p><p>يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها أو تم إدراجها في هذا المستند صحيحة ودقيقة ومكتملة، ويتحمل وحده كامل المسؤولية عنها، كما يتحمل كافة الآثار القانونية والمالية والفنية المترتبة على أي خطأ أو نقص أو عدم دقة فيها، ويلتزم بتعويض مقدم الخدمة تعويضًا كاملاً عن أي أضرار أو خسائر أو مطالبات تنشأ نتيجة لذلك، دون أدنى مسؤولية على مقدم الخدمة.</p><p>يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ.</p><hr/>`;
         
         const termsPart1 = `
@@ -643,64 +629,6 @@
             </div>
         `;
         
-        // دوال الطباعة والتصدير
-        async function waitForImages(element, timeout=4000) {
-            const imgs = Array.from(element.querySelectorAll('img'));
-            await Promise.all(imgs.map(img => {
-                if (img.complete) return Promise.resolve();
-                return Promise.race([
-                    new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }),
-                    new Promise(resolve => setTimeout(resolve, timeout))
-                ]);
-            }));
-        }
-        
-        window.printInvoice = function() { window.print(); };
-        
-        window.exportToPDF = async function() {
-            const pages = document.querySelectorAll('.page');
-            if (!pages.length) return alert("لا توجد صفحات للتصدير");
-            let customerName = window.currentOrderData?.customerName || "عميل";
-            let orderNumber = window.currentOrderData?.orderNumber || "فاتورة";
-            let orderDate = window.currentOrderData?.orderDate || "";
-            const cleanName = customerName.replace(/[\\/*?:"<>|]/g, '').trim();
-            const cleanOrder = orderNumber.replace(/[\\/*?:"<>|]/g, '').trim();
-            const cleanDate = orderDate.replace(/[\\/*?:"<>|]/g, '').trim();
-            let fileName = `${cleanName} - ${cleanOrder}`;
-            if (cleanDate) fileName += ` - ${cleanDate}`;
-            fileName += '.pdf';
-            
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            for (let i = 0; i < pages.length; i++) {
-                await waitForImages(pages[i], 4000);
-                const canvas = await html2canvas(pages[i], {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    backgroundColor: '#ffffff'
-                });
-                if (i !== 0) pdf.addPage();
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 210;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            }
-            pdf.save(fileName);
-        };
-        
-        window.exportToPNG = async function() {
-            const pages = document.querySelectorAll('.page');
-            for (let i = 0; i < pages.length; i++) {
-                await waitForImages(pages[i], 4000);
-                const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-                const link = document.createElement('a');
-                link.download = `page_${i+1}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            }
-        };
-        
         // Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
@@ -759,6 +687,7 @@
                         }
                     } catch(e) { console.warn(e); }
                 }
+                // تحسين الصور: لا نستخدمها في الجدول حالياً، لكن نحتفظ بالرابط في حال الحاجة
                 const imgPath = it.image;
                 if (imgPath && !imgPath.startsWith('http') && !imgPath.startsWith('data:') && imgPath.includes('/')) {
                     try {
@@ -793,28 +722,31 @@
             
             window.currentOrderData = orderData;
             
-            // بناء 3 صفحات فقط: الفاتورة + صفحتي شروط
+            // بناء 3 صفحات: فاتورة + صفحتي شروط
             let html = buildInvoicePage(orderData, 1, 3);
             html += buildTermsPage(2, 3, 'الشروط والأحكام (1)', disclaimer + termsPart1, false);
             html += buildTermsPage(3, 3, 'الشروط والأحكام (2) والإقرار', termsPart2, true);
             
             container.innerHTML = html;
             
+            // تحديث الإقرار
             const nameSpan = document.getElementById('customerNameSignature');
             const dateSpan = document.getElementById('signatureDate');
             if (nameSpan) nameSpan.textContent = orderData.customerName;
             if (dateSpan) dateSpan.textContent = window.formatDate(new Date());
             
+            // توليد QR codes
             setTimeout(() => {
                 try {
                     const zatca = document.getElementById('zatcaQR');
-                    if (zatca && typeof QRCode !== 'undefined') new QRCode(zatca, { text: "https://zatca.gov.sa", width: 60, height: 60 });
+                    if (zatca && typeof QRCode !== 'undefined') new QRCode(zatca, { text: "https://zatca.gov.sa", width: 80, height: 80 });
                     const website = document.getElementById('websiteQR');
-                    if (website && typeof QRCode !== 'undefined') new QRCode(website, { text: "https://linktr.ee/fikhidmatik", width: 60, height: 60 });
+                    if (website && typeof QRCode !== 'undefined') new QRCode(website, { text: "https://linktr.ee/fikhidmatik", width: 80, height: 80 });
                     const download = document.getElementById('downloadQR');
-                    if (download && typeof QRCode !== 'undefined') new QRCode(download, { text: window.location.href, width: 60, height: 60 });
+                    if (download && typeof QRCode !== 'undefined') new QRCode(download, { text: window.location.href, width: 80, height: 80 });
                 } catch(e) { console.warn("QR error", e); }
             }, 300);
+            
             if (params.get('auto') === 'print') setTimeout(() => window.print(), 800);
         });
     </script>
