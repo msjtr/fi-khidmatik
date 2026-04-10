@@ -10,6 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- Firebase (طريقة global) -->
+    <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js"></script>
+    <!-- ملفات المشروع -->
     <script src="/fi-khidmatik/js/print.js"></script>
     <script src="/fi-khidmatik/js/terms.js"></script>
     <script src="/fi-khidmatik/js/invoice.js"></script>
@@ -37,10 +41,8 @@
         <button class="btn-close" onclick="window.close()">✖️ إغلاق</button>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
+    <script>
+        // تهيئة Firebase (بدون module)
         const firebaseConfig = {
             apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
             authDomain: "msjt301-974bb.firebaseapp.com",
@@ -49,32 +51,30 @@
             messagingSenderId: "186209858482",
             appId: "1:186209858482:web:186ca610780799ef562aab"
         };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // صورة افتراضية (تأكد من وجود هذا الملف في المسار المحدد)
-        const PLACEHOLDER_IMAGE = window.location.origin + '/fi-khidmatik/admin/images/default-product.png';
         
-        // دالة قوية لتحويل أي مسار إلى رابط مطلق صالح
+        // تهيئة Firebase إذا لم تكن مهيأة
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // دالة لتحويل المسار النسبي إلى مطلق
         function toAbsoluteUrl(url) {
-            if (!url || url === '') return PLACEHOLDER_IMAGE;
-            // إذا كان already data URL أو رابط كامل
+            if (!url) return '';
             if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
                 return url;
             }
-            // إذا كان يبدأ بـ / (من جذر الموقع)
             if (url.startsWith('/')) {
                 return window.location.origin + url;
             }
-            // افتراض أنه مسار نسبي من مجلد fi-khidmatik
             return window.location.origin + '/fi-khidmatik/' + url;
         }
 
         async function loadOrder(orderId) {
             try {
-                const snap = await getDoc(doc(db, "orders", orderId));
-                return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+                const docRef = db.collection('orders').doc(orderId);
+                const snap = await docRef.get();
+                return snap.exists ? { id: snap.id, ...snap.data() } : null;
             } catch(e) {
                 console.error("خطأ في تحميل الطلب:", e);
                 return null;
@@ -84,99 +84,103 @@
         async function loadCustomer(customerId) {
             if (!customerId) return null;
             try {
-                const snap = await getDoc(doc(db, "customers", customerId));
-                return snap.exists() ? snap.data() : null;
+                const docRef = db.collection('customers').doc(customerId);
+                const snap = await docRef.get();
+                return snap.exists ? snap.data() : null;
             } catch(e) {
                 console.error("خطأ في تحميل العميل:", e);
                 return null;
             }
         }
 
-        const params = new URLSearchParams(location.search);
-        const orderId = params.get('id');
-        
-        if (!orderId) {
-            document.getElementById('printContent').innerHTML = '<div class="error-message">❌ لم يتم تحديد رقم الطلب</div>';
-        } else {
+        (async function() {
+            const params = new URLSearchParams(location.search);
+            const orderId = params.get('id');
+            
+            if (!orderId) {
+                document.getElementById('printContent').innerHTML = '<div class="error-message">❌ لم يتم تحديد رقم الطلب</div>';
+                return;
+            }
+            
             const order = await loadOrder(orderId);
             if (!order) {
                 document.getElementById('printContent').innerHTML = '<div class="error-message">⚠️ الطلب غير موجود (ID: ' + orderId + ')</div>';
-            } else {
-                const customer = order.customerId ? await loadCustomer(order.customerId) : null;
-                
-                // تحويل بيانات الطلب مع معالجة صور المنتجات بشكل آمن
-                const orderData = {
-                    orderNumber: order.orderNumber || 'بدون رقم',
-                    orderDate: order.orderDate || new Date().toISOString().split('T')[0],
-                    orderTime: order.orderTime || new Date().toLocaleTimeString('ar-SA'),
-                    status: order.status || 'مكتمل',
-                    customerName: customer?.name || order.customerName || 'غير معروف',
-                    customerPhone: customer?.phone || order.customerPhone || '',
-                    customerEmail: customer?.email || order.customerEmail || '',
-                    customerAddress: customer?.address || order.customerAddress || '',
-                    customerCity: customer?.city || order.customerCity || '',
-                    customerStreet: customer?.street || order.customerStreet || '',
-                    customerAdditionalNo: customer?.additionalNo || order.customerAdditionalNo || '',
-                    customerPoBox: customer?.poBox || order.customerPoBox || '',
-                    shippingMethod: order.shippingMethod || 'noship',
-                    paymentMethod: order.paymentMethod || 'mada',
-                    approvalCode: order.approvalCode || '',
-                    items: (order.items || []).map(item => ({
-                        name: item.name || 'منتج',
-                        description: item.description || '',
-                        image: toAbsoluteUrl(item.image || ''),
-                        quantity: item.quantity || 1,
-                        price: item.price || 0
-                    })),
-                    subtotal: order.subtotal || 0,
-                    discount: order.discount || 0,
-                    tax: order.tax || 0,
-                    total: order.total || 0
-                };
-                
-                // بناء صفحات الفاتورة والشروط
-                let html = window.buildInvoicePage(orderData, 1, 4);
-                if (typeof window.buildTermsPage1 === 'function') {
-                    html += window.buildTermsPage1(2, 4);
-                    html += window.buildTermsPage2(3, 4);
-                    if (typeof window.buildTermsPage3 === 'function') {
-                        html += window.buildTermsPage3(orderData, 4, 4);
-                    }
-                } else {
-                    for(let i=2; i<=4; i++) {
-                        html += `<div class="page terms-page">${window.buildHeader('شروط وأحكام')}<p style="padding:50px;text-align:center;">شروط وأحكام الخدمة متاحة على الموقع الإلكتروني.</p>${window.buildFooter(i,4)}</div>`;
-                    }
+                return;
+            }
+            
+            const customer = order.customerId ? await loadCustomer(order.customerId) : null;
+            
+            // تحويل بيانات الطلب مع معالجة صور المنتجات
+            const orderData = {
+                orderNumber: order.orderNumber || 'بدون رقم',
+                orderDate: order.orderDate || new Date().toISOString().split('T')[0],
+                orderTime: order.orderTime || new Date().toLocaleTimeString('ar-SA'),
+                status: order.status || 'مكتمل',
+                customerName: customer?.name || order.customerName || 'غير معروف',
+                customerPhone: customer?.phone || order.customerPhone || '',
+                customerEmail: customer?.email || order.customerEmail || '',
+                customerAddress: customer?.address || order.customerAddress || '',
+                customerCity: customer?.city || order.customerCity || '',
+                customerStreet: customer?.street || order.customerStreet || '',
+                customerAdditionalNo: customer?.additionalNo || order.customerAdditionalNo || '',
+                customerPoBox: customer?.poBox || order.customerPoBox || '',
+                shippingMethod: order.shippingMethod || 'noship',
+                paymentMethod: order.paymentMethod || 'mada',
+                approvalCode: order.approvalCode || '',
+                items: (order.items || []).map(item => ({
+                    name: item.name || 'منتج',
+                    description: item.description || '',
+                    image: toAbsoluteUrl(item.image || ''),
+                    quantity: item.quantity || 1,
+                    price: item.price || 0
+                })),
+                subtotal: order.subtotal || 0,
+                discount: order.discount || 0,
+                tax: order.tax || 0,
+                total: order.total || 0
+            };
+            
+            // بناء صفحات الفاتورة والشروط
+            let html = window.buildInvoicePage(orderData, 1, 4);
+            if (typeof window.buildTermsPage1 === 'function') {
+                html += window.buildTermsPage1(2, 4);
+                html += window.buildTermsPage2(3, 4);
+                if (typeof window.buildTermsPage3 === 'function') {
+                    html += window.buildTermsPage3(orderData, 4, 4);
                 }
-                
-                document.getElementById('printContent').innerHTML = html;
-                
-                // إنشاء QR Codes بعد تحميل DOM
-                setTimeout(() => {
-                    try {
-                        const zatcaDiv = document.getElementById('zatcaQR');
-                        if (zatcaDiv && typeof QRCode !== 'undefined') {
-                            zatcaDiv.innerHTML = '';
-                            new QRCode(zatcaDiv, { text: "https://zatca.gov.sa/ar/eServices/Pages/TaxpayerLookup.aspx", width: 90, height: 90 });
-                        }
-                        const websiteDiv = document.getElementById('websiteQR');
-                        if (websiteDiv && typeof QRCode !== 'undefined') {
-                            websiteDiv.innerHTML = '';
-                            new QRCode(websiteDiv, { text: "https://linktr.ee/fikhidmatik", width: 90, height: 90 });
-                        }
-                        const downloadDiv = document.getElementById('downloadQR');
-                        if (downloadDiv && typeof QRCode !== 'undefined') {
-                            downloadDiv.innerHTML = '';
-                            new QRCode(downloadDiv, { text: window.location.origin + '/fi-khidmatik/print.html?id=' + orderId, width: 90, height: 90 });
-                        }
-                    } catch(e) { console.warn("QR Code error:", e); }
-                }, 300);
-                
-                // الطباعة التلقائية إذا طلب
-                if (params.get('auto') === 'print') {
-                    setTimeout(() => window.print(), 800);
+            } else {
+                for(let i=2; i<=4; i++) {
+                    html += `<div class="page terms-page">${window.buildHeader('شروط وأحكام')}<p style="padding:50px;text-align:center;">شروط وأحكام الخدمة متاحة على الموقع الإلكتروني.</p>${window.buildFooter(i,4)}</div>`;
                 }
             }
-        }
+            
+            document.getElementById('printContent').innerHTML = html;
+            
+            // إنشاء QR Codes
+            setTimeout(() => {
+                try {
+                    const zatcaDiv = document.getElementById('zatcaQR');
+                    if (zatcaDiv && typeof QRCode !== 'undefined') {
+                        zatcaDiv.innerHTML = '';
+                        new QRCode(zatcaDiv, { text: "https://zatca.gov.sa/ar/eServices/Pages/TaxpayerLookup.aspx", width: 90, height: 90 });
+                    }
+                    const websiteDiv = document.getElementById('websiteQR');
+                    if (websiteDiv && typeof QRCode !== 'undefined') {
+                        websiteDiv.innerHTML = '';
+                        new QRCode(websiteDiv, { text: "https://linktr.ee/fikhidmatik", width: 90, height: 90 });
+                    }
+                    const downloadDiv = document.getElementById('downloadQR');
+                    if (downloadDiv && typeof QRCode !== 'undefined') {
+                        downloadDiv.innerHTML = '';
+                        new QRCode(downloadDiv, { text: window.location.origin + '/fi-khidmatik/print.html?id=' + orderId, width: 90, height: 90 });
+                    }
+                } catch(e) { console.warn("QR Code error:", e); }
+            }, 300);
+            
+            if (params.get('auto') === 'print') {
+                setTimeout(() => window.print(), 800);
+            }
+        })();
     </script>
 </body>
 </html>
