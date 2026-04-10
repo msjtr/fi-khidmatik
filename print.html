@@ -65,6 +65,7 @@
             }
             tr, td, th {
                 break-inside: avoid;
+                page-break-inside: avoid;
             }
         }
         /* رأس الصفحة */
@@ -112,7 +113,7 @@
         /* معلومات أساسية */
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(3,1fr);
+            grid-template-columns: repeat(2,1fr);
             gap: 15px;
             background: #f1f3f5;
             padding: 15px;
@@ -139,7 +140,7 @@
             font-size: 13px;
             display: inline-block;
         }
-        /* العناوين */
+        /* العناوين (مصدرة من / إلى) */
         .addresses {
             display: flex;
             gap: 20px;
@@ -161,7 +162,7 @@
             width: 22px;
             color: #1e3a5f;
         }
-        /* طرق الدفع */
+        /* طرق الدفع والشحن */
         .payment-grid {
             display: grid;
             grid-template-columns: repeat(3,1fr);
@@ -180,7 +181,7 @@
             color: #1e3a5f;
             margin-bottom: 5px;
         }
-        /* جدول المنتجات - ديناميكي مع تكرار الرأس */
+        /* جدول المنتجات */
         .table-wrapper {
             overflow-x: auto;
             margin-bottom: 20px;
@@ -248,6 +249,14 @@
             font-size: 10px;
             color: #6c757d;
             margin-top: 6px;
+        }
+        /* التذليل السفلي */
+        .invoice-footer-note {
+            text-align: center;
+            font-size: 12px;
+            margin: 15px 0 10px;
+            color: #1e3a5f;
+            font-weight: bold;
         }
         /* تذييل الصفحة */
         .page-footer {
@@ -371,7 +380,7 @@
     </div>
 
     <script>
-        // ========== 1. دوال مساعدة عامة ==========
+        // ========== دوال مساعدة عامة ==========
         window.formatDate = function(dateStr) {
             if (!dateStr) return '';
             const d = new Date(dateStr);
@@ -435,7 +444,7 @@
             return names[method] || method || 'مدى';
         }
         
-        // ========== 2. بناء أجزاء الفاتورة ==========
+        // ========== بناء أجزاء الفاتورة ==========
         function buildInvoiceHeader(title) {
             return `
                 <div class="page-header">
@@ -460,7 +469,7 @@
         }
         
         function buildInvoiceFooter(pageNum, totalPages, showThanks = false) {
-            const thanks = showThanks ? '<div class="legal-footer" style="font-weight:bold;">✅ فاتورة معتمدة - شكراً لتسوقكم</div>' : '<div class="legal-footer">فاتورة إلكترونية معتمدة</div>';
+            const thanks = showThanks ? '<div class="legal-footer" style="font-weight:bold;">✅ فاتورة معتمدة - شكراً لتسوقكم معنا</div>' : '<div class="legal-footer">فاتورة إلكترونية - نسخة معتمدة قانونياً</div>';
             return `
                 <div class="page-footer">
                     <div class="contact-info">
@@ -490,12 +499,11 @@
                 const item = items[i];
                 const productName = escape(cleanText(item.name));
                 const serviceDesc = escape(cleanServiceText(item.description || '---'));
-                // عرض الصورة (بحجم مناسب)
                 const imgUrl = item.image && item.image.startsWith('http') ? item.image : PLACEHOLDER_RAW;
                 itemsHtml += `
                     <tr>
                         <td style="text-align:center">${i+1}</td>
-                        <td style="text-align:center"><img src="${imgUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;" onerror="this.src='${PLACEHOLDER_RAW}'"></td>
+                        <td style="text-align:center"><img src="${imgUrl}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;" onerror="this.src='${PLACEHOLDER_RAW}'"></td>
                         <td style="text-align:right"><strong>${productName}</strong></td>
                         <td style="text-align:right">${serviceDesc}</td>
                         <td style="text-align:center">${item.quantity}</td>
@@ -513,15 +521,16 @@
             
             const customerAddr = `<p><i class="fas fa-user"></i> ${escape(order.customerName)}</p><p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress)}</p><p><i class="fas fa-phone-alt"></i> ${escape(order.customerPhone)}</p><p><i class="fas fa-envelope"></i> ${escape(order.customerEmail)}</p>`;
             const sellerAddr = `<p><i class="fas fa-store"></i> ${sellerData.name}</p><p><i class="fas fa-location-dot"></i> المملكة العربية السعودية</p><p><i class="fas fa-location-dot"></i> ${sellerData.address}</p><p><i class="fas fa-phone-alt"></i> ${sellerData.phone}</p>`;
-            const discountRow = discount > 0 ? `<div class="totals-row"><span>الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>` : '';
+            const discountRow = discount > 0 ? `<div class="totals-row"><span>إجمالي الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>` : '';
             
             return `
                 <div class="page">
                     ${buildInvoiceHeader('فاتورة إلكترونية')}
                     <div class="info-grid">
                         <div class="info-item"><div class="info-label">رقم الفاتورة</div><div class="info-value">${escape(order.orderNumber)}</div></div>
-                        <div class="info-item"><div class="info-label">التاريخ</div><div class="info-value">${formatDate(order.orderDate)} - ${formatTime(order.orderTime)}</div></div>
-                        <div class="info-item"><div class="info-label">الحالة</div><div class="status-badge">${getStatusText(order.status)}</div></div>
+                        <div class="info-item"><div class="info-label">حالة الطلب</div><div class="status-badge">${getStatusText(order.status)}</div></div>
+                        <div class="info-item"><div class="info-label">التاريخ</div><div class="info-value">${formatDate(order.orderDate)}</div></div>
+                        <div class="info-item"><div class="info-label">الوقت</div><div class="info-value">${formatTime(order.orderTime)}</div></div>
                     </div>
                     <div class="addresses">
                         <div class="address-card"><strong><i class="fas fa-building"></i> مصدرة من</strong>${sellerAddr}</div>
@@ -529,13 +538,13 @@
                     </div>
                     <div class="payment-grid">
                         <div class="payment-card"><i class="fas fa-credit-card"></i> <strong>طريقة الدفع</strong><br>${getPaymentName(order.paymentMethod)}</div>
-                        <div class="payment-card"><i class="fas fa-check-circle"></i> <strong>رمز الموافقة</strong><br>${order.approvalCode || 'غير مطلوب'}</div>
-                        <div class="payment-card"><i class="fas fa-truck"></i> <strong>طريقة الاستلام</strong><br>${getShippingText(order.shippingMethod)}</div>
+                        <div class="payment-card"><i class="fas fa-check-circle"></i> <strong>رمز الموافقة على الطلب</strong><br>${order.approvalCode || 'غير مطلوب'}</div>
+                        <div class="payment-card"><i class="fas fa-truck"></i> <strong>طريقة استلام المنتج</strong><br>${getShippingText(order.shippingMethod)}</div>
                     </div>
                     <div class="table-wrapper">
                         <table class="products-table">
                             <thead>
-                                <tr><th>#</th><th>الصورة</th><th>اسم المنتج</th><th>وصف الخدمة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                                <tr><th>#</th><th>صورة المنتج</th><th>اسم المنتج</th><th>وصف المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
                             </thead>
                             <tbody>${itemsHtml}</tbody>
                         </table>
@@ -543,15 +552,18 @@
                     <div class="totals-box">
                         <div class="totals-row"><span>المجموع الفرعي</span><span>${subtotal.toFixed(2)} ريال</span></div>
                         ${discountRow}
-                        <div class="totals-row"><span>ضريبة القيمة المضافة 15%</span><span>${tax.toFixed(2)} ريال</span></div>
-                        <div class="totals-row grand-total"><span>الإجمالي النهائي</span><span>${total.toFixed(2)} ريال</span></div>
+                        <div class="totals-row"><span>ضريبة القيمة المضافة (15%)</span><span>${tax.toFixed(2)} ريال</span></div>
+                        <div class="totals-row grand-total"><span>الإجمالي النهائي شامل الضريبة</span><span>${total.toFixed(2)} ريال</span></div>
                     </div>
                     <div class="barcodes">
-                        <div class="barcode-item"><div id="zatcaQR" class="qr-code"></div><p>باركود هيئة الزكاة والضريبة</p></div>
+                        <div class="barcode-item"><div id="zatcaQR" class="qr-code"></div><p>باركود هيئة الزكاة والضريبة والجمارك</p></div>
                         <div class="barcode-item"><div id="websiteQR" class="qr-code"></div><p>للوصول السريع إلى موقعنا</p></div>
                         <div class="barcode-item"><div id="downloadQR" class="qr-code"></div><p>باركود تحميل الفاتورة</p></div>
                     </div>
-                    ${buildInvoiceFooter(pageNum, totalPages, false)}
+                    <div class="invoice-footer-note">
+                        تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة
+                    </div>
+                    ${buildInvoiceFooter(pageNum, totalPages, true)}
                 </div>
             `;
         }
@@ -566,7 +578,7 @@
             `;
         }
         
-        // ========== 3. محتوى الشروط والأحكام (مقسم على صفحتين) ==========
+        // ========== محتوى الشروط والأحكام (مقسم على صفحتين) ==========
         const disclaimer = `<p style="font-weight:bold;">إقرار مسؤولية البيانات والمعلومات:</p><p>يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها أو تم إدراجها في هذا المستند صحيحة ودقيقة ومكتملة، ويتحمل وحده كامل المسؤولية عنها، كما يتحمل كافة الآثار القانونية والمالية والفنية المترتبة على أي خطأ أو نقص أو عدم دقة فيها، ويلتزم بتعويض مقدم الخدمة تعويضًا كاملاً عن أي أضرار أو خسائر أو مطالبات تنشأ نتيجة لذلك، دون أدنى مسؤولية على مقدم الخدمة.</p><p>يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ.</p><hr/>`;
         
         const termsPart1 = `
@@ -653,7 +665,7 @@
             </div>
         `;
         
-        // ========== 4. دوال الطباعة والتصدير بجودة عالية ==========
+        // ========== دوال الطباعة والتصدير بجودة عالية ==========
         async function waitForImages(element, timeout = 5000) {
             const imgs = Array.from(element.querySelectorAll('img'));
             await Promise.all(imgs.map(img => {
@@ -689,7 +701,7 @@
             for (let i = 0; i < pages.length; i++) {
                 await waitForImages(pages[i], 5000);
                 const canvas = await html2canvas(pages[i], {
-                    scale: 3,          // جودة فائقة
+                    scale: 3,
                     useCORS: true,
                     logging: false,
                     backgroundColor: '#ffffff',
@@ -727,7 +739,7 @@
             }
         };
         
-        // ========== 5. Firebase وجلب البيانات ==========
+        // ========== Firebase وجلب البيانات ==========
         const firebaseConfig = {
             apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
             authDomain: "msjt301-974bb.firebaseapp.com",
@@ -796,21 +808,21 @@
             }
             
             const orderData = {
-                orderNumber: order.orderNumber || 'بدون رقم',
-                orderDate: order.orderDate || new Date().toISOString().split('T')[0],
-                orderTime: order.orderTime || new Date().toLocaleTimeString('ar-SA'),
-                status: order.status || 'مكتمل',
-                customerName: customer?.name || order.customerName || 'غير معروف',
-                customerPhone: customer?.phone || order.customerPhone || '',
-                customerEmail: customer?.email || order.customerEmail || '',
-                customerAddress: customer?.address || order.customerAddress || '',
+                orderNumber: order.orderNumber || 'KF-2603290287',
+                orderDate: order.orderDate || '29/03/2026',
+                orderTime: order.orderTime || '03:21 صباحاً',
+                status: order.status || 'تم التنفيذ',
+                customerName: customer?.name || order.customerName || 'اسم العميل',
+                customerPhone: customer?.phone || order.customerPhone || 'رقم الجوال',
+                customerEmail: customer?.email || order.customerEmail || 'البريد الإلكتروني',
+                customerAddress: customer?.address || order.customerAddress || 'العنوان',
                 customerCity: customer?.city || order.customerCity || '',
                 customerStreet: customer?.street || order.customerStreet || '',
                 customerAdditionalNo: customer?.additionalNo || order.customerAdditionalNo || '',
                 customerPoBox: customer?.poBox || order.customerPoBox || '',
-                shippingMethod: order.shippingMethod || 'noship',
+                shippingMethod: order.shippingMethod || 'delivery',
                 paymentMethod: order.paymentMethod || 'mada',
-                approvalCode: order.approvalCode || '',
+                approvalCode: order.approvalCode || '123456',
                 items: items,
                 subtotal: order.subtotal || 0,
                 discount: order.discount || 0,
@@ -822,8 +834,8 @@
             
             // بناء 3 صفحات: فاتورة + صفحتي شروط
             let html = buildInvoicePage(orderData, 1, 3);
-            html += buildTermsPage(2, 3, 'الشروط والأحكام (1)', disclaimer + termsPart1, false);
-            html += buildTermsPage(3, 3, 'الشروط والأحكام (2) والإقرار', termsPart2, true);
+            html += buildTermsPage(2, 3, 'الشروط والأحكام', disclaimer + termsPart1, false);
+            html += buildTermsPage(3, 3, 'الشروط والأحكام (تابع) والإقرار', termsPart2, true);
             
             container.innerHTML = html;
             
