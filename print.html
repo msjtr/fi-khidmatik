@@ -2,93 +2,107 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>طباعة الفاتورة</title>
+<title>فاتورة إلكترونية</title>
 <link rel="stylesheet" href="css/invoice.css">
 </head>
 
 <body>
 
-<div class="actions no-print">
-  <button onclick="window.print()">🖨️ طباعة</button>
-  <button onclick="downloadPDF()">📄 تحميل PDF</button>
-</div>
+<div class="page">
 
-<div id="app">
-
-<!-- 🧾 الفاتورة -->
-<div class="page" id="invoice">
-
+<!-- 🔷 الهيدر -->
 <div class="header">
-  <div>
-    <h2 id="invoiceNumber">...</h2>
-    <div id="date"></div>
+  <div class="logo">
+    <img src="images/logo.svg" height="60">
   </div>
 
-  <div>
-    منصة في خدمتك<br>
+  <div class="title">
+    <h2>فاتورة إلكترونية</h2>
+    رقم شهادة العمل الحر: FL-765735204<br>
     الرقم الضريبي: 312495447600003
   </div>
 </div>
 
-<div class="info">
-  العميل: <span id="clientName"></span><br>
-  المدينة: <span id="city"></span>
+<!-- 🔷 بيانات الفاتورة -->
+<div class="invoice-meta">
+  رقم الفاتورة: <span id="invoiceNumber"></span><br>
+  التاريخ: <span id="date"></span> |
+  الوقت: <span id="time"></span><br>
+  حالة الطلب: <span id="status"></span>
 </div>
 
+<!-- 🔷 صادر / وارد -->
+<div class="two-cols">
+
+<div class="box">
+  <strong>مصدرة من</strong><br>
+  منصة في خدمتك<br>
+  المملكة العربية السعودية<br>
+  حائل - حي النقرة - شارع سعد المشاط<br>
+  رقم المبنى: 3085<br>
+  الرمز البريدي: 55431
+</div>
+
+<div class="box">
+  <strong>مصدرة إلى</strong><br>
+  الاسم: <span id="clientName"></span><br>
+  المدينة: <span id="city"></span><br>
+  الجوال: <span id="phone"></span><br>
+  البريد: <span id="email"></span>
+</div>
+
+</div>
+
+<!-- 🔷 الدفع -->
+<div class="payment">
+  طريقة الدفع: <span id="paymentMethod"></span><br>
+  طريقة الاستلام: <span id="deliveryMethod"></span>
+</div>
+
+<!-- 🔷 الجدول -->
 <table>
 <thead>
 <tr>
 <th>#</th>
+<th>الصورة</th>
 <th>المنتج</th>
+<th>الوصف</th>
 <th>الكمية</th>
-<th>السعر</th>
+<th>سعر الوحدة</th>
 </tr>
 </thead>
 <tbody id="items"></tbody>
 </table>
 
+<!-- 🔷 الإجماليات -->
 <div class="totals">
-  <div>المجموع: <span id="subtotal"></span></div>
-  <div>الضريبة: <span id="tax"></span></div>
-  <div><strong>الإجمالي: <span id="total"></span></strong></div>
+  <div>المجموع الفرعي: <span id="subtotal"></span></div>
+  <div>إجمالي الخصم: <span id="discount"></span></div>
+  <div>ضريبة القيمة المضافة (15%): <span id="tax"></span></div>
+  <div class="final">الإجمالي النهائي: <span id="total"></span></div>
 </div>
 
+<!-- 🔷 QR -->
 <div id="qr"></div>
 
+<!-- 🔷 التذييل -->
+<div class="footer">
+  تخضع هذه الفاتورة لكامل الشروط والأحكام<br>
+  شكراً لتسوقكم معنا<br>
+  info@fi-khidmatik.com | www.khidmatik.com<br>
+  هذه فاتورة إلكترونية - نسخة معتمدة
 </div>
 
-<!-- 📄 الشروط -->
-<div class="page">
-<h2>الشروط والأحكام</h2>
-<div id="termsContent"></div>
 </div>
 
-</div>
-
-<!-- 🔥 Firebase v8 -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<!-- مكتبات -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<!-- ملفاتك -->
 <script src="js/firebase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
 <script type="module" src="js/print.js"></script>
-
-<script>
-async function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const canvas = await html2canvas(document.getElementById("app"), {scale:2});
-  const img = canvas.toDataURL("image/png");
-
-  const pdf = new jsPDF('p','mm','a4');
-  pdf.addImage(img,'PNG',0,0,210,297);
-  pdf.save("invoice.pdf");
-}
-</script>
 
 </body>
 </html>
