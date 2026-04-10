@@ -6,19 +6,25 @@
     <link rel="icon" href="/fi-khidmatik/images/logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background: #e9ecef;
             padding: 20px;
             font-family: 'Tajawal', sans-serif;
             font-size: 14px;
         }
-        /* تنسيق الصفحة للشاشة */
+        /* إعدادات الصفحة A4 مع هوامش ثابتة */
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -29,11 +35,10 @@
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            word-wrap: break-word;
             page-break-after: always;
             break-inside: avoid;
+            padding: 1.5cm;
         }
-        /* تنسيق الطباعة */
         @media print {
             body {
                 background: white;
@@ -45,13 +50,21 @@
                 box-shadow: none;
                 page-break-after: always;
                 break-inside: avoid;
+                padding: 1.5cm;
             }
             .no-print {
                 display: none;
             }
             @page {
                 size: A4;
-                margin: 1.8cm;
+                margin: 1.5cm;
+            }
+            /* تكرار رأس الجدول في كل صفحة */
+            .products-table thead {
+                display: table-header-group;
+            }
+            tr, td, th {
+                break-inside: avoid;
             }
         }
         /* رأس الصفحة */
@@ -59,9 +72,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
+            padding: 0 0 15px 0;
             border-bottom: 2px solid #1e3a5f;
-            background: #f8f9fa;
+            margin-bottom: 15px;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -71,41 +84,40 @@
             gap: 10px;
         }
         .logo-img {
-            height: 45px;
+            height: 50px;
             width: auto;
         }
         .logo-text .platform-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             color: #1e3a5f;
         }
         .logo-text .platform-slogan {
-            font-size: 10px;
+            font-size: 11px;
             color: #6c757d;
         }
         .header-center .page-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             color: #1e3a5f;
             background: #e9ecef;
-            padding: 4px 16px;
+            padding: 6px 18px;
             border-radius: 40px;
         }
         .header-left .legal-numbers div {
             font-size: 11px;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             direction: ltr;
-            white-space: nowrap;
         }
-        /* المعلومات الأساسية */
+        /* معلومات أساسية */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(3,1fr);
             gap: 15px;
-            padding: 15px 20px;
             background: #f1f3f5;
-            margin: 15px 20px;
+            padding: 15px;
             border-radius: 12px;
+            margin-bottom: 20px;
         }
         .info-item {
             text-align: center;
@@ -122,7 +134,7 @@
         .status-badge {
             background: #10b981;
             color: white;
-            padding: 3px 12px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 13px;
             display: inline-block;
@@ -131,7 +143,6 @@
         .addresses {
             display: flex;
             gap: 20px;
-            padding: 0 20px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
@@ -155,7 +166,6 @@
             display: grid;
             grid-template-columns: repeat(3,1fr);
             gap: 15px;
-            padding: 0 20px;
             margin-bottom: 20px;
         }
         .payment-card {
@@ -169,18 +179,16 @@
             font-size: 18px;
             color: #1e3a5f;
             margin-bottom: 5px;
-            display: inline-block;
         }
-        /* جدول المنتجات */
+        /* جدول المنتجات - ديناميكي مع تكرار الرأس */
         .table-wrapper {
             overflow-x: auto;
-            margin: 0 20px 20px;
+            margin-bottom: 20px;
         }
         .products-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-            min-width: 550px;
         }
         .products-table th, .products-table td {
             border: 1px solid #dee2e6;
@@ -192,10 +200,15 @@
             color: white;
             font-weight: 600;
         }
+        /* منع انقسام الصف */
+        .products-table tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
         /* الإجماليات */
         .totals-box {
             width: 280px;
-            margin: 0 20px 20px auto;
+            margin: 0 0 20px auto;
             background: #f8f9fa;
             border-radius: 12px;
             padding: 12px;
@@ -219,16 +232,16 @@
         .barcodes {
             display: flex;
             justify-content: center;
-            gap: 25px;
-            margin: 20px 20px;
+            gap: 30px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         .barcode-item {
             text-align: center;
         }
         .barcode-item .qr-code {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             margin: 0 auto;
         }
         .barcode-item p {
@@ -240,13 +253,13 @@
         .page-footer {
             background: #1e3a5f;
             color: white;
-            padding: 10px 20px;
+            padding: 10px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 11px;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             margin-top: auto;
         }
         .contact-info span {
@@ -265,11 +278,11 @@
         }
         /* محتوى الشروط */
         .terms-content {
-            padding: 20px 25px;
             line-height: 1.6;
             font-size: 13px;
             text-align: justify;
             flex: 1;
+            margin-bottom: 20px;
         }
         .terms-content h3 {
             color: #1e3a5f;
@@ -290,7 +303,7 @@
             padding: 8px;
             text-align: center;
         }
-        /* أزرار الطباعة */
+        /* أزرار التحكم */
         .preview-buttons {
             position: fixed;
             bottom: 0;
@@ -298,19 +311,22 @@
             right: 0;
             background: white;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
         }
         .preview-buttons button {
-            padding: 6px 15px;
+            padding: 8px 16px;
             margin: 0 5px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-size: 13px;
+            font-weight: 500;
         }
         .btn-print { background: #1e3a5f; color: white; }
+        .btn-pdf { background: #dc2626; color: white; }
+        .btn-png { background: #16a34a; color: white; }
         .btn-close { background: #6c757d; color: white; }
         .loading-spinner {
             border: 4px solid #f3f3f3;
@@ -334,25 +350,28 @@
         /* استجابة الجوال */
         @media (max-width: 700px) {
             body { padding: 10px; }
-            .page-header { flex-direction: column; text-align: center; }
-            .header-left .legal-numbers div { white-space: normal; text-align: center; }
+            .page { padding: 1cm; }
             .info-grid { grid-template-columns: 1fr; gap: 10px; }
             .addresses { flex-direction: column; }
             .payment-grid { grid-template-columns: 1fr; }
-            .totals-box { width: auto; margin: 0 20px 20px; }
-            .terms-content { padding: 15px; font-size: 12px; }
+            .totals-box { width: auto; margin: 0 0 20px 0; }
+            .barcodes { gap: 15px; }
+            .products-table { font-size: 11px; }
+            .products-table th, .products-table td { padding: 4px; }
         }
     </style>
 </head>
 <body>
     <div id="printContent"><div class="loading-spinner"></div></div>
     <div class="preview-buttons no-print">
-        <button class="btn-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+        <button class="btn-print" onclick="window.printInvoice()">🖨️ طباعة</button>
+        <button class="btn-pdf" onclick="window.exportToPDF()">📄 PDF (جودة عالية)</button>
+        <button class="btn-png" onclick="window.exportToPNG()">🖼️ PNG (جودة عالية)</button>
         <button class="btn-close" onclick="window.close()">✖️ إغلاق</button>
     </div>
 
     <script>
-        // Helper functions
+        // ========== 1. دوال مساعدة عامة ==========
         window.formatDate = function(dateStr) {
             if (!dateStr) return '';
             const d = new Date(dateStr);
@@ -386,6 +405,7 @@
             return String(text).replace(/[^\u0600-\u06FF\u0660-\u0669\s]/g, ' ').replace(/\s+/g, ' ').trim();
         }
         
+        // بيانات البائع (النص ثم الرقم)
         const sellerData = {
             name: "في خدمتك",
             licenseNumberText: "شهادة العمل الحر:",
@@ -415,7 +435,7 @@
             return names[method] || method || 'مدى';
         }
         
-        // بناء رأس وتذييل
+        // ========== 2. بناء أجزاء الفاتورة ==========
         function buildInvoiceHeader(title) {
             return `
                 <div class="page-header">
@@ -455,7 +475,6 @@
             `;
         }
         
-        // صفحة الفاتورة
         function buildInvoicePage(order, pageNum, totalPages) {
             const formatDate = window.formatDate;
             const formatTime = window.formatTime;
@@ -471,9 +490,12 @@
                 const item = items[i];
                 const productName = escape(cleanText(item.name));
                 const serviceDesc = escape(cleanServiceText(item.description || '---'));
+                // عرض الصورة (بحجم مناسب)
+                const imgUrl = item.image && item.image.startsWith('http') ? item.image : PLACEHOLDER_RAW;
                 itemsHtml += `
                     <tr>
                         <td style="text-align:center">${i+1}</td>
+                        <td style="text-align:center"><img src="${imgUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;" onerror="this.src='${PLACEHOLDER_RAW}'"></td>
                         <td style="text-align:right"><strong>${productName}</strong></td>
                         <td style="text-align:right">${serviceDesc}</td>
                         <td style="text-align:center">${item.quantity}</td>
@@ -512,7 +534,9 @@
                     </div>
                     <div class="table-wrapper">
                         <table class="products-table">
-                            <thead><tr><th>#</th><th>اسم المنتج</th><th>وصف الخدمة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                            <thead>
+                                <tr><th>#</th><th>الصورة</th><th>اسم المنتج</th><th>وصف الخدمة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                            </thead>
                             <tbody>${itemsHtml}</tbody>
                         </table>
                     </div>
@@ -542,7 +566,7 @@
             `;
         }
         
-        // محتوى الشروط والأحكام (مقسم على صفحتين)
+        // ========== 3. محتوى الشروط والأحكام (مقسم على صفحتين) ==========
         const disclaimer = `<p style="font-weight:bold;">إقرار مسؤولية البيانات والمعلومات:</p><p>يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها أو تم إدراجها في هذا المستند صحيحة ودقيقة ومكتملة، ويتحمل وحده كامل المسؤولية عنها، كما يتحمل كافة الآثار القانونية والمالية والفنية المترتبة على أي خطأ أو نقص أو عدم دقة فيها، ويلتزم بتعويض مقدم الخدمة تعويضًا كاملاً عن أي أضرار أو خسائر أو مطالبات تنشأ نتيجة لذلك، دون أدنى مسؤولية على مقدم الخدمة.</p><p>يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ.</p><hr/>`;
         
         const termsPart1 = `
@@ -629,7 +653,81 @@
             </div>
         `;
         
-        // Firebase
+        // ========== 4. دوال الطباعة والتصدير بجودة عالية ==========
+        async function waitForImages(element, timeout = 5000) {
+            const imgs = Array.from(element.querySelectorAll('img'));
+            await Promise.all(imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return Promise.race([
+                    new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }),
+                    new Promise(resolve => setTimeout(resolve, timeout))
+                ]);
+            }));
+        }
+        
+        window.printInvoice = function() {
+            window.print();
+        };
+        
+        window.exportToPDF = async function() {
+            const pages = document.querySelectorAll('.page');
+            if (!pages.length) return alert("لا توجد صفحات للتصدير");
+            
+            let customerName = window.currentOrderData?.customerName || "عميل";
+            let orderNumber = window.currentOrderData?.orderNumber || "فاتورة";
+            let orderDate = window.currentOrderData?.orderDate || "";
+            const cleanName = customerName.replace(/[\\/*?:"<>|]/g, '').trim();
+            const cleanOrder = orderNumber.replace(/[\\/*?:"<>|]/g, '').trim();
+            const cleanDate = orderDate.replace(/[\\/*?:"<>|]/g, '').trim();
+            let fileName = `${cleanName} - ${cleanOrder}`;
+            if (cleanDate) fileName += ` - ${cleanDate}`;
+            fileName += '.pdf';
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            for (let i = 0; i < pages.length; i++) {
+                await waitForImages(pages[i], 5000);
+                const canvas = await html2canvas(pages[i], {
+                    scale: 3,          // جودة فائقة
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    windowWidth: pages[i].scrollWidth,
+                    windowHeight: pages[i].scrollHeight
+                });
+                if (i !== 0) pdf.addPage();
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            }
+            pdf.save(fileName);
+        };
+        
+        window.exportToPNG = async function() {
+            const pages = document.querySelectorAll('.page');
+            for (let i = 0; i < pages.length; i++) {
+                await waitForImages(pages[i], 5000);
+                const canvas = await html2canvas(pages[i], {
+                    scale: 3,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+                const link = document.createElement('a');
+                let name = `page_${i+1}.png`;
+                if (window.currentOrderData && i === 0) {
+                    const cust = window.currentOrderData.customerName?.replace(/[\\/*?:"<>|]/g, '') || 'عميل';
+                    const ord = window.currentOrderData.orderNumber?.replace(/[\\/*?:"<>|]/g, '') || '';
+                    name = `${cust} - ${ord} - page${i+1}.png`;
+                }
+                link.download = name;
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        };
+        
+        // ========== 5. Firebase وجلب البيانات ==========
         const firebaseConfig = {
             apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
             authDomain: "msjt301-974bb.firebaseapp.com",
@@ -676,6 +774,7 @@
                 price: item.price || 0
             }));
             
+            // جلب أوصاف الخدمة من منتجات Firebase وتحويل صور storage
             for (let i = 0; i < items.length; i++) {
                 const it = items[i];
                 if (it.productId) {
@@ -687,7 +786,6 @@
                         }
                     } catch(e) { console.warn(e); }
                 }
-                // تحسين الصور: لا نستخدمها في الجدول حالياً، لكن نحتفظ بالرابط في حال الحاجة
                 const imgPath = it.image;
                 if (imgPath && !imgPath.startsWith('http') && !imgPath.startsWith('data:') && imgPath.includes('/')) {
                     try {
@@ -729,21 +827,21 @@
             
             container.innerHTML = html;
             
-            // تحديث الإقرار
+            // تحديث اسم العميل والتاريخ في الإقرار
             const nameSpan = document.getElementById('customerNameSignature');
             const dateSpan = document.getElementById('signatureDate');
             if (nameSpan) nameSpan.textContent = orderData.customerName;
             if (dateSpan) dateSpan.textContent = window.formatDate(new Date());
             
-            // توليد QR codes
+            // إنشاء QR Codes
             setTimeout(() => {
                 try {
                     const zatca = document.getElementById('zatcaQR');
-                    if (zatca && typeof QRCode !== 'undefined') new QRCode(zatca, { text: "https://zatca.gov.sa", width: 80, height: 80 });
+                    if (zatca && typeof QRCode !== 'undefined') new QRCode(zatca, { text: "https://zatca.gov.sa", width: 90, height: 90 });
                     const website = document.getElementById('websiteQR');
-                    if (website && typeof QRCode !== 'undefined') new QRCode(website, { text: "https://linktr.ee/fikhidmatik", width: 80, height: 80 });
+                    if (website && typeof QRCode !== 'undefined') new QRCode(website, { text: "https://linktr.ee/fikhidmatik", width: 90, height: 90 });
                     const download = document.getElementById('downloadQR');
-                    if (download && typeof QRCode !== 'undefined') new QRCode(download, { text: window.location.href, width: 80, height: 80 });
+                    if (download && typeof QRCode !== 'undefined') new QRCode(download, { text: window.location.href, width: 90, height: 90 });
                 } catch(e) { console.warn("QR error", e); }
             }, 300);
             
