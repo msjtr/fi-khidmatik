@@ -1,302 +1,210 @@
-// js/order.js - نظام إدارة الطلبات المتكامل (لـ Firebase v8)
-// يعتمد على تحميل firebase-app.js و firebase-firestore.js مسبقاً عبر script tags
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاتورة إلكترونية - منصة في خدمتك</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS@master/dist/easy.qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-// ================= المتغيرات العامة =================
-let db = null;
-let customersMap = new Map();
-let productsMap = new Map();
-let cacheLastUpdated = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 دقائق
+    <style>
+        :root { --primary: #1e3a5f; --secondary: #f8fafc; --border: #cbd5e1; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f1f5f9; font-family: 'Tajawal', sans-serif; color: #1e293b; }
+        .page { width: 210mm; min-height: 297mm; padding: 15mm; margin: 10px auto; background: white; box-shadow: 0 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; page-break-after: always; }
+        
+        /* الهيدر الثابت */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        .logo-box img { height: 65px; }
+        .branding-meta { text-align: left; font-size: 11px; font-weight: bold; color: #64748b; }
+        .doc-label { background: var(--primary); color: white; padding: 8px 15px; border-radius: 4px; font-weight: 800; font-size: 16px; }
 
-// تهيئة قاعدة البيانات (يجب استدعاؤها بعد تحميل Firebase)
-export function initFirebase() {
-    if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-            authDomain: "msjt301-974bb.firebaseapp.com",
-            projectId: "msjt301-974bb",
-            storageBucket: "msjt301-974bb.firebasestorage.app",
-            messagingSenderId: "186209858482",
-            appId: "1:186209858482:web:186ca610780799ef562aab"
-        };
-        firebase.initializeApp(firebaseConfig);
-    }
-    if (typeof firebase !== 'undefined') {
-        db = firebase.firestore();
-        console.log('✅ Firebase v8 initialized in order.js');
-    } else {
-        console.error('❌ Firebase SDK not loaded');
-    }
-    return db;
-}
+        /* قسم البيانات (المصدر والمستلم) - عمودين متساويين */
+        .entities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .entity-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .entity-head { background: var(--secondary); padding: 8px 12px; font-weight: 800; font-size: 13px; border-bottom: 1px solid var(--border); color: var(--primary); }
+        .entity-body { padding: 12px; font-size: 11px; line-height: 1.8; }
+        .entity-body b { color: #000; }
 
-// دالة تحويل المسار النسبي إلى مطلق (آمنة)
-function toAbsoluteImageUrl(url) {
-    if (!url) return '';
-    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
-        return url;
-    }
-    if (url.startsWith('/')) {
-        return window.location.origin + url;
-    }
-    return window.location.origin + '/fi-khidmatik/' + url;
-}
+        /* تفاصيل الفاتورة */
+        .invoice-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; background: #fcfcfc; padding: 10px; border-radius: 6px; border: 1px dashed var(--border); }
+        .meta-item { font-size: 11px; }
+        .meta-item b { display: block; color: var(--primary); font-size: 10px; }
 
-// دوال مساعدة
-const nowISO = () => new Date().toISOString();
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: var(--primary); color: white; padding: 10px; font-size: 11px; text-align: center; }
+        td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 11px; }
+        .product-img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #eee; border-radius: 4px; }
 
-function getPaymentMethodName(method) {
-    const methods = {
-        'mada': 'مدى',
-        'mastercard': 'ماستركارد',
-        'visa': 'فيزا',
-        'stcpay': 'STCPay',
-        'tamara': 'تمارا',
-        'tabby': 'تابي',
-        'other': 'أخرى'
+        .total-section { margin-right: auto; width: 250px; border: 2px solid var(--primary); border-radius: 8px; padding: 15px; background: var(--secondary); text-align: center; }
+        .total-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+        .grand-total { font-size: 18px; font-weight: 800; color: var(--primary); border-top: 1px solid var(--border); pt: 5px; margin-top: 5px; }
+
+        .qr-area { display: flex; justify-content: space-around; margin-top: auto; padding-top: 30px; }
+        .footer { background: var(--primary); color: white; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 10px; margin-top: 15px; }
+
+        @media print { .no-print { display: none; } .page { margin: 0; box-shadow: none; width: 100%; } }
+    </style>
+</head>
+<body>
+
+<div id="loader" style="text-align:center; padding:100px;">جاري جلب بيانات المصدر والعميل...</div>
+<div id="app"></div>
+
+<script type="module">
+    // محاكاة استيراد وظائف order.js لتعمل داخل المتصفح
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+        authDomain: "msjt301-974bb.firebaseapp.com",
+        projectId: "msjt301-974bb",
+        storageBucket: "msjt301-974bb.firebasestorage.app",
+        messagingSenderId: "186209858482",
+        appId: "1:186209858482:web:186ca610780799ef562aab"
     };
-    return methods[method] || method || 'مدى';
-}
 
-// ================= جلب المستندات (لـ v8) =================
-export async function getDocument(collectionName, docId) {
-    if (!db) initFirebase();
-    try {
-        if (!docId) return null;
-        const snap = await db.collection(collectionName).doc(docId).get();
-        return snap.exists ? { id: snap.id, ...snap.data() } : null;
-    } catch (error) {
-        console.error(`❌ خطأ في المستند ${collectionName}/${docId}:`, error);
-        return null;
-    }
-}
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-export async function getCollection(name, conditions = [], sortBy = null, limitCount = null) {
-    if (!db) initFirebase();
-    try {
-        let query = db.collection(name);
-        if (conditions.length > 0) {
-            conditions.forEach(cond => {
-                query = query.where(cond.field, cond.operator, cond.value);
-            });
-        }
-        if (sortBy) {
-            query = query.orderBy(sortBy.field, sortBy.direction || 'asc');
-        }
-        if (limitCount) {
-            query = query.limit(limitCount);
-        }
-        const snap = await query.get();
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    } catch (error) {
-        console.error(`❌ خطأ في جلب مجموعة ${name}:`, error);
-        return [];
-    }
-}
+    // بيانات المصدر الثابتة (منصة في خدمتك)
+    const SOURCE_INFO = {
+        name: "منصة في خدمتك",
+        country: "المملكة العربية السعودية",
+        city: "حائل",
+        district: "حي النقرة",
+        street: "شارع سعد المشاط",
+        building: "3085",
+        postalCode: "55431",
+        additionalNo: "7718",
+        taxId: "312495447600003",
+        license: "FL-765735204"
+    };
 
-// ================= تحميل الكاش =================
-export async function loadCustomersAndProducts(forceReload = false) {
-    if (!db) initFirebase();
-    const now = Date.now();
-    if (!forceReload && customersMap.size > 0 && productsMap.size > 0 && (now - cacheLastUpdated) < CACHE_DURATION) {
-        console.log('✅ استخدام البيانات المخزنة مؤقتاً (صالحة)');
-        return { customers: customersMap, products: productsMap };
-    }
+    async function getFullOrderDetails() {
+        const id = new URLSearchParams(window.location.search).get('id');
+        if (!id) return null;
 
-    customersMap.clear();
-    productsMap.clear();
+        try {
+            // 1. جلب الطلب
+            const orderDoc = await db.collection("orders").doc(id).get();
+            if (!orderDoc.exists) return null;
+            const order = orderDoc.data();
 
-    try {
-        const [customersSnap, productsSnap] = await Promise.all([
-            db.collection('customers').get(),
-            db.collection('products').get()
-        ]);
+            // 2. جلب العميل (الربط بـ customerId)
+            const customerDoc = await db.collection("customers").doc(order.customerId).get();
+            const customer = customerDoc.exists ? customerDoc.data() : {};
 
-        customersSnap.forEach(d => customersMap.set(d.id, d.data()));
-        productsSnap.forEach(d => productsMap.set(d.id, d.data()));
-        cacheLastUpdated = now;
-        
-        console.log(`✅ تم تحميل ${customersMap.size} عميل و ${productsMap.size} منتج`);
-        return { customers: customersMap, products: productsMap };
-    } catch (error) {
-        console.error('❌ خطأ في تحميل الكاش:', error);
-        throw error;
-    }
-}
-
-// ================= جلب الطلب كامل مع البيانات =================
-export async function getOrderFull(orderId) {
-    if (!db) initFirebase();
-    try {
-        if (!orderId) {
-            console.error('❌ orderId مطلوب');
-            return null;
-        }
-        
-        await loadCustomersAndProducts();
-        
-        const order = await getDocument('orders', orderId);
-        if (!order) return null;
-
-        const customer = customersMap.get(order.customerId) || { 
-            name: 'غير معروف', 
-            phone: '', 
-            email: '',
-            address: '' 
-        };
-
-        const items = (order.items || []).map(item => {
-            const product = productsMap.get(item.productId) || {};
-            const finalImage = toAbsoluteImageUrl(product.image || item.image || '');
-            
-            return {
-                ...item,
-                productId: item.productId || null,
-                productName: product.name || item.name || 'غير معروف',
-                description: product.description || item.description || '',
-                image: finalImage,
-                price: item.price || product.price || 0,
-                stock: product.stock || 0,
-                cost: product.cost || 0,
-                code: product.code || item.barcode || ''
-            };
-        });
-
-        return {
-            ...order,
-            customer: {
-                id: order.customerId,
-                name: customer.name,
-                phone: customer.phone,
-                email: customer.email,
-                address: customer.address || ''
-            },
-            customerName: customer.name,
-            customerPhone: customer.phone,
-            customerEmail: customer.email,
-            customerAddress: customer.address || '',
-            items,
-            paymentMethodName: getPaymentMethodName(order.paymentMethod)
-        };
-
-    } catch (err) {
-        console.error("❌ خطأ في جلب الطلب الكامل:", err);
-        return null;
-    }
-}
-
-// ================= جلب جميع الطلبات كاملة =================
-export async function getAllOrdersFull(limitCount = 500) {
-    if (!db) initFirebase();
-    try {
-        console.log('🔄 جاري جلب جميع الطلبات مع الصور...');
-        
-        await loadCustomersAndProducts();
-        
-        const querySnapshot = await db.collection('orders')
-            .orderBy('createdAt', 'desc')
-            .limit(limitCount)
-            .get();
-        
-        const orders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        console.log(`✅ تم جلب ${orders.length} طلب من قاعدة البيانات`);
-        
-        const fullOrders = orders.map(order => {
-            const customer = customersMap.get(order.customerId) || { name: 'غير معروف', phone: '', email: '' };
-            
-            const items = (order.items || []).map(item => {
-                const product = productsMap.get(item.productId) || {};
-                const finalImage = toAbsoluteImageUrl(product.image || item.image || '');
-                
+            // 3. جلب المنتجات (الربط بـ items)
+            const items = await Promise.all((order.items || []).map(async item => {
+                const prodDoc = await db.collection("products").doc(item.productId).get();
+                const prod = prodDoc.exists ? prodDoc.data() : {};
                 return {
                     ...item,
-                    productId: item.productId || null,
-                    productName: product.name || item.name || 'غير معروف',
-                    description: product.description || item.description || '',
-                    image: finalImage,
-                    price: item.price || product.price || 0
+                    name: prod.name || item.name,
+                    image: prod.image || item.image || 'images/logo.svg'
                 };
-            });
-            
-            return {
-                ...order,
-                customer,
-                customerName: customer.name,
-                customerPhone: customer.phone,
-                customerEmail: customer.email,
-                items,
-                paymentMethodName: getPaymentMethodName(order.paymentMethod)
-            };
-        });
-        
-        return fullOrders;
-        
-    } catch (error) {
-        console.error("❌ خطأ في جلب جميع الطلبات:", error);
-        return [];
-    }
-}
+            }));
 
-// ================= حساب الإجماليات =================
-export function calculateTotals(items = [], discount = 0, discountType = 'fixed') {
-    let subtotal = 0;
-    items.forEach(i => {
-        subtotal += (i.price || 0) * (i.quantity || 1);
+            return { ...order, customer, items, id: orderDoc.id };
+        } catch (e) { console.error(e); return null; }
+    }
+
+    function renderInvoice(data) {
+        const app = document.getElementById('app');
+        document.getElementById('loader').style.display = 'none';
+
+        app.innerHTML = `
+        <div class="page">
+            <div class="header">
+                <div class="logo-box"><img src="images/logo.svg" onerror="this.src='https://via.placeholder.com/150?text=Logo'"></div>
+                <div class="doc-label">فاتورة إلكترونية</div>
+                <div class="branding-meta">
+                    الرقم الضريبي: ${SOURCE_INFO.taxId}<br>
+                    شهادة العمل الحر: ${SOURCE_INFO.license}
+                </div>
+            </div>
+
+            <div class="invoice-meta">
+                <div class="meta-item"><b>رقم الفاتورة</b>#${data.orderNumber || data.id.substring(0,8).toUpperCase()}</div>
+                <div class="meta-item"><b>التاريخ والوقت</b>${data.createdAt || new Date().toLocaleString('ar-SA')}</div>
+                <div class="meta-item"><b>حالة الطلب</b>${data.status || 'تم التنفيذ'}</div>
+            </div>
+
+            <div class="entities-grid">
+                <div class="entity-card">
+                    <div class="entity-head">مصدرة من:</div>
+                    <div class="entity-body">
+                        <b>${SOURCE_INFO.name}</b><br>
+                        ${SOURCE_INFO.country} - ${SOURCE_INFO.city}<br>
+                        ${SOURCE_INFO.district} - ${SOURCE_INFO.street}<br>
+                        مبنى: ${SOURCE_INFO.building} | الرمز البريدي: ${SOURCE_INFO.postalCode}<br>
+                        الرقم الإضافي: ${SOURCE_INFO.additionalNo}
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-head">مصدرة إلى:</div>
+                    <div class="entity-body">
+                        <b>اسم العميل:</b> ${data.customer.name || '---'}<br>
+                        <b>الدولة:</b> ${data.customer.country || 'المملكة العربية السعودية'}<br>
+                        <b>العنوان:</b> ${data.customer.address || '---'}<br>
+                        <b>الجوال:</b> ${data.customer.phone || '---'}<br>
+                        <b>البريد:</b> ${data.customer.email || '---'}
+                    </div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>صورة المنتج</th>
+                        <th>المنتج</th>
+                        <th>الكمية</th>
+                        <th>سعر الوحدة</th>
+                        <th>الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.items.map(item => `
+                        <tr>
+                            <td><img src="${item.image}" class="product-img"></td>
+                            <td style="text-align:right"><b>${item.name}</b></td>
+                            <td>${item.quantity || item.qty}</td>
+                            <td>${item.price} ر.س</td>
+                            <td>${((item.quantity || item.qty) * item.price).toFixed(2)} ر.س</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+
+            <div class="total-section">
+                <div class="total-row"><span>المجموع الفرعي:</span> <span>${(data.total / 1.15).toFixed(2)} ر.س</span></div>
+                <div class="total-row"><span>ضريبة القيمة المضافة (15%):</span> <span>${(data.total - (data.total / 1.15)).toFixed(2)} ر.س</span></div>
+                <div class="grand-total">${data.total} ر.س</div>
+            </div>
+
+            <div class="qr-area">
+                <div id="zatca-qr"></div>
+                <div id="order-qr"></div>
+            </div>
+
+            <div class="footer">
+                <span>نظام الفاتورة الإلكترونية - منصة في خدمتك</span>
+                <span>صفحة 1 من 3</span>
+            </div>
+        </div>
+        `;
+
+        // توليد الأكواد
+        new QRCode(document.getElementById("zatca-qr"), { text: `Seller:${SOURCE_INFO.name}|VAT:${SOURCE_INFO.taxId}|Total:${data.total}`, width: 90, height: 90 });
+        new QRCode(document.getElementById("order-qr"), { text: window.location.href, width: 90, height: 90 });
+    }
+
+    getFullOrderDetails().then(data => {
+        if (data) renderInvoice(data);
+        else document.getElementById('loader').innerHTML = "فشل في تحميل البيانات";
     });
-
-    let discountAmount = discountType === 'percent' ? (subtotal * discount) / 100 : discount;
-    const afterDiscount = Math.max(0, subtotal - discountAmount);
-    const vat = afterDiscount * 0.15;
-    const total = afterDiscount + vat;
-
-    return {
-        subtotal: parseFloat(subtotal.toFixed(2)),
-        discount: parseFloat(discountAmount.toFixed(2)),
-        vat: parseFloat(vat.toFixed(2)),
-        total: parseFloat(total.toFixed(2))
-    };
-}
-
-// ================= دوال إضافية مختصرة (يمكنك إكمال الباقي بنفس النمط) =================
-export async function loadProducts() {
-    if (!db) initFirebase();
-    try {
-        const snap = await db.collection('products').orderBy('createdAt', 'desc').get();
-        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error('❌ خطأ في تحميل المنتجات:', error);
-        return [];
-    }
-}
-
-export async function addOrder(data) {
-    if (!db) initFirebase();
-    try {
-        const itemsWithImages = (data.items || []).map(item => ({
-            ...item,
-            image: toAbsoluteImageUrl(item.image || ''),
-            productId: item.productId || null
-        }));
-        
-        const orderData = { 
-            ...data, 
-            items: itemsWithImages,
-            createdAt: nowISO(), 
-            updatedAt: nowISO(),
-            orderNumber: data.orderNumber || `ORD-${Date.now()}`
-        };
-        
-        const docRef = await db.collection('orders').add(orderData);
-        console.log('✅ تم إضافة الطلب:', docRef.id);
-        return { id: docRef.id, ...orderData };
-    } catch (error) {
-        console.error('❌ خطأ في إضافة الطلب:', error);
-        throw error;
-    }
-}
-
-// ... باقي الدوال (updateOrder, deleteOrder, إلخ) يمكن تحويلها بنفس الأسلوب
-
-// تصدير الدوال التي يحتاجها باقي التطبيق
-export { db, toAbsoluteImageUrl };
+</script>
+</body>
+</html>
