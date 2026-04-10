@@ -1,5 +1,5 @@
 // ========================================
-// invoice.js - دوال إنشاء الفاتورة الإلكترونية (نهائي)
+// invoice.js - دوال إنشاء الفاتورة الإلكترونية (نهائي - مع دعم placeholder للصور)
 // ========================================
 
 // بيانات البائع (ثابتة)
@@ -14,10 +14,34 @@ const sellerData = {
     website: "https://fi-khidmatik.com.sa"
 };
 
+// صورة placeholder (صورة SVG بسيطة)
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='2.18' ry='2.18'%3E%3C/rect%3E%3Cpath d='M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5'%3E%3C/path%3E%3C/svg%3E";
+
 // دوال مساعدة لتنظيف النصوص من الرموز الغريبة
 function cleanText(text) {
     if (!text) return '';
     return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
+}
+
+// التحقق مما إذا كان رابط الصورة خارجياً ولا يدعم CORS
+function needsPlaceholder(imageUrl) {
+    if (!imageUrl) return true;
+    // قائمة بالنطاقات التي لا تدعم CORS
+    const blockedDomains = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
+    try {
+        const url = new URL(imageUrl);
+        return blockedDomains.some(domain => url.hostname.includes(domain));
+    } catch(e) {
+        return false;
+    }
+}
+
+// الحصول على رابط الصورة المناسب (أصلي أو placeholder)
+function getSafeImageUrl(imageUrl) {
+    if (needsPlaceholder(imageUrl)) {
+        return PLACEHOLDER_IMAGE;
+    }
+    return imageUrl || PLACEHOLDER_IMAGE;
 }
 
 function getStatusText(status) {
@@ -116,11 +140,15 @@ function buildInvoicePage(order, pageNum, totalPages) {
         const item = items[i];
         const cleanName = cleanText(item.name);
         const cleanDesc = cleanText(item.description);
+        // استبدال الرابط الأصلي بـ placeholder إذا كان من نطاق لا يدعم CORS
+        const originalImage = item.image;
+        const safeImage = getSafeImageUrl(originalImage);
+        
         itemsHtml += `
             <tr>
                 <td style="text-align:center">${i+1}</td>
                 <td style="text-align:center">
-                    ${item.image ? `<img src="${item.image}" class="product-img" onerror="this.style.display='none'">` : '<div style="width:45px;height:45px;background:#e2e8f0;border-radius:8px;"></div>'}
+                    <img src="${safeImage}" class="product-img" onerror="this.src='${PLACEHOLDER_IMAGE}'">
                 </td>
                 <td style="text-align:right"><strong>${escape(cleanName)}</strong><br><small>${escape(cleanDesc)}</small></td>
                 <td style="text-align:center">${item.quantity}</td>
