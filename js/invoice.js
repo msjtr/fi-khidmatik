@@ -1,5 +1,5 @@
 // ========================================
-// invoice.js - دوال إنشاء الفاتورة الإلكترونية (مع وكيل CORS)
+// invoice.js - دوال إنشاء الفاتورة الإلكترونية (محسّن للسرعة)
 // ========================================
 
 // بيانات البائع (ثابتة)
@@ -14,14 +14,27 @@ const sellerData = {
     website: "https://fi-khidmatik.com.sa"
 };
 
-// صورة placeholder (أيقونة منتج)
+// صورة placeholder (بيانات SVG مضمنة)
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='2.18' ry='2.18'%3E%3C/rect%3E%3Cpath d='M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5'%3E%3C/path%3E%3C/svg%3E";
 
 // النطاقات التي تحتاج إلى وكيل (تسبب CORS)
 const CORS_BLOCKED_DOMAINS = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
 
-// وكيل CORS مجاني
+// وكيل CORS مجاني (يمكن تعطيله لتسريع الأداء إذا كانت الصور محلية)
 const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+
+// دالة لتحويل المسار النسبي إلى مطلق (حسب هيكل الموقع)
+function toAbsoluteUrl(url) {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+    }
+    if (url.startsWith('/')) {
+        return window.location.origin + url;
+    }
+    // افتراض أن المشروع في مجلد fi-khidmatik
+    return window.location.origin + '/fi-khidmatik/' + url;
+}
 
 // دالة لتحديد ما إذا كان الرابط يحتاج إلى وكيل
 function needsProxy(imageUrl) {
@@ -37,13 +50,15 @@ function needsProxy(imageUrl) {
 // دالة للحصول على الرابط النهائي (مع وكيل أو أصلي)
 function getFinalImageUrl(imageUrl) {
     if (!imageUrl) return PLACEHOLDER_IMAGE;
-    if (needsProxy(imageUrl)) {
-        return CORS_PROXY + encodeURIComponent(imageUrl);
+    // تحويل إلى مسار مطلق أولاً
+    let absoluteUrl = toAbsoluteUrl(imageUrl);
+    if (needsProxy(absoluteUrl)) {
+        return CORS_PROXY + encodeURIComponent(absoluteUrl);
     }
-    return imageUrl;
+    return absoluteUrl;
 }
 
-// دوال مساعدة
+// دوال مساعدة (بدون تغيير)
 function cleanText(text) {
     if (!text) return '';
     return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
@@ -80,9 +95,7 @@ function getPaymentName(method) {
     return names[method] || method || 'مدى';
 }
 
-// ========================================
-// بناء رأس الصفحة
-// ========================================
+// بناء رأس الصفحة (بدون تغيير)
 function buildInvoiceHeader(title) {
     return `
         <div class="page-header">
@@ -108,9 +121,7 @@ function buildInvoiceHeader(title) {
     `;
 }
 
-// ========================================
-// بناء تذييل الصفحة
-// ========================================
+// بناء تذييل الصفحة (بدون تغيير)
 function buildInvoiceFooter(pageNum, totalPages) {
     return `
         <div class="page-footer">
@@ -126,9 +137,7 @@ function buildInvoiceFooter(pageNum, totalPages) {
     `;
 }
 
-// ========================================
-// صفحة الفاتورة الرئيسية (مع وكيل للصور)
-// ========================================
+// صفحة الفاتورة الرئيسية
 function buildInvoicePage(order, pageNum, totalPages) {
     const formatDate = window.formatDate || ((d) => d);
     const formatTime = window.formatTime || ((t) => t);
@@ -145,9 +154,8 @@ function buildInvoicePage(order, pageNum, totalPages) {
         const item = items[i];
         const cleanName = cleanText(item.name);
         const cleanDesc = cleanText(item.description);
-        // الحصول على رابط الصورة النهائي (مع وكيل إذا لزم الأمر)
-        const originalImage = item.image;
-        const finalImageUrl = getFinalImageUrl(originalImage);
+        // الحصول على رابط الصورة النهائي (مع تحويل المسار)
+        const finalImageUrl = getFinalImageUrl(item.image);
         
         itemsHtml += `
             <tr>
@@ -157,8 +165,8 @@ function buildInvoicePage(order, pageNum, totalPages) {
                 </td>
                 <td style="text-align:right"><strong>${escape(cleanName)}</strong><br><small>${escape(cleanDesc)}</small></td>
                 <td style="text-align:center">${item.quantity}</td>
-                <td style="text-align:center; direction:ltr; font-family:monospace;">${(item.price || 0).toFixed(2)} ريال}‹
-                <td style="text-align:center; direction:ltr; font-family:monospace;">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال}‹
+                <td style="text-align:center; direction:ltr; font-family:monospace;">${(item.price || 0).toFixed(2)} ريال</td>
+                <td style="text-align:center; direction:ltr; font-family:monospace;">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال</td>
             </tr>
         `;
     }
