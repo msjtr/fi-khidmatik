@@ -6,33 +6,164 @@
     <link rel="icon" href="/fi-khidmatik/images/logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="/fi-khidmatik/css/invoice.css">
-    
     <!-- مكتبات خارجية -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    
     <!-- Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    
-    <!-- ملف الطباعة الخاص (أوامر الطباعة والتصدير) -->
-    <script src="/fi-khidmatik/js/print.js"></script>
-    
     <style>
-        /* تنسيقات بسيطة للتحميل والخطأ */
-        body { background: #e9ecef; padding: 20px; margin: 0; font-family: 'Tajawal', sans-serif; }
-        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1e3a5f; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .error-message { text-align: center; color: red; margin-top: 50px; font-size: 18px; background: white; padding: 20px; border-radius: 10px; }
-        .preview-buttons { position: fixed; bottom: 0; left: 0; right: 0; background: white; text-align: center; padding: 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
+        /* ========== تنسيق الفاتورة ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #e9ecef;
+            padding: 20px;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            page-break-after: always;
+        }
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .page { margin: 0; box-shadow: none; page-break-after: always; }
+            .no-print { display: none; }
+        }
+        /* رأس الصفحة */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 2px solid #1e3a5f;
+            background: #f8f9fa;
+            flex-wrap: wrap;
+        }
+        .header-right .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-img { height: 60px; width: auto; }
+        .logo-text .platform-name { font-size: 22px; font-weight: 800; color: #1e3a5f; }
+        .logo-text .platform-slogan { font-size: 12px; color: #6c757d; }
+        .header-center .page-title { font-size: 24px; font-weight: 800; color: #1e3a5f; background: #e9ecef; padding: 8px 20px; border-radius: 40px; }
+        .header-left .legal-numbers div { font-size: 12px; margin-bottom: 4px; direction: ltr; }
+        /* معلومات أساسية */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 20px 25px;
+            background: #f1f3f5;
+            margin: 15px 25px;
+            border-radius: 12px;
+        }
+        .info-item { text-align: center; }
+        .info-label { font-size: 13px; color: #6c757d; margin-bottom: 6px; }
+        .info-value { font-size: 16px; font-weight: 700; color: #1e3a5f; }
+        .status-badge { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; display: inline-block; }
+        /* العناوين */
+        .addresses { display: flex; gap: 25px; padding: 0 25px; margin-bottom: 20px; }
+        .address-card { flex: 1; background: #f8f9fa; padding: 15px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+        .address-card p { margin: 6px 0; }
+        .address-card i { width: 24px; color: #1e3a5f; }
+        /* طرق الدفع والشحن */
+        .payment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 0 25px;
+            margin-bottom: 25px;
+        }
+        .payment-card {
+            background: #e9ecef;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .payment-card i { font-size: 20px; color: #1e3a5f; margin-bottom: 6px; display: inline-block; }
+        /* جدول المنتجات */
+        .products-table {
+            width: calc(100% - 50px);
+            margin: 0 25px 20px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .products-table th, .products-table td {
+            border: 1px solid #dee2e6;
+            padding: 10px 8px;
+            vertical-align: middle;
+        }
+        .products-table th { background: #1e3a5f; color: white; font-weight: 600; }
+        .product-img { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; }
+        /* مربع الإجماليات */
+        .totals-box {
+            width: 300px;
+            margin: 0 25px 20px auto;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+        }
+        .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+        .grand-total { font-weight: 800; font-size: 18px; color: #1e3a5f; border-top: 2px solid #1e3a5f; margin-top: 6px; padding-top: 10px; }
+        /* الباركودات */
+        .barcodes { display: flex; justify-content: center; gap: 30px; margin: 20px 25px; flex-wrap: wrap; }
+        .barcode-item { text-align: center; }
+        .barcode-item .qr-code { width: 90px; height: 90px; margin: 0 auto; }
+        .barcode-item p { font-size: 11px; color: #6c757d; margin-top: 8px; }
+        /* تذييل الصفحة */
+        .page-footer {
+            background: #1e3a5f;
+            color: white;
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            flex-wrap: wrap;
+            margin-top: auto;
+        }
+        .contact-info span { margin-left: 15px; display: inline-block; }
+        .contact-info i { margin-left: 5px; }
+        .legal-footer { font-size: 11px; opacity: 0.8; }
+        .page-number { font-size: 11px; }
+        /* أزرار الطباعة */
+        .preview-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            text-align: center;
+            padding: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
         .preview-buttons button { padding: 8px 16px; margin: 0 5px; border: none; border-radius: 6px; cursor: pointer; }
         .btn-print { background: #1e3a5f; color: white; }
         .btn-pdf { background: #dc2626; color: white; }
         .btn-png { background: #16a34a; color: white; }
         .btn-close { background: #6c757d; color: white; }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3a5f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { text-align: center; color: red; margin-top: 50px; font-size: 18px; background: white; padding: 20px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -45,7 +176,276 @@
     </div>
 
     <script>
-        // تهيئة Firebase وجلب البيانات ثم بناء الفاتورة باستخدام الدوال من print.js
+        // ========== 1. إعدادات CORS للصور من سلة ==========
+        const CORS_BLOCKED_DOMAINS = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
+        const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+        
+        function getCorsSafeUrl(url) {
+            if (!url) return '';
+            if (url.startsWith('data:')) return url;
+            if (url.startsWith(CORS_PROXY)) return url;
+            try {
+                const urlObj = new URL(url);
+                if (CORS_BLOCKED_DOMAINS.some(domain => urlObj.hostname.includes(domain))) {
+                    return CORS_PROXY + encodeURIComponent(url);
+                }
+            } catch(e) {}
+            return url;
+        }
+        
+        // ========== 2. دوال مساعدة ==========
+        window.formatDate = function(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+        };
+        window.formatTime = function(time24) {
+            if (!time24) return '';
+            let [h, m] = time24.split(':');
+            let hour = parseInt(h);
+            let ampm = hour >= 12 ? 'مساءً' : 'صباحاً';
+            hour = hour % 12 || 12;
+            return `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
+        };
+        window.escapeHtml = function(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        };
+        
+        // بيانات البائع
+        const sellerData = {
+            name: "في خدمتك",
+            taxNumber: "312495447600003",
+            licenseNumber: "FL-765735204",
+            address: "حائل - حي النقرة - شارع سعد المشاط - مبنى 3085 - الرمز البريدي 55431",
+            phone: "+966 534051317",
+            whatsapp: "+966 545312021",
+            email: "info@fi-khidmatik.com",
+            website: "https://fi-khidmatik.com.sa"
+        };
+        
+        const PLACEHOLDER_RAW = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='2.18' ry='2.18'%3E%3C/rect%3E%3Cpath d='M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5'%3E%3C/path%3E%3C/svg%3E";
+        
+        function cleanText(text) {
+            if (!text) return '';
+            return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
+        }
+        
+        function getStatusText(status) {
+            const map = { 'جديد':'جديد', 'تحت التنفيذ':'قيد التنفيذ', 'تم التنفيذ':'مكتمل', 'ملغي':'ملغي', 'مسترجع':'مسترجع', 'تحت المراجعة':'تحت المراجعة' };
+            return map[status] || status || 'مكتمل';
+        }
+        
+        function getShippingText(method) {
+            if (method === 'delivery') return 'شحن منزلي';
+            if (method === 'noship') return 'لا يتطلب شحن';
+            return 'استلام من المقر';
+        }
+        
+        function getPaymentName(method) {
+            const names = { 'mada':'مدى', 'mastercard':'ماستركارد', 'visa':'فيزا', 'stcpay':'STCPay', 'tamara':'تمارا', 'tabby':'تابي', 'other':'أخرى' };
+            return names[method] || method || 'مدى';
+        }
+        
+        // ========== 3. بناء أجزاء الفاتورة ==========
+        function buildInvoiceHeader(title) {
+            return `
+                <div class="page-header">
+                    <div class="header-right">
+                        <div class="logo-area">
+                            <img src="/fi-khidmatik/images/logo.svg" class="logo-img" onerror="this.style.display='none'">
+                            <div class="logo-text">
+                                <div class="platform-name">في خدمتك</div>
+                                <div class="platform-slogan">من الإتقان بلس</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-center"><div class="page-title">${title}</div></div>
+                    <div class="header-left">
+                        <div class="legal-numbers">
+                            <div><span>شهادة العمل الحر:</span> <span>${sellerData.licenseNumber}</span></div>
+                            <div><span>الرقم الضريبي:</span> <span>${sellerData.taxNumber}</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function buildInvoiceFooter(pageNum, totalPages) {
+            return `
+                <div class="page-footer">
+                    <div class="contact-info">
+                        <span><i class="fas fa-phone-alt"></i> ${sellerData.phone}</span>
+                        <span><i class="fab fa-whatsapp"></i> ${sellerData.whatsapp}</span>
+                        <span><i class="fas fa-envelope"></i> ${sellerData.email}</span>
+                        <span><i class="fas fa-globe"></i> ${sellerData.website}</span>
+                    </div>
+                    <div class="legal-footer">فاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+                    <div class="page-number">صفحة ${pageNum} من ${totalPages}</div>
+                </div>
+            `;
+        }
+        
+        function buildInvoicePage(order, pageNum, totalPages) {
+            const formatDate = window.formatDate;
+            const formatTime = window.formatTime;
+            const escape = window.escapeHtml;
+            
+            const items = order.items || [];
+            let subtotal = order.subtotal || 0;
+            if (!order.subtotal) {
+                subtotal = items.reduce((sum, it) => sum + (it.price || 0) * (it.quantity || 1), 0);
+            }
+            const discount = order.discount || 0;
+            const tax = order.tax || ((subtotal - discount) * 0.15);
+            const total = order.total || (subtotal - discount + tax);
+            
+            let itemsHtml = '';
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                let imgUrl = getCorsSafeUrl(item.image || PLACEHOLDER_RAW);
+                const encodedPlaceholder = encodeURIComponent(PLACEHOLDER_RAW);
+                itemsHtml += `
+                    <tr>
+                        <td style="text-align:center">${i+1}</td>
+                        <td style="text-align:center"><img src="${imgUrl.replace(/"/g, '&quot;')}" class="product-img" style="width:45px;height:45px;object-fit:cover;" crossorigin="anonymous" data-placeholder="${encodedPlaceholder}" onerror="this.src = decodeURIComponent(this.getAttribute('data-placeholder')); this.removeAttribute('data-placeholder');"></td>
+                        <td style="text-align:right"><strong>${escape(cleanText(item.name))}</strong><br><small>${escape(cleanText(item.description))}</small></td>
+                        <td style="text-align:center">${item.quantity}</td>
+                        <td style="text-align:center;direction:ltr">${(item.price || 0).toFixed(2)} ريال</td>
+                        <td style="text-align:center;direction:ltr">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال</td>
+                    </tr>
+                `;
+            }
+            
+            let fullAddress = order.customerStreet || '';
+            if (order.customerAdditionalNo) fullAddress += ' - ' + order.customerAdditionalNo;
+            if (order.customerCity) fullAddress += '، ' + order.customerCity;
+            if (order.customerPoBox) fullAddress += '، ص.ب: ' + order.customerPoBox;
+            if (!fullAddress && order.customerAddress) fullAddress = order.customerAddress;
+            
+            const customerAddressHtml = `<p><i class="fas fa-user"></i> ${escape(order.customerName)}</p><p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress)}</p><p><i class="fas fa-phone-alt"></i> ${escape(order.customerPhone)}</p><p><i class="fas fa-envelope"></i> ${escape(order.customerEmail)}</p>`;
+            const sellerAddressHtml = `<p><i class="fas fa-store"></i> ${sellerData.name}</p><p><i class="fas fa-location-dot"></i> المملكة العربية السعودية</p><p><i class="fas fa-location-dot"></i> ${sellerData.address}</p><p><i class="fas fa-phone-alt"></i> ${sellerData.phone}</p>`;
+            
+            const discountRow = discount > 0 ? `<div class="totals-row"><span>الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>` : '';
+            
+            return `
+                <div class="page invoice-page">
+                    ${buildInvoiceHeader('فاتورة إلكترونية')}
+                    <div class="info-grid">
+                        <div class="info-item"><div class="info-label">رقم الفاتورة</div><div class="info-value">${escape(order.orderNumber)}</div></div>
+                        <div class="info-item"><div class="info-label">التاريخ</div><div class="info-value">${formatDate(order.orderDate)} - ${formatTime(order.orderTime)}</div></div>
+                        <div class="info-item"><div class="info-label">الحالة</div><div class="status-badge">${getStatusText(order.status)}</div></div>
+                    </div>
+                    <div class="addresses">
+                        <div class="address-card"><strong><i class="fas fa-building"></i> مصدرة من</strong>${sellerAddressHtml}</div>
+                        <div class="address-card"><strong><i class="fas fa-user-check"></i> مصدرة إلى</strong>${customerAddressHtml}</div>
+                    </div>
+                    <div class="payment-grid">
+                        <div class="payment-card"><i class="fas fa-credit-card"></i> <strong>طريقة الدفع</strong><br>${getPaymentName(order.paymentMethod)}</div>
+                        <div class="payment-card"><i class="fas fa-check-circle"></i> <strong>رمز الموافقة</strong><br>${order.approvalCode || 'غير مطلوب'}</div>
+                        <div class="payment-card"><i class="fas fa-truck"></i> <strong>طريقة الاستلام</strong><br>${getShippingText(order.shippingMethod)}</div>
+                    </div>
+                    <table class="products-table">
+                        <thead><tr><th>#</th><th>الصورة</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
+                    <div class="totals-box">
+                        <div class="totals-row"><span>المجموع الفرعي</span><span>${subtotal.toFixed(2)} ريال</span></div>
+                        ${discountRow}
+                        <div class="totals-row"><span>ضريبة القيمة المضافة 15%</span><span>${tax.toFixed(2)} ريال</span></div>
+                        <div class="totals-row grand-total"><span>الإجمالي النهائي</span><span>${total.toFixed(2)} ريال</span></div>
+                    </div>
+                    <div class="barcodes">
+                        <div class="barcode-item"><div id="zatcaQR" class="qr-code"></div><p>باركود هيئة الزكاة والضريبة</p></div>
+                        <div class="barcode-item"><div id="websiteQR" class="qr-code"></div><p>للوصول السريع إلى موقعنا الإلكتروني</p></div>
+                        <div class="barcode-item"><div id="downloadQR" class="qr-code"></div><p>باركود تحميل الفاتورة</p></div>
+                    </div>
+                    ${buildInvoiceFooter(pageNum, totalPages)}
+                </div>
+            `;
+        }
+        
+        function buildTermsPage(pageNum, totalPages, title, content) {
+            return `
+                <div class="page">
+                    ${buildInvoiceHeader(title)}
+                    <div style="padding: 25px; line-height: 1.8; font-size: 15px;">
+                        ${content}
+                    </div>
+                    ${buildInvoiceFooter(pageNum, totalPages)}
+                </div>
+            `;
+        }
+        
+        // ========== 4. دوال الطباعة والتصدير ==========
+        async function waitForImages(element, timeout = 8000) {
+            const imgs = Array.from(element.querySelectorAll('img'));
+            await Promise.all(imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return Promise.race([
+                    new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }),
+                    new Promise(resolve => setTimeout(resolve, timeout))
+                ]);
+            }));
+        }
+        
+        window.printInvoice = function() {
+            window.print();
+        };
+        
+        window.exportToPDF = async function() {
+            const pages = document.querySelectorAll('.page');
+            if (!pages.length) return alert("لا توجد صفحات للتصدير");
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            for (let i = 0; i < pages.length; i++) {
+                await waitForImages(pages[i]);
+                const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' });
+                if (i !== 0) pdf.addPage();
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+            }
+            pdf.save("invoice.pdf");
+        };
+        
+        window.exportToPNG = async function() {
+            const pages = document.querySelectorAll('.page');
+            for (let i = 0; i < pages.length; i++) {
+                await waitForImages(pages[i]);
+                const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' });
+                const link = document.createElement('a');
+                link.download = `page_${i+1}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        };
+        
+        // ========== 5. تهيئة Firebase وجلب البيانات ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+            authDomain: "msjt301-974bb.firebaseapp.com",
+            projectId: "msjt301-974bb",
+            storageBucket: "msjt301-974bb.appspot.com",
+            messagingSenderId: "186209858482",
+            appId: "1:186209858482:web:186ca610780799ef562aab"
+        };
+        
+        function initFirebase() {
+            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                return { db: firebase.firestore(), storage: firebase.storage() };
+            } else if (typeof firebase !== 'undefined') {
+                return { db: firebase.firestore(), storage: firebase.storage() };
+            } else {
+                throw new Error("Firebase SDK not loaded");
+            }
+        }
+        
         window.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('printContent');
             const params = new URLSearchParams(location.search);
@@ -56,27 +456,23 @@
                 return;
             }
             
-            // تكوين Firebase (نفس الإعدادات)
-            const firebaseConfig = {
-                apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-                authDomain: "msjt301-974bb.firebaseapp.com",
-                projectId: "msjt301-974bb",
-                storageBucket: "msjt301-974bb.appspot.com",
-                messagingSenderId: "186209858482",
-                appId: "1:186209858482:web:186ca610780799ef562aab"
-            };
-            
-            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
+            let firebaseServices;
+            try {
+                firebaseServices = initFirebase();
+            } catch(e) {
+                container.innerHTML = '<div class="error-message">⚠️ فشل تحميل Firebase. تأكد من اتصال الإنترنت.</div>';
+                return;
             }
-            const db = firebase.firestore();
-            const storage = firebase.storage();
+            
+            const db = firebaseServices.db;
+            const storage = firebaseServices.storage;
             
             let order = null, customer = null;
             try {
                 const docSnap = await db.collection('orders').doc(orderId).get();
                 if (docSnap.exists) order = { id: docSnap.id, ...docSnap.data() };
             } catch(e) {
+                console.error(e);
                 container.innerHTML = '<div class="error-message">⚠️ خطأ في جلب الطلب: ' + e.message + '</div>';
                 return;
             }
@@ -93,7 +489,7 @@
                 } catch(e) { console.error(e); }
             }
             
-            // تجهيز بيانات الطلب مع تحويل صور Firebase Storage
+            // تجهيز العناصر مع تحويل صور Firebase Storage
             let items = (order.items || []).map(item => ({
                 name: item.name || 'منتج',
                 description: item.description || '',
@@ -101,8 +497,6 @@
                 quantity: item.quantity || 1,
                 price: item.price || 0
             }));
-            
-            const PLACEHOLDER_RAW = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='2.18' ry='2.18'%3E%3C/rect%3E%3Cpath d='M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5'%3E%3C/path%3E%3C/svg%3E";
             
             for (let i = 0; i < items.length; i++) {
                 const imgPath = items[i].image;
@@ -142,25 +536,16 @@
                 total: order.total || 0
             };
             
-            // بناء الفاتورة باستخدام الدالة العامة من print.js
-            if (window.buildFullInvoice) {
-                const html = window.buildFullInvoice(orderData, {
-                    sellerData: {
-                        name: "في خدمتك",
-                        taxNumber: "312495447600003",
-                        licenseNumber: "FL-765735204",
-                        address: "حائل - حي النقرة - شارع سعد المشاط - مبنى 3085 - الرمز البريدي 55431",
-                        phone: "+966 534051317",
-                        whatsapp: "+966 545312021",
-                        email: "info@fi-khidmatik.com",
-                        website: "https://fi-khidmatik.com.sa"
-                    },
-                    placeholderRaw: PLACEHOLDER_RAW
-                });
-                container.innerHTML = html;
-            } else {
-                container.innerHTML = '<div class="error-message">⚠️ لم يتم تحميل مكتبة الطباعة بشكل صحيح.</div>';
-            }
+            // بناء الفاتورة + صفحات الشروط والأحكام (3 صفحات إضافية)
+            let html = buildInvoicePage(orderData, 1, 4);
+            html += buildTermsPage(2, 4, 'الشروط والأحكام', 
+                '<h3 style="color:#1e3a5f;">أولاً: تعريفات</h3><p>الفاتورة الإلكترونية صادرة من منصة "في خدمتك" ...</p><h3 style="color:#1e3a5f;">ثانياً: أحكام عامة</h3><p>تخضع هذه الفاتورة للأنظمة واللوائح السعودية.</p><h3 style="color:#1e3a5f;">ثالثاً: الضريبة</h3><p>تخضع الفاتورة لضريبة القيمة المضافة 15% حسب توجيهات هيئة الزكاة والضريبة.</p>');
+            html += buildTermsPage(3, 4, 'الشروط والأحكام (تابع)',
+                '<h3 style="color:#1e3a5f;">رابعاً: التسليم والاستلام</h3><p>يتم التسليم حسب طريقة الشحن المختارة في الطلب.</p><h3 style="color:#1e3a5f;">خامساً: الإرجاع والاستبدال</h3><p>يحق للعميل إرجاع المنتجات خلال 7 أيام بشرط أن تكون بحالتها الأصلية.</p>');
+            html += buildTermsPage(4, 4, 'الإقرار والتوقيع',
+                '<p style="font-size:16px; margin-top:30px;">أقر أنا العميل بصحة جميع البيانات المدخلة في هذه الفاتورة، وأتعهد بدفع المبلغ المستحق وفقاً للطرق المتاحة.</p><div style="margin-top: 50px; display: flex; justify-content: space-between;"><span>توقيع العميل: .................</span><span>توقيع البائع: .................</span></div>');
+            
+            container.innerHTML = html;
             
             // إنشاء QR codes بعد إضافة HTML
             setTimeout(() => {
@@ -174,7 +559,7 @@
                 } catch(e) { console.warn("QR error", e); }
             }, 300);
             
-            if (params.get('auto') === 'print') setTimeout(() => window.printInvoice(), 800);
+            if (params.get('auto') === 'print') setTimeout(() => window.print(), 800);
         });
     </script>
 </body>
