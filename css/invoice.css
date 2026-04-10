@@ -35,7 +35,7 @@ body {
     display: none;
 }
 
-/* توحيد الطباعة مع المعاينة */
+/* تحسين الطباعة لجميع المتصفحات (تطابق المعاينة) */
 @media print {
     @page {
         size: A4;
@@ -62,12 +62,13 @@ body {
         break-inside: avoid;
     }
     img {
+        max-width: 100%;
         page-break-inside: avoid;
     }
 }
 
 /* ========================================
-   رأس الصفحة (شعار + نص)
+   رأس الصفحة (الشعار ثم "في خدمتك" ثم "من الإتقان بلس")
    ======================================== */
 .page-header {
     display: flex;
@@ -161,14 +162,17 @@ body {
     gap: 18px;
     flex-wrap: wrap;
     margin-bottom: 5px;
+    direction: ltr;
 }
 .contact-info span {
     font-size: 10px;
+    direction: ltr;
 }
 .page-number {
     margin-top: 5px;
     font-size: 10px;
     color: #475569;
+    direction: ltr;
 }
 .legal-footer {
     font-size: 11px;
@@ -177,7 +181,9 @@ body {
     margin-top: 4px;
 }
 
-/* باقي الأنماط (كما هي ولكن تم اختصارها للتكرار) */
+/* ========================================
+   معلومات الفاتورة
+   ======================================== */
 .info-grid {
     display: flex;
     justify-content: space-between;
@@ -209,6 +215,10 @@ body {
     font-size: 12px;
     display: inline-block;
 }
+
+/* ========================================
+   بطاقات المصدر والمصدر إليه
+   ======================================== */
 .addresses {
     display: flex;
     gap: 25px;
@@ -244,6 +254,15 @@ body {
     align-items: center;
     gap: 8px;
 }
+.address-card p i {
+    font-size: 14px;
+    width: 20px;
+    color: #5f9ea0;
+}
+
+/* ========================================
+   طريقة الدفع ورمز الموافقة وطريقة الاستلام
+   ======================================== */
 .payment-grid {
     display: flex;
     gap: 20px;
@@ -257,7 +276,17 @@ body {
     border-radius: 12px;
     font-size: 12px;
     text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
+.payment-card i {
+    font-size: 18px;
+    margin-left: 6px;
+    color: #1e3a5f;
+}
+
+/* ========================================
+   جدول المنتجات (بدون رموز غريبة)
+   ======================================== */
 .products-table {
     width: 100%;
     border-collapse: collapse;
@@ -281,6 +310,7 @@ body {
 .products-table th {
     background: #1e3a5f;
     color: white;
+    font-weight: 600;
 }
 .product-img {
     width: 45px !important;
@@ -288,11 +318,27 @@ body {
     object-fit: cover;
     border-radius: 8px;
 }
+.products-table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+/* إزالة أي علامة + أو رموز إضافية */
+.products-table td:first-child {
+    text-align: center;
+}
+.products-table td:first-child::before {
+    content: none;
+}
+/* ضمان أن الأرقام في السعر والإجمالي خالية من الرموز */
 .products-table td:nth-child(5), .products-table td:nth-child(6) {
     direction: ltr;
     font-family: monospace;
     font-size: 11px;
 }
+
+/* ========================================
+   الإجماليات
+   ======================================== */
 .totals-box {
     width: 300px;
     margin-right: auto;
@@ -315,6 +361,10 @@ body {
     margin-top: 8px;
     padding-top: 10px;
 }
+
+/* ========================================
+   الباركودات (ثلاثة باركودات)
+   ======================================== */
 .barcodes {
     display: flex;
     justify-content: space-between;
@@ -340,24 +390,109 @@ body {
     margin-top: 8px;
     color: #475569;
 }
-/* أنماط الشروط */
-.terms-container { direction: rtl; margin-top: 30px; }
-.terms-title { font-size: 22px; font-weight: 800; color: #1e3a5f; text-align: center; margin: 30px 0 20px; border-bottom: 2px solid #1e3a5f; padding-bottom: 10px; }
-.legal-notice { background: #fef3c7; border-right: 4px solid #f59e0b; padding: 15px; margin: 20px 0 30px; border-radius: 12px; }
-.legal-notice strong { font-size: 16px; color: #92400e; }
-.legal-notice span { font-size: 14px; line-height: 1.7; color: #78350f; }
-.terms-section { margin-bottom: 30px; page-break-inside: avoid; }
-.terms-section-header { background: linear-gradient(135deg, #1e3a5f, #2c4c7a); color: white; padding: 12px 20px; border-radius: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
-.terms-section-icon { font-size: 26px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 12px; }
-.terms-section-header h4 { margin: 0; font-size: 18px; font-weight: 700; }
-.terms-section-content { padding-right: 15px; }
-.terms-section-content p { font-size: 14px; line-height: 1.7; margin-bottom: 12px; color: #1e293b; }
-.declaration { background: #e0f2fe; border-right: 5px solid #0284c7; padding: 18px; margin: 25px 0; border-radius: 16px; }
-.signature-area { margin-top: 30px; padding: 18px; background: #f8fafc; border-radius: 16px; }
-.signature-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-.signature-label { font-weight: 700; min-width: 100px; font-size: 14px; }
-.signature-placeholder { border-bottom: 1px solid #94a3b8; min-width: 220px; display: inline-block; height: 26px; }
-/* ألوان الأقسام */
+
+/* ========================================
+   الشروط والأحكام
+   ======================================== */
+.terms-container {
+    direction: rtl;
+    margin-top: 30px;
+}
+.terms-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1e3a5f;
+    text-align: center;
+    margin: 30px 0 20px;
+    border-bottom: 2px solid #1e3a5f;
+    padding-bottom: 10px;
+}
+.legal-notice {
+    background: #fef3c7;
+    border-right: 4px solid #f59e0b;
+    padding: 15px;
+    margin: 20px 0 30px;
+    border-radius: 12px;
+}
+.legal-notice strong {
+    font-size: 16px;
+    color: #92400e;
+}
+.legal-notice span {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #78350f;
+}
+.terms-section {
+    margin-bottom: 30px;
+    page-break-inside: avoid;
+}
+.terms-section-header {
+    background: linear-gradient(135deg, #1e3a5f, #2c4c7a);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.terms-section-icon {
+    font-size: 26px;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+.terms-section-header h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+.terms-section-content {
+    padding-right: 15px;
+}
+.terms-section-content p {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+    color: #1e293b;
+}
+.terms-section-content strong {
+    color: #1e3a5f;
+}
+.declaration {
+    background: #e0f2fe;
+    border-right: 5px solid #0284c7;
+    padding: 18px;
+    margin: 25px 0;
+    border-radius: 16px;
+}
+.signature-area {
+    margin-top: 30px;
+    padding: 18px;
+    background: #f8fafc;
+    border-radius: 16px;
+}
+.signature-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+.signature-label {
+    font-weight: 700;
+    min-width: 100px;
+    font-size: 14px;
+}
+.signature-placeholder {
+    border-bottom: 1px solid #94a3b8;
+    min-width: 220px;
+    display: inline-block;
+    height: 26px;
+}
+
+/* ألوان أقسام الشروط */
 .terms-section-1 .terms-section-header { background: linear-gradient(135deg, #1e3a5f, #2c4c7a); }
 .terms-section-2 .terms-section-header { background: linear-gradient(135deg, #14532d, #166534); }
 .terms-section-3 .terms-section-header { background: linear-gradient(135deg, #4c1d95, #5b21b6); }
@@ -372,10 +507,31 @@ body {
 .terms-section-12 .terms-section-header { background: linear-gradient(135deg, #701a75, #86198f); }
 .terms-section-13 .terms-section-header { background: linear-gradient(135deg, #4f46e5, #6366f1); }
 
+/* استجابة للشاشات الصغيرة */
 @media (max-width: 768px) {
-    .page { padding: 6mm; }
-    .products-table th, .products-table td { font-size: 9px; padding: 4px 2px; }
-    .totals-box { width: 100%; }
-    .barcodes, .addresses, .payment-grid { flex-direction: column; }
-    .legal-numbers { white-space: normal; }
+    .page {
+        padding: 6mm;
+    }
+    .products-table th, .products-table td {
+        font-size: 9px;
+        padding: 4px 2px;
+    }
+    .totals-box {
+        width: 100%;
+    }
+    .barcodes {
+        flex-direction: column;
+    }
+    .addresses {
+        flex-direction: column;
+    }
+    .payment-grid {
+        flex-direction: column;
+    }
+    .terms-section-content p {
+        font-size: 13px;
+    }
+    .legal-numbers {
+        white-space: normal;
+    }
 }
