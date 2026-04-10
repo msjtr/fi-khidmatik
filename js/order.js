@@ -1,4 +1,4 @@
-// js/order.js - نظام إدارة الطلبات المتكامل
+// js/order.js - نظام إدارة الطلبات المتكامل (مع معالجة المسارات المطلقة للصور)
 
 // استيراد دوال Firebase بشكل صحيح
 import { 
@@ -23,6 +23,18 @@ export let customersMap = new Map();
 export let productsMap = new Map();
 let cacheLastUpdated = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 دقائق
+
+// ================= دالة تحويل المسار النسبي إلى مطلق =================
+function toAbsoluteImageUrl(url) {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+    }
+    if (url.startsWith('/')) {
+        return window.location.origin + url;
+    }
+    return window.location.origin + '/fi-khidmatik/' + url;
+}
 
 // ================= دوال مساعدة =================
 const nowISO = () => new Date().toISOString();
@@ -117,7 +129,6 @@ export async function getOrderFull(orderId) {
             return null;
         }
         
-        // تأكد من تحميل الكاش
         await loadCustomersAndProducts();
         
         const order = await getDocument('orders', orderId);
@@ -132,7 +143,7 @@ export async function getOrderFull(orderId) {
 
         const items = (order.items || []).map(item => {
             const product = productsMap.get(item.productId) || {};
-            const finalImage = product.image || item.image || '';
+            const finalImage = toAbsoluteImageUrl(product.image || item.image || '');
             
             return {
                 ...item,
@@ -193,7 +204,7 @@ export async function getAllOrdersFull(limitCount = 500) {
             
             const items = (order.items || []).map(item => {
                 const product = productsMap.get(item.productId) || {};
-                const finalImage = product.image || item.image || '';
+                const finalImage = toAbsoluteImageUrl(product.image || item.image || '');
                 
                 return {
                     ...item,
@@ -266,7 +277,7 @@ export async function getFilteredOrdersFull(filters = {}) {
             
             const items = (order.items || []).map(item => {
                 const product = productsMap.get(item.productId) || {};
-                const finalImage = product.image || item.image || '';
+                const finalImage = toAbsoluteImageUrl(product.image || item.image || '');
                 
                 return {
                     ...item,
@@ -341,7 +352,7 @@ export const addProduct = async (data) => {
         
         const productData = { 
             ...data, 
-            image: data.image || '',
+            image: toAbsoluteImageUrl(data.image || ''),
             code: data.code || `PRD-${Date.now()}`,
             stock: data.stock || 0,
             createdAt: nowISO(), 
@@ -351,7 +362,6 @@ export const addProduct = async (data) => {
         const docRef = await addDoc(collection(db, 'products'), productData);
         console.log('✅ تم إضافة المنتج:', docRef.id);
         
-        // تحديث الكاش
         productsMap.set(docRef.id, productData);
         
         return { id: docRef.id, ...productData };
@@ -367,14 +377,13 @@ export const updateProduct = async (id, data) => {
         
         const updateData = { 
             ...data, 
-            image: data.image || '',
+            image: toAbsoluteImageUrl(data.image || ''),
             updatedAt: nowISO() 
         };
         
         await updateDoc(doc(db, 'products', id), updateData);
         console.log('✅ تم تحديث المنتج:', id);
         
-        // تحديث الكاش
         if (productsMap.has(id)) {
             const existing = productsMap.get(id);
             productsMap.set(id, { ...existing, ...updateData });
@@ -510,7 +519,7 @@ export const addOrder = async (data) => {
     try {
         const itemsWithImages = (data.items || []).map(item => ({
             ...item,
-            image: item.image || '',
+            image: toAbsoluteImageUrl(item.image || ''),
             productId: item.productId || null
         }));
         
@@ -534,12 +543,11 @@ export const addOrder = async (data) => {
 
 export const updateOrder = async (id, data) => {
     try {
-        // إزالة createdAt من البيانات إذا كانت موجودة
         const { createdAt, ...cleanData } = data;
         
         const itemsWithImages = (cleanData.items || []).map(item => ({
             ...item,
-            image: item.image || '',
+            image: toAbsoluteImageUrl(item.image || ''),
             productId: item.productId || null
         }));
         
@@ -572,15 +580,16 @@ export async function updateProductImage(productId, imageUrl) {
     try {
         if (!productId) throw new Error('معرف المنتج مطلوب');
         
+        const absoluteUrl = toAbsoluteImageUrl(imageUrl);
         const productRef = doc(db, 'products', productId);
         await updateDoc(productRef, {
-            image: imageUrl,
+            image: absoluteUrl,
             updatedAt: nowISO()
         });
         
         if (productsMap.has(productId)) {
             const product = productsMap.get(productId);
-            productsMap.set(productId, { ...product, image: imageUrl });
+            productsMap.set(productId, { ...product, image: absoluteUrl });
         }
         
         console.log('✅ تم تحديث صورة المنتج:', productId);
@@ -599,8 +608,8 @@ export async function getProductWithImage(productId) {
         
         return {
             ...product,
-            image: product.image || '',
-            imageUrl: product.image || ''
+            image: toAbsoluteImageUrl(product.image || ''),
+            imageUrl: toAbsoluteImageUrl(product.image || '')
         };
     } catch (error) {
         console.error('❌ خطأ في جلب المنتج:', error);
