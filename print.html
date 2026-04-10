@@ -8,7 +8,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS@master/dist/easy.qrcode.min.js"></script>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -29,7 +29,6 @@
         .info-item span { font-weight: 700; color: #1e3a5f; }
         .address-box { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .card { border: 1px solid #eee; padding: 15px; border-radius: 10px; }
-        .card h4 { margin-bottom: 10px; color: #1e3a5f; border-bottom: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th { background: #1e3a5f; color: white; padding: 10px; font-size: 14px; }
         td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 13px; }
@@ -39,23 +38,20 @@
         .barcodes { display: flex; justify-content: space-around; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc; }
         .qr-item { text-align: center; font-size: 10px; color: #777; width: 130px; }
         .qr-code { width: 120px; height: 120px; margin: 0 auto 5px; }
-        .footer { margin-top: auto; background: #1e3a5f; color: white; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; font-size: 11px; }
         .preview-buttons { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000; }
         button { padding: 10px 25px; border: none; border-radius: 25px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
         .btn-print { background: #1e3a5f; color: white; }
-        .btn-pdf { background: #dc2626; color: white; }
         @media print { .no-print { display: none !important; } .page { box-shadow: none; margin: 0; width: 100%; } }
     </style>
 </head>
 <body>
 
     <div id="printContent">
-        <div style="text-align:center; padding: 50px;">تحميل بيانات الفاتورة...</div>
+        <div style="text-align:center; padding: 50px;">جاري تجهيز الفاتورة...</div>
     </div>
 
     <div class="preview-buttons no-print">
-        <button class="btn-print" onclick="window.print()">🖨️ طباعة</button>
-        <button class="btn-pdf" onclick="exportToPDF()">📄 حفظ PDF</button>
+        <button class="btn-print" onclick="window.print()">🖨️ طباعة الفاتورة</button>
     </div>
 
     <script>
@@ -73,31 +69,26 @@
 
         const sellerData = {
             name: "في خدمتك",
-            taxNumber: "312495447600003",
-            address: "حائل - حي النقرة",
-            phone: "+966534051317"
+            taxNumber: "312495447600003"
         };
 
-        // دالة توليد الباركود مع معالجة ذكية لحجم البيانات
+        // الدالة الجديدة المعتمدة على EasyQRCodeJS
         function generateQR(id, text) {
             const container = document.getElementById(id);
             if (!container) return;
             container.innerHTML = "";
             
-            try {
-                new QRCode(container, {
-                    text: text,
-                    width: 120,
-                    height: 120,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.L // أدنى مستوى تصحيح للسماح ببيانات أكثر
-                });
-            } catch (e) {
-                console.error("QR Overflow, shortening data...");
-                // في حال الفشل، نرسل نسخة مختصرة جداً لضمان عدم توقف الصفحة
-                new QRCode(container, { text: text.substring(0, 200), width: 120, height: 120 });
-            }
+            new QRCode(container, {
+                text: text,
+                width: 120,
+                height: 120,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L,
+                // خصائص المكتبة الحديثة لمعالجة البيانات الضخمة
+                quietZone: 10,
+                version: 0 // تلقائي
+            });
         }
 
         function renderInvoice(order) {
@@ -108,23 +99,20 @@
             const html = `
                 <div class="page">
                     <div class="header">
-                        <div class="logo-text">
-                            <div class="name">${sellerData.name}</div>
-                            <div style="font-size:11px;">للخدمات اللوجستية</div>
-                        </div>
+                        <div class="logo-text"><div class="name">${sellerData.name}</div></div>
                         <div class="invoice-title">فاتورة ضريبية مبسطة</div>
                     </div>
 
                     <div class="info-grid">
                         <div class="info-item"><label>رقم الفاتورة</label><span>${order.orderNumber || order.id.substring(0,8)}</span></div>
                         <div class="info-item"><label>التاريخ</label><span>${order.orderDate || '---'}</span></div>
-                        <div class="info-item"><label>طريقة الدفع</label><span>${order.paymentMethod || 'نقدي'}</span></div>
+                        <div class="info-item"><label>المجموع</label><span>${total.toFixed(2)} ريال</span></div>
                     </div>
 
                     <div class="address-box">
                         <div class="card">
                             <h4>المورد</h4>
-                            <p><strong>${sellerData.name}</strong><br>الرقم الضريبي: ${sellerData.taxNumber}<br>${sellerData.address}</p>
+                            <p><strong>${sellerData.name}</strong><br>الرقم الضريبي: ${sellerData.taxNumber}</p>
                         </div>
                         <div class="card">
                             <h4>العميل</h4>
@@ -151,63 +139,33 @@
                     <div class="totals">
                         <div class="total-row"><span>المجموع:</span><span>${subtotal.toFixed(2)} ريال</span></div>
                         <div class="total-row"><span>الضريبة:</span><span>${tax.toFixed(2)} ريال</span></div>
-                        <div class="total-row grand-total"><span>الإجمالي النهائي:</span><span>${total.toFixed(2)} ريال</span></div>
+                        <div class="total-row grand-total"><span>الإجمالي:</span><span>${total.toFixed(2)} ريال</span></div>
                     </div>
 
                     <div class="barcodes">
                         <div class="qr-item"><div id="zatcaQR" class="qr-code"></div>باركود الزكاة</div>
                         <div class="qr-item"><div id="verifyQR" class="qr-code"></div>التحقق</div>
                     </div>
-
-                    <div class="footer">
-                        <span>صدرت من نظام في خدمتك</span>
-                        <span>${new Date().toLocaleString('ar-SA')}</span>
-                    </div>
                 </div>
             `;
 
             document.getElementById('printContent').innerHTML = html;
 
-            // --- تحسين البيانات (Optimization) لتجنب Overflow ---
-            // نكتفي بالبيانات الإلزامية فقط لهيئة الزكاة لتقليل الحجم
-            const shortDate = order.orderDate ? order.orderDate.substring(0, 16) : new Date().toISOString();
-            const qrZatcaData = `S:${sellerData.name}|V:${sellerData.taxNumber}|D:${shortDate}|T:${total.toFixed(2)}`;
-            
-            // باركود التحقق: نستخدم الرابط الأساسي فقط دون المعلمات الزائدة
-            const cleanUrl = window.location.origin + window.location.pathname + "?id=" + order.id;
-
-            generateQR("zatcaQR", qrZatcaData);
-            generateQR("verifyQR", cleanUrl);
+            // توليد الباركود بالبيانات كاملة دون خوف من الـ Overflow
+            const zatcaData = `S:${sellerData.name}|V:${sellerData.taxNumber}|D:${order.orderDate}|T:${total.toFixed(2)}`;
+            generateQR("zatcaQR", zatcaData);
+            generateQR("verifyQR", window.location.href);
         }
 
         async function init() {
             const urlParams = new URLSearchParams(window.location.search);
             const docId = urlParams.get('id');
-
-            if (!docId) {
-                document.getElementById('printContent').innerHTML = "خطأ: رقم الفاتورة مفقود.";
-                return;
-            }
+            if (!docId) return;
 
             try {
                 const doc = await db.collection("orders").doc(docId).get();
-                if (doc.exists) {
-                    renderInvoice({ id: doc.id, ...doc.data() });
-                } else {
-                    document.getElementById('printContent').innerHTML = "الفاتورة غير موجودة.";
-                }
-            } catch (e) {
-                document.getElementById('printContent').innerHTML = "خطأ في جلب البيانات.";
-            }
-        }
-
-        async function exportToPDF() {
-            const element = document.querySelector(".page");
-            const canvas = await html2canvas(element, { scale: 2 });
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF("p", "mm", "a4");
-            pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 210, 297);
-            pdf.save("invoice.pdf");
+                if (doc.exists) renderInvoice({ id: doc.id, ...doc.data() });
+            } catch (e) { console.error(e); }
         }
 
         window.onload = init;
