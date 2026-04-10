@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <!-- Firebase v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <style>
@@ -38,12 +37,17 @@
     </div>
 
     <script>
-        // ========== إعدادات وكيل CORS ==========
+        // إعدادات CORS
         const CORS_BLOCKED_DOMAINS = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
         const CORS_PROXY = "https://api.allorigins.win/raw?url=";
         
-        // صورة افتراضية (تم تعديلها: علامات تنصيص مزدوجة بدلاً من المفردة)
+        // الصورة الافتراضية (تم إصلاح علامات التنصيص)
         const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"45\" height=\"45\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23999\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"%3E%3Crect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"2.18\" ry=\"2.18\"%3E%3C/rect%3E%3Cpath d=\"M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5\"%3E%3C/path%3E%3C/svg%3E";
+        
+        // دالة لتأمين الصورة الافتراضية لاستخدامها في onerror
+        function getSafePlaceholder() {
+            return PLACEHOLDER_IMAGE.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
         
         // دالة لتحويل المسار النسبي إلى مطلق ومعالجة CORS
         function getFinalImageUrl(url) {
@@ -66,13 +70,14 @@
             return absoluteUrl;
         }
         
-        // دوال مساعدة أساسية
+        // دوال مساعدة للتنسيق
         window.formatDate = function(dateStr) {
             if (!dateStr) return '';
             const d = new Date(dateStr);
             if (isNaN(d.getTime())) return dateStr;
             return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()}`;
         };
+        
         window.formatTime = function(time24) {
             if (!time24) return '';
             let [h, m] = time24.split(':');
@@ -81,6 +86,7 @@
             hour = hour % 12 || 12;
             return `${hour.toString().padStart(2, '0')}:${m} ${ampm}`;
         };
+        
         window.escapeHtml = function(str) {
             if (!str) return '';
             return String(str).replace(/[&<>]/g, function(m) {
@@ -168,26 +174,31 @@
             const escape = window.escapeHtml;
             
             const items = order.items || [];
-            const subtotal = order.subtotal || items.reduce((s, i) => s + (i.price||0)*(i.quantity||1), 0);
+            let subtotal = order.subtotal || 0;
+            if (!order.subtotal) {
+                subtotal = 0;
+                for (let i = 0; i < items.length; i++) {
+                    subtotal += (items[i].price || 0) * (items[i].quantity || 1);
+                }
+            }
             const discount = order.discount || 0;
             const tax = order.tax || ((subtotal - discount) * 0.15);
             const total = order.total || (subtotal - discount + tax);
             
             let itemsHtml = '';
-            for (let i=0; i<items.length; i++) {
+            for (let i = 0; i < items.length; i++) {
                 const item = items[i];
                 const finalImageUrl = getFinalImageUrl(item.image);
                 const safeImageUrl = finalImageUrl.replace(/"/g, '&quot;');
-                // إصلاح onerror: تجنب تداخل علامات التنصيص المفردة
-                const safePlaceholder = PLACEHOLDER_IMAGE.replace(/'/g, "\\'");
+                const safePlaceholder = getSafePlaceholder();
                 itemsHtml += `
                     <tr>
                         <td style="text-align:center">${i+1}</td>
                         <td style="text-align:center"><img src="${safeImageUrl}" class="product-img" style="width:45px;height:45px;object-fit:cover;" onerror="this.src='${safePlaceholder}'"></td>
                         <td style="text-align:right"><strong>${escape(cleanText(item.name))}</strong><br><small>${escape(cleanText(item.description))}</small></td>
                         <td style="text-align:center">${item.quantity}</td>
-                        <td style="text-align:center;direction:ltr">${(item.price||0).toFixed(2)} ريال</td>
-                        <td style="text-align:center;direction:ltr">${((item.price||0)*(item.quantity||1)).toFixed(2)} ريال</td>
+                        <td style="text-align:center;direction:ltr">${(item.price || 0).toFixed(2)} ريال</td>
+                        <td style="text-align:center;direction:ltr">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال</td>
                     </tr>
                 `;
             }
@@ -200,6 +211,8 @@
             
             const customerAddressHtml = `<p><i class="fas fa-user"></i> ${escape(order.customerName)}</p><p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress)}</p><p><i class="fas fa-phone-alt"></i> ${escape(order.customerPhone)}</p><p><i class="fas fa-envelope"></i> ${escape(order.customerEmail)}</p>`;
             const sellerAddressHtml = `<p><i class="fas fa-store"></i> ${sellerData.name}</p><p><i class="fas fa-location-dot"></i> المملكة العربية السعودية</p><p><i class="fas fa-location-dot"></i> ${sellerData.address}</p><p><i class="fas fa-phone-alt"></i> ${sellerData.phone}</p>`;
+            
+            const discountRow = discount > 0 ? `<div class="totals-row"><span>الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>` : '';
             
             return `
                 <div class="page invoice-page">
@@ -218,10 +231,15 @@
                         <div class="payment-card"><i class="fas fa-check-circle"></i> <strong>رمز الموافقة</strong><br>${order.approvalCode || 'غير مطلوب'}</div>
                         <div class="payment-card"><i class="fas fa-truck"></i> <strong>طريقة الاستلام</strong><br>${getShippingText(order.shippingMethod)}</div>
                     </div>
-                    <table class="products-table"><thead><tr><th>#</th><th>الصورة</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+                    <table class="products-table">
+                        <thead>
+                            <tr><th>#</th><th>الصورة</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                        </thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
                     <div class="totals-box">
                         <div class="totals-row"><span>المجموع الفرعي</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                        ${discount>0?`<div class="totals-row"><span>الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>`:''}
+                        ${discountRow}
                         <div class="totals-row"><span>ضريبة القيمة المضافة 15%</span><span>${tax.toFixed(2)} ريال</span></div>
                         <div class="totals-row grand-total"><span>الإجمالي النهائي</span><span>${total.toFixed(2)} ريال</span></div>
                     </div>
@@ -235,8 +253,8 @@
             `;
         }
         
-        // دوال الطباعة
-        async function waitForImages(element, timeout=8000) {
+        // دوال الطباعة والتصدير
+        async function waitForImages(element, timeout = 8000) {
             const imgs = Array.from(element.querySelectorAll('img'));
             await Promise.all(imgs.map(img => {
                 if (img.complete) return Promise.resolve();
@@ -252,18 +270,18 @@
             if (!pages.length) return alert("لا توجد صفحات للتصدير");
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
-            for (let i=0; i<pages.length; i++) {
+            for (let i = 0; i < pages.length; i++) {
                 await waitForImages(pages[i]);
                 const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' });
-                if(i!==0) pdf.addPage();
-                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height*210)/canvas.width);
+                if (i !== 0) pdf.addPage();
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
             }
             pdf.save("invoice.pdf");
         };
         
         window.exportToPNG = async function() {
             const pages = document.querySelectorAll('.page');
-            for(let i=0; i<pages.length; i++) {
+            for (let i = 0; i < pages.length; i++) {
                 await waitForImages(pages[i]);
                 const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' });
                 const link = document.createElement('a');
@@ -273,11 +291,17 @@
             }
         };
         
-        window.buildTermsPage1 = function(p,t) { return `<div class="page">${buildInvoiceHeader('الشروط والأحكام')}<p style="padding:20px">شروط وأحكام الخدمة متاحة على الموقع.</p>${buildInvoiceFooter(p,t)}</div>`; };
-        window.buildTermsPage2 = function(p,t) { return `<div class="page">${buildInvoiceHeader('الشروط والأحكام (تابع)')}<p style="padding:20px">البنود المالية والقانونية.</p>${buildInvoiceFooter(p,t)}</div>`; };
-        window.buildTermsPage3 = function(order,p,t) { return `<div class="page">${buildInvoiceHeader('الإقرار والتوقيع')}<p style="padding:20px">أقر أنا العميل بصحة البيانات.</p>${buildInvoiceFooter(p,t)}</div>`; };
+        window.buildTermsPage1 = function(p, t) {
+            return `<div class="page">${buildInvoiceHeader('الشروط والأحكام')}<p style="padding:20px">شروط وأحكام الخدمة متاحة على الموقع.</p>${buildInvoiceFooter(p, t)}</div>`;
+        };
+        window.buildTermsPage2 = function(p, t) {
+            return `<div class="page">${buildInvoiceHeader('الشروط والأحكام (تابع)')}<p style="padding:20px">البنود المالية والقانونية.</p>${buildInvoiceFooter(p, t)}</div>`;
+        };
+        window.buildTermsPage3 = function(order, p, t) {
+            return `<div class="page">${buildInvoiceHeader('الإقرار والتوقيع')}<p style="padding:20px">أقر أنا العميل بصحة البيانات.</p>${buildInvoiceFooter(p, t)}</div>`;
+        };
         
-        // ========== تهيئة Firebase ==========
+        // تهيئة Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
             authDomain: "msjt301-974bb.firebaseapp.com",
@@ -378,11 +402,11 @@
             setTimeout(() => {
                 try {
                     const zatcaDiv = document.getElementById('zatcaQR');
-                    if (zatcaDiv && typeof QRCode !== 'undefined') new QRCode(zatcaDiv, { text: "https://zatca.gov.sa", width:90, height:90 });
+                    if (zatcaDiv && typeof QRCode !== 'undefined') new QRCode(zatcaDiv, { text: "https://zatca.gov.sa", width: 90, height: 90 });
                     const websiteDiv = document.getElementById('websiteQR');
-                    if (websiteDiv && typeof QRCode !== 'undefined') new QRCode(websiteDiv, { text: "https://linktr.ee/fikhidmatik", width:90, height:90 });
+                    if (websiteDiv && typeof QRCode !== 'undefined') new QRCode(websiteDiv, { text: "https://linktr.ee/fikhidmatik", width: 90, height: 90 });
                     const downloadDiv = document.getElementById('downloadQR');
-                    if (downloadDiv && typeof QRCode !== 'undefined') new QRCode(downloadDiv, { text: window.location.href, width:90, height:90 });
+                    if (downloadDiv && typeof QRCode !== 'undefined') new QRCode(downloadDiv, { text: window.location.href, width: 90, height: 90 });
                 } catch(e) { console.warn("QR error", e); }
             }, 300);
             
