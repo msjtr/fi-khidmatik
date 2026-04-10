@@ -20,7 +20,6 @@
             font-family: 'Tajawal', sans-serif;
             font-size: 14px;
         }
-        /* تنسيق الصفحة */
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -34,7 +33,6 @@
             position: relative;
             word-wrap: break-word;
         }
-        /* تحسين الطباعة */
         @media print {
             body {
                 background: white;
@@ -51,14 +49,7 @@
             }
             @page {
                 size: A4;
-                margin: 1.5cm;
-            }
-            /* منع تكسر المحتوى داخل العناصر الطويلة */
-            .terms-content, .addresses, .payment-grid, .products-table {
-                page-break-inside: avoid;
-            }
-            h3, .clause {
-                page-break-after: avoid;
+                margin: 1.8cm;
             }
         }
         /* رأس الصفحة */
@@ -104,7 +95,7 @@
             direction: ltr;
             white-space: nowrap;
         }
-        /* معلومات أساسية */
+        /* المعلومات الأساسية */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(3,1fr);
@@ -347,38 +338,15 @@
         }
         /* تحسينات الجوال */
         @media (max-width: 700px) {
-            body {
-                padding: 10px;
-            }
-            .page-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            .header-left .legal-numbers div {
-                white-space: normal;
-                text-align: center;
-            }
-            .info-grid {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-            .addresses {
-                flex-direction: column;
-            }
-            .payment-grid {
-                grid-template-columns: 1fr;
-            }
-            .totals-box {
-                width: auto;
-                margin: 0 20px 20px;
-            }
-            .barcodes {
-                gap: 15px;
-            }
-            .terms-content {
-                padding: 10px 15px;
-                font-size: 12px;
-            }
+            body { padding: 10px; }
+            .page-header { flex-direction: column; text-align: center; }
+            .header-left .legal-numbers div { white-space: normal; text-align: center; }
+            .info-grid { grid-template-columns: 1fr; gap: 8px; }
+            .addresses { flex-direction: column; }
+            .payment-grid { grid-template-columns: 1fr; }
+            .totals-box { width: auto; margin: 0 20px 20px; }
+            .barcodes { gap: 15px; }
+            .terms-content { padding: 10px 15px; font-size: 12px; }
         }
     </style>
 </head>
@@ -493,7 +461,8 @@
             `;
         }
         
-        function buildInvoiceFooter(pageNum, totalPages) {
+        function buildInvoiceFooter(pageNum, totalPages, showThanks = false) {
+            const thanks = showThanks ? '<div class="legal-footer" style="font-weight:bold; font-size:11px;">✅ فاتورة معتمدة - شكراً لتسوقكم</div>' : '<div class="legal-footer">فاتورة إلكترونية - نسخة معتمدة قانونياً</div>';
             return `
                 <div class="page-footer">
                     <div class="contact-info">
@@ -502,7 +471,7 @@
                         <span><i class="fas fa-envelope"></i> ${sellerData.email}</span>
                         <span><i class="fas fa-globe"></i> ${sellerData.website}</span>
                     </div>
-                    <div class="legal-footer">فاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+                    ${thanks}
                     <div class="page-number">صفحة ${pageNum} من ${totalPages}</div>
                 </div>
             `;
@@ -584,36 +553,119 @@
                         <div class="barcode-item"><div id="websiteQR" class="qr-code"></div><p>للوصول السريع إلى موقعنا الإلكتروني</p></div>
                         <div class="barcode-item"><div id="downloadQR" class="qr-code"></div><p>باركود تحميل الفاتورة</p></div>
                     </div>
-                    ${buildInvoiceFooter(pageNum, totalPages)}
+                    ${buildInvoiceFooter(pageNum, totalPages, false)}
                 </div>
             `;
         }
         
-        function buildTermsPage(pageNum, totalPages, title, contentHtml) {
+        function buildTermsPage(pageNum, totalPages, title, contentHtml, showThanks = false) {
             return `
                 <div class="page">
                     ${buildInvoiceHeader(title)}
                     <div class="terms-content">
                         ${contentHtml}
                     </div>
-                    ${buildInvoiceFooter(pageNum, totalPages)}
+                    ${buildInvoiceFooter(pageNum, totalPages, showThanks)}
                 </div>
             `;
         }
         
-        // محتوى الشروط الكامل (مختصر هنا لكنه كامل في الملف النهائي، أضعه كما هو)
+        // ========== محتوى الشروط والأحكام مقسم على 3 صفحات ==========
         const disclaimerHtml = `<p style="font-weight:bold;">إقرار مسؤولية البيانات والمعلومات:</p><p>يقر العميل ويوافق على أن جميع المعلومات والبيانات والمستندات التي قام بتزويد مقدم الخدمة بها أو تم إدراجها في هذا المستند صحيحة ودقيقة ومكتملة، ويتحمل وحده كامل المسؤولية عنها، كما يتحمل كافة الآثار القانونية والمالية والفنية المترتبة على أي خطأ أو نقص أو عدم دقة فيها، ويلتزم بتعويض مقدم الخدمة تعويضًا كاملاً عن أي أضرار أو خسائر أو مطالبات تنشأ نتيجة لذلك، دون أدنى مسؤولية على مقدم الخدمة.</p><p>يُعد هذا المستند (عرض سعر / فاتورة) اتفاقًا ملزمًا قانونيًا بين الطرفين، ويُعتبر اعتماد العميل أو سداد أي دفعة أو بدء التنفيذ إقرارًا صريحًا ونهائيًا بالموافقة على جميع ما ورد فيه من شروط وأحكام دون أي تحفظ، كما يتحمل العميل مسؤولية عدم الاطلاع أو عدم الفهم لأي من البنود.</p><hr/>`;
         
-        // تم تضمين جميع البنود من 1 إلى 57 (لن أكررها هنا للاختصار ولكنها موجودة في الكود الأصلي، سأضعها كاملة في التنفيذ النهائي)
-        // يجب إدراج termsHtml كاملاً. (سأفترض أنه موجود كما في السابق)
-        // للاختصار في هذه الرسالة، سأشير إلى أنه سيتم إدراج كل البنود.
-        const termsHtml = `... (جميع البنود من 1 إلى 57 كما وردت سابقاً) ...`; 
-        // في الملف النهائي سيتم وضع المحتوى الكامل.
+        // الصفحة الأولى من الشروط (البنود 1-22)
+        const termsPage1 = `
+            <h3>أولاً: صلاحية العرض والتنفيذ</h3>
+            <div class="clause"><strong>1. مدة صلاحية العرض:</strong> يكون عرض السعر/الفاتورة صالحًا لمدة 3 أيام عمل فقط، ويُعد لاغيًا بعدها دون إشعار.</div>
+            <div class="clause"><strong>2. بدء التنفيذ:</strong> بعد استلام الدفعة المقدمة وجميع المتطلبات من العميل.</div>
+            <div class="clause"><strong>3. مدة التنفيذ:</strong> تحتسب من اكتمال المتطلبات، ولا يتحمل مقدم الخدمة تأخيرًا بسبب العميل.</div>
+            <div class="clause"><strong>4. التأخير:</strong> لا مسؤولية عن تأخير ناتج عن ظروف خارجة عن الإرادة أو أطراف ثالثة.</div>
+            <div class="clause"><strong>5. الموافقات الخارجية:</strong> لا يضمن مقدم الخدمة الحصول على موافقات جهات خارجية.</div>
+            <h3>ثانياً: التكاليف والمسؤوليات المالية</h3>
+            <div class="clause"><strong>6. الرسوم الخارجية:</strong> لا تشمل الفاتورة رسوم السيرفرات، النطاقات، التراخيص، أو رسوم الجهات الخارجية.</div>
+            <div class="clause"><strong>7. خدمات الطرف الثالث:</strong> تخضع لسياساتها، ولا مسؤولية على مقدم الخدمة.</div>
+            <div class="clause"><strong>8. المدفوعات الخارجية:</strong> المبالغ المدفوعة لجهات خارجية غير قابلة للاسترجاع.</div>
+            <div class="clause"><strong>9. الدفع نيابة عن العميل:</strong> المبالغ التي يسددها مقدم الخدمة نيابة عن العميل تُعد دينًا مستحقًا.</div>
+            <div class="clause"><strong>10. الضريبة:</strong> الأسعار لا تشمل ضريبة القيمة المضافة 15%.</div>
+            <h3>ثالثاً: التسليم والملكية</h3>
+            <div class="clause"><strong>11. نطاق التسليم:</strong> فقط الأعمال المذكورة في الفاتورة.</div>
+            <div class="clause"><strong>12. المنتج النهائي:</strong> التسليم للمنتج النهائي فقط، لا يشمل الملفات المفتوحة أو الكود المصدري.</div>
+            <div class="clause"><strong>13. الكود المصدري:</strong> يبقى ملكًا لمقدم الخدمة ولا يُسلم إلا باتفاق مستقل.</div>
+            <div class="clause"><strong>14. نقل الملكية:</strong> لا يتم إلا باتفاق كتابي وسداد كامل المقابل.</div>
+            <div class="clause"><strong>15. عدم طلب التسليم:</strong> في حال عدم طلب العميل نقل الملكية، لا يلتزم مقدم الخدمة بتسليم أي ملفات.</div>
+            <div class="clause"><strong>16. حق إعادة الاستخدام:</strong> يحتفظ مقدم الخدمة بحق إعادة استخدام الأعمال المنفذة.</div>
+            <h3>رابعاً: الدفعات والاسترجاع</h3>
+            <div class="clause"><strong>17. نظام الدفع:</strong> دفعة واحدة أو على دفعات حسب الاتفاق.</div>
+            <div class="clause"><strong>18. تأخر السداد:</strong> يحق لمقدم الخدمة إيقاف العمل فوراً.</div>
+            <div class="clause"><strong>19. عدم الاسترجاع:</strong> لا يحق للعميل استرجاع أي مبلغ بعد بدء التنفيذ.</div>
+            <div class="clause"><strong>20. إيقاف المشروع من مقدم الخدمة:</strong> عند مخالفة العميل للشروط.</div>
+            <div class="clause"><strong>21. احتساب الأعمال:</strong> حسب نسبة الإنجاز الفعلية حتى تاريخ الإيقاف.</div>
+            <div class="clause"><strong>22. الرسوم الإدارية:</strong> تضاف رسوم 20% على قيمة الأعمال المنفذة عند الإيقاف.</div>
+        `;
         
-        const signatureHtml = `<div style="margin-top:20px;"><p style="font-weight:bold;">الإقرار:</p><p>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p><table class="signature-table"><tr><td style="width:50%"><strong>الاسم:</strong> <span id="customerNameSignature"></span></td><td style="width:50%"><strong>التاريخ:</strong> <span id="signatureDate"></span></td></tr><tr><td colspan="2"><strong>التوقيع:</strong> .................</td></tr></table></div>`;
+        // الصفحة الثانية من الشروط (البنود 23-46)
+        const termsPage2 = `
+            <h3>خامساً: الضمان</h3>
+            <div class="clause"><strong>23. الضمان:</strong> حسب الخطة التشغيلية للمشروع.</div>
+            <div class="clause"><strong>24. نطاق الضمان:</strong> يقتصر على الأخطاء الفنية الناتجة عن مقدم الخدمة فقط.</div>
+            <div class="clause"><strong>25. الاستثناءات:</strong> لا يشمل سوء الاستخدام أو تعديلات من طرف العميل.</div>
+            <h3>سادساً: انتهاء العلاقة والمسؤولية</h3>
+            <div class="clause"><strong>26. انتهاء العلاقة:</strong> فور تسليم المشروع.</div>
+            <div class="clause"><strong>27. المسؤولية بعد التسليم:</strong> لا يتحمل مقدم الخدمة أي مسؤولية لاحقة.</div>
+            <div class="clause"><strong>28. التشغيل:</strong> العميل يتحمل مسؤولية تشغيل المشروع وإدارته.</div>
+            <div class="clause"><strong>29. البيانات:</strong> العميل مسؤول عن النسخ الاحتياطية.</div>
+            <div class="clause"><strong>30. براءة الذمة:</strong> لا مسؤولية عن خدمات الأطراف الثالثة.</div>
+            <h3>سابعاً: التواصل والتنفيذ</h3>
+            <div class="clause"><strong>31. وسائل التواصل:</strong> القنوات الرسمية المسجلة فقط.</div>
+            <div class="clause"><strong>32. التفويض:</strong> يلتزم العميل بإشعار مقدم الخدمة بأي تفويض.</div>
+            <div class="clause"><strong>33. النسخ الإلكترونية:</strong> معتمدة ولها نفس القوة القانونية.</div>
+            <h3>ثامناً: البنود القانونية</h3>
+            <div class="clause"><strong>34. طبيعة العلاقة:</strong> علاقة تعاقدية مستقلة، لا شراكة ولا وكالة.</div>
+            <div class="clause"><strong>35. كامل الاتفاق:</strong> يلغي أي اتفاقات سابقة.</div>
+            <div class="clause"><strong>36. الأخطاء غير المقصودة:</strong> لا تؤثر على صحة باقي البنود.</div>
+            <div class="clause"><strong>37. عدم التنازل:</strong> عدم استخدام حق لا يعني التنازل عنه.</div>
+            <div class="clause"><strong>38. اللغة المعتمدة:</strong> النسخة العربية هي المعتمدة.</div>
+            <h3>تاسعاً: النزاعات</h3>
+            <div class="clause"><strong>39. حل النزاعات:</strong> يتم السعي لحلها وديًا.</div>
+            <div class="clause"><strong>40. الجهة المختصة:</strong> يحق لمقدم الخدمة تحديد الجهة القضائية أو التحكيمية.</div>
+            <h3>عاشراً: البنود المتقدمة</h3>
+            <div class="clause"><strong>41. القوة القاهرة:</strong> لا مسؤولية عن تأخير بسبب ظروف خارجة عن الإرادة.</div>
+            <div class="clause"><strong>42. السرية:</strong> يلتزم الطرفان بعدم الإفصاح.</div>
+            <div class="clause"><strong>43. التعديلات خارج النطاق:</strong> تتم بموجب عرض سعر مستقل.</div>
+            <div class="clause"><strong>44. التوقف المؤقت:</strong> يحق لمقدم الخدمة إيقاف المشروع مؤقتًا لعدم تجاوب العميل.</div>
+            <div class="clause"><strong>45. الاستلام الحكمي:</strong> بعد 7 أيام من التسليم دون اعتراض.</div>
+            <div class="clause"><strong>46. الاعتراض:</strong> يجب تقديمه كتابيًا خلال 7 أيام.</div>
+        `;
         
-        // ========== دوال الطباعة والتصدير المحسنة ==========
-        async function waitForImages(element, timeout = 4000) {
+        // الصفحة الثالثة (البنود 47-57 + الإقرار والتوقيع مع خاتمة الشكر)
+        const termsPage3 = `
+            <h3>حادي عشر: البنود المالية والقانونية المتقدمة</h3>
+            <div class="clause"><strong>47. المدفوعات الخارجية:</strong> لا تُعد مستحقة لمقدم الخدمة ولا تُسترجع.</div>
+            <div class="clause"><strong>48. المدفوعات بالنيابة:</strong> تُحتسب ضمن تكاليف المشروع.</div>
+            <div class="clause"><strong>49. تفسير البنود:</strong> بما يحقق الغرض منها وبما يحفظ حقوق مقدم الخدمة.</div>
+            <div class="clause"><strong>50. حق رفض الخدمة:</strong> يحتفظ مقدم الخدمة بحق رفض الخدمة أو إيقافها.</div>
+            <h3>ثاني عشر: الحماية القانونية</h3>
+            <div class="clause"><strong>51. التنازل عن المطالبات:</strong> يتنازل العميل عن أي مطالبات تتجاوز قيمة الفاتورة.</div>
+            <div class="clause"><strong>52. حدود المسؤولية:</strong> لا تتجاوز إجمالي المبلغ المدفوع.</div>
+            <div class="clause"><strong>53. الاستخدام غير المشروع:</strong> العميل يتحمل المسؤولية.</div>
+            <div class="clause"><strong>54. الملكية الفكرية:</strong> محفوظة لمقدم الخدمة إلا باتفاق كتابي.</div>
+            <div class="clause"><strong>55. تحديث الشروط:</strong> يحق لمقدم الخدمة تحديثها مستقبلاً وتسري على الأعمال الجديدة.</div>
+            <div class="clause"><strong>56. استقلالية البنود:</strong> كل بند مستقل.</div>
+            <div class="clause"><strong>57. الشروط الإضافية والملحقات:</strong> أي شروط إضافية يجب توثيقها في ملحق مستقل وإلا لا تُعتبر جزءًا من هذا المستند.</div>
+            <hr/>
+            <div style="margin-top:20px;">
+                <p style="font-weight:bold;">الإقرار:</p>
+                <p>أقر أنا العميل بالاطلاع على جميع الشروط والأحكام أعلاه وأوافق عليها بالكامل وأتعهد بالالتزام بها دون أي استثناء.</p>
+                <table class="signature-table">
+                    <tr><td style="width:50%"><strong>الاسم:</strong> <span id="customerNameSignature"></span></td><td style="width:50%"><strong>التاريخ:</strong> <span id="signatureDate"></span></td></tr>
+                    <tr><td colspan="2"><strong>التوقيع:</strong> .................</td></tr>
+                </table>
+                <p style="text-align:center; margin-top:20px; font-weight:bold; font-size:14px;">✅ فاتورة معتمدة - شكراً لثقتكم بنا</p>
+            </div>
+        `;
+        
+        // ========== دوال الطباعة والتصدير المحسنة بجودة عالية ==========
+        async function waitForImages(element, timeout = 5000) {
             const imgs = Array.from(element.querySelectorAll('img'));
             await Promise.all(imgs.map(img => {
                 if (img.complete) return Promise.resolve();
@@ -643,32 +695,28 @@
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
             
-            const canvasPromises = Array.from(pages).map(async (page, idx) => {
+            // معالجة متسلسلة لتجنب مشاكل الذاكرة مع الجودة العالية
+            for (let i = 0; i < pages.length; i++) {
+                const page = pages[i];
                 try {
-                    await waitForImages(page, 4000);
+                    await waitForImages(page, 5000);
                     const canvas = await html2canvas(page, {
-                        scale: 1.5,
+                        scale: 2.8,          // جودة عالية
                         useCORS: true,
                         logging: false,
                         allowTaint: false,
-                        backgroundColor: '#ffffff'
+                        backgroundColor: '#ffffff',
+                        windowWidth: page.scrollWidth,
+                        windowHeight: page.scrollHeight
                     });
-                    return { canvas, index: idx };
+                    if (i !== 0) pdf.addPage();
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 210;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                 } catch (err) {
-                    console.warn(`Page ${idx+1} error:`, err);
-                    return null;
+                    console.warn(`Page ${i+1} error:`, err);
                 }
-            });
-            
-            const results = await Promise.all(canvasPromises);
-            const sorted = results.filter(r => r !== null).sort((a,b) => a.index - b.index);
-            for (let i = 0; i < sorted.length; i++) {
-                const { canvas } = sorted[i];
-                if (i !== 0) pdf.addPage();
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 210;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
             }
             pdf.save(fileName);
         };
@@ -676,8 +724,8 @@
         window.exportToPNG = async function() {
             const pages = document.querySelectorAll('.page');
             for (let i = 0; i < pages.length; i++) {
-                await waitForImages(pages[i], 4000);
-                const canvas = await html2canvas(pages[i], { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+                await waitForImages(pages[i], 5000);
+                const canvas = await html2canvas(pages[i], { scale: 2.5, useCORS: true, logging: false, backgroundColor: '#ffffff' });
                 const link = document.createElement('a');
                 let name = `page_${i+1}.png`;
                 if (window.currentOrderData && i === 0) {
@@ -783,12 +831,11 @@
             
             window.currentOrderData = orderData;
             
-            // بناء 3 صفحات فقط
-            let html = buildInvoicePage(orderData, 1, 3);
-            // الصفحة الثانية: الشروط والأحكام (بما فيها الإقرار الأول)
-            html += buildTermsPage(2, 3, 'الشروط والأحكام', disclaimerHtml + termsHtml);
-            // الصفحة الثالثة: الإقرار والتوقيع (بدون تكرار)
-            html += buildTermsPage(3, 3, 'الإقرار والتوقيع', signatureHtml);
+            // بناء 4 صفحات: الفاتورة + 3 صفحات للشروط والأحكام
+            let html = buildInvoicePage(orderData, 1, 4);
+            html += buildTermsPage(2, 4, 'الشروط والأحكام (1)', disclaimerHtml + termsPage1, false);
+            html += buildTermsPage(3, 4, 'الشروط والأحكام (2)', termsPage2, false);
+            html += buildTermsPage(4, 4, 'الإقرار والتوقيع', termsPage3, true);   // تحتوي على "فاتورة معتمدة - شكراً لكم"
             
             container.innerHTML = html;
             
