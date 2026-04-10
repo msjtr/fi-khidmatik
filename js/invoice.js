@@ -1,4 +1,8 @@
-// بيانات البائع
+// ========================================
+// invoice.js - دوال إنشاء الفاتورة الإلكترونية (نهائي)
+// ========================================
+
+// بيانات البائع (ثابتة)
 const sellerData = {
     name: "في خدمتك",
     taxNumber: "312495447600003",
@@ -10,27 +14,46 @@ const sellerData = {
     website: "https://fi-khidmatik.com.sa"
 };
 
-// تنظيف النصوص
+// دوال مساعدة لتنظيف النصوص من الرموز الغريبة
 function cleanText(text) {
     if (!text) return '';
     return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z\.\-\_\,]/g, ' ').trim();
 }
 
 function getStatusText(status) {
-    const map = { 'جديد':'جديد', 'تحت التنفيذ':'قيد التنفيذ', 'تم التنفيذ':'مكتمل', 'ملغي':'ملغي', 'مسترجع':'مسترجع', 'تحت المراجعة':'تحت المراجعة' };
+    const map = {
+        'جديد': 'جديد',
+        'تحت التنفيذ': 'قيد التنفيذ',
+        'تم التنفيذ': 'مكتمل',
+        'ملغي': 'ملغي',
+        'مسترجع': 'مسترجع',
+        'تحت المراجعة': 'تحت المراجعة'
+    };
     return map[status] || status || 'مكتمل';
 }
+
 function getShippingText(method) {
     if (method === 'delivery') return 'شحن منزلي';
     if (method === 'noship') return 'لا يتطلب شحن';
     return 'استلام من المقر';
 }
+
 function getPaymentName(method) {
-    const names = { 'mada':'مدى', 'mastercard':'ماستركارد', 'visa':'فيزا', 'stcpay':'STCPay', 'tamara':'تمارا', 'tabby':'تابي', 'other':'أخرى' };
+    const names = {
+        'mada': 'مدى',
+        'mastercard': 'ماستركارد',
+        'visa': 'فيزا',
+        'stcpay': 'STCPay',
+        'tamara': 'تمارا',
+        'tabby': 'تابي',
+        'other': 'أخرى'
+    };
     return names[method] || method || 'مدى';
 }
 
-// بناء رأس الصفحة (شعار ثم في خدمتك ثم من الإتقان بلس)
+// ========================================
+// بناء رأس الصفحة (الشعار ثم "في خدمتك" ثم "من الإتقان بلس")
+// ========================================
 function buildInvoiceHeader(title) {
     return `
         <div class="page-header">
@@ -56,7 +79,9 @@ function buildInvoiceHeader(title) {
     `;
 }
 
-// بناء تذييل الصفحة (ترتيب: جوال، واتساب، بريد، موقع)
+// ========================================
+// بناء تذييل الصفحة (جوال، واتساب، بريد، موقع)
+// ========================================
 function buildInvoiceFooter(pageNum, totalPages) {
     return `
         <div class="page-footer">
@@ -72,49 +97,55 @@ function buildInvoiceFooter(pageNum, totalPages) {
     `;
 }
 
-// صفحة الفاتورة الرئيسية
+// ========================================
+// صفحة الفاتورة الرئيسية (مع جلب كامل بيانات العميل)
+// ========================================
 function buildInvoicePage(order, pageNum, totalPages) {
-    const formatDate = window.formatDate || (d => d);
-    const formatTime = window.formatTime || (t => t);
-    const escape = window.escapeHtml || (s => s);
+    const formatDate = window.formatDate || ((d) => d);
+    const formatTime = window.formatTime || ((t) => t);
+    const escape = window.escapeHtml || ((s) => s);
+    
     const items = order.items || [];
-    const subtotal = order.subtotal || items.reduce((s,i)=>s+(i.price||0)*(i.quantity||1),0);
+    const subtotal = order.subtotal || items.reduce((s, i) => s + (i.price || 0) * (i.quantity || 1), 0);
     const discount = order.discount || 0;
     const tax = order.tax || ((subtotal - discount) * 0.15);
     const total = order.total || (subtotal - discount + tax);
     
     let itemsHtml = '';
-    for (let i=0; i<items.length; i++) {
+    for (let i = 0; i < items.length; i++) {
         const item = items[i];
         const cleanName = cleanText(item.name);
         const cleanDesc = cleanText(item.description);
         itemsHtml += `
             <tr>
-                <td>${i+1}</td>
-                <td>${item.image ? `<img src="${item.image}" class="product-img" onerror="this.style.display='none'">` : '<div style="width:45px;height:45px;background:#e2e8f0;border-radius:8px;"></div>'}</td>
+                <td style="text-align:center">${i+1}</td>
+                <td style="text-align:center">
+                    ${item.image ? `<img src="${item.image}" class="product-img" onerror="this.style.display='none'">` : '<div style="width:45px;height:45px;background:#e2e8f0;border-radius:8px;"></div>'}
+                </td>
                 <td style="text-align:right"><strong>${escape(cleanName)}</strong><br><small>${escape(cleanDesc)}</small></td>
-                <td>${item.quantity}</td>
-                <td style="direction:ltr; font-family:monospace;">${(item.price||0).toFixed(2)} ريال</td>
-                <td style="direction:ltr; font-family:monospace;">${((item.price||0)*(item.quantity||1)).toFixed(2)} ريال</td>
+                <td style="text-align:center">${item.quantity}</td>
+                <td style="text-align:center; direction:ltr; font-family:monospace;">${(item.price || 0).toFixed(2)} ريال}‹
+                <td style="text-align:center; direction:ltr; font-family:monospace;">${((item.price || 0) * (item.quantity || 1)).toFixed(2)} ريال}‹
             </tr>
         `;
     }
     
-    // عنوان العميل الكامل
+    // بناء العنوان الكامل للعميل
     let fullAddress = '';
     if (order.customerStreet) fullAddress += order.customerStreet;
     if (order.customerAdditionalNo) fullAddress += ' - ' + order.customerAdditionalNo;
     if (order.customerCity) fullAddress += '، ' + order.customerCity;
     if (order.customerPoBox) fullAddress += '، ص.ب: ' + order.customerPoBox;
-    if (!fullAddress && order.customerAddress) fullAddress = order.customerAddress;
+    if (order.customerAddress) fullAddress = fullAddress || order.customerAddress;
     
-    const customerHtml = `
+    const customerAddressHtml = `
         <p><i class="fas fa-user"></i> ${escape(order.customerName)}</p>
         <p><i class="fas fa-map-marker-alt"></i> ${escape(fullAddress)}</p>
         <p><i class="fas fa-phone-alt"></i> ${escape(order.customerPhone)}</p>
         <p><i class="fas fa-envelope"></i> ${escape(order.customerEmail)}</p>
     `;
-    const sellerHtml = `
+    
+    const sellerAddressHtml = `
         <p><i class="fas fa-store"></i> ${sellerData.name}</p>
         <p><i class="fas fa-location-dot"></i> المملكة العربية السعودية</p>
         <p><i class="fas fa-location-dot"></i> ${sellerData.address}</p>
@@ -124,39 +155,55 @@ function buildInvoicePage(order, pageNum, totalPages) {
     return `
         <div class="page invoice-page">
             ${buildInvoiceHeader('فاتورة إلكترونية')}
+            
             <div class="info-grid">
                 <div class="info-item"><div class="info-label">رقم الفاتورة</div><div class="info-value">${escape(order.orderNumber)}</div></div>
                 <div class="info-item"><div class="info-label">التاريخ</div><div class="info-value">${formatDate(order.orderDate)} - ${formatTime(order.orderTime)}</div></div>
                 <div class="info-item"><div class="info-label">الحالة</div><div class="status-badge">${getStatusText(order.status)}</div></div>
             </div>
+            
             <div class="addresses">
-                <div class="address-card"><strong><i class="fas fa-building"></i> مصدرة من</strong>${sellerHtml}</div>
-                <div class="address-card"><strong><i class="fas fa-user-check"></i> مصدرة إلى</strong>${customerHtml}</div>
+                <div class="address-card">
+                    <strong><i class="fas fa-building"></i> مصدرة من</strong>
+                    ${sellerAddressHtml}
+                </div>
+                <div class="address-card">
+                    <strong><i class="fas fa-user-check"></i> مصدرة إلى</strong>
+                    ${customerAddressHtml}
+                </div>
             </div>
+            
             <div class="payment-grid">
                 <div class="payment-card"><i class="fas fa-credit-card"></i> <strong>طريقة الدفع</strong><br>${getPaymentName(order.paymentMethod)}</div>
                 <div class="payment-card"><i class="fas fa-check-circle"></i> <strong>رمز الموافقة على الطلب</strong><br>${order.approvalCode || 'غير مطلوب'}</div>
                 <div class="payment-card"><i class="fas fa-truck"></i> <strong>طريقة استلام المنتج</strong><br>${getShippingText(order.shippingMethod)}</div>
             </div>
+            
             <table class="products-table">
-                <thead><tr><th>#</th><th>الصورة</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                <thead>
+                    <tr><th>#</th><th>الصورة</th><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                </thead>
                 <tbody>${itemsHtml}</tbody>
             </table>
+            
             <div class="totals-box">
                 <div class="totals-row"><span>المجموع الفرعي</span><span>${subtotal.toFixed(2)} ريال</span></div>
-                ${discount>0?`<div class="totals-row"><span>الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>`:''}
+                ${discount > 0 ? `<div class="totals-row"><span>الخصم</span><span>- ${discount.toFixed(2)} ريال</span></div>` : ''}
                 <div class="totals-row"><span>ضريبة القيمة المضافة 15%</span><span>${tax.toFixed(2)} ريال</span></div>
                 <div class="totals-row grand-total"><span>الإجمالي النهائي</span><span>${total.toFixed(2)} ريال</span></div>
             </div>
+            
             <div class="barcodes">
                 <div class="barcode-item"><div id="zatcaQR" class="qr-code"></div><p>باركود هيئة الزكاة والضريبة</p></div>
                 <div class="barcode-item"><div id="websiteQR" class="qr-code"></div><p>للوصول السريع إلى موقعنا الإلكتروني، يرجى مسح الباركود</p></div>
                 <div class="barcode-item"><div id="downloadQR" class="qr-code"></div><p>باركود تحميل الفاتورة</p></div>
             </div>
+            
             ${buildInvoiceFooter(pageNum, totalPages)}
         </div>
     `;
 }
 
+// تصدير الدوال
 window.buildInvoicePage = buildInvoicePage;
 window.sellerData = sellerData;
