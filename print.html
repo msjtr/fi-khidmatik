@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <!-- Firebase v8 مع Firestore و Storage -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
@@ -40,78 +39,23 @@
 
     <script>
         // ============================================================
-        // print.html - فاتورة إلكترونية متكاملة مع دعم صور Firebase Storage
+        // print.html - حل نهائي لمشكلة onerror وعلامات التنصيص
         // ============================================================
         
-        // ---------- 1. إعدادات CORS والصورة الافتراضية الآمنة ----------
-        const CORS_BLOCKED_DOMAINS = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
-        const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+        // صورة افتراضية مشفرة بـ encodeURIComponent - خالية من أي علامات تنصيص
+        const PLACEHOLDER_RAW = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='20' rx='2.18' ry='2.18'%3E%3C/rect%3E%3Cpath d='M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5'%3E%3C/path%3E%3C/svg%3E";
+        // استخدام encodeURIComponent لجعلها آمنة تمامًا لوضعها داخل onerror
+        const PLACEHOLDER_ENCODED = encodeURIComponent(PLACEHOLDER_RAW);
         
-        // صورة افتراضية - باستخدام علامات تنصيص مزدوجة داخل SVG (آمنة لـ onerror)
-        const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"45\" height=\"45\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23999\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"%3E%3Crect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"2.18\" ry=\"2.18\"%3E%3C/rect%3E%3Cpath d=\"M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5\"%3E%3C/path%3E%3C/svg%3E";
-        
-        // دالة لتأمين الصورة الافتراضية لاستخدامها داخل حدث onerror
-        function getSafePlaceholder() {
-            return PLACEHOLDER_IMAGE.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        }
-        
-        // ---------- 2. دوال تحويل مسارات Firebase Storage إلى روابط عامة ----------
-        // اسم Bucket الخاص بمشروع Firebase
-        const STORAGE_BUCKET = "msjt301-974bb.appspot.com";
-        
-        // تحويل مسار تخزين (مثل "products/abc.jpg") إلى رابط تنزيل عام
-        function getFirebaseStorageUrl(path) {
-            if (!path) return null;
-            // إذا كان الرابط كاملاً من Firebase Storage
-            if (path.includes('firebasestorage.googleapis.com')) {
-                // التأكد من وجود alt=media
-                if (!path.includes('alt=media')) {
-                    return path + (path.includes('?') ? '&alt=media' : '?alt=media');
-                }
-                return path;
-            }
-            // ترميز المسار ليكون صالحاً في URL
-            const encodedPath = encodeURIComponent(path);
-            return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodedPath}?alt=media`;
-        }
-        
-        // دالة محسنة للحصول على رابط الصورة النهائي (مع دعم Firebase Storage)
+        // دوال مساعدة
         function getFinalImageUrl(url) {
-            if (!url) return PLACEHOLDER_IMAGE;
+            if (!url) return PLACEHOLDER_RAW;
             if (url.startsWith('data:')) return url;
-            if (url.startsWith(CORS_PROXY)) return url;
-            
-            // إذا كان رابطاً كاملاً (http/https)
-            if (url.startsWith('http://') || url.startsWith('https://')) {
-                // معالجة خاصة لروابط Firebase Storage
-                if (url.includes('firebasestorage.googleapis.com') && !url.includes('alt=media')) {
-                    return url + (url.includes('?') ? '&alt=media' : '?alt=media');
-                }
-                return url;
-            }
-            
-            // إذا كان مساراً نسبياً يبدأ بـ /
-            if (url.startsWith('/')) {
-                return window.location.origin + url;
-            }
-            
-            // إذا كان مساراً نسبياً (بدون http) ويحوي مجلدات (مثل products/image.jpg)
-            if (!url.includes('://') && url.includes('/')) {
-                const storageUrl = getFirebaseStorageUrl(url);
-                if (storageUrl) return storageUrl;
-                // إذا لم يكن مسار تخزين صالحاً، نفترض أنه داخل مجلد المشروع
-                return window.location.origin + '/fi-khidmatik/' + url;
-            }
-            
-            // المسار العادي داخل مجلد المشروع
-            if (!url.includes('://')) {
-                return window.location.origin + '/fi-khidmatik/' + url;
-            }
-            
-            return PLACEHOLDER_IMAGE;
+            if (url.startsWith('http://') || url.startsWith('https://')) return url;
+            if (url.startsWith('/')) return window.location.origin + url;
+            return window.location.origin + '/fi-khidmatik/' + url;
         }
         
-        // ---------- 3. دوال مساعدة للتنسيق والعرض ----------
         window.formatDate = function(dateStr) {
             if (!dateStr) return '';
             const d = new Date(dateStr);
@@ -138,7 +82,6 @@
             });
         };
         
-        // ---------- 4. بيانات البائع الثابتة ----------
         const sellerData = {
             name: "في خدمتك",
             taxNumber: "312495447600003",
@@ -171,7 +114,6 @@
             return names[method] || method || 'مدى';
         }
         
-        // ---------- 5. بناء أجزاء الفاتورة ----------
         function buildInvoiceHeader(title) {
             return `
                 <div class="page-header">
@@ -228,12 +170,12 @@
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
                 const finalImageUrl = getFinalImageUrl(item.image);
-                const safeImageUrl = finalImageUrl.replace(/"/g, '&quot;');
-                const safePlaceholder = getSafePlaceholder();
+                // نستخدم data-placeholder لتخزين الصورة البديلة المشفرة، و onerror يقوم بفك التشفير وتعيينها
+                const encodedPlaceholder = PLACEHOLDER_ENCODED;
                 itemsHtml += `
                     <tr>
                         <td style="text-align:center">${i+1}</td>
-                        <td style="text-align:center"><img src="${safeImageUrl}" class="product-img" style="width:45px;height:45px;object-fit:cover;" crossorigin="anonymous" onerror="this.src='${safePlaceholder}'"></td>
+                        <td style="text-align:center"><img src="${finalImageUrl.replace(/"/g, '&quot;')}" class="product-img" style="width:45px;height:45px;object-fit:cover;" crossorigin="anonymous" data-placeholder="${encodedPlaceholder}" onerror="this.src = decodeURIComponent(this.getAttribute('data-placeholder')); this.removeAttribute('data-placeholder');"></td>
                         <td style="text-align:right"><strong>${escape(cleanText(item.name))}</strong><br><small>${escape(cleanText(item.description))}</small></td>
                         <td style="text-align:center">${item.quantity}</td>
                         <td style="text-align:center;direction:ltr">${(item.price || 0).toFixed(2)} ريال</td>
@@ -292,7 +234,7 @@
             `;
         }
         
-        // ---------- 6. دوال الطباعة والتصدير ----------
+        // دوال الطباعة والتصدير (مختصرة)
         async function waitForImages(element, timeout = 8000) {
             const imgs = Array.from(element.querySelectorAll('img'));
             await Promise.all(imgs.map(img => {
@@ -330,18 +272,11 @@
             }
         };
         
-        // صفحات الشروط (اختيارية)
-        window.buildTermsPage1 = function(p, t) {
-            return `<div class="page">${buildInvoiceHeader('الشروط والأحكام')}<p style="padding:20px">شروط وأحكام الخدمة متاحة على الموقع.</p>${buildInvoiceFooter(p, t)}</div>`;
-        };
-        window.buildTermsPage2 = function(p, t) {
-            return `<div class="page">${buildInvoiceHeader('الشروط والأحكام (تابع)')}<p style="padding:20px">البنود المالية والقانونية.</p>${buildInvoiceFooter(p, t)}</div>`;
-        };
-        window.buildTermsPage3 = function(order, p, t) {
-            return `<div class="page">${buildInvoiceHeader('الإقرار والتوقيع')}<p style="padding:20px">أقر أنا العميل بصحة البيانات.</p>${buildInvoiceFooter(p, t)}</div>`;
-        };
+        window.buildTermsPage1 = function(p, t) { return `<div class="page">${buildInvoiceHeader('الشروط والأحكام')}<p style="padding:20px">شروط وأحكام الخدمة متاحة على الموقع.</p>${buildInvoiceFooter(p, t)}</div>`; };
+        window.buildTermsPage2 = function(p, t) { return `<div class="page">${buildInvoiceHeader('الشروط والأحكام (تابع)')}<p style="padding:20px">البنود المالية والقانونية.</p>${buildInvoiceFooter(p, t)}</div>`; };
+        window.buildTermsPage3 = function(order, p, t) { return `<div class="page">${buildInvoiceHeader('الإقرار والتوقيع')}<p style="padding:20px">أقر أنا العميل بصحة البيانات.</p>${buildInvoiceFooter(p, t)}</div>`; };
         
-        // ---------- 7. تهيئة Firebase v8 وجلب بيانات الطلب مع تحويل صور Storage ----------
+        // Firebase v8
         const firebaseConfig = {
             apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
             authDomain: "msjt301-974bb.firebaseapp.com",
@@ -405,7 +340,6 @@
                 } catch(e) { console.error(e); }
             }
             
-            // تجهيز بيانات الطلب مع تحويل روابط الصور من Firebase Storage إلى روابط عامة
             let items = (order.items || []).map(item => ({
                 name: item.name || 'منتج',
                 description: item.description || '',
@@ -414,25 +348,19 @@
                 price: item.price || 0
             }));
             
-            // معالجة صور المنتجات: إذا كان المسار يشير إلى Firebase Storage، نحصل على رابط التنزيل
+            // تحويل صور Firebase Storage إلى روابط عامة
             for (let i = 0; i < items.length; i++) {
                 const imgPath = items[i].image;
                 if (imgPath && !imgPath.startsWith('http') && !imgPath.startsWith('data:') && imgPath.includes('/')) {
                     try {
-                        // محاولة الحصول على رابط التنزيل من Firebase Storage
                         const storageRef = storage.ref(imgPath);
                         const url = await storageRef.getDownloadURL();
                         items[i].image = url;
-                        console.log(`✅ تم تحميل صورة المنتج: ${items[i].name}`);
                     } catch(e) {
-                        console.warn(`⚠️ فشل تحميل صورة ${imgPath}:`, e);
-                        items[i].image = PLACEHOLDER_IMAGE;
+                        items[i].image = PLACEHOLDER_RAW;
                     }
-                } else if (imgPath && imgPath.startsWith('http')) {
-                    // الرابط جاهز، نتحقق من CORS فقط
-                    items[i].image = imgPath;
-                } else {
-                    items[i].image = PLACEHOLDER_IMAGE;
+                } else if (!imgPath) {
+                    items[i].image = PLACEHOLDER_RAW;
                 }
             }
             
