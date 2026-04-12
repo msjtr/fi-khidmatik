@@ -12,71 +12,32 @@
     <link rel="stylesheet" href="css/invoice.css">
 
     <style>
-        /* تنسيقات واجهة التحكم - لا تظهر في الطباعة */
         .control-panel {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            display: flex;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-            backdrop-filter: blur(4px);
-            border: 1px solid #eee;
+            position: fixed; top: 20px; left: 20px; z-index: 1000;
+            display: flex; gap: 12px; background: rgba(255, 255, 255, 0.9);
+            padding: 15px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(4px); border: 1px solid #eee;
         }
-
         .btn-action {
-            font-family: 'Tajawal', sans-serif;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif; padding: 10px 20px;
+            border-radius: 8px; border: none; cursor: pointer; font-weight: 700;
+            display: flex; align-items: center; gap: 8px; transition: 0.3s;
         }
-
         .btn-pdf { background: #1a1a1a; color: white; }
         .btn-pdf:hover { background: #d4af37; transform: translateY(-2px); }
-
         .btn-print { background: #f0f0f0; color: #333; }
-        .btn-print:hover { background: #e0e0e0; }
-
-        /* شاشة التحميل */
         #loader {
-            position: fixed;
-            inset: 0;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            font-family: 'Tajawal', sans-serif;
+            position: fixed; inset: 0; background: #fff; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; font-family: 'Tajawal', sans-serif;
         }
-
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #d4af37;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid #d4af37; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* إخفاء عناصر التحكم عند الطباعة */
-        @media print {
-            .control-panel { display: none !important; }
-            body { background: white; padding: 0; }
-        }
+        @media print { .control-panel { display: none !important; } }
     </style>
 </head>
 <body>
@@ -92,32 +53,34 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <div style="font-weight: 600; color: #444;">جاري جلب بيانات الطلب وتجهيز المستندات...</div>
+        <div style="font-weight: 600; color: #444;">جاري جلب بيانات الطلب...</div>
     </div>
 
     <div id="print-app"></div>
+
+    <script src="js/main.js"></script> 
 
     <script type="module">
         import { OrderManager } from './js/order.js';
         import { TERMS_DATA } from './js/terms.js';
         
-        // ربط الدوال بالنطاق العام (window) لتتمكن الأزرار من رؤيتها
-        window.TERMS_DATA = TERMS_DATA;
+        // ربط الدوال لضمان وصول ملف print.js إليها
         window.OrderManager = OrderManager;
+        window.TERMS_DATA = TERMS_DATA;
     </script>
 
     <script type="module" src="js/zatca.js"></script>
     <script type="module" src="js/print.js"></script>
 
     <script>
-        // كود سريع لمنع أخطاء التحميل قبل اكتمال الموديولات
-        window.onerror = function(msg, url, line) {
-            if (msg.includes('getDocument')) {
-                console.error("خطأ: لم يتم العثور على دالة اتصال قاعدة البيانات. تأكد من استدعاء ملف Firebase أو ملف الإعدادات قبل print.js");
-            }
-            return false;
-        };
+        // فحص أمان أخير للتأكد من اتصال قاعدة البيانات
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (typeof window.getDocument !== 'function') {
+                    console.error("تحذير: دالة getDocument لم يتم تعريفها. يرجى التأكد من مسار ملف قاعدة البيانات (main.js أو firebase-config.js)");
+                }
+            }, 1000);
+        });
     </script>
-
 </body>
 </html>
