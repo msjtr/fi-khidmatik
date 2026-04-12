@@ -1,0 +1,24 @@
+/* orders-style.css */
+* { transition: all 0.2s ease; }
+.status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-block; }
+.status-new { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; }
+.status-processing { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #b45309; }
+.status-completed { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+.status-review { background: linear-gradient(135deg, #e9d5ff, #d8b4fe); color: #6b21a5; }
+.status-refund { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #9a3412; }
+.status-cancelled { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #b91c1c; }
+
+.order-card { transition: all 0.3s ease; background: white; border: 1px solid #e5e7eb; border-radius: 16px; }
+.order-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-color: #3b82f6; }
+
+.form-section { background: #f9fafb; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+.form-section-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #1f2937; border-right: 4px solid #3b82f6; padding-right: 12px; display: flex; align-items: center; gap: 8px; }
+
+.payment-btn.active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-color: #3b82f6; }
+
+#toast { position: fixed; bottom: 20px; left: 20px; padding: 12px 24px; border-radius: 8px; z-index: 1000; display: none; color: white; }
+#toast.success { background: #10b981; }
+#toast.error { background: #ef4444; }
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
