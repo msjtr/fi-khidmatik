@@ -2,7 +2,7 @@ import { TERMS_DATA } from './terms.js';
 import { OrderManager } from './order.js';
 import { BarcodeManager } from './barcodes.js';
 
-// تهيئة Firebase
+// 1. إعدادات Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -15,6 +15,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// 2. واجهة المستخدم (UI)
 const UI = {
     header: (seller) => `
         <div class="header-main">
@@ -27,12 +28,11 @@ const UI = {
         </div>`,
 
     orderMeta: (order, customer, date, time) => {
-        // دالة داخلية للبحث عن القيمة بأكثر من مسمى (حساسية الأحرف)
+        // دالة ذكية للبحث عن الحقول بمسميات مختلفة (حساسية الأحرف)
         const findVal = (obj, keys) => {
             if (!obj) return null;
             for (let key of keys) {
                 if (obj[key]) return obj[key];
-                // بحث غير حساس لحالة الأحرف
                 const found = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());
                 if (found) return obj[found];
             }
@@ -43,7 +43,7 @@ const UI = {
         const addlKeys = ['additionalNumber', 'additional_number', 'extraNumber', 'additional'];
         const postKeys = ['postalCode', 'postal_code', 'zipCode', 'postCode'];
 
-        // البحث في الطلب أولاً (في حال كان العميل زائراً) ثم في ملف العميل
+        // البحث في الطلب أولاً ثم في بيانات العميل
         const bldg = findVal(order, bldgKeys) || findVal(customer, bldgKeys) || "---";
         const addl = findVal(order, addlKeys) || findVal(customer, addlKeys) || "---";
         const post = findVal(order, postKeys) || findVal(customer, postKeys) || "---";
@@ -75,10 +75,24 @@ const UI = {
                     <p><b>الجوال:</b> ${customer.phone || '---'}</p>
                 </div>
             </div>
+        </div>
+
+        <div class="order-info-line payment-line">
+            <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
+            <span><b>طريقة الاستلام:</b> ${order.deliveryMethod || 'تحميل رقمي'}</span>
         </div>`;
-    }
+    },
+
+    footer: (current, total) => `
+        <div class="final-footer">
+            <div class="contact-info-strip">
+                <span>الهاتف: 966534051317+</span> | <span>الواتساب: 966545312021+</span> | <span>info@fi-khidmatik.com</span>
+            </div>
+            <div class="page-number-box">صفحة ${current} من ${total}</div>
+        </div>`
 };
 
+// 3. الوظيفة الرئيسية
 window.onload = async () => {
     const orderId = new URLSearchParams(window.location.search).get('id');
     const loader = document.getElementById('loader');
@@ -100,14 +114,95 @@ window.onload = async () => {
 
         const seller = window.invoiceSettings || {};
         const { date, time } = OrderManager.formatDateTime(orderData.createdAt);
-        
-        // بناء المحتوى (كما في النسخة السابقة)
-        // ... (كود الـ Loop والـ Pagination)
+        const termsArray = Object.values(TERMS_DATA);
 
-        printApp.innerHTML = html; // تأكد من استكمال بناء متغير html
+        const items = orderData.items || [];
+        const itemsPerPage = 6;
+        const termsPerPage = 10;
+        const invPagesCount = Math.ceil(items.length / itemsPerPage) || 1;
+        const termsPagesCount = Math.ceil(termsArray.length / termsPerPage);
+        const totalPages = invPagesCount + termsPagesCount;
+
+        let html = '';
+
+        // بناء صفحات المنتجات
+        for (let i = 0; i < invPagesCount; i++) {
+            const pageItems = items.slice(i * itemsPerPage, (i + 1) * itemsPerPage);
+            html += `
+                <div class="page">
+                    ${UI.header(seller)}
+                    ${UI.orderMeta(orderData, customerData, date, time)}
+                    <table class="main-table">
+                        <thead><tr><th>#</th><th>المنتج</th><th>الكمية</th><th>السعر</th></tr></thead>
+                        <tbody>
+                            ${pageItems.map((item, idx) => `
+                                <tr>
+                                    <td>${(i * itemsPerPage) + idx + 1}</td>
+                                    <td><b>${item.name}</b><br><small>${item.description || ''}</small></td>
+                                    <td>${item.qty}</td>
+                                    <td>${(item.price || 0).toLocaleString()} ر.س</td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                    ${i === invPagesCount - 1 ? renderFinancials(orderData) : ''}
+                    ${UI.footer(i + 1, totalPages)}
+                </div>`;
+        }
+
+        // بناء صفحات الشروط
+        for (let j = 0; j < termsArray.length; j += termsPerPage) {
+            const pageTerms = termsArray.slice(j, j + termsPerPage);
+            const currentPageNum = invPagesCount + Math.floor(j / termsPerPage) + 1;
+            html += `
+                <div class="page page-terms">
+                    ${UI.header(seller)}
+                    <h3 class="terms-title">الشروط والأحكام العامة</h3>
+                    <div class="terms-container-print">
+                        ${pageTerms.map(text => `<div class="term-row-print"><p>${text}</p></div>`).join('')}
+                    </div>
+                    ${UI.footer(currentPageNum, totalPages)}
+                </div>`;
+        }
+
+        printApp.innerHTML = html;
         if (loader) loader.style.display = 'none';
+
+        if (typeof BarcodeManager !== 'undefined') {
+            BarcodeManager.init(orderId, seller, orderData);
+        }
 
     } catch (error) {
         console.error("Error:", error);
+        if (loader) loader.innerHTML = "حدث خطأ: " + error.message;
     }
 };
+
+function renderFinancials(order) {
+    const subtotal = order.subtotal || 0;
+    const total = order.total || 0;
+    const tax = total - subtotal;
+    return `
+    <div class="financial-section">
+        <div class="summary-box-final">
+            <div class="s-line"><span>المجموع:</span> <span>${subtotal.toLocaleString()} ر.س</span></div>
+            <div class="s-line"><span>الضريبة (15%):</span> <span>${tax.toLocaleString()} ر.س</span></div>
+            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${total.toLocaleString()} ر.س</span></div>
+        </div>
+        <div class="barcode-group-print">
+            <div id="zatcaQR"></div>
+            <div id="websiteQR"></div>
+        </div>
+    </div>`;
+}
+
+// أزرار التحكم
+document.getElementById('downloadPDF').onclick = () => {
+    const element = document.getElementById('print-app');
+    html2pdf().set({
+        margin: 0, filename: `Invoice.pdf`,
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(element).save();
+};
+
+document.getElementById('printPage').onclick = () => window.print();
