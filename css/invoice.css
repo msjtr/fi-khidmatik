@@ -1,207 +1,60 @@
-/* invoice.css - الهوية البصرية الرسمية لمنصة في خدمتك 
-   متوافق مع معايير الفاتورة الإلكترونية والطباعة 
-*/
-
-:root {
-    --primary-color: #1e3a5f;    /* الأزرق الداكن الرسمي */
-    --secondary-bg: #f8fafc;
-    --border-color: #cbd5e1;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
+/* منع قص المحتوى وضبط الطباعة */
+@media print {
+    .page { 
+        page-break-after: always;
+        margin: 0 !important;
+        padding: 10mm !important;
+    }
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background-color: #f1f5f9;
-    font-family: 'Tajawal', sans-serif;
-    direction: rtl;
-    color: var(--text-main);
-    line-height: 1.6;
-}
-
-/* إعدادات الصفحة للطباعة (A4) */
 .page {
     width: 210mm;
     min-height: 297mm;
-    padding: 15mm;
-    margin: 20px auto;
     background: white;
+    margin: 20px auto;
+    padding: 15mm;
     position: relative;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    page-break-after: always;
 }
 
-/* الترويسة الرسمية */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 15px;
-    margin-bottom: 20px;
-}
-
-.header-meta {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-.logo img {
-    height: 70px;
-    max-width: 150px;
-    object-fit: contain;
-}
-
-.doc-title {
-    text-align: center;
-    background: var(--primary-color);
-    color: white;
-    padding: 5px 25px;
-    border-radius: 4px;
-    font-size: 18px;
-    margin: 10px auto;
-    width: fit-content;
-}
-
-/* توزيع العناوين في عمودين متساويين [cite: 29] */
-.addresses-grid {
+/* عمودين متساويين جنب بعضهم  */
+.dual-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin: 20px 0;
 }
 
-.card {
-    border: 1px solid var(--border-color);
+.address-card {
+    border: 1px solid #ddd;
     border-radius: 8px;
-    overflow: hidden;
 }
 
-.card-h {
-    background: var(--secondary-bg);
-    padding: 8px 12px;
-    font-weight: 800;
-    font-size: 13px;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--primary-color);
-}
-
-.card-b {
-    padding: 12px;
-    font-size: 12px;
-}
-
-/* جدول المنتجات */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-}
-
-th {
-    background: var(--primary-color);
-    color: white;
-    padding: 10px;
-    font-size: 12px;
-    text-align: center;
-}
-
-td {
-    border: 1px solid #e2e8f0;
-    padding: 10px;
-    text-align: center;
-    font-size: 12px;
-}
-
-.product-img {
-    width: 50px;
-    height: 50px;
-    border-radius: 4px;
-    object-fit: cover;
-}
-
-/* ملخص الحسابات [cite: 39] */
-.totals-area {
-    margin-right: auto;
-    width: 300px;
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
-    background: var(--secondary-bg);
-    padding: 15px;
-}
-
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-    font-size: 13px;
-}
-
-.grand-total {
-    border-top: 2px solid var(--primary-color);
-    margin-top: 10px;
-    padding-top: 10px;
-    font-weight: 800;
-    font-size: 16px;
-    color: var(--primary-color);
-}
-
-/* قسم الشروط والأحكام [cite: 46] */
-.terms-section {
-    font-size: 11px;
-    text-align: justify;
-    padding: 10px 0;
-}
-
-.clause {
-    margin-bottom: 8px;
-    display: flex;
-    gap: 10px;
-}
-
-.c-num {
+.card-head {
+    background: #f4f4f4;
+    padding: 8px;
     font-weight: bold;
-    color: var(--primary-color);
+    border-bottom: 1px solid #ddd;
 }
 
-/* الباركود والتذييل [cite: 43, 44] */
-.barcodes {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin-top: auto;
-    padding: 20px 0;
-    border-top: 1px solid #eee;
+.card-body {
+    padding: 10px;
+    font-size: 12px;
 }
 
-.barcode-item {
+/* الباركود الكبير والمناسب  */
+.big-qr canvas, .big-qr img {
+    width: 130px !important;
+    height: 130px !important;
+    margin: 10px auto;
+}
+
+.doc-title-box {
     text-align: center;
-    font-size: 10px;
-}
-
-.footer {
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-    text-align: center;
-    font-size: 10px;
-    color: var(--text-muted);
-}
-
-/* إعدادات الطباعة النهائية */
-@media print {
-    body { background: white; }
-    .page { 
-        margin: 0; 
-        box-shadow: none; 
-        width: 100%;
-    }
-    .no-print { display: none !important; }
+    border: 2px solid #000;
+    padding: 5px 20px;
+    width: fit-content;
+    margin: 10px auto;
+    background: #eee;
 }
