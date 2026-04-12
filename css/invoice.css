@@ -275,3 +275,24 @@ body {
 .btn-print.secondary {
     background: #007bff;
 }
+
+.contact-info-strip {
+    display: flex;
+    flex-direction: row; /* إجبار الترتيب الأفقي */
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 8px;
+    direction: rtl !important; /* البدء من اليمين */
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.num-dir {
+    direction: ltr !important; /* الحفاظ على تنسيق الرقم +966 */
+    unicode-bidi: isolate;
+}
