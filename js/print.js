@@ -7,24 +7,25 @@ window.onload = async () => {
     if (!orderId) return;
 
     try {
+        // جلب البيانات مع التأكد من أسماء الحقول في قاعدة البيانات
         const order = await window.getDocument("orders", orderId);
         const customer = await window.getDocument("customers", order.customerId);
         const seller = window.invoiceSettings;
 
-        // صورة بديلة مدمجة (شفافة) في حال تعذر تحميل صورة المنتج
+        // حل مشكلة الصور: استخدام رابط بديل شفاف في حال فشل التحميل
         const fallbackImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
-        // جلب العنوان الكامل من قاعدة البيانات
+        // تجميع العنوان الكامل
         const fullAddress = [
-            customer.country || 'المملكة العربية السعودية',
             customer.city || '',
             customer.district || '',
             customer.street || '',
             customer.address || ''
-        ].filter(part => part.trim() !== "" && part !== "undefined").join(" - ");
+        ].filter(p => p && p !== 'undefined').join(" - ") || "غير مسجل";
 
+        // إعداد تقسيم الصفحات (8 منتجات لكل صفحة)
         const items = order.items || [];
-        const itemsPerPage = 8; // عدد المنتجات في كل صفحة
+        const itemsPerPage = 8;
         const pages = [];
         for (let i = 0; i < items.length; i += itemsPerPage) {
             pages.push(items.slice(i, i + itemsPerPage));
@@ -54,8 +55,8 @@ window.onload = async () => {
 
                 ${isFirstPage ? `
                 <div class="order-meta-row">
-                    <span><b>رقم الطلب:</b> ${order.id || orderId}</span>
-                    <span><b>التاريخ والوقت:</b> ${new Date(order.createdAt).toLocaleString('ar-SA')}</span>
+                    <span><b>رقم الطلب:</b> ${order.orderNumber || order.id || orderId}</span>
+                    <span><b>التاريخ:</b> ${new Date(order.createdAt).toLocaleDateString('ar-SA')}</span>
                     <span><b>حالة الطلب:</b> ${order.status || 'تم التنفيذ'}</span>
                 </div>
 
@@ -73,7 +74,7 @@ window.onload = async () => {
                         <div class="card-head">مصدرة إلى</div>
                         <div class="card-body">
                             <p><b>اسم العميل:</b> ${customer.name || '---'}</p>
-                            <p><b>العنوان الكامل:</b> ${fullAddress}</p>
+                            <p><b>العنوان:</b> ${fullAddress}</p>
                             <p><b>الجوال:</b> ${customer.phone || '---'}</p>
                         </div>
                     </div>
@@ -91,20 +92,20 @@ window.onload = async () => {
                 <table class="main-table">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>اسم المنتج</th>
-                            <th>وصف المنتج / الخدمة</th>
-                            <th>صورة المنتج</th>
-                            <th>الكمية</th>
-                            <th>سعر الأفرادي</th>
+                            <th style="width:5%">#</th>
+                            <th style="width:25%">اسم المنتج</th>
+                            <th style="width:35%">وصف المنتج / الخدمة</th>
+                            <th style="width:15%">صورة المنتج</th>
+                            <th style="width:10%">الكمية</th>
+                            <th style="width:10%">السعر</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${pageItems.map((item, i) => `
                         <tr>
                             <td>${(index * itemsPerPage) + i + 1}</td>
-                            <td style="text-align:right"><b>${item.name || '---'}</b></td>
-                            <td style="text-align:right; font-size: 10px; max-width: 250px;">${item.description || '---'}</td>
+                            <td><b>${item.name || '---'}</b></td>
+                            <td class="text-small">${item.description || 'لا يوجد وصف متاح'}</td>
                             <td><img src="${item.image ? window.getFinalImageUrl(item.image) : fallbackImg}" class="table-img" onerror="this.src='${fallbackImg}'"></td>
                             <td>${item.qty || 1}</td>
                             <td>${item.price || 0} ريال</td>
@@ -115,22 +116,22 @@ window.onload = async () => {
                 ${isLastPage ? `
                 <div class="financial-section">
                     <div class="summary-box-final">
-                        <div class="s-line"><span>المجموع الفرعي:</span> <span>${(order.subtotal || 0).toLocaleString()} ريال</span></div>
-                        <div class="s-line"><span>إجمالي الخصم:</span> <span>${(order.discount || 0).toLocaleString()} - ريال</span></div>
-                        <div class="s-line"><span>ضريبة القيمة المضافة (15%):</span> <span>${(order.tax || 0).toLocaleString()} ريال</span></div>
-                        <div class="s-line grand-total-line"><span>الإجمالي النهائي شامل الضريبة:</span> <span>${(order.total || 0).toLocaleString()} ريال</span></div>
+                        <div class="s-line"><span>المجموع الفرعي:</span> <span>${(order.subtotal || 0).toFixed(2)} ريال</span></div>
+                        <div class="s-line"><span>إجمالي الخصم:</span> <span>${(order.discount || 0).toFixed(2)} - ريال</span></div>
+                        <div class="s-line"><span>الضريبة (15%):</span> <span>${(order.tax || 0).toFixed(2)} ريال</span></div>
+                        <div class="s-line grand-total-line"><span>الإجمالي النهائي شامل الضريبة:</span> <span>${(order.total || 0).toFixed(2)} ريال</span></div>
                     </div>
                 </div>
 
-                <div class="instruction-qr-area">
-                    <div class="instructions">
+                <div class="barcode-standalone-area">
+                    <div class="instruction-text">
                         <p><b>تعليمات الفاتورة:</b></p>
-                        <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة</p>
+                        <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة بموقع منصة في خدمتك.</p>
                     </div>
-                    <div class="triple-qr-wrapper">
-                        <div class="qr-item"><div id="zatcaQR1"></div><span>باركود الفاتورة</span></div>
-                        <div class="qr-item"><div id="zatcaQR2"></div><span>باركود التحقق</span></div>
-                        <div class="qr-item"><div id="zatcaQR3"></div><span>باركود المنصة</span></div>
+                    <div class="qr-grid-layout">
+                        <div class="qr-card"><div id="zatcaQR1"></div><p>باركود الفاتورة</p></div>
+                        <div class="qr-card"><div id="zatcaQR2"></div><p>باركود التحقق</p></div>
+                        <div class="qr-card"><div id="zatcaQR3"></div><p>باركود المنصة</p></div>
                     </div>
                 </div>
                 ` : ''}
@@ -150,7 +151,15 @@ window.onload = async () => {
         });
 
         document.getElementById('print-app').innerHTML = html;
-        generateAllInvoiceQRs(order, seller, ["zatcaQR1", "zatcaQR2", "zatcaQR3"]);
+        
+        // توليد الباركودات في العناصر الجديدة
+        if (typeof generateAllInvoiceQRs === 'function') {
+            generateAllInvoiceQRs(order, seller, ["zatcaQR1", "zatcaQR2", "zatcaQR3"]);
+        }
+        
         document.getElementById('loader').style.display = 'none';
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("Error in print.js:", e);
+        document.getElementById('print-app').innerHTML = `<div style="padding:20px; text-align:center;">حدث خطأ أثناء تحميل البيانات: ${e.message}</div>`;
+    }
 };
