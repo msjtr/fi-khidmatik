@@ -1,507 +1,274 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة التحكم - متجرك الذكي</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - متجرك الذكي</title>
 
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-<!-- CSS مخصص -->
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
-    body {
-        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    }
-    
-    .logo {
-        font-size: 1.5rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #1e40af, #3b82f6);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-    }
-    
-    .sidebar-link {
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        color: #4b5563;
-        cursor: pointer;
-        text-decoration: none;
-    }
-    
-    .sidebar-link:hover:not(.disabled) {
-        background: #f3f4f6;
-        color: #1e40af;
-    }
-    
-    .sidebar-link i {
-        width: 24px;
-        font-size: 1.1rem;
-    }
-    
-    .sidebar-link.active {
-        background: #eff6ff;
-        color: #1e40af;
-        font-weight: 500;
-    }
-    
-    .sidebar-link.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    
-    #mainFrame {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        transition: opacity 0.3s ease;
-    }
-    
-    aside nav::-webkit-scrollbar {
-        width: 4px;
-    }
-    
-    aside nav::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-    
-    aside nav::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-    }
-    
-    .hover-scale {
-        transition: transform 0.2s;
-    }
-    
-    .hover-scale:hover {
-        transform: translateY(-2px);
-    }
-    
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-    
-    .loading-spinner {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #1e40af;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    /* تنسيق iframe responsive */
-    .iframe-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
-    
-    #mainFrame {
-        width: 100%;
-        height: 100%;
-        border: none;
-    }
-    
-    /* تحسين عرض الجوال */
-    @media (max-width: 768px) {
-        .sidebar-link span {
-            font-size: 13px;
-        }
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        
+        body { font-family: 'Tajawal', sans-serif; }
+        
         .logo {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
-    }
-</style>
+        
+        .sidebar-link {
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            color: #4b5563;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 4px;
+        }
+        
+        .sidebar-link:hover:not(.disabled) {
+            background: #f3f4f6;
+            color: #1e40af;
+            transform: translateX(-4px);
+        }
+        
+        .sidebar-link.active {
+            background: #eff6ff;
+            color: #1e40af;
+            font-weight: 700;
+            border-left: 4px solid #1e40af;
+        }
+
+        .sidebar-link i { width: 20px; text-align: center; }
+
+        /* Loader inside iframe container */
+        .frame-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        
+        #mainFrame {
+            transition: opacity 0.3s ease;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Scrollbar styling */
+        aside nav::-webkit-scrollbar { width: 5px; }
+        aside nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-100">
 
 <div class="flex h-screen overflow-hidden">
 
-<!-- SIDEBAR -->
-<aside class="w-72 bg-white shadow-xl flex flex-col border-l border-gray-200">
-    
-    <div class="p-5 border-b border-gray-200">
-        <h1 class="logo">متجرك الذكي</h1>
-        <p class="text-xs text-gray-500 mt-1">نظام إدارة متكامل</p>
-    </div>
-    
-    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-        
-        <!-- الطلبات (متاحة) -->
-        <a href="admin/modules/orders.html" target="frame" class="sidebar-link active" data-module="orders">
-            <i class="fas fa-shopping-cart"></i>
-            <span>الطلبات</span>
-        </a>
-        
-        <!-- العملاء (متاح الآن) -->
-        <a href="admin/modules/customers.html" target="frame" class="sidebar-link" data-module="customers">
-            <i class="fas fa-users"></i>
-            <span>العملاء</span>
-        </a>
-        
-        <!-- المنتجات (متاح الآن) -->
-        <a href="admin/modules/products.html" target="frame" class="sidebar-link" data-module="products">
-            <i class="fas fa-boxes"></i>
-            <span>المنتجات</span>
-        </a>
-        
-        <div class="border-t border-gray-200 my-3"></div>
-        
-        <div class="text-xs text-gray-400 px-3 py-2 font-semibold">إضافات</div>
-        
-        <!-- التقارير (متاحة) -->
-        <a href="admin/modules/reports.html" target="frame" class="sidebar-link" data-module="reports">
-            <i class="fas fa-chart-line"></i>
-            <span>التقارير</span>
-        </a>
-        
-        <!-- الفواتير (متاحة) -->
-        <a href="print.html" target="frame" class="sidebar-link" data-module="invoices">
-            <i class="fas fa-file-invoice"></i>
-            <span>الفواتير</span>
-        </a>
-        
-        <!-- المخزون (متاح) -->
-        <a href="admin/modules/inventory.html" target="frame" class="sidebar-link" data-module="inventory">
-            <i class="fas fa-warehouse"></i>
-            <span>المخزون</span>
-        </a>
-        
-        <!-- المدفوعات (متاح) -->
-        <a href="admin/modules/payments.html" target="frame" class="sidebar-link" data-module="payments">
-            <i class="fas fa-credit-card"></i>
-            <span>المدفوعات</span>
-        </a>
-        
-        <!-- الإعدادات (متاح) -->
-        <a href="admin/modules/settings.html" target="frame" class="sidebar-link" data-module="settings">
-            <i class="fas fa-cog"></i>
-            <span>الإعدادات</span>
-        </a>
-        
-        <!-- النسخ الاحتياطي (متاح) -->
-        <a href="admin/modules/backup.html" target="frame" class="sidebar-link" data-module="backup">
-            <i class="fas fa-database"></i>
-            <span>النسخ الاحتياطي</span>
-        </a>
-        
-    </nav>
-    
-    <div class="p-4 border-t border-gray-200 text-xs text-gray-400">
-        <div class="flex items-center gap-2 mb-1">
-            <i class="fas fa-code text-xs"></i>
-            <span>نظام إدارة متجرك الذكي</span>
+    <aside class="w-72 bg-white shadow-2xl flex flex-col z-20">
+        <div class="p-6 border-b border-gray-100">
+            <h1 class="logo">متجرك الذكي</h1>
+            <p class="text-xs text-gray-400 mt-1 font-medium">نظام الإدارة المتكامل v2.0</p>
         </div>
-        <div class="flex items-center gap-2">
-            <i class="far fa-calendar-alt text-xs"></i>
-            <span id="currentDate"></span>
-        </div>
-        <div class="flex items-center gap-2 mt-1">
-            <i class="fas fa-version text-xs"></i>
-            <span>الإصدار 2.0</span>
-        </div>
-    </div>
-    
-</aside>
+        
+        <nav class="flex-1 p-4 overflow-y-auto">
+            <div class="text-[10px] uppercase tracking-widest text-gray-400 mb-2 px-3">الرئيسية</div>
+            
+            <a href="admin/modules/orders.html" class="sidebar-link active" data-module="orders">
+                <i class="fas fa-shopping-basket"></i>
+                <span>إدارة الطلبات</span>
+            </a>
+            
+            <a href="admin/modules/customers.html" class="sidebar-link" data-module="customers">
+                <i class="fas fa-user-friends"></i>
+                <span>قاعدة العملاء</span>
+            </a>
+            
+            <a href="admin/modules/products.html" class="sidebar-link" data-module="products">
+                <i class="fas fa-box-open"></i>
+                <span>المنتجات</span>
+            </a>
 
-<!-- CONTENT -->
-<main class="flex-1 p-4 bg-gray-50 overflow-hidden">
-    <div class="bg-white rounded-xl shadow-sm h-full overflow-hidden iframe-container">
-        <iframe 
-            id="mainFrame"
-            name="frame" 
-            src="admin/modules/orders.html" 
-            class="w-full h-full"
-            frameborder="0"
-            loading="lazy"
-            title="لوحة التحكم">
-        </iframe>
-    </div>
-</main>
+            <div class="border-t border-gray-100 my-4"></div>
+            <div class="text-[10px] uppercase tracking-widest text-gray-400 mb-2 px-3">الأدوات التقنية</div>
 
+            <a href="print.html" class="sidebar-link" data-module="invoices">
+                <i class="fas fa-print"></i>
+                <span>نظام الفواتير</span>
+            </a>
+            
+            <a href="admin/modules/reports.html" class="sidebar-link" data-module="reports">
+                <i class="fas fa-chart-pie"></i>
+                <span>التقارير</span>
+            </a>
+
+            <a href="admin/modules/settings.html" class="sidebar-link" data-module="settings">
+                <i class="fas fa-sliders-h"></i>
+                <span>الإعدادات</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 bg-gray-50 border-t border-gray-100">
+            <div class="flex items-center gap-3 text-gray-500">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <i class="fas fa-user-shield text-xs"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-700">المدير العام</p>
+                    <p class="text-[10px]" id="currentDate"></p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
+            <div class="flex items-center gap-4">
+                <button id="refreshBtn" class="text-gray-400 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <h2 id="pageTitle" class="font-bold text-gray-700">الطلبات</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+                <span class="text-xs text-gray-500 font-medium">النظام متصل</span>
+            </div>
+        </header>
+
+        <div class="flex-1 p-6 relative">
+            <div class="frame-loader" id="frameLoader">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            </div>
+            
+            <div class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <iframe 
+                    id="mainFrame" 
+                    name="frame" 
+                    src="admin/modules/orders.html"
+                    class="w-full h-full" 
+                    frameborder="0">
+                </iframe>
+            </div>
+        </div>
+    </main>
 </div>
 
-<!-- Toast Notifications -->
-<div id="toast" class="fixed bottom-4 left-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg z-50 hidden transition-all duration-300">
-    <i class="fas fa-info-circle ml-2"></i>
-    <span id="toastMessage"></span>
+<div id="toast" class="fixed bottom-6 left-6 transform -translate-x-full opacity-0 transition-all duration-500 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-white">
+    <i id="toastIcon" class="fas"></i>
+    <span id="toastMessage" class="font-medium text-sm"></span>
 </div>
 
 <script>
-/* =============================
-   عرض التاريخ
-============================= */
-function updateDate() {
-    const dateElement = document.getElementById('currentDate');
-    if (dateElement) {
-        const now = new Date();
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        dateElement.textContent = now.toLocaleDateString('ar-SA', options);
-    }
-}
-updateDate();
+    const frame = document.getElementById('mainFrame');
+    const loader = document.getElementById('frameLoader');
+    const pageTitle = document.getElementById('pageTitle');
+    const links = document.querySelectorAll('.sidebar-link');
 
-/* =============================
-   عرض رسائل التوست
-============================= */
-let toastTimeout;
+    /* =============================
+       منطق التنقل وتغيير الصفحات
+    ============================= */
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            const title = this.querySelector('span').innerText;
 
-window.showComingSoon = function() {
-    showToast('🚀 هذه الميزة قيد التطوير وستتوفر قريباً', 'info');
-}
+            // تحديث الواجهة
+            links.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            pageTitle.innerText = title;
 
-function showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    
-    if (toastTimeout) clearTimeout(toastTimeout);
-    
-    toastMessage.textContent = message;
-    
-    const colors = {
-        info: 'bg-gray-800',
-        success: 'bg-green-600',
-        error: 'bg-red-600',
-        warning: 'bg-yellow-600'
-    };
-    
-    toast.className = `fixed bottom-4 left-4 ${colors[type] || colors.info} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300`;
-    toast.classList.remove('hidden');
-    
-    toastTimeout = setTimeout(() => {
-        toast.classList.add('hidden');
-    }, 3000);
-}
-
-/* =============================
-   تفعيل الروابط + إصلاح iframe
-============================= */
-const links = document.querySelectorAll('.sidebar-link:not(.disabled)');
-const frame = document.getElementById('mainFrame');
-
-// حفظ الصفحة الحالية
-let currentPage = localStorage.getItem('currentAdminPage') || 'admin/modules/orders.html';
-
-// تحميل آخر صفحة تم زيارتها
-if (frame && currentPage) {
-    frame.setAttribute('src', currentPage);
-}
-
-// تحديث active عند تغيير iframe
-if (frame) {
-    frame.addEventListener('load', () => {
-        const currentSrc = frame.getAttribute('src');
-        
-        links.forEach(link => {
-            const href = link.getAttribute('href');
-            if (href && currentSrc && currentSrc.includes(href)) {
-                link.classList.add('active');
-                localStorage.setItem('currentAdminPage', currentSrc);
-            } else {
-                link.classList.remove('active');
+            // تحميل الصفحة
+            if (frame.src !== url) {
+                loader.style.display = 'block';
+                frame.style.opacity = '0.3';
+                frame.src = url;
+                localStorage.setItem('lastAdminPage', url);
             }
         });
-        
+    });
+
+    // عند انتهاء تحميل الـ Iframe
+    frame.addEventListener('load', () => {
+        loader.style.display = 'none';
         frame.style.opacity = '1';
         
-        // تحديث عنوان الصفحة حسب المحتوى
+        // محاولة جلب عنوان الصفحة من الداخل إذا سمحت السياسة
         try {
-            const iframeTitle = frame.contentDocument?.title;
-            if (iframeTitle && iframeTitle !== 'لوحة التحكم - متجرك الذكي') {
-                document.title = `${iframeTitle} - متجرك الذكي`;
+            const innerTitle = frame.contentDocument.title;
+            if (innerTitle) console.log("Loaded:", innerTitle);
+        } catch(e) {}
+    });
+
+    /* =============================
+       إصلاح التاريخ والتوقيت
+    ============================= */
+    function updateDateTime() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
+        document.getElementById('currentDate').innerText = dateStr;
+    }
+    updateDateTime();
+
+    /* =============================
+       نظام التنبيهات (Toast)
+    ============================= */
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toastIcon');
+        
+        const types = {
+            success: { bg: 'bg-green-600', icon: 'fa-check-circle' },
+            error: { bg: 'bg-red-600', icon: 'fa-exclamation-triangle' },
+            info: { bg: 'bg-blue-600', icon: 'fa-info-circle' }
+        };
+
+        const config = types[type] || types.success;
+        
+        toast.className = `fixed bottom-6 left-6 transition-all duration-500 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-white ${config.bg}`;
+        icon.className = `fas ${config.icon}`;
+        document.getElementById('toastMessage').innerText = msg;
+        
+        // إظهار
+        toast.classList.remove('-translate-x-full', 'opacity-0');
+        
+        setTimeout(() => {
+            toast.classList.add('-translate-x-full', 'opacity-0');
+        }, 3500);
+    }
+
+    // زر التحديث
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+        loader.style.display = 'block';
+        frame.contentWindow.location.reload();
+        showToast('تم تحديث الصفحة بنجاح', 'info');
+    });
+
+    // استعادة آخر صفحة
+    const lastPage = localStorage.getItem('lastAdminPage');
+    if (lastPage) {
+        frame.src = lastPage;
+        // تحديث حالة الـ Active في القائمة
+        links.forEach(l => {
+            if(l.getAttribute('href') === lastPage) {
+                links.forEach(link => link.classList.remove('active'));
+                l.classList.add('active');
+                pageTitle.innerText = l.querySelector('span').innerText;
             }
-        } catch(e) {
-            console.log('Cannot access iframe title (cross-origin)');
-        }
-    });
-}
-
-// عند الضغط على الرابط
-links.forEach(link => {
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const href = this.getAttribute('href');
-        if (!href || href === '#') return;
-        
-        // إظهار تأثير التحميل
-        if (frame) {
-            frame.style.opacity = '0.5';
-            frame.setAttribute('src', href);
-            localStorage.setItem('currentAdminPage', href);
-        }
-        
-        // تحديث الـ active class
-        links.forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-        
-        // عرض رسالة تحميل
-        showToast('جاري تحميل الصفحة...', 'info');
-    });
-});
-
-// معالجة أخطاء الـ iframe
-if (frame) {
-    frame.addEventListener('error', () => {
-        showToast('❌ حدث خطأ في تحميل الصفحة', 'error');
-        frame.style.opacity = '1';
-    });
-}
-
-/* =============================
-   إنشاء الملفات المفقودة تلقائياً
-============================= */
-async function createMissingFiles() {
-    const files = [
-        { path: 'admin/modules/customers.html', title: 'إدارة العملاء' },
-        { path: 'admin/modules/products.html', title: 'إدارة المنتجات' },
-        { path: 'admin/modules/reports.html', title: 'التقارير والإحصائيات' },
-        { path: 'admin/modules/inventory.html', title: 'إدارة المخزون' },
-        { path: 'admin/modules/payments.html', title: 'المدفوعات' },
-        { path: 'admin/modules/settings.html', title: 'الإعدادات' },
-        { path: 'admin/modules/backup.html', title: 'النسخ الاحتياطي' }
-    ];
-    
-    for (const file of files) {
-        try {
-            const response = await fetch(file.path, { method: 'HEAD' });
-            if (!response.ok) {
-                console.log(`⚠️ الملف غير موجود: ${file.path}، سيتم إنشاؤه...`);
-                await createBasicModule(file.path, file.title);
-            }
-        } catch(e) {
-            console.log(`⚠️ لا يمكن الوصول إلى ${file.path}`);
-        }
+        });
     }
-}
 
-async function createBasicModule(path, title) {
-    // هذه دالة مساعدة لإنشاء ملفات أساسية
-    console.log(`📄 سيتم إنشاء ${path} عند الطلب`);
-}
-
-/* =============================
-   التواصل بين iframe والصفحة الرئيسية
-============================= */
-window.addEventListener('message', (event) => {
-    console.log('📨 رسالة من iframe:', event.data);
-    
-    if (event.data.type === 'showToast') {
-        showToast(event.data.message, event.data.messageType || 'success');
-    } else if (event.data.type === 'changePage') {
-        const targetLink = Array.from(links).find(l => 
-            l.getAttribute('href')?.includes(event.data.page)
-        );
-        if (targetLink) {
-            targetLink.click();
-        }
-    } else if (event.data.type === 'updateTitle') {
-        document.title = event.data.title || 'لوحة التحكم - متجرك الذكي';
-    } else if (event.data.type === 'reload') {
-        if (frame) frame.contentWindow.location.reload();
-    } else if (event.data.type === 'print') {
-        if (frame) frame.contentWindow.print();
-    }
-});
-
-/* =============================
-   إرسال رسالة إلى iframe
-============================= */
-function sendMessageToIframe(message) {
-    if (frame && frame.contentWindow) {
-        frame.contentWindow.postMessage(message, '*');
-    }
-}
-
-// إرسال رسالة ترحيب عند تحميل الصفحة
-setTimeout(() => {
-    sendMessageToIframe({ 
-        type: 'init', 
-        data: { 
-            userId: 'admin', 
-            timestamp: Date.now(),
-            version: '2.0'
-        } 
-    });
-    console.log('🚀 لوحة التحكم جاهزة للعمل');
-    showToast('✨ مرحباً بك في لوحة تحكم متجرك الذكي', 'success');
-}, 1000);
-
-/* =============================
-   دعم وضع الظلام (اختياري)
-============================= */
-const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-if (prefersDarkMode) {
-    console.log('🌙 الوضع المظلم مفضل');
-}
-
-/* =============================
-   تحديث التاريخ كل دقيقة
-============================= */
-setInterval(updateDate, 60000);
-
-/* =============================
-   معالجة الأخطاء العامة
-============================= */
-window.addEventListener('error', (e) => {
-    console.error('خطأ عام:', e.error);
-    if (e.message.includes('Failed to fetch')) {
-        showToast('⚠️ بعض الملفات غير موجودة، سيتم إنشاؤها تلقائياً', 'warning');
-    }
-});
-
-// إنشاء الملفات المفقودة عند التحميل
-setTimeout(() => {
-    createMissingFiles();
-}, 2000);
-</script>
-
-<!-- إضافة بعض الميزات الإضافية -->
-<script>
-// دالة لتحديث إحصائيات سريعة
-async function updateQuickStats() {
-    try {
-        // يمكن إضافة إحصائيات من Firebase هنا
-        console.log('📊 تحديث الإحصائيات...');
-    } catch(e) {
-        console.log('لا يمكن تحديث الإحصائيات');
-    }
-}
-
-// تحديث الإحصائيات كل 30 ثانية
-setInterval(updateQuickStats, 30000);
+    // رسالة ترحيبية
+    setTimeout(() => showToast('مرحباً بك في النظام الذكي', 'success'), 1000);
 </script>
 
 </body>
