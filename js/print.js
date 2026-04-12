@@ -13,6 +13,7 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 window.db = firebase.firestore();
+
 const UI = {
     header: (title, seller) => `
         <div class="header-main">
@@ -50,7 +51,7 @@ const UI = {
                     <p><b>الدولة:</b> المملكة العربية السعودية</p>
                     <p><b>المدينة:</b> ${customer.city || '---'} | <b>الحي:</b> ${customer.district || '---'} | <b>الشارع:</b> ${customer.street || '---'}</p>
                     <p><b>رقم الجوال:</b> ${customer.phone || '---'}</p>
-                    <p><b>البريد:</b> ${customer.email || '---'}</p>
+                    <p><b>البريد الإلكتروني:</b> ${customer.email || '---'}</p>
                 </div>
             </div>
         </div>
@@ -60,20 +61,8 @@ const UI = {
             <span><b>رمز الموافقة على الطلب:</b> ${order.approvalCode || '---'}</span>
             <span><b>طريقة استلام المنتج:</b> ${order.deliveryMethod || 'تحميل رقمي'}</span>
         </div>`;
-  
+    },
 
-    footer: (current, total, seller) => `
-        <div class="final-footer">
-            <div class="contact-info-strip">
-                <div class="contact-item"><span>الهاتف:</span> <span class="num-dir">966534051317+</span></div>
-                <div class="contact-item"><span>الواتس اب:</span> <span class="num-dir">966545312021+</span></div>
-                <div class="contact-item">info@fi-khidmatik.com</div>
-                <div class="contact-item">www.khidmatik.com</div>
-            </div>
-            <div class="footer-legal-notice">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
-            <div class="page-number-box">صفحة ${current} من ${total}</div>
-        </div>`
-};
     footer: (current, total, seller) => `
         <div class="final-footer">
             <div class="contact-info-strip">
@@ -82,12 +71,8 @@ const UI = {
                 <div class="contact-item"><span>info@fi-khidmatik.com</span></div>
                 <div class="contact-item"><span>www.khidmatik.com</span></div>
             </div>
-            <div class="footer-legal-notice">
-                هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً
-            </div>
-            <div class="page-number-box">
-                صفحة ${current} من ${total}
-            </div>
+            <div class="footer-legal-notice">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+            <div class="page-number-box">صفحة ${current} من ${total}</div>
         </div>`
 };
 
@@ -117,7 +102,7 @@ window.onload = async () => {
             html += `
                 <div class="page">
                     ${UI.header("فاتورة إلكترونية ضريبية", seller)}
-                    ${i === 0 ? UI.orderMeta(order, customer, date, time, seller) : ''}
+                    ${UI.orderMeta(order, customer, date, time, seller)}
                     <table class="main-table">
                         <thead><tr><th>#</th><th>المنتج</th><th>الوصف</th><th>الصورة</th><th>الكمية</th><th>السعر</th></tr></thead>
                         <tbody>
@@ -169,23 +154,3 @@ function renderFinancials(order) {
     const subtotal = order.subtotal || 0;
     const total = order.total || 0;
     const tax = total - subtotal;
-    return `
-    <div class="financial-section">
-        <div class="summary-box-final">
-            <div class="s-line"><span>المجموع:</span> <span>${subtotal.toLocaleString()} ر.س</span></div>
-            <div class="s-line"><span>الضريبة (15%):</span> <span>${tax.toLocaleString()} ر.س</span></div>
-            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${total.toLocaleString()} ر.س</span></div>
-        </div>
-        <div class="barcode-group-print"><div id="zatcaQR"></div><div id="websiteQR"></div><div id="downloadQR"></div></div>
-    </div>`;
-}
-
-document.getElementById('downloadPDF').onclick = () => {
-    const element = document.getElementById('print-app');
-    html2pdf().set({
-        margin: 0, filename: `Invoice.pdf`,
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    }).from(element).save();
-};
-document.getElementById('printPage').onclick = () => window.print();
