@@ -1,6 +1,6 @@
 import { TERMS_DATA } from './terms.js';
 import { OrderManager } from './order.js';
-import { generateAllInvoiceQRs } from './zatca.js';
+import { BarcodeManager } from './barcodes.js'; // الاستدعاء الجديد الموحد
 
 window.onload = async () => {
     const params = new URLSearchParams(window.location.search);
@@ -13,16 +13,15 @@ window.onload = async () => {
 
         const { order, customer } = data;
         const { date, time } = OrderManager.formatDateTime(order.createdAt);
-        const logistics = OrderManager.getLogisticDetails(order);
         
         // استخدام بيانات البائع من invoice.js
         const seller = window.invoiceSettings; 
 
-        // لوجو بديل في حال تعذر التحميل
+        // لوجو بديل
         const fallbackImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
         const items = order.items || [];
-        const itemsPerPage = 8;
+        const itemsPerPage = 7; // تقليل العدد قليلاً لضمان وسع الباركودات
         const invoicePagesCount = Math.ceil(items.length / itemsPerPage) || 1;
         const totalPagesCount = invoicePagesCount + 3;
 
@@ -54,7 +53,7 @@ window.onload = async () => {
 
                 ${isFirstPage ? `
                 <div class="order-meta-row">
-                    <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
+                    <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id.substring(0,8)}</span>
                     <span><b>التاريخ:</b> ${date}</span>
                     <span><b>الوقت:</b> ${time}</span>
                 </div>
@@ -75,26 +74,6 @@ window.onload = async () => {
                             <p><b>الجوال:</b> ${customer.phone || '---'}</p>
                         </div>
                     </div>
-                </div>
-
-                <div class="payment-partners-row">
-                    <div class="partner-item">
-                        <img src="images/tamara-logo.svg" alt="Tamara">
-                        <div class="partner-qr" id="qr-tamara"></div>
-                    </div>
-                    <div class="partner-item">
-                        <img src="images/tabby-logo.svg" alt="Tabby">
-                        <div class="partner-qr" id="qr-tabby"></div>
-                    </div>
-                    <div class="partner-item">
-                        <img src="images/emkan-logo.svg" alt="Emkan">
-                        <div class="partner-qr" id="qr-emkan"></div>
-                    </div>
-                </div>
-
-                <div class="single-row-payment">
-                    <div class="p-item"><b>وسيلة الدفع:</b> ${window.getPaymentName(order.paymentMethod)}</div>
-                    <div class="p-item"><b>الحالة:</b> ${window.getStatusText(order.status)}</div>
                 </div>` : ''}
 
                 <table class="main-table">
@@ -120,7 +99,21 @@ window.onload = async () => {
                         <div class="s-line"><span>ضريبة القيمة المضافة (15%):</span> <span>${((order.total || 0) - (order.subtotal || 0)).toLocaleString()} ر.س</span></div>
                         <div class="s-line grand-total-line"><span>الإجمالي شامل الضريبة:</span> <span>${(order.total || 0).toLocaleString()} ر.س</span></div>
                     </div>
-                    <div class="qr-zatca-main" id="zatcaQR"></div>
+                </div>
+
+                <div class="barcode-section" style="display:flex; gap:20px; justify-content:center; margin-top:30px; border-top:1px dashed #eee; padding-top:20px;">
+                    <div class="barcode-item" style="text-align:center;">
+                        <div id="zatcaQR"></div>
+                        <p style="font-size:8px; margin-top:5px;">هيئة الزكاة والجمارك</p>
+                    </div>
+                    <div class="barcode-item" style="text-align:center;">
+                        <div id="websiteQR"></div>
+                        <p style="font-size:8px; margin-top:5px;">الموقع الرسمي</p>
+                    </div>
+                    <div class="barcode-item" style="text-align:center;">
+                        <div id="downloadQR"></div>
+                        <p style="font-size:8px; margin-top:5px;"><a id="invoiceLink" style="color:inherit; text-decoration:none;">تحميل الفاتورة</a></p>
+                    </div>
                 </div>` : ''}
 
                 <div class="final-footer">
@@ -133,20 +126,11 @@ window.onload = async () => {
             </div>`;
         }
 
-        // --- 2. توليد صفحات الشروط ---
-        // (الكود المعتاد لصفحات الشروط)
-        
         document.getElementById('print-app').innerHTML = html;
 
-        // --- 3. توليد الباركودات فعلياً ---
-        // توليد باركود الزكاة (ZATCA)
-        generateAllInvoiceQRs(order, seller, ["zatcaQR"]);
-
-        // توليد باركودات التقسيط (روابط ثابتة أو ديناميكية)
+        // --- 2. توليد الباركودات باستخدام المدير الموحد ---
         if (typeof QRCode !== 'undefined') {
-            new QRCode(document.getElementById("qr-tamara"), { text: "https://tamara.co", width: 50, height: 50 });
-            new QRCode(document.getElementById("qr-tabby"), { text: "https://tabby.ai", width: 50, height: 50 });
-            new QRCode(document.getElementById("qr-emkan"), { text: "https://emkan.com.sa", width: 50, height: 50 });
+            BarcodeManager.init(orderId, seller, order);
         }
 
         document.getElementById('loader').style.display = 'none';
