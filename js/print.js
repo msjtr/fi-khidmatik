@@ -44,10 +44,21 @@ const UI = {
         </div>`;
     },
 
+    // تم تحديث التذييل بناءً على طلبك الأخير
     footer: (current, total, seller) => `
         <div class="final-footer">
-            <div class="contact-strip">${seller.phone} | ${seller.email} | ${seller.website}</div>
-            <div class="page-number">صفحة ${current} من ${total}</div>
+            <div class="contact-info-strip">
+                <div class="contact-item"><span>الهاتف:</span> 966534051317+</div>
+                <div class="contact-item"><span>الواتس اب:</span> 966545312021+</div>
+                <div class="contact-item">info@fi-khidmatik.com</div>
+                <div class="contact-item">www.khidmatik.com</div>
+            </div>
+            <div class="footer-legal-notice">
+                هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً
+            </div>
+            <div class="page-number-box">
+                صفحة ${current} من ${total}
+            </div>
         </div>`
 };
 
@@ -63,17 +74,15 @@ window.onload = async () => {
         const seller = window.invoiceSettings;
         const { date, time } = OrderManager.formatDateTime(order.createdAt);
 
-        // تحويل الكائن لمصفوفة نصوص
         const termsArray = Object.values(TERMS_DATA);
 
         const itemsPerPage = 6;
-        const termsPerPage = 10; // عدد البنود في كل صفحة شروط
+        const termsPerPage = 10; 
         const invPages = Math.ceil((order.items?.length || 1) / itemsPerPage);
         const totalPages = invPages + Math.ceil(termsArray.length / termsPerPage);
 
         let html = '';
 
-        // صفحات الفاتورة
         for (let i = 0; i < invPages; i++) {
             const pageItems = (order.items || []).slice(i * itemsPerPage, (i + 1) * itemsPerPage);
             html += `
@@ -99,7 +108,6 @@ window.onload = async () => {
                 </div>`;
         }
 
-        // صفحات الشروط
         for (let j = 0; j < termsArray.length; j += termsPerPage) {
             const pageTerms = termsArray.slice(j, j + termsPerPage);
             const pageNum = invPages + Math.floor(j / termsPerPage) + 1;
@@ -108,7 +116,6 @@ window.onload = async () => {
                     ${UI.header("الشروط والأحكام العامة", seller)}
                     <div class="terms-container-print">
                         ${pageTerms.map((text) => {
-                            // تمييز العناوين تلقائياً (أولاً، ثانياً...)
                             const isTitle = /^(أولاً|ثانياً|ثالثاً|رابعاً|خامساً|سادساً|سابعاً|ثامناً|تاسعاً|عاشراً|حادي عشر|ثاني عشر)/.test(text);
                             return `
                                 <div class="term-row-print ${isTitle ? 'term-title-style' : ''}">
