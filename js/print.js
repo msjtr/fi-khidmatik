@@ -1,5 +1,5 @@
 import { TERMS_DATA } from './terms.js';
-import { OrderManager } from './order.js';
+import { OrderManager } from './order.js'; // إعادة الربط
 import { BarcodeManager } from './barcodes.js';
 
 // 1. إعدادات Firebase
@@ -12,7 +12,6 @@ const firebaseConfig = {
     appId: "1:186209858482:web:186ca610780799ef562aab"
 };
 
-// تهيئة Firebase لبيئة Firestore (SDK v8 Compatibility)
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -28,8 +27,7 @@ const UI = {
             </div>
         </div>`,
 
-    orderMeta: (order, customer, date, time) => {
-        return `
+    orderMeta: (order, customer, date, time) => `
         <div class="order-info-line">
             <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
             <span><b>التاريخ:</b> ${date}</span>
@@ -62,8 +60,7 @@ const UI = {
         <div class="order-info-line payment-line">
             <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
             <span><b>طريقة الاستلام:</b> ${order.deliveryMethod || order.shippingMethod || 'تحميل رقمي'}</span>
-        </div>`;
-    },
+        </div>`,
 
     footer: (current, total) => `
         <div class="final-footer">
@@ -83,27 +80,25 @@ window.onload = async () => {
     if (!orderId) return;
 
     try {
-        // استخدام OrderManager لجلب البيانات الموحدة
-        // تأكد أن OrderManager.js يحتوي على دالة getOrderFullDetails المحدثة
+        // الاستدعاء من OrderManager لضمان توحيد البيانات (الشارع وغيرها)
         const fullDetails = await OrderManager.getOrderFullDetails(orderId);
         
-        if (!fullDetails) throw new Error("تعذر جلب بيانات الطلب");
+        if (!fullDetails) {
+            throw new Error("لم يتم العثور على بيانات الطلب عبر OrderManager");
+        }
 
         const { order, customer } = fullDetails;
         const seller = window.invoiceSettings || {};
         const { date, time } = OrderManager.formatDateTime(order.createdAt);
+        
         const termsArray = Object.values(TERMS_DATA);
-
         const items = order.items || [];
         const itemsPerPage = 6;
-        const termsPerPage = 10;
         const invPagesCount = Math.ceil(items.length / itemsPerPage) || 1;
-        const termsPagesCount = Math.ceil(termsArray.length / termsPerPage);
-        const totalPages = invPagesCount + termsPagesCount;
+        const totalPages = invPagesCount + Math.ceil(termsArray.length / 10);
 
         let html = '';
 
-        // بناء صفحات المنتجات
         for (let i = 0; i < invPagesCount; i++) {
             const pageItems = items.slice(i * itemsPerPage, (i + 1) * itemsPerPage);
             html += `
@@ -116,8 +111,8 @@ window.onload = async () => {
                             ${pageItems.map((item, idx) => `
                                 <tr>
                                     <td>${(i * itemsPerPage) + idx + 1}</td>
-                                    <td><b>${item.name}</b><br><small>${item.description || ''}</small></td>
-                                    <td>${item.qty || item.quantity}</td>
+                                    <td><b>${item.name}</b></td>
+                                    <td>${item.qty || 1}</td>
                                     <td>${(item.price || 0).toLocaleString()} ر.س</td>
                                 </tr>`).join('')}
                         </tbody>
@@ -127,10 +122,10 @@ window.onload = async () => {
                 </div>`;
         }
 
-        // بناء صفحات الشروط
+        // صفحات الشروط
+        const termsPerPage = 10;
         for (let j = 0; j < termsArray.length; j += termsPerPage) {
             const pageTerms = termsArray.slice(j, j + termsPerPage);
-            const currentPageNum = invPagesCount + Math.floor(j / termsPerPage) + 1;
             html += `
                 <div class="page page-terms">
                     ${UI.header(seller)}
@@ -138,21 +133,20 @@ window.onload = async () => {
                     <div class="terms-container-print">
                         ${pageTerms.map(text => `<div class="term-row-print"><p>${text}</p></div>`).join('')}
                     </div>
-                    ${UI.footer(currentPageNum, totalPages)}
+                    ${UI.footer(invPagesCount + Math.floor(j/termsPerPage) + 1, totalPages)}
                 </div>`;
         }
 
         printApp.innerHTML = html;
         if (loader) loader.style.display = 'none';
 
-        // تشغيل الباركود بعد الرندر
         if (typeof BarcodeManager !== 'undefined') {
             BarcodeManager.init(order.id, seller, order);
         }
 
     } catch (error) {
         console.error("Print Error:", error);
-        if (loader) loader.innerHTML = `<div class="p-10 text-red-600">حدث خطأ أثناء تحميل الفاتورة: ${error.message}</div>`;
+        if (loader) loader.innerHTML = "خطأ في الربط: " + error.message;
     }
 };
 
@@ -174,11 +168,10 @@ function renderFinancials(order) {
     </div>`;
 }
 
-// أزرار التحكم
 document.getElementById('downloadPDF').onclick = () => {
     const element = document.getElementById('print-app');
     html2pdf().set({
-        margin: 0, filename: `Invoice_${new Date().getTime()}.pdf`,
+        margin: 0, filename: `Invoice.pdf`,
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     }).from(element).save();
