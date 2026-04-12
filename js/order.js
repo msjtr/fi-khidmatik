@@ -1,5 +1,5 @@
 /**
- * مدير الطلبات - موديول جلب البيانات من Firestore
+ * مدير الطلبات - النسخة المطابقة لمسميات HTML (إدارة الطلبات)
  */
 export const OrderManager = {
     async fetchDoc(col, id) {
@@ -20,7 +20,7 @@ export const OrderManager = {
 
             const customerRes = await this.fetchDoc('customers', orderRes.customerId);
             
-            // دالة داخلية للبحث عن القيمة بأي مسمى محتمل
+            // دالة مطابقة المسميات بناءً على كود HTML المرفق (id="deliveryStreet", id="quickStreet" etc)
             const getField = (obj1, obj2, keys) => {
                 for (let key of keys) {
                     if (obj1 && obj1[key]) return obj1[key];
@@ -33,25 +33,23 @@ export const OrderManager = {
                 order: orderRes,
                 customer: {
                     name: customerRes.name || orderRes.customerName || "عميل زائر",
-                    phone: customerRes.phone || orderRes.customerPhone || "---",
-                    city: customerRes.city || orderRes.city || "---",
-                    district: customerRes.district || orderRes.district || "---",
+                    phone: customerRes.phone || orderRes.customerPhone || orderRes.deliveryPhone || "---",
+                    city: customerRes.city || orderRes.deliveryCity || orderRes.quickCity || "---",
+                    district: customerRes.district || "---",
                     
-                    // البحث عن الشارع بمسميات مختلفة
-                    street: getField(customerRes, orderRes, ['street', 'Street', 'streetName', 'street_name']),
+                    // تم التحديث بناءً على IDs الحقول في كودك:
+                    // الشارع: deliveryStreet أو quickStreet
+                    street: getField(customerRes, orderRes, ['street', 'deliveryStreet', 'quickStreet']),
                     
-                    // البحث عن رقم المبنى
-                    buildingNumber: getField(customerRes, orderRes, ['buildingNumber', 'building_number', 'buildingNo', 'building']),
+                    // الرقم الإضافي: deliveryAdditionalNo أو quickAdditionalNo
+                    additionalNumber: getField(customerRes, orderRes, ['additionalNumber', 'deliveryAdditionalNo', 'quickAdditionalNo']),
                     
-                    // البحث عن الرقم الإضافي
-                    additionalNumber: getField(customerRes, orderRes, ['additionalNumber', 'additional_number', 'extraNumber', 'additional']),
-                    
-                    // البحث عن الرمز البريدي
-                    postalCode: getField(customerRes, orderRes, ['postalCode', 'postal_code', 'zipCode', 'postCode', 'post_code'])
+                    // الرمز البريدي أو صندوق البريد: deliveryPoBox أو quickPoBox
+                    postalCode: getField(customerRes, orderRes, ['postalCode', 'deliveryPoBox', 'quickPoBox', 'postal_code'])
                 }
             };
         } catch (error) {
-            console.error("خطأ حرج في الموديول:", error);
+            console.error("خطأ حرج:", error);
             return null;
         }
     },
