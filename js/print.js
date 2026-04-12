@@ -2,7 +2,7 @@ import { TERMS_DATA } from './terms.js';
 import { OrderManager } from './order.js';
 import { BarcodeManager } from './barcodes.js';
 
-// 1. التهيئة الفورية لقاعدة البيانات (يجب أن تسبق أي عملية جلب)
+// 1. التهيئة الفورية لقاعدة البيانات
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -13,7 +13,7 @@ const firebaseConfig = {
 };
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-window.db = firebase.firestore(); // تعريف عالمي
+window.db = firebase.firestore();
 
 const UI = {
     header: (title, seller) => `
@@ -77,13 +77,17 @@ window.onload = async () => {
         const seller = window.invoiceSettings;
         const { date, time } = OrderManager.formatDateTime(order.createdAt);
 
+        // --- معالجة الشروط (تحويل الكائن إلى مصفوفة) ---
+        const termsArray = Object.values(TERMS_DATA);
+
         const itemsPerPage = 6;
-        const termsPerPage = 12;
+        const termsPerPage = 8; // تقليل العدد لأن بنودك القانونية طويلة جداً ومفصلة
         const invPages = Math.ceil((order.items?.length || 1) / itemsPerPage);
-        const totalPages = invPages + Math.ceil(TERMS_DATA.length / termsPerPage);
+        const totalPages = invPages + Math.ceil(termsArray.length / termsPerPage);
 
         let html = '';
 
+        // إنشاء صفحات الفاتورة (المنتجات)
         for (let i = 0; i < invPages; i++) {
             const pageItems = (order.items || []).slice(i * itemsPerPage, (i + 1) * itemsPerPage);
             html += `
@@ -109,16 +113,19 @@ window.onload = async () => {
                 </div>`;
         }
 
-        // صفحات الشروط
-        for (let j = 0; j < TERMS_DATA.length; j += termsPerPage) {
-            const pageTerms = TERMS_DATA.slice(j, j + termsPerPage);
+        // إنشاء صفحات الشروط (تحويل البنود الـ 57 لصفحات منظمة)
+        for (let j = 0; j < termsArray.length; j += termsPerPage) {
+            const pageTerms = termsArray.slice(j, j + termsPerPage);
             const pageNum = invPages + Math.floor(j / termsPerPage) + 1;
             html += `
                 <div class="page page-terms">
                     ${UI.header("الشروط والأحكام العامة", seller)}
-                    <div class="terms-grid">
-                        ${pageTerms.map((t, idx) => `
-                            <div class="term-item"><span class="term-num">${j + idx + 1}</span><p class="term-text">${t}</p></div>
+                    <div class="terms-container-print">
+                        ${pageTerms.map((text, idx) => `
+                            <div class="term-row-print">
+                                <span class="term-idx">${j + idx + 1}</span>
+                                <p class="term-content-print">${text}</p>
+                            </div>
                         `).join('')}
                     </div>
                     ${UI.footer(pageNum, totalPages, seller)}
