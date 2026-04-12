@@ -7,25 +7,15 @@ window.onload = async () => {
     if (!orderId) return;
 
     try {
-        // جلب البيانات مع التأكد من أسماء الحقول في قاعدة البيانات
         const order = await window.getDocument("orders", orderId);
         const customer = await window.getDocument("customers", order.customerId);
         const seller = window.invoiceSettings;
 
-        // حل مشكلة الصور: استخدام رابط بديل شفاف في حال فشل التحميل
+        // صورة شفافة بديلة في حال تعذر تحميل صورة المنتج
         const fallbackImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
-        // تجميع العنوان الكامل
-        const fullAddress = [
-            customer.city || '',
-            customer.district || '',
-            customer.street || '',
-            customer.address || ''
-        ].filter(p => p && p !== 'undefined').join(" - ") || "غير مسجل";
-
-        // إعداد تقسيم الصفحات (8 منتجات لكل صفحة)
         const items = order.items || [];
-        const itemsPerPage = 8;
+        const itemsPerPage = 8; 
         const pages = [];
         for (let i = 0; i < items.length; i += itemsPerPage) {
             pages.push(items.slice(i, i + itemsPerPage));
@@ -74,7 +64,7 @@ window.onload = async () => {
                         <div class="card-head">مصدرة إلى</div>
                         <div class="card-body">
                             <p><b>اسم العميل:</b> ${customer.name || '---'}</p>
-                            <p><b>العنوان:</b> ${fullAddress}</p>
+                            <p><b>المدينة:</b> ${customer.city || '---'}</p>
                             <p><b>الجوال:</b> ${customer.phone || '---'}</p>
                         </div>
                     </div>
@@ -97,7 +87,7 @@ window.onload = async () => {
                             <th style="width:35%">وصف المنتج / الخدمة</th>
                             <th style="width:15%">صورة المنتج</th>
                             <th style="width:10%">الكمية</th>
-                            <th style="width:10%">السعر</th>
+                            <th style="width:10%">سعر الأفرادي</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -123,15 +113,29 @@ window.onload = async () => {
                     </div>
                 </div>
 
-                <div class="barcode-standalone-area">
-                    <div class="instruction-text">
-                        <p><b>تعليمات الفاتورة:</b></p>
-                        <p>تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة بموقع منصة في خدمتك.</p>
+                <div style="display:flex; gap:20px; justify-content:center; margin-top:30px; border-top:1px dashed #ccc; padding-top:20px;">
+                    <div class="barcode-item">
+                        <div id="zatcaQR" class="qr-code"></div>
+                        <p>
+                            🔍 التحقق من التسجيل الضريبي – هيئة الزكاة والضريبة والجمارك<br>
+                            <a href="https://zatca.gov.sa/ar/eServices/Pages/TaxpayerLookup.aspx" target="_blank">zatca.gov.sa</a>
+                        </p>
                     </div>
-                    <div class="qr-grid-layout">
-                        <div class="qr-card"><div id="zatcaQR1"></div><p>باركود الفاتورة</p></div>
-                        <div class="qr-card"><div id="zatcaQR2"></div><p>باركود التحقق</p></div>
-                        <div class="qr-card"><div id="zatcaQR3"></div><p>باركود المنصة</p></div>
+
+                    <div class="barcode-item">
+                        <div id="websiteQR" class="qr-code"></div>
+                        <p>
+                            🌐 زيارة الموقع الرسمي لمنصة في خدمتك<br>
+                            <a href="https://linktr.ee/fikhidmatik" target="_blank">linktr.ee/fikhidmatik</a>
+                        </p>
+                    </div>
+
+                    <div class="barcode-item">
+                        <div id="downloadQR" class="qr-code"></div>
+                        <p>
+                            📄 عرض وتحميل الفاتورة الإلكترونية<br>
+                            <a id="invoiceLink" target="_blank">رابط الفاتورة</a>
+                        </p>
                     </div>
                 </div>
                 ` : ''}
@@ -152,14 +156,13 @@ window.onload = async () => {
 
         document.getElementById('print-app').innerHTML = html;
         
-        // توليد الباركودات في العناصر الجديدة
-        if (typeof generateAllInvoiceQRs === 'function') {
-            generateAllInvoiceQRs(order, seller, ["zatcaQR1", "zatcaQR2", "zatcaQR3"]);
-        }
+        // ربط رابط الفاتورة
+        const invLink = document.getElementById('invoiceLink');
+        if(invLink) invLink.href = window.location.href;
+
+        // توليد الباركودات (تأكد من أن مكتبة الـ QR مدعومة في generateAllInvoiceQRs)
+        generateAllInvoiceQRs(order, seller, ["zatcaQR", "websiteQR", "downloadQR"]);
         
         document.getElementById('loader').style.display = 'none';
-    } catch (e) { 
-        console.error("Error in print.js:", e);
-        document.getElementById('print-app').innerHTML = `<div style="padding:20px; text-align:center;">حدث خطأ أثناء تحميل البيانات: ${e.message}</div>`;
-    }
+    } catch (e) { console.error(e); }
 };
