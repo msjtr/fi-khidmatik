@@ -1,62 +1,96 @@
-<div id="print-app">
-    <div class="page">
-        <div class="header">
-            <div class="header-right">رقم شهادة العمل الحر: 765735204-FL</div> [cite: 2]
-            <div class="header-center"><img src="images/logo.svg" alt="شعار المنصة"></div> [cite: 3]
-            <div class="header-left">الرقم الضريبي: 312495447600003</div> [cite: 5]
-        </div>
-        <h2 class="doc-title">فاتورة إلكترونية</h2> [cite: 4]
-        
-        <div class="order-meta">
-            <div>رقم الفاتورة: KF-2603290287</div> [cite: 12]
-            <div>التاريخ: 29/03/2026 | الوقت: 03:21 صباحاً</div> [cite: 13]
-            <div>حالة الطلب: <span class="status">تم التنفيذ</span></div> [cite: 14]
-        </div>
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طباعة الفاتورة | في خدمتك</title>
 
-        <div class="addresses-grid"> 
-            <div class="address-box">
-                <strong>مصدرة من:</strong> [cite: 16]
-                <p>منصة في خدمتك - المملكة العربية السعودية</p> [cite: 18, 19]
-                <p>حائل، حي النقرة، شارع سعد المشاط</p> [cite: 20]
-                <p>مبنى: 3085 | إضافي: 7718 | بريد: 55431</p> [cite: 21]
-            </div>
-            <div class="address-box">
-                <strong>مصدرة إلى:</strong> [cite: 17]
-                <p>اسم العميل: ____________</p> [cite: 22]
-                <p>الجوال: ____________ | البريد: ____________</p> [cite: 27, 28]
-            </div>
-        </div>
+    <link rel="icon" href="data:,">
 
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th> [cite: 36]
-                    <th>صورة المنتج</th> [cite: 40]
-                    <th>اسم ووصف المنتج</th> [cite: 36, 37]
-                    <th>الكمية</th> [cite: 41]
-                    <th>السعر</th> [cite: 41]
-                </tr>
-            </thead>
-            <tbody id="items-list">
-                </tbody>
-        </table>
+    <link rel="stylesheet" href="css/invoice.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        <div class="totals-area"> 
-            <div class="total-row"><span>المجموع الفرعي:</span> <span>19282.00 ريال</span></div> 
-            <div class="total-row"><span>إجمالي الخصم:</span> <span>5784.60 - ريال</span></div> 
-            <div class="total-row"><span>الضريبة (15%):</span> <span>2024.61 ريال</span></div> 
-            <div class="total-row grand-total"><span>الإجمالي النهائي:</span> <span>15522.01 ريال</span></div> 
-        </div>
+    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS@master/dist/easy.qrcode.min.js"></script>
 
-        <div class="barcode-section">
-            <div id="qrcode"></div> 
-            <p>باركود التحقق الإلكتروني</p>
-        </div>
+    <script src="js/firebase.js"></script>
+    <script src="js/invoice.js"></script> <script src="js/order.js"></script>
+    <script type="module" src="js/print.js"></script>
 
-        <div class="footer">
-            <p>تعليمات: تخضع هذه الفاتورة لكامل الشروط والأحكام المرفقة</p> [cite: 45, 46]
-            <p>شكراً لتسوقكم معنا | www.khidmatik.com</p> [cite: 47, 49]
-            <p>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</p> 
-        </div>
+    <style>
+        /* إعدادات الطباعة الأساسية لضمان توزيع الصفحات  */
+        @media print {
+            .no-print { display: none !important; }
+            .page { 
+                margin: 0; 
+                box-shadow: none; 
+                page-break-after: always; 
+            }
+        }
+
+        body {
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        /* حاوية التحميل */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3a5f;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* زر الطباعة العائم */
+        .print-fab {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 9999;
+            font-family: 'Tajawal', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="no-print">
+        <div class="spinner"></div>
+        <h2 style="color: #1e3a5f; margin-top: 20px;">جاري تجهيز الفاتورة الإلكترونية...</h2>
+        <p>يتم الآن دمج الشروط والأحكام وتوليد الباركود المعتمد </p>
     </div>
-</div>
+
+    <div id="print-app"></div>
+
+    <button class="print-fab no-print" onclick="window.print()">
+        📑 طباعة المستند بالكامل
+    </button>
+
+</body>
+</html>
