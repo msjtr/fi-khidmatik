@@ -25,7 +25,7 @@ const UI = {
             </div>
         </div>`,
 
-   orderMeta: (order, customer, date, time, seller) => `
+    orderMeta: (order, customer, date, time, seller) => `
         <div class="order-info-line">
             <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
             <span><b>التاريخ:</b> ${date}</span>
@@ -48,7 +48,7 @@ const UI = {
                 <div class="card-body">
                     <p><b>اسم العميل:</b> ${customer.name || '---'}</p>
                     <p><b>الدولة:</b> المملكة العربية السعودية</p>
-                    <p><b>المدينة:</b> ${customer.city || '---'} | <b>الحي:</b> ${customer.district || '---'} | <b>الشارع:</b> ${customer.street || '---'}</p>
+                    <p><b>العنوان:</b> ${customer.city || ''} : ${customer.district || ''} : ${customer.street || ''}</p>
                     <p>
                         <b>رقم المبنى:</b> ${customer.buildingNumber || '---'} | 
                         <b>الرقم الإضافي:</b> ${customer.additionalNumber || '---'} | 
@@ -59,6 +59,25 @@ const UI = {
                 </div>
             </div>
         </div>
+
+        <div class="order-info-line payment-line">
+            <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
+            <span><b>رمز الموافقة على الطلب:</b> ${order.approvalCode || '---'}</span>
+            <span><b>طريقة استلام المنتج:</b> ${order.deliveryMethod || 'تحميل رقمي'}</span>
+        </div>`,
+
+    footer: (current, total, seller) => `
+        <div class="final-footer">
+            <div class="contact-info-strip">
+                <div class="contact-item"><span>الهاتف:</span><span class="num-dir">966534051317+</span></div>
+                <div class="contact-item"><span>الواتس اب:</span><span class="num-dir">966545312021+</span></div>
+                <div class="contact-item"><span>info@fi-khidmatik.com</span></div>
+                <div class="contact-item"><span>www.khidmatik.com</span></div>
+            </div>
+            <div class="footer-legal-notice">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+            <div class="page-number-box">صفحة ${current} من ${total}</div>
+        </div>`
+
 
         <div class="order-info-line payment-line">
             <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
