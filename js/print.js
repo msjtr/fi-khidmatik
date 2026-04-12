@@ -2,9 +2,7 @@ import { TERMS_DATA } from './terms.js';
 import { OrderManager } from './order.js';
 import { BarcodeManager } from './barcodes.js';
 
-/**
- * 1. تهيئة النظام والاتصال بقاعدة البيانات
- */
+// تهيئة Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -13,50 +11,62 @@ const firebaseConfig = {
     messagingSenderId: "186209858482",
     appId: "1:186209858482:web:186ca610780799ef562aab"
 };
-
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 window.db = firebase.firestore();
 
-/**
- * 2. الدوال المساعدة لبناء المكونات (Components)
- */
 const UI = {
     header: (title, seller) => `
         <div class="header-main">
             <img src="${seller.logo}" class="main-logo">
             <div class="doc-label">${title}</div>
             <div class="header-left-group">
-                <div>رقم شهادة العمل الحر: ${seller.licenseNumber}</div>
+                <div>رخصة العمل الحر: ${seller.licenseNumber}</div>
                 <div>الرقم الضريبي: ${seller.taxNumber}</div>
             </div>
         </div>`,
 
-    footer: (current, total, seller) => `
-        <div class="final-footer">
-            <div class="contact-strip">${seller.phone} | ${seller.email} | ${seller.website}</div>
-            <div class="page-number">صفحة ${current} من ${total}</div>
-        </div>`,
+    orderMeta: (order, customer, date, time, seller) => {
+        // بناء عنوان العميل بشكل كامل
+        const fullAddress = [
+            customer.city, 
+            customer.district, 
+            customer.street
+        ].filter(Boolean).join(' - ') || 'المملكة العربية السعودية';
 
-    orderMeta: (order, customer, date, time, seller) => `
+        return `
         <div class="order-meta-row">
             <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
             <span><b>التاريخ:</b> ${date} | ${time}</span>
         </div>
         <div class="dual-columns">
             <div class="address-card">
-                <div class="card-head">المورد</div>
-                <div class="card-body"><b>${seller.name}</b><br>${seller.address}</div>
+                <div class="card-head">المورد (البائع)</div>
+                <div class="card-body">
+                    <p><b>${seller.name}</b></p>
+                    <p>${seller.address}</p>
+                    <p>البريد: ${seller.email}</p>
+                    <p>الجوال: ${seller.phone}</p>
+                </div>
             </div>
             <div class="address-card">
-                <div class="card-head">العميل</div>
-                <div class="card-body"><b>${customer.name}</b><br>${customer.phone}</div>
+                <div class="card-head">العميل (المشتري)</div>
+                <div class="card-body">
+                    <p><b>الاسم:</b> ${customer.name || '---'}</p>
+                    <p><b>العنوان:</b> ${fullAddress}</p>
+                    <p><b>البريد:</b> ${customer.email || '---'}</p>
+                    <p><b>الجوال:</b> ${customer.phone || '---'}</p>
+                </div>
             </div>
+        </div>`;
+    },
+
+    footer: (current, total, seller) => `
+        <div class="final-footer">
+            <div class="contact-strip">${seller.phone} | ${seller.email} | ${seller.website}</div>
+            <div class="page-number">صفحة ${current} من ${total}</div>
         </div>`
 };
 
-/**
- * 3. المحرك الرئيسي عند تحميل الصفحة
- */
 window.onload = async () => {
     const orderId = new URLSearchParams(window.location.search).get('id');
     if (!orderId) return;
@@ -76,12 +86,12 @@ window.onload = async () => {
 
         let html = '';
 
-        // بناء صفحات الفاتورة
+        // صفحات الفاتورة
         for (let i = 0; i < invPages; i++) {
             const pageItems = (order.items || []).slice(i * itemsPerPage, (i + 1) * itemsPerPage);
             html += `
                 <div class="page">
-                    ${UI.header("فاتورة ضريبية", seller)}
+                    ${UI.header("فاتورة إلكترونية ضريبية", seller)}
                     ${i === 0 ? UI.orderMeta(order, customer, date, time, seller) : ''}
                     <table class="main-table">
                         <thead><tr><th>#</th><th>المنتج</th><th>الوصف</th><th>الصورة</th><th>الكمية</th><th>السعر</th></tr></thead>
@@ -93,7 +103,7 @@ window.onload = async () => {
                                     <td class="small-text">${item.description || '-'}</td>
                                     <td><img src="${item.image}" class="product-img-print"></td>
                                     <td>${item.qty}</td>
-                                    <td>${item.price} ر.س</td>
+                                    <td>${(item.price || 0).toLocaleString()} ر.س</td>
                                 </tr>`).join('')}
                         </tbody>
                     </table>
@@ -102,16 +112,16 @@ window.onload = async () => {
                 </div>`;
         }
 
-        // بناء صفحات الشروط
+        // صفحات الشروط
         for (let j = 0; j < TERMS_DATA.length; j += termsPerPage) {
             const pageTerms = TERMS_DATA.slice(j, j + termsPerPage);
-            const pageNum = invPages + (j / termsPerPage) + 1;
+            const pageNum = invPages + Math.floor(j / termsPerPage) + 1;
             html += `
                 <div class="page page-terms">
-                    ${UI.header("الشروط والأحكام", seller)}
+                    ${UI.header("الشروط والأحكام العامة", seller)}
                     <div class="terms-grid">
                         ${pageTerms.map((t, idx) => `
-                            <div class="term-item"><span class="term-num">${j + idx + 1}</span><p>${t}</p></div>
+                            <div class="term-item"><span class="term-num">${j + idx + 1}</span><p class="term-text">${t}</p></div>
                         `).join('')}
                     </div>
                     ${UI.footer(pageNum, totalPages, seller)}
@@ -122,32 +132,28 @@ window.onload = async () => {
         BarcodeManager.init(orderId, seller, order);
         document.getElementById('loader').style.display = 'none';
 
-    } catch (e) {
-        console.error("Critical Error:", e);
-    }
+    } catch (e) { console.error("Error:", e); }
 };
-
-/**
- * 4. إدارة الأزرار (PDF والطباعة)
- */
-document.getElementById('downloadPDF').onclick = () => {
-    const element = document.getElementById('print-app');
-    html2pdf().set({
-        margin: 0, filename: 'invoice.pdf',
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    }).from(element).save();
-};
-
-document.getElementById('printPage').onclick = () => window.print();
 
 function renderFinancials(order) {
     return `
     <div class="financial-section">
         <div class="summary-box-final">
-            <div class="s-line"><span>المجموع:</span> <span>${order.subtotal} ر.س</span></div>
-            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${order.total} ر.س</span></div>
+            <div class="s-line"><span>المجموع (بدون ضريبة):</span> <span>${(order.subtotal || 0).toLocaleString()} ر.س</span></div>
+            <div class="s-line"><span>الضريبة (15%):</span> <span>${((order.total || 0) - (order.subtotal || 0)).toLocaleString()} ر.س</span></div>
+            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${(order.total || 0).toLocaleString()} ر.س</span></div>
         </div>
         <div class="barcode-group-print"><div id="zatcaQR"></div><div id="websiteQR"></div><div id="downloadQR"></div></div>
     </div>`;
 }
+
+// أفعال الأزرار
+document.getElementById('downloadPDF').onclick = () => {
+    const element = document.getElementById('print-app');
+    html2pdf().set({
+        margin: 0, filename: `Invoice_${new Date().getTime()}.pdf`,
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(element).save();
+};
+document.getElementById('printPage').onclick = () => window.print();
