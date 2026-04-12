@@ -2,7 +2,7 @@ import { TERMS_DATA } from './terms.js';
 import { OrderManager } from './order.js';
 import { BarcodeManager } from './barcodes.js';
 
-// تهيئة Firebase
+// 1. التهيئة الفورية لقاعدة البيانات (يجب أن تسبق أي عملية جلب)
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -11,8 +11,9 @@ const firebaseConfig = {
     messagingSenderId: "186209858482",
     appId: "1:186209858482:web:186ca610780799ef562aab"
 };
+
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-window.db = firebase.firestore();
+window.db = firebase.firestore(); // تعريف عالمي
 
 const UI = {
     header: (title, seller) => `
@@ -26,13 +27,7 @@ const UI = {
         </div>`,
 
     orderMeta: (order, customer, date, time, seller) => {
-        // بناء عنوان العميل بشكل كامل
-        const fullAddress = [
-            customer.city, 
-            customer.district, 
-            customer.street
-        ].filter(Boolean).join(' - ') || 'المملكة العربية السعودية';
-
+        const fullAddress = [customer.city, customer.district, customer.street].filter(Boolean).join(' - ') || 'المملكة العربية السعودية';
         return `
         <div class="order-meta-row">
             <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
@@ -69,11 +64,14 @@ const UI = {
 
 window.onload = async () => {
     const orderId = new URLSearchParams(window.location.search).get('id');
-    if (!orderId) return;
+    if (!orderId) {
+        document.getElementById('loader-text').innerText = "خطأ: لم يتم العثور على رقم الطلب";
+        return;
+    }
 
     try {
         const data = await OrderManager.getOrderFullDetails(orderId);
-        if (!data) return;
+        if (!data) throw new Error("لم يتم العثور على بيانات الطلب");
 
         const { order, customer } = data;
         const seller = window.invoiceSettings;
@@ -86,7 +84,6 @@ window.onload = async () => {
 
         let html = '';
 
-        // صفحات الفاتورة
         for (let i = 0; i < invPages; i++) {
             const pageItems = (order.items || []).slice(i * itemsPerPage, (i + 1) * itemsPerPage);
             html += `
@@ -101,7 +98,7 @@ window.onload = async () => {
                                     <td>${(i * itemsPerPage) + idx + 1}</td>
                                     <td><b>${item.name}</b></td>
                                     <td class="small-text">${item.description || '-'}</td>
-                                    <td><img src="${item.image}" class="product-img-print"></td>
+                                    <td><img src="${item.image || 'images/placeholder.png'}" class="product-img-print"></td>
                                     <td>${item.qty}</td>
                                     <td>${(item.price || 0).toLocaleString()} ر.س</td>
                                 </tr>`).join('')}
@@ -132,16 +129,22 @@ window.onload = async () => {
         BarcodeManager.init(orderId, seller, order);
         document.getElementById('loader').style.display = 'none';
 
-    } catch (e) { console.error("Error:", e); }
+    } catch (e) {
+        console.error("Print Engine Error:", e);
+        document.getElementById('loader-text').innerHTML = `<span style="color:red">خطأ في التحميل: ${e.message}</span>`;
+    }
 };
 
 function renderFinancials(order) {
+    const subtotal = order.subtotal || 0;
+    const total = order.total || 0;
+    const tax = total - subtotal;
     return `
     <div class="financial-section">
         <div class="summary-box-final">
-            <div class="s-line"><span>المجموع (بدون ضريبة):</span> <span>${(order.subtotal || 0).toLocaleString()} ر.س</span></div>
-            <div class="s-line"><span>الضريبة (15%):</span> <span>${((order.total || 0) - (order.subtotal || 0)).toLocaleString()} ر.س</span></div>
-            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${(order.total || 0).toLocaleString()} ر.س</span></div>
+            <div class="s-line"><span>المجموع (بدون ضريبة):</span> <span>${subtotal.toLocaleString()} ر.س</span></div>
+            <div class="s-line"><span>الضريبة (15%):</span> <span>${tax.toLocaleString()} ر.س</span></div>
+            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${total.toLocaleString()} ر.س</span></div>
         </div>
         <div class="barcode-group-print"><div id="zatcaQR"></div><div id="websiteQR"></div><div id="downloadQR"></div></div>
     </div>`;
