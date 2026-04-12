@@ -11,25 +11,26 @@ window.onload = async () => {
         const customer = await window.getDocument("customers", order.customerId);
         const seller = window.invoiceSettings;
 
-        // معالجة جلب العنوان الكامل (الحي، الشارع، المدينة)
+        // صورة بديلة مدمجة (شفافة) في حال تعذر تحميل صورة المنتج
+        const fallbackImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+        // جلب العنوان الكامل من قاعدة البيانات
         const fullAddress = [
+            customer.country || 'المملكة العربية السعودية',
             customer.city || '',
             customer.district || '',
             customer.street || '',
             customer.address || ''
-        ].filter(part => part.trim() !== "").join(" - ");
+        ].filter(part => part.trim() !== "" && part !== "undefined").join(" - ");
 
-        // تقسيم المنتجات لمجموعات (مثلاً 5 منتجات في الصفحة الأولى و 8 في الصفحات التالية)
         const items = order.items || [];
-        const itemsPerPage = 6; 
+        const itemsPerPage = 8; // عدد المنتجات في كل صفحة
         const pages = [];
-        
         for (let i = 0; i < items.length; i += itemsPerPage) {
             pages.push(items.slice(i, i + itemsPerPage));
         }
 
         let html = '';
-
         pages.forEach((pageItems, index) => {
             const isFirstPage = index === 0;
             const isLastPage = index === pages.length - 1;
@@ -38,7 +39,7 @@ window.onload = async () => {
             <div class="page">
                 <div class="header-main">
                     <div class="header-right-group">
-                        <img src="images/logo.svg" class="main-logo">
+                        <img src="images/logo.svg" class="main-logo" onerror="this.src='${fallbackImg}'">
                         <div class="brand-info">
                             <div class="brand-name">في خدمتك</div>
                             <div class="brand-slogan">من الإتقان بلس</div>
@@ -53,8 +54,8 @@ window.onload = async () => {
 
                 ${isFirstPage ? `
                 <div class="order-meta-row">
-                    <span><b>رقم الطلب:</b> ${order.id || '---'}</span>
-                    <span><b>التاريخ:</b> ${new Date(order.createdAt).toLocaleString('ar-SA')}</span>
+                    <span><b>رقم الطلب:</b> ${order.id || orderId}</span>
+                    <span><b>التاريخ والوقت:</b> ${new Date(order.createdAt).toLocaleString('ar-SA')}</span>
                     <span><b>حالة الطلب:</b> ${order.status || 'تم التنفيذ'}</span>
                 </div>
 
@@ -71,8 +72,8 @@ window.onload = async () => {
                     <div class="address-card">
                         <div class="card-head">مصدرة إلى</div>
                         <div class="card-body">
-                            <p><b>الاسم:</b> ${customer.name || '---'}</p>
-                            <p><b>العنوان الكامل:</b> ${fullAddress || 'غير محدد'}</p>
+                            <p><b>اسم العميل:</b> ${customer.name || '---'}</p>
+                            <p><b>العنوان الكامل:</b> ${fullAddress}</p>
                             <p><b>الجوال:</b> ${customer.phone || '---'}</p>
                         </div>
                     </div>
@@ -85,30 +86,26 @@ window.onload = async () => {
                 </div>
                 ` : ''}
 
-                <div class="section-title-bar">تفاصيل المنتجات والخدمات (صفحة ${index + 1})</div>
+                <div class="section-title-bar">تفاصيل المنتجات والخدمات</div>
 
                 <table class="main-table">
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>اسم المنتج</th>
-                            <th>الوصف</th>
-                            <th>الصورة</th>
+                            <th>وصف المنتج / الخدمة</th>
+                            <th>صورة المنتج</th>
                             <th>الكمية</th>
-                            <th>السعر</th>
+                            <th>سعر الأفرادي</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${pageItems.map((item, i) => `
                         <tr>
                             <td>${(index * itemsPerPage) + i + 1}</td>
-                            <td style="text-align:right"><b>${item.name || 'منتج غير مسمى'}</b></td>
-                            <td style="text-align:right; font-size: 10px;">${item.description || 'لا يوجد وصف'}</td>
-                            <td>
-                                <img src="${item.image ? window.getFinalImageUrl(item.image) : 'images/placeholder.png'}" 
-                                     class="table-img" 
-                                     onerror="this.src='images/placeholder.png'">
-                            </td>
+                            <td style="text-align:right"><b>${item.name || '---'}</b></td>
+                            <td style="text-align:right; font-size: 10px; max-width: 250px;">${item.description || '---'}</td>
+                            <td><img src="${item.image ? window.getFinalImageUrl(item.image) : fallbackImg}" class="table-img" onerror="this.src='${fallbackImg}'"></td>
                             <td>${item.qty || 1}</td>
                             <td>${item.price || 0} ريال</td>
                         </tr>`).join('')}
@@ -118,10 +115,10 @@ window.onload = async () => {
                 ${isLastPage ? `
                 <div class="financial-section">
                     <div class="summary-box-final">
-                        <div class="s-line"><span>المجموع الفرعي:</span> <span>${order.subtotal || 0} ريال</span></div>
-                        <div class="s-line"><span>إجمالي الخصم:</span> <span>${order.discount || 0} - ريال</span></div>
-                        <div class="s-line"><span>الضريبة (15%):</span> <span>${order.tax || 0} ريال</span></div>
-                        <div class="s-line grand-total-line"><span>الإجمالي النهائي شامل الضريبة:</span> <span>${order.total || 0} ريال</span></div>
+                        <div class="s-line"><span>المجموع الفرعي:</span> <span>${(order.subtotal || 0).toLocaleString()} ريال</span></div>
+                        <div class="s-line"><span>إجمالي الخصم:</span> <span>${(order.discount || 0).toLocaleString()} - ريال</span></div>
+                        <div class="s-line"><span>ضريبة القيمة المضافة (15%):</span> <span>${(order.tax || 0).toLocaleString()} ريال</span></div>
+                        <div class="s-line grand-total-line"><span>الإجمالي النهائي شامل الضريبة:</span> <span>${(order.total || 0).toLocaleString()} ريال</span></div>
                     </div>
                 </div>
 
@@ -146,6 +143,7 @@ window.onload = async () => {
                         <span>info@fi-khidmatik.com</span>
                         <span>www.khidmatik.com</span>
                     </div>
+                    <div class="legal-stamp">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
                     <div class="page-number">صفحة ${index + 1} من ${pages.length}</div>
                 </div>
             </div>`;
