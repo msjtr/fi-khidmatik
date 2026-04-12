@@ -38,28 +38,29 @@ const UI = {
                 <div class="card-body"><p><b>${seller.name}</b></p><p>${seller.address}</p><p>البريد: ${seller.email}</p><p>الجوال: ${seller.phone}</p></div>
             </div>
             <div class="address-card">
-                <div class="card-head">العميل (المشتري)</div>
+                <div class="card-head">مصدرة إلى</div>
                 <div class="card-body"><p><b>الاسم:</b> ${customer.name || '---'}</p><p><b>العنوان:</b> ${fullAddress}</p><p><b>البريد:</b> ${customer.email || '---'}</p><p><b>الجوال:</b> ${customer.phone || '---'}</p></div>
             </div>
         </div>`;
     },
 
-    // تم تحديث التذييل بناءً على طلبك الأخير
- footer: (current, total, seller) => `
-    <div class="final-footer">
-        <div class="contact-info-strip">
-            <div class="contact-item"><span>الهاتف:</span> <span class="num-dir">966534051317+</span></div>
-            <div class="contact-item"><span>الواتس اب:</span> <span class="num-dir">966545312021+</span></div>
-            <div class="contact-item">info@fi-khidmatik.com</div>
-            <div class="contact-item">www.khidmatik.com</div>
-        </div>
-        <div class="footer-legal-notice">
-            هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً
-        </div>
-        <div class="page-number-box">
-            صفحة ${current} من ${total}
-        </div>
-    </div>`
+    footer: (current, total, seller) => `
+        <div class="final-footer">
+            <div class="contact-info-strip">
+                <div class="contact-item"><span>الهاتف:</span> <span class="num-dir">966534051317+</span></div>
+                <div class="contact-item"><span>الواتس اب:</span> <span class="num-dir">966545312021+</span></div>
+                <div class="contact-item">info@fi-khidmatik.com</div>
+                <div class="contact-item">www.khidmatik.com</div>
+            </div>
+            <div class="footer-legal-notice">
+                هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً
+            </div>
+            <div class="page-number-box">
+                صفحة ${current} من ${total}
+            </div>
+        </div>`
+};
+
 window.onload = async () => {
     const orderId = new URLSearchParams(window.location.search).get('id');
     if (!orderId) return;
