@@ -8,78 +8,54 @@ const orderModal = document.getElementById('orderModal');
 const orderForm = document.getElementById('orderForm');
 
 async function renderOrders() {
-    // 1. إظهار مؤشر التحميل
-    container.innerHTML = `
-        <div class="col-span-full flex flex-col items-center justify-center py-20 opacity-50">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-            <p>جاري تحديث بيانات منصة تيرا...</p>
-        </div>`;
+    container.innerHTML = `<div class="col-span-full text-center py-20 opacity-50">جاري تحميل بيانات العملاء...</div>`;
 
-    try {
-        // 2. جلب البيانات من الدالة الموجودة في orders-logic
-        const orders = await getOrders();
+    const orders = await getOrders();
+    container.innerHTML = '';
+
+    if (!orders || orders.length === 0) {
+        container.innerHTML = '<p class="col-span-full text-center py-10 text-gray-500 text-lg">لا توجد طلبات مسجلة في مجموعة (customers)</p>';
+        return;
+    }
+
+    orders.forEach(data => {
+        const date = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ar-SA') : 'الآن';
         
-        // --- فحص أمان (اضغط F12 في المتصفح لرؤية هذا السطر) ---
-        console.log("الطلبات التي وصلت للمتصفح:", orders);
-        
-        container.innerHTML = '';
+        // مرونة في قراءة الحقول (الاسم، الجوال، الباقة)
+        const name = data.customerName || data.name || "عميل منصة تيرا";
+        const phone = data.phone || data.mobile || "0000";
+        const pkg = data.packageName || data.package || "سوا";
+        const price = data.price || pkg;
 
-        if (!orders || orders.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-full text-center py-10">
-                    <i class="fas fa-inbox text-4xl text-gray-200 mb-4"></i>
-                    <p class="text-gray-500">لا يوجد طلبات مسجلة في "orders" حالياً</p>
-                </div>`;
-            return;
-        }
+        const card = `
+            <div class="order-card shadow-sm border border-gray-100 p-5 rounded-2xl bg-white transition-hover hover:shadow-md">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs text-gray-400">${date}</span>
+                    <span class="status-badge px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">جديد</span>
+                </div>
+                <h4 class="font-bold text-lg mb-2">${name}</h4>
+                <p class="text-sm text-gray-500 mb-4"><i class="fas fa-box ml-1 text-blue-400"></i> باقة سوا: ${pkg} ريال</p>
+                <div class="border-t pt-4 flex justify-between items-center">
+                    <span class="font-bold text-blue-600">${price} ريال</span>
+                    <a href="tel:${phone}" class="bg-blue-600 p-2 rounded-xl text-white hover:bg-blue-700 transition-all">
+                        <i class="fas fa-phone-alt"></i> اتصل
+                    </a>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', card);
+    });
 
-        // 3. بناء الكروت
-        orders.forEach(data => {
-            const date = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ar-SA') : 'الآن';
-            
-            const card = `
-                <div class="order-card shadow-sm border border-gray-100 p-5 rounded-2xl bg-white">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-xs text-gray-400">${date}</span>
-                        <span class="status-badge px-3 py-1 rounded-full text-xs font-bold ${data.status === 'مكتمل' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}">
-                            ${data.status || 'جديد'}
-                        </span>
-                    </div>
-                    <h4 class="font-bold text-lg mb-2">${data.customerName}</h4>
-                    <p class="text-sm text-gray-500 mb-4"><i class="fas fa-box ml-1 text-blue-400"></i> باقة سوا: ${data.packageName} ريال</p>
-                    <div class="border-t pt-4 flex justify-between items-center">
-                        <span class="font-bold text-blue-600">${data.price} ريال</span>
-                        <a href="tel:${data.phone}" class="bg-blue-50 p-2 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all">
-                            <i class="fas fa-phone-alt"></i>
-                        </a>
-                    </div>
-                </div>`;
-            container.insertAdjacentHTML('beforeend', card);
-        });
-
-        // تحديث عداد الإحصائيات
-        const countElement = document.getElementById('todayOrdersCount');
-        if (countElement) countElement.textContent = orders.length;
-
-    } catch (err) {
-        console.error("خطأ أثناء عرض البيانات:", err);
-        toast("فشل عرض البيانات، تحقق من الكونسول", "error");
+    if (document.getElementById('todayOrdersCount')) {
+        document.getElementById('todayOrdersCount').textContent = orders.length;
     }
 }
 
-// --- إدارة المودال والحفظ (بقية الكود الخاص بك سليمة) ---
-document.getElementById('newOrderBtn').onclick = () => {
-    orderForm.reset();
-    orderModal.classList.remove('hidden');
-};
-document.getElementById('closeModalBtn').onclick = () => orderModal.classList.add('hidden');
-document.getElementById('cancelModalBtn').onclick = () => orderModal.classList.add('hidden');
-
+// حفظ طلب جديد في مجموعة customers
 orderForm.onsubmit = async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري الحفظ...';
+    btn.innerHTML = 'جاري الحفظ...';
 
     const newOrder = {
         customerName: document.getElementById('custName').value.trim(),
@@ -91,7 +67,8 @@ orderForm.onsubmit = async (e) => {
     };
 
     try {
-        await addDoc(collection(db, "orders"), newOrder);
+        // الحفظ في customers ليظهر مع البقية
+        await addDoc(collection(db, "customers"), newOrder);
         toast("تم إضافة الطلب بنجاح");
         orderModal.classList.add('hidden');
         renderOrders(); 
@@ -102,5 +79,10 @@ orderForm.onsubmit = async (e) => {
         btn.textContent = "حفظ الطلب";
     }
 };
+
+// إدارة المودال
+document.getElementById('newOrderBtn').onclick = () => { orderForm.reset(); orderModal.classList.remove('hidden'); };
+document.getElementById('closeModalBtn').onclick = () => orderModal.classList.add('hidden');
+document.getElementById('cancelModalBtn').onclick = () => orderModal.classList.add('hidden');
 
 window.addEventListener('DOMContentLoaded', renderOrders);
