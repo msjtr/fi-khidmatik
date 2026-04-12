@@ -1,42 +1,74 @@
-// js/invoice.js
+/**
+ * إعدادات الفاتورة والهوية البصرية - منصة في خدمتك
+ * الإصدار المحدث: أبريل 2026
+ */
 
-// بيانات البائع الرسمية
-const sellerData = {
-    name: "في خدمتك",
-    slogan: "من الإتقان بلس",
-    taxNumber: "312495447600003",
-    licenseNumber: "FL-765735204",
-    address: "حائل - حي النقرة - شارع سعد المشاط - مبنى 3085 - الرمز البريدي 55431",
-    phone: "+966 534051317",
-    whatsapp: "+966 545312021",
+window.invoiceSettings = {
+    // بيانات الهوية التجارية
+    name: "منصة في خدمتك",
+    slogan: "خيارك الأمثل للخدمات الرقمية",
+    logo: "images/logo.svg",
+    
+    // البيانات القانونية (حسب طلبك الأخير)
+    licenseNumber: "FL-765735204", // رقم شهادة العمل الحر
+    taxNumber: "312495447600003",    // الرقم الضريبي
+    
+    // بيانات العنوان والاتصال
+    address: "حائل : حي النقرة : شارع :سعد المشاط",
+    buildingNumber: "3085",
+    additionalNumber: "7718",
+    postalCode: "55431",
+    country: "المملكة العربية السعودية",
+    
+    // أرقام التواصل والروابط
+    phone: "+966534051317",
+    whatsapp: "+966545312021",
     email: "info@fi-khidmatik.com",
-    website: "https://fi-khidmatik.com.sa"
+    website: "www.khidmatik.com",
+    
+    // إعدادات العرض
+    currency: "ريال",
+    taxRate: 0.15, // ضريبة 15%
 };
 
-const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"45\" height=\"45\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23999\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"%3E%3Crect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"2.18\" ry=\"2.18\"%3E%3C/rect%3E%3Cpath d=\"M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5\"%3E%3C/path%3E%3C/svg%3E";
-const CORS_PROXY = "https://api.allorigins.win/raw?url=";
-const CORS_BLOCKED_DOMAINS = ['cdn.salla.sa', 'cdn.salla.com.sa', 'salla.sa'];
+/**
+ * دوال مساعدة عالمية تستخدم في كافة أجزاء نظام الفواتير
+ */
 
-// وظائف مساعدة لمعالجة الروابط والصور
-window.invoiceSettings = sellerData;
-
-window.getFinalImageUrl = (imageUrl) => {
-    if (!imageUrl) return PLACEHOLDER_IMAGE;
-    try {
-        const url = new URL(imageUrl.startsWith('http') ? imageUrl : window.location.origin + imageUrl);
-        if (CORS_BLOCKED_DOMAINS.some(d => url.hostname.includes(d))) {
-            return CORS_PROXY + encodeURIComponent(url.href);
-        }
-        return url.href;
-    } catch(e) { return PLACEHOLDER_IMAGE; }
+// تحويل كود الدفع إلى نص مفهوم
+window.getPaymentName = function(method) {
+    const methods = {
+        'tamara': 'تمارا (تقسيط)',
+        'tabby': 'تابي (تقسيط)',
+        'emkan': 'إمكان (تقسيط)',
+        'stcpay': 'STC Pay',
+        'mada': 'بطاقة مدي (Mada)',
+        'visa': 'فيزا / ماستركارد',
+        'bank': 'تحويل بنكي',
+        'cash': 'دفع نقدي'
+    };
+    return methods[method] || 'دفع إلكتروني';
 };
 
-window.getStatusText = (status) => {
-    const map = { 'جديد':'جديد', 'تحت التنفيذ':'قيد التنفيذ', 'تم التنفيذ':'مكتمل', 'ملغي':'ملغي' };
-    return map[status] || status || 'مكتمل';
+// تحويل حالة الطلب إلى نص مفهوم باللغة العربية
+window.getStatusText = function(status) {
+    const statuses = {
+        'completed': 'تم التنفيذ',
+        'processing': 'جاري المعالجة',
+        'pending': 'قيد الانتظار',
+        'cancelled': 'ملغي',
+        'refunded': 'مسترجع'
+    };
+    return statuses[status] || 'تحت المراجعة';
 };
 
-window.getPaymentName = (method) => {
-    const names = { 'mada':'مدى', 'stcpay':'STCPay', 'tamara':'تمارا', 'tabby':'تابي' };
-    return names[method] || method || 'مدى';
+// دالة لتنسيق الأرقام بصيغة العملة السعودية
+window.formatCurrency = function(amount) {
+    return new Intl.NumberFormat('ar-SA', {
+        style: 'currency',
+        currency: 'SAR',
+        minimumFractionDigits: 2
+    }).format(amount).replace('ر.س', 'ريال');
 };
+
+console.log("Invoice Settings Loaded Successfully ✅");
