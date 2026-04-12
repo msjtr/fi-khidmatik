@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - متجرك الذكي</title>
+    <title>لوحة التحكم - منصة تيرا</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -50,13 +50,13 @@
 
         .sidebar-link i { width: 20px; text-align: center; }
 
-        /* Loader inside iframe container */
         .frame-loader {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             display: none;
+            z-index: 10;
         }
         
         #mainFrame {
@@ -65,7 +65,6 @@
             height: 100%;
         }
 
-        /* Scrollbar styling */
         aside nav::-webkit-scrollbar { width: 5px; }
         aside nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
@@ -76,14 +75,14 @@
 
     <aside class="w-72 bg-white shadow-2xl flex flex-col z-20">
         <div class="p-6 border-b border-gray-100">
-            <h1 class="logo">متجرك الذكي</h1>
+            <h1 class="logo">منصة تيرا</h1>
             <p class="text-xs text-gray-400 mt-1 font-medium">نظام الإدارة المتكامل v2.0</p>
         </div>
         
         <nav class="flex-1 p-4 overflow-y-auto">
             <div class="text-[10px] uppercase tracking-widest text-gray-400 mb-2 px-3">الرئيسية</div>
             
-            <a href="admin/modules/orders.html" class="sidebar-link active" data-module="orders">
+            <a href="admin/modules/orders-dashboard.html" class="sidebar-link active" data-module="orders">
                 <i class="fas fa-shopping-basket"></i>
                 <span>إدارة الطلبات</span>
             </a>
@@ -140,20 +139,20 @@
             </div>
             <div class="flex items-center gap-4">
                 <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
-                <span class="text-xs text-gray-500 font-medium">النظام متصل</span>
+                <span class="text-xs text-gray-500 font-medium">نظام تيرا متصل</span>
             </div>
         </header>
 
-        <div class="flex-1 p-6 relative">
+        <div class="flex-1 p-6 relative bg-gray-50">
             <div class="frame-loader" id="frameLoader">
                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
             </div>
             
-            <div class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
                 <iframe 
                     id="mainFrame" 
                     name="frame" 
-                    src="admin/modules/orders.html"
+                    src="admin/modules/orders-dashboard.html"
                     class="w-full h-full" 
                     frameborder="0">
                 </iframe>
@@ -173,21 +172,17 @@
     const pageTitle = document.getElementById('pageTitle');
     const links = document.querySelectorAll('.sidebar-link');
 
-    /* =============================
-       منطق التنقل وتغيير الصفحات
-    ============================= */
+    // منطق التنقل
     links.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const url = this.getAttribute('href');
             const title = this.querySelector('span').innerText;
 
-            // تحديث الواجهة
             links.forEach(l => l.classList.remove('active'));
             this.classList.add('active');
             pageTitle.innerText = title;
 
-            // تحميل الصفحة
             if (frame.src !== url) {
                 loader.style.display = 'block';
                 frame.style.opacity = '0.3';
@@ -197,21 +192,11 @@
         });
     });
 
-    // عند انتهاء تحميل الـ Iframe
     frame.addEventListener('load', () => {
         loader.style.display = 'none';
         frame.style.opacity = '1';
-        
-        // محاولة جلب عنوان الصفحة من الداخل إذا سمحت السياسة
-        try {
-            const innerTitle = frame.contentDocument.title;
-            if (innerTitle) console.log("Loaded:", innerTitle);
-        } catch(e) {}
     });
 
-    /* =============================
-       إصلاح التاريخ والتوقيت
-    ============================= */
     function updateDateTime() {
         const now = new Date();
         const dateStr = now.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -219,47 +204,36 @@
     }
     updateDateTime();
 
-    /* =============================
-       نظام التنبيهات (Toast)
-    ============================= */
     function showToast(msg, type = 'success') {
         const toast = document.getElementById('toast');
         const icon = document.getElementById('toastIcon');
-        
         const types = {
             success: { bg: 'bg-green-600', icon: 'fa-check-circle' },
             error: { bg: 'bg-red-600', icon: 'fa-exclamation-triangle' },
             info: { bg: 'bg-blue-600', icon: 'fa-info-circle' }
         };
-
         const config = types[type] || types.success;
-        
         toast.className = `fixed bottom-6 left-6 transition-all duration-500 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-white ${config.bg}`;
         icon.className = `fas ${config.icon}`;
         document.getElementById('toastMessage').innerText = msg;
-        
-        // إظهار
         toast.classList.remove('-translate-x-full', 'opacity-0');
-        
-        setTimeout(() => {
-            toast.classList.add('-translate-x-full', 'opacity-0');
-        }, 3500);
+        setTimeout(() => { toast.classList.add('-translate-x-full', 'opacity-0'); }, 3500);
     }
 
-    // زر التحديث
     document.getElementById('refreshBtn').addEventListener('click', () => {
         loader.style.display = 'block';
         frame.contentWindow.location.reload();
-        showToast('تم تحديث الصفحة بنجاح', 'info');
+        showToast('تم تحديث البيانات بنجاح', 'info');
     });
 
-    // استعادة آخر صفحة
+    // استعادة آخر صفحة تم زيارتها
     const lastPage = localStorage.getItem('lastAdminPage');
     if (lastPage) {
-        frame.src = lastPage;
-        // تحديث حالة الـ Active في القائمة
+        // فحص إذا كان الملف القديم ما زال مخزناً واستبداله بالجديد
+        const finalUrl = lastPage.includes('orders.html') ? 'admin/modules/orders-dashboard.html' : lastPage;
+        frame.src = finalUrl;
         links.forEach(l => {
-            if(l.getAttribute('href') === lastPage) {
+            if(l.getAttribute('href') === finalUrl) {
                 links.forEach(link => link.classList.remove('active'));
                 l.classList.add('active');
                 pageTitle.innerText = l.querySelector('span').innerText;
@@ -267,8 +241,7 @@
         });
     }
 
-    // رسالة ترحيبية
-    setTimeout(() => showToast('مرحباً بك في النظام الذكي', 'success'), 1000);
+    setTimeout(() => showToast('مرحباً بك في لوحة تحكم تيرا', 'success'), 1000);
 </script>
 
 </body>
