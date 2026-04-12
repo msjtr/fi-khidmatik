@@ -25,7 +25,7 @@ const UI = {
             </div>
         </div>`,
 
-    orderMeta: (order, customer, date, time, seller) => `
+   orderMeta: (order, customer, date, time, seller) => `
         <div class="order-info-line">
             <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
             <span><b>التاريخ:</b> ${date}</span>
@@ -49,11 +49,22 @@ const UI = {
                     <p><b>اسم العميل:</b> ${customer.name || '---'}</p>
                     <p><b>الدولة:</b> المملكة العربية السعودية</p>
                     <p><b>المدينة:</b> ${customer.city || '---'} | <b>الحي:</b> ${customer.district || '---'} | <b>الشارع:</b> ${customer.street || '---'}</p>
+                    <p>
+                        <b>رقم المبنى:</b> ${customer.buildingNumber || '---'} | 
+                        <b>الرقم الإضافي:</b> ${customer.additionalNumber || '---'} | 
+                        <b>الرمز البريدي:</b> ${customer.postalCode || '---'}
+                    </p>
                     <p><b>رقم الجوال:</b> ${customer.phone || '---'}</p>
                     <p><b>البريد الإلكتروني:</b> ${customer.email || '---'}</p>
                 </div>
             </div>
         </div>
+
+        <div class="order-info-line payment-line">
+            <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
+            <span><b>رمز الموافقة على الطلب:</b> ${order.approvalCode || '---'}</span>
+            <span><b>طريقة استلام المنتج:</b> ${order.deliveryMethod || 'تحميل رقمي'}</span>
+        </div>`,
 
         <div class="order-info-line payment-line">
             <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
