@@ -13,37 +13,67 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 window.db = firebase.firestore();
-
 const UI = {
     header: (title, seller) => `
         <div class="header-main">
             <img src="${seller.logo}" class="main-logo">
-            <div class="doc-label">${title}</div>
+            <div class="doc-label">فاتورة إلكترونية</div>
             <div class="header-left-group">
-                <div>رخصة العمل الحر: ${seller.licenseNumber}</div>
+                <div>شهادة العمل الحر: ${seller.licenseNumber}</div>
                 <div>الرقم الضريبي: ${seller.taxNumber}</div>
             </div>
         </div>`,
 
     orderMeta: (order, customer, date, time, seller) => {
-        const fullAddress = [customer.city, customer.district, customer.street].filter(Boolean).join(' - ') || 'المملكة العربية السعودية';
         return `
-        <div class="order-meta-row">
+        <div class="order-info-line">
             <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
-            <span><b>التاريخ:</b> ${date} | ${time}</span>
+            <span><b>التاريخ:</b> ${date}</span>
+            <span><b>الوقت:</b> ${time}</span>
+            <span><b>حالة الطلب:</b> <span class="status-badge">تم التنفيذ</span></span>
         </div>
+
         <div class="dual-columns">
             <div class="address-card">
-                <div class="card-head">المورد (البائع)</div>
-                <div class="card-body"><p><b>${seller.name}</b></p><p>${seller.address}</p><p>البريد: ${seller.email}</p><p>الجوال: ${seller.phone}</p></div>
+                <div class="card-head">مصدرة من</div>
+                <div class="card-body">
+                    <p class="company-name">منصة في خدمتك</p>
+                    <p>المملكة العربية السعودية</p>
+                    <p>حائل : حي النقرة : شارع : سعد المشاط</p>
+                    <p>رقم المبنى: 3085 | الرقم الإضافي: 7718 | الرمز البريدي: 55431</p>
+                </div>
             </div>
             <div class="address-card">
                 <div class="card-head">مصدرة إلى</div>
-                <div class="card-body"><p><b>الاسم:</b> ${customer.name || '---'}</p><p><b>العنوان:</b> ${fullAddress}</p><p><b>البريد:</b> ${customer.email || '---'}</p><p><b>الجوال:</b> ${customer.phone || '---'}</p></div>
+                <div class="card-body">
+                    <p><b>اسم العميل:</b> ${customer.name || '---'}</p>
+                    <p><b>الدولة:</b> المملكة العربية السعودية</p>
+                    <p><b>المدينة:</b> ${customer.city || '---'} | <b>الحي:</b> ${customer.district || '---'} | <b>الشارع:</b> ${customer.street || '---'}</p>
+                    <p><b>رقم الجوال:</b> ${customer.phone || '---'}</p>
+                    <p><b>البريد:</b> ${customer.email || '---'}</p>
+                </div>
             </div>
+        </div>
+
+        <div class="order-info-line payment-line">
+            <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
+            <span><b>رمز الموافقة على الطلب:</b> ${order.approvalCode || '---'}</span>
+            <span><b>طريقة استلام المنتج:</b> ${order.deliveryMethod || 'تحميل رقمي'}</span>
         </div>`;
     },
 
+    footer: (current, total, seller) => `
+        <div class="final-footer">
+            <div class="contact-info-strip">
+                <div class="contact-item"><span>الهاتف:</span> <span class="num-dir">966534051317+</span></div>
+                <div class="contact-item"><span>الواتس اب:</span> <span class="num-dir">966545312021+</span></div>
+                <div class="contact-item">info@fi-khidmatik.com</div>
+                <div class="contact-item">www.khidmatik.com</div>
+            </div>
+            <div class="footer-legal-notice">هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</div>
+            <div class="page-number-box">صفحة ${current} من ${total}</div>
+        </div>`
+};
     footer: (current, total, seller) => `
         <div class="final-footer">
             <div class="contact-info-strip">
