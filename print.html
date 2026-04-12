@@ -8,19 +8,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <link rel="stylesheet" href="css/invoice.css">
 
     <style>
         .control-panel { position: fixed; top: 20px; left: 20px; z-index: 1000; display: flex; gap: 10px; }
-        .btn-action { font-family: 'Tajawal'; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-pdf { background: #1a1a1a; color: white; transition: 0.3s; }
+        .btn-action { font-family: 'Tajawal'; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-pdf { background: #1a1a1a; color: white; }
         .btn-pdf:hover { background: #d4af37; }
+        .btn-print { background: #eee; color: #333; }
+        
         #loader { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; font-family: 'Tajawal'; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #d4af37; border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1a1a1a; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         @media print { .control-panel { display: none !important; } }
     </style>
 </head>
@@ -28,7 +30,7 @@
 
     <div class="control-panel">
         <button class="btn-action btn-pdf" onclick="window.downloadPDF()">📥 حفظ PDF</button>
-        <button class="btn-action" onclick="window.print()">🖨️ طباعة</button>
+        <button class="btn-action btn-print" onclick="window.print()">🖨️ طباعة</button>
     </div>
 
     <div id="loader">
@@ -41,11 +43,34 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+    <script src="js/invoice.js"></script>
+
     <script>
+        // دوال مساعدة عالمية تستخدمها الفاتورة
+        window.getPaymentName = (method) => {
+            const methods = { 'tamara': 'تمارا (تقسيط)', 'tabby': 'تابي (تقسيط)', 'cash': 'نقدي', 'bank': 'تحويل بنكي' };
+            return methods[method] || 'دفع إلكتروني';
+        };
+        window.getStatusText = (status) => {
+            const statuses = { 'completed': 'مكتمل', 'pending': 'قيد الانتظار', 'processing': 'جاري التنفيذ' };
+            return statuses[status] || 'غير محدد';
+        };
+
+        // دالة تحميل PDF
+        window.downloadPDF = function() {
+            const element = document.getElementById('print-app');
+            const opt = {
+                margin: 0,
+                filename: `invoice_${new Date().getTime()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        };
+
         function initializeSystem() {
             if (typeof firebase !== 'undefined' && typeof QRCode !== 'undefined') {
-                console.log("System Ready: Firebase & QRCode ✅");
-                
                 const firebaseConfig = {
                     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
                     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -56,17 +81,7 @@
                 };
 
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                const db = firebase.firestore();
-                window.db = db;
-
-                window.getDocument = async (col, id) => {
-                    try {
-                        const snap = await db.collection(col).doc(id).get();
-                        return snap.exists ? { id: snap.id, ...snap.data(), success: true } : { success: false };
-                    } catch (e) {
-                        return { success: false, error: e.message };
-                    }
-                };
+                window.db = firebase.firestore();
 
                 startPrintEngine();
             } else {
@@ -79,7 +94,7 @@
             script.type = 'module';
             script.src = 'js/print.js';
             document.body.appendChild(script);
-            document.getElementById('loader-text').innerText = "جاري عرض الفاتورة...";
+            document.getElementById('loader-text').innerText = "جاري معالجة البيانات والباركودات...";
         }
 
         initializeSystem();
