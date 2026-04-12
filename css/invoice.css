@@ -1,16 +1,18 @@
-/* Creative & Professional Invoice Styling 
+/* Luxury Creative Invoice Styling 
    Platform: في خدمتك (الإتقان بلس)
-   Focus: Zero-Error Multi-page Layout & High-End Typography
+   Design System: Minimalist Luxury & Modern Typography
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
 :root {
-    --primary-black: #000000;
-    --accent-gray: #f1f5f9;
-    --text-muted: #64748b;
-    --border-style: 1.5pt solid #000000;
-    --font-main: 'Tajawal', sans-serif;
+    --luxury-black: #121212;
+    --soft-white: #ffffff;
+    --ice-gray: #f8fafc;
+    --gold-accent: #b89551; /* لمسة ذهبية خفيفة للفخامة */
+    --border-thick: 2px solid var(--luxury-black);
+    --border-thin: 1px solid #e2e8f0;
+    --shadow-soft: 0 10px 30px rgba(0,0,0,0.05);
 }
 
 * {
@@ -21,280 +23,256 @@
 }
 
 body {
-    background-color: #e2e8f0;
-    font-family: var(--font-main);
+    background-color: #f1f1f1;
+    font-family: 'Tajawal', sans-serif;
     direction: rtl;
-    color: #1a202c;
-    line-height: 1.4;
+    color: var(--luxury-black);
 }
 
-/* هندسة الصفحة A4 */
+/* هندسة الورقة A4 */
 .page {
     width: 210mm;
     min-height: 297mm;
-    padding: 12mm;
-    margin: 20px auto;
-    background: #ffffff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 15mm;
+    margin: 30px auto;
+    background: var(--soft-white);
+    box-shadow: var(--shadow-soft);
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden; /* يمنع تسرب المحتوى خارج الصفحة */
 }
 
-/* الترويسة الثلاثية (Header) */
+/* هيدر ملكي */
 .header-main {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 3px solid var(--primary-black);
-    padding-bottom: 12px;
-    margin-bottom: 15px;
-}
-
-.header-right-group {
-    display: flex;
-    align-items: center;
-    flex: 1;
+    border-bottom: 4px solid var(--luxury-black);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .main-logo {
-    height: 75px;
+    height: 80px;
     width: auto;
-    margin-left: 12px;
-    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
-.brand-info .brand-name {
-    font-size: 22px;
+.brand-name {
+    font-size: 26px;
     font-weight: 900;
-    color: var(--primary-black);
+    letter-spacing: -0.5px;
+    color: var(--luxury-black);
 }
 
-.brand-info .brand-slogan {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-muted);
-}
-
-.header-center-title {
-    flex: 1;
-    text-align: center;
+.brand-slogan {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gold-accent); /* شعار المنصة باللون الذهبي الراقي */
+    margin-top: -5px;
 }
 
 .doc-label {
-    font-size: 19px;
+    font-size: 22px;
     font-weight: 900;
-    border: 2px solid var(--primary-black);
-    padding: 6px 20px;
-    background: var(--accent-gray);
-    display: inline-block;
+    background: var(--luxury-black);
+    color: var(--soft-white);
+    padding: 10px 30px;
+    border-radius: 0; /* حواف حادة تعطي طابعاً رسمياً فخماً */
+    transform: skewX(-10deg); /* لمسة إبداعية مائلة */
 }
 
-.header-left-group {
-    flex: 1;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 800;
-    line-height: 1.8;
-}
-
-/* سطر معلومات الطلب - سطر واحد */
+/* سطر البيانات الأساسي */
 .order-meta-row {
     display: flex;
     justify-content: space-between;
-    background: var(--accent-gray);
-    border: var(--border-style);
-    padding: 8px 15px;
-    margin-bottom: 15px;
-    font-size: 12px;
+    border: var(--border-thick);
+    padding: 12px 20px;
+    margin-bottom: 20px;
     font-weight: 700;
+    font-size: 13px;
+    background: var(--ice-gray);
 }
 
-/* توزيع الأعمدة المتقابلة (من/إلى) */
+/* توزيع البطاقات المتقابلة */
 .dual-columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 15px;
+    gap: 20px;
+    margin-bottom: 25px;
 }
 
 .address-card {
-    border: var(--border-style);
+    border: 1px solid #d1d5db;
+    transition: all 0.3s;
 }
 
 .card-head {
-    background: var(--primary-black);
-    color: #fff;
-    padding: 6px;
+    background: var(--luxury-black);
+    color: var(--soft-white);
+    padding: 8px;
     font-weight: 800;
     text-align: center;
-    font-size: 13px;
+    font-size: 14px;
+    letter-spacing: 1px;
 }
 
 .card-body {
-    padding: 10px;
-    font-size: 12px;
-    min-height: 90px;
+    padding: 15px;
+    font-size: 13px;
+    line-height: 1.8;
 }
 
-/* سطر الدفع والاستلام - سطر واحد */
+/* سطر الدفع والاستلام */
 .single-row-payment {
     display: flex;
-    justify-content: space-between;
-    border: var(--border-style);
-    padding: 8px;
-    margin-bottom: 15px;
+    justify-content: space-around;
+    background: var(--luxury-black);
+    color: white;
+    padding: 12px;
+    margin-bottom: 25px;
     font-size: 12px;
-    background: #fff;
 }
 
-.p-item { flex: 1; text-align: center; font-weight: 700; }
-.p-item:not(:last-child) { border-left: 1px solid #ddd; }
+.p-item b { color: var(--gold-accent); }
 
-/* الجدول الاحترافي */
+/* تفاصيل الخدمات والجدول */
 .section-title-bar {
-    background: #334155;
-    color: #fff;
-    padding: 6px 15px;
-    font-weight: 800;
-    font-size: 13px;
+    border-right: 5px solid var(--gold-accent);
+    padding: 0 15px;
+    font-weight: 900;
+    font-size: 16px;
+    margin-bottom: 10px;
 }
 
 .main-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 15px;
-    table-layout: fixed; /* يمنع تمدد الأعمدة بشكل عشوائي */
 }
 
 .main-table th {
-    background: var(--accent-gray);
-    border: var(--border-style);
-    padding: 10px;
-    font-size: 11px;
+    background: var(--ice-gray);
+    border-bottom: 2px solid var(--luxury-black);
+    padding: 15px 10px;
+    font-size: 12px;
     font-weight: 900;
+    text-align: center;
 }
 
 .main-table td {
-    border: 1px solid #ddd;
-    border-bottom: 1px solid #000;
-    padding: 8px;
+    padding: 15px 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
     text-align: center;
-    font-size: 11px;
-    word-wrap: break-word;
 }
 
 .table-img {
-    width: 48px;
-    height: 48px;
+    width: 55px;
+    height: 55px;
+    border-radius: 8px;
+    border: 1px solid #eee;
     object-fit: contain;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: white;
 }
 
-/* القسم المالي (يسار الصفحة) */
+/* الخلاصة المالية */
 .financial-section {
     display: flex;
     justify-content: flex-end;
-    margin-top: 5px;
+    margin-top: 20px;
 }
 
 .summary-box-final {
-    width: 320px;
-    border: var(--border-style);
-    padding: 10px;
-    background: #fff;
+    width: 350px;
+    border: 2px solid var(--luxury-black);
+    padding: 20px;
+    position: relative;
 }
 
-.s-line {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    font-size: 12px;
-    font-weight: 700;
+.summary-box-final::before {
+    content: "";
+    position: absolute;
+    top: 5px; left: 5px; right: 5px; bottom: 5px;
+    border: 1px solid var(--gold-accent);
+    pointer-events: none;
 }
 
 .grand-total-line {
-    border-top: 2px solid #000;
-    margin-top: 5px;
-    padding-top: 5px;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 900;
+    color: var(--luxury-black);
+    border-top: 2px solid var(--luxury-black);
+    padding-top: 10px;
+    margin-top: 10px;
 }
 
-/* الباركودات والتعليمات */
-.instruction-qr-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 15px;
-    padding: 10px;
-    border: 1px dashed #cbd5e0;
-}
-
-.instructions { font-size: 11px; max-width: 45%; }
-
-.triple-qr-wrapper { display: flex; gap: 15px; }
-
-.qr-item { text-align: center; font-size: 9px; font-weight: 800; }
-
-.qr-item canvas, .qr-item img {
-    width: 80px !important;
-    height: 80px !important;
-    border: 1px solid #000;
-    background: #fff;
-    margin-bottom: 4px;
-}
-
-/* التذييل الإبداعي (Footer) */
+/* منطقة التواصل الإبداعية (Footer) */
 .final-footer {
-    margin-top: auto; /* يدفعه لأسفل الصفحة دائماً */
-    border-top: 2px solid var(--primary-black);
-    padding-top: 12px;
-    text-align: center;
+    margin-top: auto;
+    padding-top: 30px;
 }
 
 .thanks-msg {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 900;
-    margin-bottom: 6px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--luxury-black);
 }
 
 .contact-strip {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    font-size: 10px;
+    gap: 30px;
+    background: var(--ice-gray);
+    padding: 15px;
+    border-radius: 50px; /* شكل كبسولة إبداعي */
+    border: 1px solid #e2e8f0;
+    margin-bottom: 15px;
+}
+
+.contact-strip span {
+    font-size: 11px;
     font-weight: 800;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    color: #334155;
+}
+
+.contact-strip span::before {
+    content: "•";
+    color: var(--gold-accent);
+    margin-left: 8px;
+    font-size: 18px;
 }
 
 .legal-stamp {
-    font-size: 12px;
-    font-weight: 800;
-    background: #000;
-    color: #fff;
-    display: inline-block;
-    padding: 3px 15px;
-    border-radius: 50px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: block;
+    margin-top: 10px;
 }
 
 .page-number {
-    font-size: 9px;
-    color: var(--text-muted);
-    text-align: left;
-    margin-top: 4px;
+    position: absolute;
+    bottom: 10mm;
+    left: 10mm;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
 }
 
-/* إعدادات الطباعة النهائية */
+/* الباركودات */
+.barcode-item canvas {
+    border: 2px solid var(--luxury-black) !important;
+    padding: 5px;
+}
+
 @media print {
-    body { background: #fff; }
-    .page { 
-        margin: 0; 
-        box-shadow: none; 
-        padding: 8mm; 
-        page-break-after: always;
-    }
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; padding: 10mm; }
+    .contact-strip { background: #f8fafc !important; border: 1px solid #000 !important; }
 }
