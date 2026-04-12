@@ -22,13 +22,13 @@
 <body>
 
     <div class="control-panel">
-        <button class="btn-action btn-pdf" onclick="window.downloadPDF()">📥 تحميل PDF</button>
+        <button class="btn-action btn-pdf" onclick="window.downloadPDF()">📥 حفظ PDF</button>
         <button class="btn-action" onclick="window.print()">🖨️ طباعة</button>
     </div>
 
     <div id="loader">
         <div class="spinner"></div>
-        <p>جاري الاتصال بقاعدة البيانات...</p>
+        <p id="loader-text">جاري تحميل المكتبات الأساسية...</p>
     </div>
 
     <div id="print-app"></div>
@@ -37,37 +37,52 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-            authDomain: "msjt301-974bb.firebaseapp.com",
-            projectId: "msjt301-974bb",
-            storageBucket: "msjt301-974bb.firebasestorage.app",
-            messagingSenderId: "186209858482",
-            appId: "1:186209858482:web:186ca610780799ef562aab"
-        };
+        // دالة لانتظار تحميل Firebase قبل البدء
+        function initializeSystem() {
+            if (typeof firebase !== 'undefined') {
+                console.log("Firebase Ready ✅");
+                const firebaseConfig = {
+                    apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
+                    authDomain: "msjt301-974bb.firebaseapp.com",
+                    projectId: "msjt301-974bb",
+                    storageBucket: "msjt301-974bb.firebasestorage.app",
+                    messagingSenderId: "186209858482",
+                    appId: "1:186209858482:web:186ca610780799ef562aab"
+                };
 
-        // تهيئة Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore();
-        window.db = db;
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                const db = firebase.firestore();
+                window.db = db;
 
-        // تعريف دالة getDocument عالمياً لكي يراها ملف order.js
-        window.getDocument = async (col, id) => {
-            try {
-                const snap = await db.collection(col).doc(id).get();
-                if (snap.exists) {
-                    return { id: snap.id, ...snap.data(), success: true };
-                }
-                return { success: false };
-            } catch (e) {
-                console.error("Firebase Error:", e);
-                return { success: false, error: e.message };
+                // تعريف الدالة المطلوبة عالمياً
+                window.getDocument = async (col, id) => {
+                    try {
+                        const snap = await db.collection(col).doc(id).get();
+                        return snap.exists ? { id: snap.id, ...snap.data(), success: true } : { success: false };
+                    } catch (e) {
+                        console.error("خطأ في جلب البيانات:", e);
+                        return { success: false, error: e.message };
+                    }
+                };
+
+                // إطلاق محرك الطباعة بعد التأكد من جاهزية الدالة
+                startPrintEngine();
+            } else {
+                console.log("Waiting for Firebase...");
+                setTimeout(initializeSystem, 100); // محاولة مرة أخرى بعد 100 ملي ثانية
             }
-        };
-    </script>
+        }
 
-    <script type="module" src="js/print.js"></script>
+        function startPrintEngine() {
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'js/print.js';
+            document.body.appendChild(script);
+            document.getElementById('loader-text').innerText = "جاري جلب بيانات الطلب...";
+        }
+
+        // بدء عملية الفحص
+        initializeSystem();
+    </script>
 </body>
 </html>
