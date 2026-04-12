@@ -4,19 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الطلبات - منصة تيرا</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <link rel="stylesheet" href="css/orders-style.css">
 </head>
 <body class="bg-gray-50 font-sans text-gray-900">
-
     <div id="toast" class="shadow-2xl transition-all duration-300 transform"></div>
 
     <div class="max-w-7xl mx-auto p-4 md:p-8">
-        
         <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div class="flex items-center gap-4">
                 <div class="bg-blue-600 p-4 rounded-2xl shadow-blue-200 shadow-xl">
@@ -27,18 +22,14 @@
                     <p class="text-gray-500 font-medium">متابعة عمليات منصة تيرا</p>
                 </div>
             </div>
-            
-            <div class="flex gap-3">
-                <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>إنشاء طلب جديد</span>
-                </button>
-            </div>
+            <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i> <span>إنشاء طلب جديد</span>
+            </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 text-center">
             <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <p class="text-gray-400 text-sm mb-1">إجمالي طلبات اليوم</p>
+                <p class="text-gray-400 text-sm mb-1">اليوم</p>
                 <h3 class="text-2xl font-bold" id="todayOrdersCount">0</h3>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -54,42 +45,38 @@
         <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="col-span-full flex flex-col items-center justify-center py-20 opacity-50">
                 <div class="loading-spinner mb-4"></div>
-                <p>جاري جلب بيانات الطلبات من منصة تيرا...</p>
+                <p>جاري تحميل البيانات...</p>
             </div>
         </div>
     </div>
 
     <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col text-right">
             <div class="p-6 border-b flex justify-between items-center bg-gray-50">
                 <h2 class="text-xl font-bold">تفاصيل الطلب الجديد</h2>
-                <button id="closeModalBtn" class="text-gray-400 hover:text-red-500 transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
             </div>
-            
             <div class="p-6 overflow-y-auto flex-1">
                 <form id="orderForm" class="space-y-6">
                     <div class="form-section">
                         <p class="form-section-title"><i class="fas fa-user-tag text-blue-500"></i> بيانات العميل</p>
-                        <input type="text" placeholder="اسم العميل" class="w-full p-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none mb-3">
-                        <input type="tel" placeholder="رقم الجوال" class="w-full p-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="custName" placeholder="اسم العميل الكامل" class="w-full p-3 rounded-lg border mb-3 focus:border-blue-500 outline-none">
+                        <input type="tel" id="custPhone" placeholder="رقم الجوال" class="w-full p-3 rounded-lg border focus:border-blue-500 outline-none">
                     </div>
-                    
                     <div class="form-section">
-                        <p class="form-section-title"><i class="fas fa-box-open text-blue-500"></i> تفاصيل المنتج</p>
-                        <select class="w-full p-3 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option>اختر الباقة...</option>
-                            <option>باقة سوا 100</option>
-                            <option>باقة سوا 200</option>
+                        <p class="form-section-title"><i class="fas fa-box-open text-blue-500"></i> تفاصيل الباقة</p>
+                        <select id="packageSelect" class="w-full p-3 rounded-lg border focus:border-blue-500 outline-none">
+                            <option value="">اختر باقة سوا...</option>
+                            <option value="100">باقة سوا 100 ريال</option>
+                            <option value="200">باقة سوا 200 ريال</option>
+                            <option value="500">باقة سوا 500 ريال</option>
                         </select>
                     </div>
                 </form>
             </div>
-
             <div class="p-6 border-t bg-gray-50 flex justify-end gap-3">
-                <button type="button" class="px-6 py-2 rounded-xl text-gray-600 font-medium hover:bg-gray-200 transition-colors" onclick="document.getElementById('orderModal').classList.add('hidden')">إلغاء</button>
-                <button type="submit" form="orderForm" class="px-10 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-md">حفظ الطلب</button>
+                <button id="cancelModalBtn" class="px-6 py-2 rounded-xl text-gray-600 hover:bg-gray-200">إلغاء</button>
+                <button type="submit" form="orderForm" class="px-10 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">حفظ الطلب</button>
             </div>
         </div>
     </div>
