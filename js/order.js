@@ -2,7 +2,7 @@
  * مدير الطلبات - موديول جلب البيانات من Firestore
  */
 export const OrderManager = {
-    // دالة داخلية لجلب المستندات لضمان عدم حدوث خطأ "getDocument is not defined"
+    // دالة داخلية لجلب المستندات من Firestore
     async getDocument(col, id) {
         if (!window.db) {
             throw new Error("قاعدة البيانات غير مهيأة بعد (window.db)");
@@ -25,13 +25,26 @@ export const OrderManager = {
             // جلب بيانات العميل بناءً على المعرف الموجود في الطلب
             const customerRes = await this.getDocument('customers', orderRes.customerId);
             
+            // في حال نجاح الجلب، نقوم بدمج البيانات لضمان عدم فقدان أي حقل عنوان
             return {
                 order: orderRes,
-                customer: customerRes.success ? customerRes : { 
+                customer: customerRes.success ? {
+                    ...customerRes,
+                    // ضمان وجود الحقول حتى لو كانت فارغة لتجنب أخطاء الـ undefined في الطباعة
+                    buildingNumber: customerRes.buildingNumber || customerRes.building_number || "---",
+                    additionalNumber: customerRes.additionalNumber || customerRes.additional_number || "---",
+                    postalCode: customerRes.postalCode || customerRes.postal_code || "---",
+                    city: customerRes.city || "---",
+                    district: customerRes.district || "---",
+                    street: customerRes.street || "---"
+                } : { 
                     name: "عميل زائر", 
                     phone: orderRes.customerPhone || "---",
                     email: "---",
-                    city: "غير محدد"
+                    city: "غير محدد",
+                    buildingNumber: "---",
+                    additionalNumber: "---",
+                    postalCode: "---"
                 }
             };
         } catch (error) {
@@ -40,14 +53,23 @@ export const OrderManager = {
         }
     },
 
-    // تنسيق التاريخ والوقت
+    // تنسيق التاريخ والوقت ليناسب الفاتورة
     formatDateTime(timestamp) {
         if (!timestamp) return { date: '---', time: '---' };
-        // التعامل مع Firebase Timestamp أو Date عادي
-        const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return {
-            date: d.toLocaleDateString('ar-SA'),
-            time: d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-        };
+        
+        try {
+            // التعامل مع Firebase Timestamp أو Date عادي
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            
+            // التحقق من أن التاريخ صالح
+            if (isNaN(d.getTime())) throw new Error("Invalid Date");
+
+            return {
+                date: d.toLocaleDateString('en-GB'), // تنسيق يوم/شهر/سنة
+                time: d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true })
+            };
+        } catch (e) {
+            return { date: '---', time: '---' };
+        }
     }
 };
