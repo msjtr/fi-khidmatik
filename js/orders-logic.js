@@ -3,13 +3,12 @@
  * المنطق البرمجي لإدارة العمليات والحسابات
  */
 
-// مصفوفة المنتجات داخل الطلب الحالي
 let currentOrderItems = [];
 
 // --- 1. حسابات الفاتورة ---
 export const calculateFinance = (discount = 0) => {
     const subtotal = currentOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const taxRate = 0.15; // الضريبة في السعودية 15%
+    const taxRate = 0.15; // الضريبة 15%
     const taxableAmount = Math.max(0, subtotal - discount);
     const tax = taxableAmount * taxRate;
     const total = taxableAmount + tax;
@@ -39,31 +38,34 @@ export const renderProductList = (containerId, updateCallback) => {
             </div>
             <div class="flex items-center gap-3">
                 <div class="flex items-center border rounded-lg bg-white overflow-hidden">
-                    <button type="button" onclick="changeQty(${index}, -1)" class="px-2 py-1 hover:bg-gray-100 text-gray-500">-</button>
+                    <button type="button" onclick="window.changeQty(${index}, -1)" class="px-2 py-1 hover:bg-gray-100 text-gray-500">-</button>
                     <span class="px-3 text-sm font-medium">${item.quantity}</span>
-                    <button type="button" onclick="changeQty(${index}, 1)" class="px-2 py-1 hover:bg-gray-100 text-gray-500">+</button>
+                    <button type="button" onclick="window.changeQty(${index}, 1)" class="px-2 py-1 hover:bg-gray-100 text-gray-500">+</button>
                 </div>
-                <button type="button" onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 p-1">
+                <button type="button" onclick="window.removeItem(${index})" class="text-red-400 hover:text-red-600 p-1">
                     <i class="fas fa-trash-alt text-xs"></i>
                 </button>
             </div>
         </div>
     `).join('');
 
-    if (updateCallback) updateCallback();
+    // تحديث المجموع عند أي تغيير في القائمة
+    if (typeof window.updateTotalDisplay === 'function') {
+        window.updateTotalDisplay();
+    }
 };
 
 // --- 3. وظائف التعديل (Global لسهولة الوصول من HTML) ---
 window.changeQty = (index, delta) => {
-    if (currentOrderItems[index].quantity + delta > 0) {
+    if (currentOrderItems[index] && currentOrderItems[index].quantity + delta > 0) {
         currentOrderItems[index].quantity += delta;
-        renderProductList('productsContainer', window.updateTotalDisplay);
+        renderProductList('productsContainer');
     }
 };
 
 window.removeItem = (index) => {
     currentOrderItems.splice(index, 1);
-    renderProductList('productsContainer', window.updateTotalDisplay);
+    renderProductList('productsContainer');
 };
 
 // --- 4. أدوات مساعدة ---
@@ -72,7 +74,6 @@ export const resetLogic = () => {
 };
 
 export const addItem = (product) => {
-    // التحقق إذا كان المنتج موجود مسبقاً لزيادة الكمية فقط
     const existing = currentOrderItems.find(item => item.id === product.id);
     if (existing) {
         existing.quantity += 1;
@@ -80,11 +81,14 @@ export const addItem = (product) => {
         currentOrderItems.push({
             id: product.id || Date.now(),
             name: product.name,
-            price: parseFloat(product.price),
+            price: parseFloat(product.price) || 0,
             quantity: 1
         });
     }
+    renderProductList('productsContainer');
 };
 
 export const getCurrentItems = () => currentOrderItems;
-export const setCurrentItems = (items) => { currentOrderItems = items; };
+export const setCurrentItems = (items) => { 
+    currentOrderItems = Array.isArray(items) ? items : []; 
+};
