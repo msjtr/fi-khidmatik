@@ -9,7 +9,7 @@ import {
     updateDoc, deleteDoc, query, orderBy, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// إعدادات Firebase الخاصة بك
+// إعدادات Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -29,6 +29,7 @@ export const fetchAllOrders = async () => {
     try {
         const q = query(ordersRef, orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
+        if (snapshot.empty) return [];
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching orders:", error);
@@ -78,13 +79,18 @@ export const removeOrder = async (orderId) => {
     }
 };
 
-// --- 5. جلب بيانات العملاء (اختياري إذا كانت في نفس الـ DB) ---
+// --- 5. جلب بيانات العملاء ---
 export const fetchCustomersList = async () => {
     try {
         const customersRef = collection(db, "customers");
         const snapshot = await getDocs(customersRef);
+        if (snapshot.empty) return [];
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
+        console.error("Error fetching customers:", error);
         return [];
     }
 };
+
+// تصدير قاعدة البيانات لاستخدامها في ملفات أخرى إذا لزم الأمر
+export { db };
