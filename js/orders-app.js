@@ -6,12 +6,13 @@ async function loadCustomerDropdown() {
     if (!customerSelect) return;
     
     try {
-        // افترضنا وجود مجموعة باسم customers في Firebase
-        const snapshot = await getDocs(collection(db, "customers"));
+        // استخدام الدالة المصدرة من ملف Firebase DB بدلاً من استدعاء مباشر لزيادة التنظيم
+        const { fetchCustomersList } = await import('../../js/orders-firebase-db.js');
+        const customers = await fetchCustomersList();
+        
         customerSelect.innerHTML = '<option value="">-- اختر العميل --</option>';
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            customerSelect.innerHTML += `<option value="${doc.id}">${data.name || 'عميل غير مسمى'}</option>`;
+        customers.forEach(customer => {
+            customerSelect.innerHTML += `<option value="${customer.id}">${customer.name || 'عميل غير مسمى'}</option>`;
         });
     } catch (error) {
         console.error("خطأ في جلب العملاء:", error);
@@ -20,29 +21,32 @@ async function loadCustomerDropdown() {
 
 // تعديل طلب موجود
 window.editOrder = async (id) => {
+    // التأكد من وجود مصفوفة الطلبات محلياً
     const order = orders.find(o => o.id === id);
     if (!order) return;
 
     currentOrderId = id;
     document.getElementById('modalTitle').innerText = "تعديل سجل الطلب #" + order.orderNumber;
     
-    // تعبئة البيانات الأساسية
+    // تعبئة البيانات الأساسية في النموذج
     document.getElementById('orderNumber').value = order.orderNumber;
     document.getElementById('orderDate').value = order.date;
     document.getElementById('orderStatus').value = order.status;
     document.getElementById('customerSelect').value = order.customerId;
     document.getElementById('discountValue').value = order.discount || 0;
     
-    // تحديث وسيلة الدفع في الواجهة (CSS)
+    // تحديث الحالة البصرية لأزرار الدفع
     selectedPaymentMethod = order.paymentMethod || 'mada';
     document.querySelectorAll('.payment-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.payment === selectedPaymentMethod);
     });
 
-    // هام: مزامنة المنتجات مع ملف المنطق (Logic)
-    import('./orders-logic.js').then(logic => {
+    // تصحيح المسار: الانتقال لمجلد JS الرئيسي للوصول للمنطق
+    import('../../js/orders-logic.js').then(logic => {
         logic.setCurrentItems([...order.products]);
-        logic.renderProductList('productsContainer', window.updateTotalDisplay);
+        logic.renderProductList('productsContainer');
+        // تحديث الإجماليات بعد التحميل
+        if (window.updateTotalDisplay) window.updateTotalDisplay();
     });
     
     openModal('orderModal');
@@ -50,12 +54,14 @@ window.editOrder = async (id) => {
 
 // حذف طلب من القاعدة
 window.deleteOrder = async (id) => {
-    // استخدام تأكيد بتصميم بسيط
     if (confirm('تنبيه: هل تريد حقاً حذف هذا السجل نهائياً؟')) {
         try {
-            await deleteDoc(doc(db, "orders", id));
+            // استدعاء دالة الحذف من ملف الـ DB المخصص
+            const { removeOrder } = await import('../../js/orders-firebase-db.js');
+            await removeOrder(id);
+            
             showToast("تم مسح السجل بنجاح", "success");
-            await loadOrders(); // إعادة تحميل القائمة
+            await loadOrders(); // إعادة تنشيط القائمة في الواجهة
         } catch (error) {
             console.error(error);
             showToast("فشل الحذف، تحقق من الاتصال", "error");
@@ -63,24 +69,23 @@ window.deleteOrder = async (id) => {
     }
 };
 
-// --- 6. أدوات مساعدة (Helpers) ---
+// --- 6. أدوات مساعدة (Helpers) لعمليات الجدول الفورية ---
 
-// تحديث بيانات المنتج من داخل الجدول
 window.updateProduct = (index, field, value) => {
-    import('./orders-logic.js').then(logic => {
+    import('../../js/orders-logic.js').then(logic => {
         const items = logic.getCurrentItems();
         if (items[index]) {
+            // تحديث الحقل المطلوب (الاسم نص، والسعر/الكمية أرقام)
             items[index][field] = field === 'name' ? value : parseFloat(value);
-            logic.renderProductList('productsContainer', window.updateTotalDisplay);
+            logic.renderProductList('productsContainer');
         }
     });
 };
 
-// حذف سطر منتج واحد
 window.removeProductRow = (index) => {
-    import('./orders-logic.js').then(logic => {
+    import('../../js/orders-logic.js').then(logic => {
         const items = logic.getCurrentItems();
-        items.splice(index, 1);
-        logic.renderProductList('productsContainer', window.updateTotalDisplay);
+        items.splice(index, 1); // إزالة العنصر من المصفوفة
+        logic.renderProductList('productsContainer');
     });
 };
