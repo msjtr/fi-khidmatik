@@ -1,190 +1,57 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | إدارة الطلبات</title>
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>إدارة الطلبات - نظام متكامل</title>
     
     <link rel="stylesheet" href="../../css/orders-style.css">
     
-    <style>
-        body { background: radial-gradient(circle at top right, #f8fafc, #f1f5f9); min-height: 100vh; }
-        .form-section { background: #ffffff; border: 1px solid #eef2f6; border-radius: 20px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .form-section-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 15px; border-right: 4px solid #2563eb; padding-right: 12px; }
-        /* تحسين مظهر السكرول بار في لوحة التحكم */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="p-4 md:p-8">
+<body class="bg-gray-50 p-6 font-sans">
 
-    <div id="toast" style="display: none;"></div>
+    <div id="toast"></div>
 
     <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-slate-800 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200">
-                    <i class="fas fa-chart-line text-white text-2xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-3xl font-black text-slate-800">داشبورد الطلبات</h1>
-                    <p class="text-slate-500 font-medium font-mono text-xs uppercase">Admin / Modules / Orders</p>
-                </div>
-            </div>
-            <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-2xl shadow-lg shadow-blue-100 flex items-center gap-3 transition-all transform hover:scale-105 font-bold">
-                <i class="fas fa-plus-circle"></i> إنشاء طلب جديد
-            </button>
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">إدارة الطلبات</h1>
+            <button id="newOrderBtn" class="bg-blue-600 text-white px-6 py-2 rounded-xl shadow-lg">إضافة طلب</button>
         </div>
-
-        <div class="bg-white/80 backdrop-blur-md rounded-3xl border border-white shadow-sm p-6 mb-8">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 mb-2 block uppercase tracking-widest">فرز حسب الحالة</label>
-                    <select id="filterStatus" class="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500">
-                        <option value="">جميع الحالات</option>
-                        <option value="جديد">جديد</option>
-                        <option value="تحت التنفيذ">تحت التنفيذ</option>
-                        <option value="تم التنفيذ">تم التنفيذ</option>
-                        <option value="ملغي">ملغي</option>
-                    </select>
-                </div>
-                <div class="col-span-1 md:col-span-2">
-                    <label class="text-[10px] font-bold text-slate-400 mb-2 block uppercase tracking-widest">البحث في السجلات</label>
-                    <input type="text" id="filterCustomer" placeholder="ابحث باسم العميل أو رقم الطلب..." class="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="flex items-end gap-2 col-span-2 md:col-span-2">
-                    <button id="applyFilters" class="flex-1 bg-slate-800 text-white rounded-xl py-2.5 hover:bg-slate-900 transition font-bold text-sm">تحديث العرض</button>
-                    <button id="resetFilters" class="px-4 bg-slate-100 text-slate-500 rounded-xl py-2.5 hover:bg-slate-200 transition"><i class="fas fa-undo-alt"></i></button>
-                </div>
-            </div>
-        </div>
-
-        <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full py-20 text-center">
-                <div class="loading-spinner mb-4 mx-auto"></div>
-                <p class="text-slate-400 animate-pulse font-bold">جاري المزامنة مع قاعدة البيانات...</p>
-            </div>
-        </div>
+        
+        <div id="ordersContainer" class="orders-grid"></div>
     </div>
 
-    <div id="orderModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50 overflow-y-auto">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-y-auto animate-fade-in border border-white">
-            <div class="sticky top-0 bg-white/95 backdrop-blur px-10 py-8 border-b border-slate-50 flex justify-between items-center z-20">
-                <div>
-                    <h2 id="modalTitle" class="text-2xl font-black text-slate-800">نموذج طلب توريد</h2>
-                    <p class="text-xs text-slate-400 font-bold mt-1">يرجى استكمال كافة الحقول الإلزامية</p>
-                </div>
-                <button id="closeModalBtn" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all font-bold text-xl">&times;</button>
-            </div>
+    <script type="module">
+        import { loadOrders, db } from '../../js/orders-logic.js';
 
-            <form id="orderForm" class="px-10 py-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                    <div class="form-section">
-                        <div class="form-section-title">الأرشفة</div>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 mb-1 block">رقم العملية</label>
-                                <input type="text" id="orderNumber" readonly class="w-full bg-slate-50 border-none rounded-xl px-4 py-2 font-mono text-blue-600 font-bold">
+        async function init() {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = '<div class="loading-spinner"></div>';
+            
+            try {
+                const orders = await loadOrders();
+                container.innerHTML = orders.length === 0 ? '<p>لا توجد طلبات حالياً</p>' : '';
+                
+                orders.forEach(order => {
+                    const statusClass = order.status === 'جديد' ? 'status-new' : 'status-processing';
+                    container.innerHTML += `
+                        <div class="order-card p-5 border rounded-2xl bg-white shadow-sm">
+                            <div class="flex justify-between mb-2">
+                                <span class="font-bold">#${order.orderNumber || '000'}</span>
+                                <span class="status-badge ${statusClass}">${order.status || 'معلق'}</span>
                             </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 mb-1 block">تاريخ الإدراج</label>
-                                <input type="date" id="orderDate" class="w-full bg-slate-100/50 border-none rounded-xl px-4 py-2 text-sm">
-                            </div>
-                        </div>
-                    </div>
+                            <p class="text-gray-600">${order.customerName || 'عميل مجهول'}</p>
+                            <p class="text-blue-600 font-bold mt-2">${order.totalAmount || 0} ريال</p>
+                        </div>`;
+                });
+            } catch (e) {
+                container.innerHTML = '<p class="text-red-500">حدث خطأ في تحميل البيانات</p>';
+            }
+        }
 
-                    <div class="form-section col-span-2">
-                        <div class="form-section-title">الطرف الثاني (العميل)</div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="col-span-2">
-                                <label class="text-[10px] font-bold text-slate-400 mb-1 block">الاسم الكريم</label>
-                                <select id="customerSelect" class="w-full bg-slate-50 border-none rounded-xl px-4 py-2 text-sm font-bold text-slate-700">
-                                    <option value="">جاري تحميل القائمة...</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 mb-1 block">طريقة الاستلام</label>
-                                <div class="flex gap-2">
-                                    <label class="flex-1 text-center py-2.5 bg-slate-50 rounded-xl cursor-pointer border-2 border-transparent transition has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                                        <input type="radio" name="shippingMethod" value="pickup" class="hidden" checked> 
-                                        <span class="text-xs font-bold text-slate-600">فرع المؤسسة</span>
-                                    </label>
-                                    <label class="flex-1 text-center py-2.5 bg-slate-50 rounded-xl cursor-pointer border-2 border-transparent transition has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                                        <input type="radio" name="shippingMethod" value="delivery" class="hidden"> 
-                                        <span class="text-xs font-bold text-slate-600">شحن سريع</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 mb-1 block">التسوية المالية</label>
-                                <div class="flex gap-2">
-                                    <button type="button" class="payment-btn active flex-1 py-2.5 bg-slate-50 rounded-xl text-xs font-bold" data-payment="mada">مدى</button>
-                                    <button type="button" class="payment-btn flex-1 py-2.5 bg-slate-50 rounded-xl text-xs font-bold" data-payment="cash">كاش</button>
-                                    <input type="hidden" id="paymentMethod" value="mada">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section mb-8 border-dashed border-2">
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="form-section-title mb-0">بنود الفاتورة</div>
-                        <button type="button" id="addNewProductBtn" class="bg-blue-50 text-blue-600 px-5 py-2 rounded-xl text-[11px] font-black hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                            <i class="fas fa-plus-circle ml-1"></i> إضافة بند جديد
-                        </button>
-                    </div>
-                    
-                    <div id="productsContainer" class="space-y-4 min-h-[100px]">
-                        </div>
-                </div>
-
-                <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                    
-                    <div class="grid grid-cols-3 gap-10 w-full md:w-auto text-center md:text-right relative z-10">
-                        <div>
-                            <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">الصافي</p>
-                            <p id="subtotalDisplay" class="text-xl font-bold">0.00</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">القيمة المضافة</p>
-                            <p id="taxDisplay" class="text-xl font-bold">0.00</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">الخصم</p>
-                            <input type="number" id="discountValue" value="0" class="bg-white/5 border-none rounded-xl w-24 px-3 py-1 text-center font-black text-white focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    
-                    <div class="text-center md:text-left relative z-10">
-                        <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-2">إجمالي المطالبة</p>
-                        <div class="flex items-baseline justify-center md:justify-start gap-2">
-                            <span id="totalDisplay" class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">0.00</span>
-                            <span class="text-blue-400 font-bold text-sm">ريال</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-5 mt-12">
-                    <button type="button" id="cancelOrderBtn" class="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition tracking-wide">صرف النظر</button>
-                    <button type="submit" class="px-12 py-4 bg-blue-600 text-white rounded-[1.2rem] font-black shadow-xl shadow-blue-200 hover:bg-blue-700 hover:shadow-blue-300 transition-all transform hover:-translate-y-1 active:translate-y-0">
-                        اعتماد الطلب وترحيله
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script type="module" src="../../js/orders-logic.js"></script>
-    <script type="module" src="../../js/orders-firebase-db.js"></script>
-    <script type="module" src="../../js/orders-app.js"></script>
-
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
