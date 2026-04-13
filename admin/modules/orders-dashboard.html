@@ -7,6 +7,8 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
         .hidden-form { display: none; opacity: 0; transform: translateY(-20px); transition: all 0.4s ease; }
         .show-form { display: block; opacity: 1; transform: translateY(0); }
         .floating-add-btn {
@@ -19,9 +21,12 @@
         }
         .floating-add-btn:hover { transform: scale(1.1) rotate(90deg); }
         .ql-editor { text-align: right; min-height: 100px; }
+        /* ستايل أزرار التبديل */
+        .system-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .active-system { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; transform: scale(1.02); }
     </style>
 </head>
-<body class="bg-[#f8fafc] p-4 md:p-8 text-right font-sans">
+<body class="bg-[#f8fafc] p-4 md:p-8 text-right">
 
     <div id="openFormBtn" class="floating-add-btn" onclick="toggleOrderForm()">
         <i class="fas fa-plus"></i>
@@ -29,23 +34,34 @@
 
     <div class="max-w-7xl mx-auto space-y-8">
         
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 no-print">
+            <div id="btn-new" onclick="switchSystem('new')" 
+                 class="system-btn cursor-pointer p-6 rounded-[2rem] border-2 border-white bg-white shadow-sm flex items-center gap-4">
+                <div class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-bolt"></i></div>
+                <div><h3 class="font-black text-lg">النظام المطور 2026</h3><p class="text-xs text-slate-400">فواتير الـ Snapshot الجديدة</p></div>
+            </div>
+
+            <div id="btn-old" onclick="switchSystem('old')" 
+                 class="system-btn cursor-pointer p-6 rounded-[2rem] border-2 border-white bg-white shadow-sm flex items-center gap-4">
+                <div class="bg-slate-400 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fas fa-archive"></i></div>
+                <div><h3 class="font-black text-lg text-slate-700">الأرشيف القديم</h3><p class="text-xs text-slate-400">مراجعة الفواتير السابقة</p></div>
+            </div>
+        </div>
+
         <div id="orderFormContainer" class="hidden-form bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-gray-100 mb-12">
             <div class="flex justify-between items-center mb-10">
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleOrderForm()" class="text-slate-400 hover:text-red-500 transition text-2xl">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+                    <button onclick="toggleOrderForm()" class="text-slate-400 hover:text-red-500 transition text-2xl"><i class="fas fa-times-circle"></i></button>
                     <h2 class="text-3xl font-black text-slate-800 border-r-8 border-blue-600 pr-4">إنشاء طلب جديد</h2>
                 </div>
                 <div class="flex gap-2">
-                    <input id="orderNo" readonly class="bg-blue-50 p-4 rounded-2xl font-bold text-blue-700 w-48 text-center outline-none">
-                    <input type="date" id="orderDate" class="bg-slate-50 p-4 rounded-2xl outline-none">
+                    <input id="orderNo" readonly placeholder="رقم الطلب" class="bg-blue-50 p-4 rounded-2xl font-bold text-blue-700 w-48 text-center outline-none">
+                    <input type="date" id="orderDate" class="bg-slate-50 p-4 rounded-2xl outline-none text-slate-600">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div class="lg:col-span-2 space-y-10">
-                    
                     <div class="space-y-6">
                         <h3 class="font-bold text-lg text-slate-700">بيانات العميل التفصيلية</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -56,11 +72,6 @@
                                 <input id="cCity" placeholder="المدينة" class="p-4 bg-slate-50 rounded-2xl outline-none">
                                 <input id="cDistrict" placeholder="الحي" class="p-4 bg-slate-50 rounded-2xl outline-none">
                             </div>
-                            <input id="cStreet" placeholder="اسم الشارع" class="p-4 bg-slate-50 rounded-2xl outline-none">
-                            <div class="grid grid-cols-2 gap-2">
-                                <input id="cBuild" placeholder="رقم المبنى" class="p-4 bg-slate-50 rounded-2xl outline-none">
-                                <input id="cPost" placeholder="الرمز البريدي" class="p-4 bg-slate-50 rounded-2xl outline-none">
-                            </div>
                         </div>
                     </div>
 
@@ -70,17 +81,9 @@
                             <input id="pName" placeholder="اسم المنتج" class="col-span-2 p-4 rounded-2xl outline-none">
                             <input id="pPrice" type="number" placeholder="سعر البيع" class="p-4 rounded-2xl outline-none">
                             <input id="pQty" type="number" value="1" class="p-4 rounded-2xl outline-none">
-                            <input id="pImgUrl" placeholder="رابط صورة المنتج (اختياري)" class="col-span-2 p-4 rounded-2xl outline-none">
                         </div>
-                        
-                        <div class="space-y-2">
-                            <label class="text-sm text-slate-500 mr-2">وصف المنتج / الملاحظات:</label>
-                            <div id="editor" class="bg-white rounded-xl overflow-hidden border border-slate-200"></div>
-                        </div>
-
-                        <div id="currentCartItems" class="space-y-2"></div> 
-
-                        <button onclick="addToCart()" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-lg hover:bg-slate-900 transition shadow-lg">
+                        <div id="editor" class="bg-white rounded-xl overflow-hidden border border-slate-200"></div>
+                        <button onclick="addToCart()" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-lg hover:bg-slate-900 transition">
                             <i class="fas fa-cart-plus ml-2"></i> إضافة المنتج للقائمة
                         </button>
                     </div>
@@ -91,28 +94,7 @@
                         <h3 class="text-xl font-bold border-b border-blue-400 pb-4">ملخص الفاتورة</h3>
                         <div class="space-y-4">
                             <div class="flex justify-between opacity-80"><span>المجموع:</span><span id="subtotalLabel">0.00</span></div>
-                            <div class="flex justify-between opacity-80"><span>الضريبة (15%):</span><span id="taxLabel">0.00</span></div>
                             <div class="flex justify-between text-3xl font-black pt-6 border-t border-blue-500"><span>الإجمالي:</span><span id="totalLabel">0.00</span></div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 gap-4 pt-6">
-                            <div>
-                                <label class="text-xs block mb-2 opacity-70">طريقة الدفع</label>
-                                <select id="payMethod" class="w-full p-4 bg-blue-700 rounded-2xl border-none font-bold outline-none cursor-pointer text-white">
-                                    <option value="تمارا">تمارا</option>
-                                    <option value="تابي">تابي</option>
-                                    <option value="نقدي">نقدي</option>
-                                    <option value="ماستركارد">ماستركارد</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-xs block mb-2 opacity-70">نوع الاستلام</label>
-                                <select id="shipType" class="w-full p-4 bg-blue-700 rounded-2xl border-none font-bold outline-none cursor-pointer text-white">
-                                    <option value="استلام من المقر">استلام من المقر</option>
-                                    <option value="شحن سريع">شحن سريع</option>
-                                    <option value="بدون شحن">بدون شحن</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
                     <button id="mainSubmitBtn" onclick="submitOrder(event)" class="mt-10 w-full bg-white text-blue-600 py-6 rounded-3xl font-black text-2xl hover:scale-95 transition shadow-xl">
@@ -122,26 +104,26 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-[2.5rem] shadow-sm p-8 border border-gray-100">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 class="text-xl font-black text-slate-700 flex items-center gap-3">
-                    <span class="w-2 h-8 bg-blue-600 rounded-full"></span> سجل العمليات الأخيرة
+        <div class="bg-white rounded-[2.5rem] shadow-sm p-8 border border-gray-100 min-h-[500px]">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h2 class="text-2xl font-black text-slate-700 flex items-center gap-3">
+                    <span class="w-2 h-8 bg-blue-600 rounded-full"></span> سجل العمليات
                 </h2>
-                <div class="relative">
-                    <i class="fas fa-search absolute right-4 top-4 text-slate-400"></i>
-                    <input type="text" id="orderSearch" placeholder="بحث برقم الطلب أو العميل..." class="pr-12 pl-4 py-3 bg-slate-50 rounded-xl outline-none focus:ring-2 ring-blue-100 text-sm w-full md:w-80">
+                <div class="relative w-full md:w-96">
+                    <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="orderSearch" placeholder="بحث برقم الطلب أو العميل..." class="w-full pr-12 pl-4 py-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-blue-100">
                 </div>
             </div>
             
             <div class="overflow-x-auto">
-                <table class="w-full text-right border-separate border-spacing-y-2">
+                <table class="w-full text-right border-separate border-spacing-y-3">
                     <thead>
-                        <tr class="text-slate-400 text-xs font-bold uppercase">
+                        <tr class="text-slate-400 text-sm font-bold">
                             <th class="p-4">رقم الطلب</th>
                             <th class="p-4">العميل</th>
-                            <th class="p-4">التاريخ والوقت</th>
+                            <th class="p-4">التاريخ</th>
                             <th class="p-4 text-center">الإجمالي</th>
-                            <th class="p-4 text-center">إجراءات</th>
+                            <th class="p-4 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
@@ -153,13 +135,15 @@
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
+        // تفعيل محرّر النصوص
+        var quill = new Quill('#editor', { theme: 'snow', placeholder: 'اكتب ملاحظات الطلب هنا...' });
+
         function toggleOrderForm() {
             const container = document.getElementById('orderFormContainer');
             const floatingBtn = document.getElementById('openFormBtn');
             if (container.classList.contains('show-form')) {
                 container.classList.remove('show-form');
-                setTimeout(() => container.style.display = 'none', 400);
-                floatingBtn.style.display = 'flex';
+                setTimeout(() => { container.style.display = 'none'; floatingBtn.style.display = 'flex'; }, 400);
             } else {
                 container.style.display = 'block';
                 setTimeout(() => container.classList.add('show-form'), 10);
