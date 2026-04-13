@@ -1,41 +1,102 @@
-<section class="p-6 bg-gray-50 rounded-lg shadow-inner">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">نموذج الطلبات</h2>
-        <button onclick="initNewOrder()" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow">إنشاء طلب جديد</button>
-    </div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إنشاء طلب جديد | لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/orders-style.css">
+</head>
+<body class="bg-gray-100 p-4 md:p-10 font-sans">
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <h3 class="text-blue-600 font-bold mb-4 border-b pb-2">بيانات العميل</h3>
-                <select id="customerSelect" onchange="autoFillCustomer(this.value)" class="w-full mb-4 p-2 border rounded"></select>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="cName" placeholder="اسم العميل" class="p-2 border rounded">
-                    <input type="tel" id="cPhone" placeholder="رقم الهاتف" class="p-2 border rounded">
+    <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden">
+        <div class="bg-blue-700 p-6 text-white flex justify-between items-center">
+            <h1 class="text-2xl font-bold">نظام إدارة الطلبات</h1>
+            <div class="text-sm">الوقت: <span id="liveTime">--:--</span></div>
+        </div>
+
+        <div class="p-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
+            
+            <div class="lg:col-span-2 space-y-8">
+                
+                <div class="bg-gray-50 p-4 rounded-xl grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold mb-1">رقم الطلب</label>
+                        <input type="text" id="orderNo" readonly class="w-full p-2 border rounded-lg bg-white text-blue-700 font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">التاريخ</label>
+                        <input type="date" id="orderDate" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">الوقت</label>
+                        <input type="time" id="orderTime" class="w-full p-2 border rounded-lg">
+                    </div>
                 </div>
-            </div>
 
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <h3 class="text-blue-600 font-bold mb-4 border-b pb-2">وصف المنتج/الخدمة</h3>
-                <div id="editor" style="height: 200px;"></div>
-                <div class="mt-4 flex items-center gap-4">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" id="saveToStock"> إضافة للمخزون الدائم؟
+                <div class="border-2 border-dashed border-gray-200 p-6 rounded-2xl">
+                    <h3 class="font-bold text-blue-700 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        بيانات العميل
+                    </h3>
+                    <select id="customerSelect" onchange="fillCustomerInfo(this.value)" class="w-full mb-4 p-3 border rounded-xl bg-blue-50"></select>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="cName" placeholder="اسم العميل" class="p-3 border rounded-xl">
+                        <input type="tel" id="cPhone" placeholder="رقم الهاتف" class="p-3 border rounded-xl">
+                        <input type="email" id="cEmail" placeholder="البريد الإلكتروني" class="p-3 border rounded-xl col-span-2">
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 mt-4">
+                        <input type="text" id="cCity" placeholder="الحي" class="p-2 border rounded-lg text-sm">
+                        <input type="text" id="cStreet" placeholder="الشارع" class="p-2 border rounded-lg text-sm">
+                        <input type="text" id="cZip" placeholder="الرمز البريدي" class="p-2 border rounded-lg text-sm">
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-bold text-blue-700">تفاصيل المنتج / الخدمة</h3>
+                    <div id="editor" class="h-48 bg-white"></div>
+                    <label class="flex items-center gap-2 text-sm text-gray-600">
+                        <input type="checkbox" id="saveProduct"> هل ترغب بإضافة هذا المنتج للمخزون الدائم؟
                     </label>
                 </div>
             </div>
-        </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-600">
-            <h3 class="font-bold mb-4 text-center">ملخص الفاتورة</h3>
-            <div class="space-y-3 text-sm">
-                <div class="flex justify-between"><span>المجموع:</span><span id="subtotal">0.00</span></div>
-                <div class="flex justify-between"><span>الخصم:</span><input type="number" class="w-20 border text-center" value="0" id="discountInput"></div>
-                <div class="flex justify-between text-gray-500"><span>الضريبة (15%):</span><span id="tax">0.00</span></div>
-                <hr>
-                <div class="flex justify-between font-bold text-lg text-blue-700"><span>الإجمالي:</span><span id="total">0.00</span></div>
+            <div class="space-y-6">
+                <div class="bg-blue-50 p-6 rounded-3xl shadow-inner border border-blue-100">
+                    <h3 class="font-bold mb-4 border-b pb-2">طريقة الدفع</h3>
+                    <select id="paymentMethod" class="w-full p-3 rounded-xl border-none shadow-sm mb-6">
+                        <option>تمارا</option>
+                        <option>تابي</option>
+                        <option>إمكان</option>
+                        <option>فيزا / ماستر</option>
+                        <option>نقدي</option>
+                    </select>
+
+                    <h3 class="font-bold mb-4 border-b pb-2">طريقة الاستلام</h3>
+                    <select onchange="toggleShipping(this.value)" class="w-full p-3 rounded-xl border-none shadow-sm">
+                        <option value="pickup">استلام من المقر</option>
+                        <option value="delivery">شحن (توصيل)</option>
+                        <option value="none">لا يتطلب شحن</option>
+                    </select>
+                    <p id="shippingStatus" class="text-xs mt-2 text-blue-500 font-medium"></p>
+
+                    <div class="mt-10 space-y-3 bg-white p-4 rounded-2xl shadow-sm">
+                        <div class="flex justify-between text-sm"><span>المجموع:</span><span id="subLabel">0.00</span></div>
+                        <div class="flex justify-between text-sm text-red-500 font-bold"><span>الخصم:</span><input type="number" id="discount" value="0" class="w-16 border-b text-center"></div>
+                        <div class="flex justify-between text-lg font-black text-blue-800 pt-2 border-t"><span>الإجمالي النهائي:</span><span id="totalLabel">0.00</span></div>
+                    </div>
+
+                    <button onclick="confirmOrder()" class="w-full mt-6 bg-blue-700 text-white py-4 rounded-2xl font-bold hover:bg-blue-800 transition-all shadow-lg transform hover:scale-95">حفظ وطباعة الطلب</button>
+                    <button class="w-full mt-2 text-gray-400 text-sm hover:underline">إلغاء الطلب</button>
+                </div>
             </div>
-            <button class="w-full mt-6 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition">حفظ الطلب وطباعة</button>
+
         </div>
     </div>
-</section>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script type="module" src="../../js/orders-app.js"></script>
+</body>
+</html>
