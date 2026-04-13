@@ -1,52 +1,82 @@
 import * as logic from './orders-logic.js';
 
 let quill;
+let currentItems = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (document.getElementById('editor')) {
-        quill = new Quill('#editor', { theme: 'snow' });
-    }
-    await renderFullDashboard();
+    // تهيئة محرر الوورد
+    quill = new Quill('#editor', { theme: 'snow', placeholder: 'وصف المنتج التفصيلي...' });
+    
+    await initPage();
 });
 
-async function renderFullDashboard() {
-    // 1. تجهيز رقم الطلب الجديد
-    const meta = logic.generateOrderMeta();
-    document.getElementById('orderNo').value = meta.orderNumber;
-    document.getElementById('orderDate').value = meta.date;
+async function initPage() {
+    // توليد البيانات التلقائية
+    document.getElementById('orderNo').value = logic.generateOrderNumber();
+    document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('orderTime').value = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
 
-    // 2. عرض السجل الكامل (الربط الثلاثي)
-    const orders = await logic.fetchFullOrdersHistory();
-    const table = document.getElementById('ordersTableBody');
-    if (table) {
-        table.innerHTML = orders.map(o => `
-            <tr class="border-b hover:bg-gray-50 text-sm transition">
-                <td class="p-4 font-bold text-blue-700">${o.orderNo}</td>
-                <td class="p-4 font-bold text-gray-800">${o.customerName}</td>
-                <td class="p-4 text-gray-500 text-xs max-w-xs truncate">${o.products}</td>
-                <td class="p-4 text-gray-500">${o.date}</td>
-                <td class="p-4 font-black text-green-600">${parseFloat(o.total).toFixed(2)} ر.س</td>
-                <td class="p-4">
-                    <span class="px-2 py-1 rounded-full text-[10px] bg-blue-100 text-blue-600 font-bold">${o.status}</span>
-                </td>
-                <td class="p-4 text-center">
-                    <button class="text-gray-400 hover:text-blue-600"><i class="fas fa-eye"></i></button>
-                </td>
-            </tr>
-        `).join('');
-    }
+    // تحميل العملاء والمنتجات للقوائم
+    const customers = await logic.fetchHistory(); // تبسيط للجلب
+    const productsSnap = await getDocs(collection(db, "products"));
+    
+    // تعبئة قائمة العملاء
+    const cSelect = document.getElementById('customerSelect');
+    customers.forEach(c => {
+        if(c.customerId) cSelect.innerHTML += `<option value='${JSON.stringify(c)}'>${c.customerName}</option>`;
+    });
+
+    renderTable();
 }
 
-window.submitFullOrder = async () => {
-    const data = {
+// حسابات الفاتورة تلقائياً
+window.calculateInvoice = () => {
+    const subtotal = currentItems.reduce((s, i) => s + (i.price * i.qty), 0);
+    const discount = parseFloat(document.getElementById('discountInput').value || 0);
+    const tax = (subtotal - discount) * 0.15;
+    const total = (subtotal - discount) + tax;
+
+    document.getElementById('subtotalLabel').innerText = subtotal.toFixed(2);
+    document.getElementById('taxLabel').innerText = tax.toFixed(2);
+    document.getElementById('totalLabel').innerText = total.toFixed(2);
+};
+
+// إضافة منتج للجدول
+window.addItemToOrder = () => {
+    const item = {
+        name: document.getElementById('pName').value,
+        price: parseFloat(document.getElementById('pPrice').value),
+        qty: parseInt(document.getElementById('pQty').value),
+        description: quill.root.innerHTML
+    };
+    currentItems.push(item);
+    renderOrderItems();
+    calculateInvoice();
+};
+
+// الطباعة والربط مع المسار المطلوب
+window.printOrder = (orderId) => {
+    window.location.href = `../../fi-khidmatik/js/order.js?id=${orderId}`;
+};
+
+// حفظ الطلب الكامل
+window.saveFullOrder = async () => {
+    const orderData = {
         orderNumber: document.getElementById('orderNo').value,
-        customerName: document.getElementById('cName').value,
-        orderDate: document.getElementById('orderDate').value,
-        total: parseFloat(document.getElementById('finalTotal').value || 0),
-        description: quill ? quill.root.innerHTML : '',
+        customerId: document.getElementById('customerSelect').value ? JSON.parse(document.getElementById('customerSelect').value).id : null,
+        customerData: {
+            name: document.getElementById('cName').value,
+            phone: document.getElementById('cPhone').value,
+            address: document.getElementById('cAddress').value
+        },
+        items: currentItems,
+        subtotal: document.getElementById('subtotalLabel').innerText,
+        tax: document.getElementById('taxLabel').innerText,
+        total: document.getElementById('totalLabel').innerText,
         status: "جديد"
     };
-    await logic.saveToDB("orders", data);
-    alert("تم الحفظ بنجاح!");
+
+    await logic.saveDoc("orders", orderData);
+    alert("تم حفظ الطلب بنجاح!");
     location.reload();
 };
