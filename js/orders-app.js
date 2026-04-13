@@ -5,19 +5,24 @@ let cartItems = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. تهيئة المحرر مع دعم اتجاه النص العربي
-    quill = new Quill('#editor', { 
-        theme: 'snow',
-        placeholder: 'اكتب وصف المنتج هنا...',
-        modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['clean']] }
-    });
+    if (document.getElementById('editor')) {
+        quill = new Quill('#editor', { 
+            theme: 'snow',
+            placeholder: 'اكتب وصف المنتج هنا...',
+            modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['clean']] }
+        });
+    }
     
     initApp();
 });
 
 async function initApp() {
     // 2. تعبئة البيانات التلقائية
-    document.getElementById('orderNo').value = logic.generateOrderID();
-    document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+    const orderNoField = document.getElementById('orderNo');
+    const orderDateField = document.getElementById('orderDate');
+    
+    if (orderNoField) orderNoField.value = logic.generateOrderID();
+    if (orderDateField) orderDateField.value = new Date().toISOString().split('T')[0];
     
     // جلب البيانات وتحديث الجدول
     await refreshOrdersList();
@@ -28,7 +33,7 @@ async function refreshOrdersList() {
     renderOrdersTable(history);
 }
 
-// 3. إضافة منتج للسلة (تعديل: إضافة عرض السلة مرئياً)
+// 3. إضافة منتج للسلة
 window.addToCart = () => {
     const name = document.getElementById('pName').value;
     const price = parseFloat(document.getElementById('pPrice').value || 0);
@@ -44,27 +49,27 @@ window.addToCart = () => {
         price: price,
         qty: qty,
         barcode: logic.generateBarcode(),
-        desc: quill.root.innerHTML // جلب محتوى المحرر
+        desc: quill ? quill.root.innerHTML : '' 
     };
     
     cartItems.push(item);
-    renderCart(); // تأكد من وجود دالة تعرض المنتجات المضافة حالياً
+    renderCart(); 
     calculateTotals();
     
-    // مسح الحقول بعد الإضافة لتسهيل إضافة منتج آخر
+    // مسح الحقول بعد الإضافة
     document.getElementById('pName').value = '';
     document.getElementById('pPrice').value = '';
     document.getElementById('pQty').value = '1';
-    quill.setContents([]);
+    if (quill) quill.setContents([]);
 };
 
-// 4. عرض المنتجات المضافة في القائمة الصغيرة (قبل الحفظ)
+// 4. عرض المنتجات المضافة في القائمة الصغيرة
 function renderCart() {
-    const cartContainer = document.getElementById('currentCartItems'); // تأكد من وجود هذا الـ ID في الـ HTML
+    const cartContainer = document.getElementById('currentCartItems'); 
     if (!cartContainer) return;
 
     cartContainer.innerHTML = cartItems.map((item, index) => `
-        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl mb-2 border border-gray-100">
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl mb-2 border border-gray-100 animate-fade-in">
             <div>
                 <span class="font-bold text-gray-800">${item.name}</span>
                 <span class="text-xs text-gray-400 mr-2">(${item.qty} × ${item.price})</span>
@@ -87,21 +92,23 @@ function calculateTotals() {
     const tax = subtotal * 0.15;
     const total = subtotal + tax;
 
-    document.getElementById('subtotalLabel').innerText = subtotal.toFixed(2);
-    document.getElementById('taxLabel').innerText = tax.toFixed(2);
-    document.getElementById('totalLabel').innerText = total.toFixed(2);
+    if (document.getElementById('subtotalLabel')) document.getElementById('subtotalLabel').innerText = subtotal.toFixed(2);
+    if (document.getElementById('taxLabel')) document.getElementById('taxLabel').innerText = tax.toFixed(2);
+    if (document.getElementById('totalLabel')) document.getElementById('totalLabel').innerText = total.toFixed(2);
 }
 
-// 5. حفظ الطلب (تعديل: إصلاح المسار وحالة التحميل)
-window.submitOrder = async () => {
+// 5. حفظ الطلب والتوجه لصفحة print.html
+window.submitOrder = async (event) => {
     if (cartItems.length === 0) return alert("السلة فارغة! أضف منتجاً واحداً على الأقل.");
 
-    const btn = event.target;
+    const btn = event.currentTarget || event.target;
+    const originalText = btn.innerHTML;
+    
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري الحفظ...';
 
-    const isNewCustomer = document.getElementById('newCustomerCheck').checked;
-    const isNewProduct = document.getElementById('newProductCheck').checked;
+    const isNewCustomer = document.getElementById('newCustomerCheck')?.checked;
+    const isNewProduct = document.getElementById('newProductCheck')?.checked;
 
     const orderData = {
         orderNumber: document.getElementById('orderNo').value,
@@ -128,9 +135,8 @@ window.submitOrder = async () => {
 
         const docRef = await logic.saveData("orders", orderData);
         
-        // إصلاح المسار ليكون متوافقاً مع GitHub Pages
-        // المسار المستهدف هو صفحة HTML وليس ملف JS مباشرة
-        const printPath = `../order.html?id=${docRef.id}`; 
+        // المسار الصحيح للعودة من admin/modules إلى print.html في الجذر
+        const printPath = `../../print.html?id=${docRef.id}`; 
         
         alert("تم حفظ الطلب بنجاح!");
         window.location.href = printPath;
@@ -139,10 +145,11 @@ window.submitOrder = async () => {
         console.error("Save Error:", error);
         alert("حدث خطأ أثناء الحفظ");
         btn.disabled = false;
-        btn.innerText = "اعتماد وحفظ";
+        btn.innerHTML = originalText;
     }
 };
 
+// 6. عرض جدول الطلبات السابقة مع تصحيح مسار أزرار الطباعة
 function renderOrdersTable(data) {
     const tbody = document.getElementById('ordersTableBody');
     if (!tbody) return;
@@ -154,8 +161,8 @@ function renderOrdersTable(data) {
             <td class="p-4 text-gray-500">${o.date}</td>
             <td class="p-4 font-black text-slate-900">${o.total} ر.س</td>
             <td class="p-4">
-                <button onclick="window.location.href='../order.html?id=${o.id}'" 
-                        class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-600 hover:text-white transition">
+                <button onclick="window.location.href='../../print.html?id=${o.id}'" 
+                        class="bg-blue-50 text-blue-600 p-2 px-3 rounded-lg hover:bg-blue-600 hover:text-white transition shadow-sm">
                     <i class="fas fa-print"></i>
                 </button>
             </td>
