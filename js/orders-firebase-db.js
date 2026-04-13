@@ -1,15 +1,15 @@
 /**
  * fi-khidmatik/js/orders-firebase-db.js
- * إدارة قاعدة بيانات الطلبات - Firebase Firestore
+ * إدارة قاعدة بيانات الطلبات - Firebase Firestore (النسخة المستقرة)
  */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getFirestore, collection, addDoc, doc, getDocs, 
     updateDoc, deleteDoc, query, orderBy, serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// إعدادات Firebase
+// إعدادات Firebase الخاصة بك
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -24,16 +24,23 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ordersRef = collection(db, "orders");
 
-// --- 1. جلب جميع الطلبات ---
+// --- 1. جلب جميع الطلبات (مع إصلاح مشكلة التعليق) ---
 export const fetchAllOrders = async () => {
     try {
+        // إذا استمر التعليق، احذف "orderBy" مؤقتاً للتأكد من الربط
         const q = query(ordersRef, orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
-        if (snapshot.empty) return [];
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-        console.error("Error fetching orders:", error);
-        throw error;
+        console.warn("خطأ في الاستعلام المنظم، جاري المحاولة بدون ترتيب:", error);
+        // محاولة بديلة في حال عدم وجود Index
+        try {
+            const snapshot = await getDocs(ordersRef);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (err) {
+            console.error("فشل نهائي في جلب البيانات:", err);
+            throw err;
+        }
     }
 };
 
@@ -84,7 +91,6 @@ export const fetchCustomersList = async () => {
     try {
         const customersRef = collection(db, "customers");
         const snapshot = await getDocs(customersRef);
-        if (snapshot.empty) return [];
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching customers:", error);
@@ -92,5 +98,4 @@ export const fetchCustomersList = async () => {
     }
 };
 
-// تصدير قاعدة البيانات لاستخدامها في ملفات أخرى إذا لزم الأمر
 export { db };
