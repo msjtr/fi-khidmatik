@@ -15,23 +15,19 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 2. واجهة المستخدم (UI)
-const UI = {
-    header: (seller) => `
-        <div class="header-main">
-            <img src="${seller.logo || ''}" class="main-logo">
-            <div class="doc-label">فاتورة إلكترونية ضريبية</div>
-            <div class="header-left-group">
-                <div>شهادة العمل الحر: ${seller.licenseNumber || '---'}</div>
-                <div>الرقم الضريبي: ${seller.taxNumber || '---'}</div>
-            </div>
-        </div>`,
+// ... (الإعدادات السابقة كما هي)
 
-    orderMeta: (order, customer, date, time) => `
+// تحديث واجهة بيانات العميل لتقرأ من الـ Snapshot
+UI.orderMeta = (order, customer, date, time) => {
+    // نتحقق أولاً هل البيانات مخزنة داخل Snapshot أم كبيانات مباشرة
+    const cust = order.customerSnapshot || customer || {};
+    const addr = cust.address || {};
+
+    return `
         <div class="order-info-line">
             <span><b>رقم الفاتورة:</b> ${order.orderNumber || order.id}</span>
-            <span><b>التاريخ:</b> ${date}</span>
-            <span><b>الوقت:</b> ${time}</span>
+            <span><b>التاريخ:</b> ${order.orderDate || date}</span>
+            <span><b>الوقت:</b> ${order.orderTime || time}</span>
             <span><b>حالة الطلب:</b> <span class="status-badge">تم التنفيذ</span></span>
         </div>
 
@@ -39,127 +35,60 @@ const UI = {
             <div class="address-card">
                 <div class="card-head">مصدرة من</div>
                 <div class="card-body">
-                    <p class="company-name">منصة في خدمتك</p>
-                    <p>المملكة العربية السعودية</p>
-                    <p>حائل : حي النقرة : شارع : سعد المشاط</p>
-                    <p>رقم المبنى: 3085 | الرقم الإضافي: 7718 | الرمز البريدي: 55431</p>
+                    <p class="company-name">منصة في خدمتك (تيرة)</p>
+                    <p>المملكة العربية السعودية - حائل</p>
+                    <p>حي النقرة : شارع سعد المشاط</p>
+                    <p>رقم المبنى: 3085 | الرمز البريدي: 55431</p>
                 </div>
             </div>
             <div class="address-card">
-                <div class="card-head">مصدرة إلى</div>
+                <div class="card-head">مصدرة إلى (العميل)</div>
                 <div class="card-body">
-                    <p><b>اسم العميل:</b> ${customer.name || '---'}</p>
-                    <p><b>المدينة:</b> ${customer.city || '---'} | <b>الحي:</b> ${customer.district || '---'}</p>
-                    <p><b>الشارع:</b> ${customer.street || '---'}</p>
-                    <p><b>رقم المبنى:</b> ${customer.buildingNumber || '---'} | <b>الرقم الإضافي:</b> ${customer.additionalNumber || '---'} | <b>الرمز البريدي:</b> ${customer.postalCode || '---'}</p>
-                    <p><b>الجوال:</b> ${customer.phone || '---'}</p>
+                    <p><b>اسم العميل:</b> ${cust.name || '---'}</p>
+                    <p><b>الهاتف:</b> ${cust.phone || '---'}</p>
+                    <p><b>العنوان:</b> ${addr.city || cust.city || ''} - ${addr.district || cust.district || ''}</p>
+                    <p><b>الشارع:</b> ${addr.street || cust.street || '---'}</p>
+                    <p><b>تفاصيل المبنى:</b> ${addr.building || cust.buildingNumber || '---'} | <b>الرمز البريدي:</b> ${addr.postal || cust.postalCode || '---'}</p>
+                    <p><b>البريد:</b> ${cust.email || '---'}</p>
                 </div>
             </div>
         </div>
 
         <div class="order-info-line payment-line">
-            <span><b>طريقة الدفع:</b> ${order.paymentMethod || 'إلكتروني'}</span>
-            <span><b>طريقة الاستلام:</b> ${order.deliveryMethod || order.shippingMethod || 'تحميل رقمي'}</span>
-        </div>`,
+            <span><b>طريقة الدفع:</b> ${order.payment?.method || order.paymentMethod || 'نقدي'}</span>
+            <span><b>رقم الموافقة:</b> ${order.payment?.approvalNo || '---'}</span>
+            <span><b>طريقة الاستلام:</b> ${order.shipping?.type || order.deliveryMethod || 'استلام من المقر'}</span>
+        </div>`;
+};
 
-    footer: (current, total) => `
-        <div class="final-footer">
-            <div class="contact-info-strip">
-                <span>الهاتف: 966534051317+</span> | <span>الواتساب: 966545312021+</span> | <span>info@fi-khidmatik.com</span>
+// تحديث عرض المنتجات ليشمل الوصف والصورة
+// داخل حلقة الـ for الخاصة بالمنتجات، استبدل صف الجدول بـ:
+/*
+<tr>
+    <td>${(i * itemsPerPage) + idx + 1}</td>
+    <td class="product-cell">
+        <div class="flex-prod">
+            ${item.image ? `<img src="${item.image}" class="img-mini">` : ''}
+            <div>
+                <b>${item.name}</b>
+                <div class="text-xs">${item.desc || ''}</div>
             </div>
-            <div class="page-number-box">صفحة ${current} من ${total}</div>
-        </div>`
-};
-
-// 3. الوظيفة الرئيسية
-window.onload = async () => {
-    const orderId = new URLSearchParams(window.location.search).get('id');
-    const loader = document.getElementById('loader');
-    const printApp = document.getElementById('print-app');
-
-    if (!orderId) return;
-
-    try {
-        // الاستدعاء من OrderManager لضمان توحيد البيانات (الشارع وغيرها)
-        const fullDetails = await OrderManager.getOrderFullDetails(orderId);
-        
-        if (!fullDetails) {
-            throw new Error("لم يتم العثور على بيانات الطلب عبر OrderManager");
-        }
-
-        const { order, customer } = fullDetails;
-        const seller = window.invoiceSettings || {};
-        const { date, time } = OrderManager.formatDateTime(order.createdAt);
-        
-        const termsArray = Object.values(TERMS_DATA);
-        const items = order.items || [];
-        const itemsPerPage = 6;
-        const invPagesCount = Math.ceil(items.length / itemsPerPage) || 1;
-        const totalPages = invPagesCount + Math.ceil(termsArray.length / 10);
-
-        let html = '';
-
-        for (let i = 0; i < invPagesCount; i++) {
-            const pageItems = items.slice(i * itemsPerPage, (i + 1) * itemsPerPage);
-            html += `
-                <div class="page">
-                    ${UI.header(seller)}
-                    ${UI.orderMeta(order, customer, date, time)}
-                    <table class="main-table">
-                        <thead><tr><th>#</th><th>المنتج</th><th>الكمية</th><th>السعر</th></tr></thead>
-                        <tbody>
-                            ${pageItems.map((item, idx) => `
-                                <tr>
-                                    <td>${(i * itemsPerPage) + idx + 1}</td>
-                                    <td><b>${item.name}</b></td>
-                                    <td>${item.qty || 1}</td>
-                                    <td>${(item.price || 0).toLocaleString()} ر.س</td>
-                                </tr>`).join('')}
-                        </tbody>
-                    </table>
-                    ${i === invPagesCount - 1 ? renderFinancials(order) : ''}
-                    ${UI.footer(i + 1, totalPages)}
-                </div>`;
-        }
-
-        // صفحات الشروط
-        const termsPerPage = 10;
-        for (let j = 0; j < termsArray.length; j += termsPerPage) {
-            const pageTerms = termsArray.slice(j, j + termsPerPage);
-            html += `
-                <div class="page page-terms">
-                    ${UI.header(seller)}
-                    <h3 class="terms-title">الشروط والأحكام العامة</h3>
-                    <div class="terms-container-print">
-                        ${pageTerms.map(text => `<div class="term-row-print"><p>${text}</p></div>`).join('')}
-                    </div>
-                    ${UI.footer(invPagesCount + Math.floor(j/termsPerPage) + 1, totalPages)}
-                </div>`;
-        }
-
-        printApp.innerHTML = html;
-        if (loader) loader.style.display = 'none';
-
-        if (typeof BarcodeManager !== 'undefined') {
-            BarcodeManager.init(order.id, seller, order);
-        }
-
-    } catch (error) {
-        console.error("Print Error:", error);
-        if (loader) loader.innerHTML = "خطأ في الربط: " + error.message;
-    }
-};
+        </div>
+    </td>
+    <td>${item.qty || 1}</td>
+    <td>${parseFloat(item.price || 0).toFixed(2)} ر.س</td>
+</tr>
+*/
 
 function renderFinancials(order) {
-    const subtotal = order.subtotal || 0;
-    const total = order.total || 0;
-    const tax = total - subtotal;
+    // القراءة من كائن totals الذي أنشأناه في orders-app.js
+    const t = order.totals || {};
     return `
     <div class="financial-section">
         <div class="summary-box-final">
-            <div class="s-line"><span>المجموع:</span> <span>${subtotal.toLocaleString()} ر.س</span></div>
-            <div class="s-line"><span>الضريبة (15%):</span> <span>${tax.toLocaleString()} ر.س</span></div>
-            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${total.toLocaleString()} ر.س</span></div>
+            <div class="s-line"><span>المجموع الفرعي:</span> <span>${t.subtotal || 0} ر.س</span></div>
+            <div class="s-line"><span>الضريبة (15%):</span> <span>${t.tax || 0} ر.س</span></div>
+            <div class="s-line grand-total-line"><span>الإجمالي النهائي:</span> <span>${t.total || 0} ر.س</span></div>
         </div>
         <div class="barcode-group-print">
             <div id="zatcaQR"></div>
