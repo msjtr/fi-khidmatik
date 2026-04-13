@@ -1,105 +1,60 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة منصة تيرا - النسخة المتكاملة</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>إدارة الطلبات - نظام متكامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-</head>
-<body class="bg-gray-50 font-sans text-gray-900">
-
-    <div id="toast" class="fixed bottom-6 left-6 z-50 hidden px-6 py-3 rounded-xl text-white font-bold shadow-2xl"></div>
-
-    <div class="max-w-7xl mx-auto p-4 md:p-8">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 p-4 rounded-2xl shadow-xl text-white"><i class="fas fa-database text-2xl"></i></div>
-                <div>
-                    <h1 class="text-3xl font-extrabold">منصة تيرا | TERA</h1>
-                    <p class="text-gray-500 font-medium italic">إدارة الطلبات، العملاء، والطباعة</p>
-                </div>
-            </div>
-            <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl shadow-lg flex items-center gap-2 transform transition active:scale-95">
-                <i class="fas fa-plus-circle"></i> <span>إنشاء طلب جديد</span>
-            </button>
-        </div>
-
-        <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </div>
-
-    <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl flex flex-col text-right">
-            <div class="p-6 border-b flex justify-between items-center bg-blue-600 text-white rounded-t-3xl">
-                <h2 id="modalTitle" class="text-xl font-bold">تفاصيل الطلب</h2>
-                <button id="closeModalBtn"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            
-            <form id="orderForm" class="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
-                <input type="hidden" id="editOrderId">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl border">
-                        <label class="block text-xs font-bold mb-1 text-blue-600">رقم الطلب (يدوي أو تلقائي)</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="orderNumber" class="flex-1 p-2 border rounded-lg font-mono font-bold" value="KF-000-P">
-                            <button type="button" id="genNumBtn" class="bg-gray-200 px-3 py-1 rounded-lg text-xs hover:bg-gray-300">توليد</button>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl border">
-                        <label class="block text-xs font-bold mb-1 text-blue-600">التاريخ والوقت</label>
-                        <input type="datetime-local" id="orderDateTime" class="w-full p-2 border rounded-lg text-sm">
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <label class="block text-sm font-bold border-r-4 border-blue-600 pr-2">بيانات العميل (من سجلاتك القديمة)</label>
-                    <select id="dbCustomerSelect" class="w-full p-3 border rounded-xl bg-blue-50 text-sm font-bold"></select>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="custName" placeholder="اسم العميل" class="p-3 border rounded-xl" required>
-                        <input type="tel" id="custPhone" placeholder="رقم الجوال" class="p-3 border rounded-xl" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-                    <div>
-                        <label class="block text-sm font-bold mb-2">الباقة / المنتج</label>
-                        <select id="stockSelect" class="w-full p-3 border rounded-xl"></select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-2">طريقة الدفع</label>
-                        <select id="paymentMethod" class="w-full p-3 border rounded-xl">
-                            <option value="مدى">مدى</option>
-                            <option value="تمارا">تمارا</option>
-                            <option value="تابي">تابي</option>
-                            <option value="نقدي">نقدي</option>
-                        </select>
-                    </div>
-                </div>
-            </form>
-
-            <div class="p-6 border-t bg-gray-50 flex justify-end gap-3 rounded-b-3xl">
-                <button id="cancelModalBtn" class="px-6 py-2 font-bold text-gray-400">إلغاء</button>
-                <button type="submit" form="orderForm" class="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold shadow-lg">حفظ الطلب</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-[100] p-4 text-right">
-        <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            <div id="printArea" class="p-8 bg-white"></div>
-            <div class="p-4 bg-gray-50 flex gap-2 border-t">
-                <button id="downloadPdfBtn" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold">حفظ PDF</button>
-                <button id="directPrintBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold">طباعة</button>
-                <button id="closePreviewBtn" class="bg-gray-200 px-4 rounded-xl">إغلاق</button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module" src="../../js/orders-app.js"></script>
     <style>
-        @media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; left: 0; top: 0; width: 100%; } }
+        /* نفس تنسيقاتك القديمة بالضبط */
+        * { transition: all 0.2s ease; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-block; }
+        .status-new { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; }
+        .status-completed { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+        .order-card { transition: all 0.3s ease; background: white; }
+        .order-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .form-section { background: #f9fafb; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+        .payment-btn.active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-color: #3b82f6; }
     </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 font-sans">
+
+<div id="toast" class="fixed bottom-6 left-6 z-50 hidden px-6 py-3 rounded-xl text-white font-bold"></div>
+
+<div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-blue-600 to-blue-700 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-shopping-cart text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">إدارة الطلبات</h1>
+                <p class="text-gray-500 text-sm">نظام منصة تيرا المتكامل</p>
+            </div>
+        </div>
+        <button id="newOrderBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+            <i class="fas fa-plus-circle"></i> طلب جديد
+        </button>
+    </div>
+
+    <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        </div>
+</div>
+
+<div id="previewModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
+        <div id="printArea" class="bg-white">
+            </div>
+        <div class="flex justify-end gap-3 mt-6">
+            <button id="closePreviewBtn" class="px-4 py-2 border rounded-lg">إغلاق</button>
+            <button id="downloadPdfBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg">حفظ PDF</button>
+            <button id="directPrintBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg">طباعة مباشرة</button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="../../js/orders-app.js"></script>
 </body>
 </html>
