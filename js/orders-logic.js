@@ -1,55 +1,39 @@
 import { db } from './firebase.js';
 import { 
-    collection, addDoc, getDocs, doc, getDoc 
+    collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, query, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// جلب كافة البيانات وربطها (العملاء + المنتجات + الطلبات)
-export const fetchFullOrdersHistory = async () => {
-    try {
-        const [ordersSnap, customersSnap, productsSnap] = await Promise.all([
-            getDocs(collection(db, "orders")),
-            getDocs(collection(db, "customers")),
-            getDocs(collection(db, "products"))
-        ]);
+// 1. توليد رقم الطلب والباركود
+export const generateId = (prefix) => `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+export const generateOrderNumber = () => `KF-000-PO-${Date.now().toString().slice(-6)}`;
 
-        const customersMap = Object.fromEntries(customersSnap.docs.map(d => [d.id, d.data()]));
-        const productsMap = Object.fromEntries(productsSnap.docs.map(d => [d.id, d.data()]));
+// 2. جلب البيانات مع الربط (الجلب الكامل)
+export const fetchHistory = async () => {
+    const [oSnap, cSnap, pSnap] = await Promise.all([
+        getDocs(collection(db, "orders")),
+        getDocs(collection(db, "customers")),
+        getDocs(collection(db, "products"))
+    ]);
 
-        return ordersSnap.docs.map(doc => {
-            const data = doc.data();
-            // ربط اسم العميل من مجموعة customers باستخدام customerId
-            const customer = customersMap[data.customerId] || {};
-            
-            // جلب أسماء المنتجات من مجموعة products إذا كانت موجودة في مصفوفة items
-            const productNames = data.items ? data.items.map(item => {
-                const prod = productsMap[item.productId] || {};
-                return prod.name || item.name || "منتج غير معروف";
-            }).join('، ') : "لا توجد منتجات";
+    const customers = Object.fromEntries(cSnap.docs.map(d => [d.id, {id: d.id, ...d.data()}]));
+    const products = Object.fromEntries(pSnap.docs.map(d => [d.id, {id: d.id, ...d.data()}]));
 
-            return {
-                id: doc.id,
-                orderNo: data.orderNumber || data.orderNo || "N/A",
-                customerName: customer.name || data.customerName || "عميل غير معروف",
-                products: productNames,
-                total: data.total || 0,
-                status: data.status || "مكتمل",
-                date: data.orderDate || (data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-SA') : "---")
-            };
-        });
-    } catch (e) {
-        console.error("خطأ في ربط البيانات:", e);
-        return [];
-    }
+    return oSnap.docs.map(doc => {
+        const data = doc.data();
+        const customer = customers[data.customerId] || data.customerData || {};
+        return {
+            id: doc.id,
+            ...data,
+            customerName: customer.name || data.customerName || "عميل سابق",
+            displayDate: data.orderDate || new Date(data.createdAt).toLocaleDateString('ar-SA')
+        };
+    });
 };
 
-export const generateOrderMeta = () => {
-    const sequence = Math.floor(1000 + Math.random() * 9000);
-    return {
-        orderNumber: `KF-${new Date().getTime().toString().slice(-6)}`,
-        date: new Date().toISOString().split('T')[0]
-    };
-};
-
-export const saveToDB = async (col, data) => {
+// 3. حفظ البيانات
+export const saveDoc = async (col, data) => {
     return await addDoc(collection(db, col), { ...data, createdAt: new Date().toISOString() });
 };
+
+// 4. حذف وتعديل
+export const deleteOrder = async (id) => await deleteDoc(doc(db, "orders", id));
