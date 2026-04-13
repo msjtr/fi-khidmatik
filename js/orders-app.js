@@ -1,96 +1,91 @@
 import * as logic from './orders-logic.js';
-import { db } from './firebase.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let quill;
-let currentItems = [];
+let cartItems = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (document.getElementById('editor')) {
-        quill = new Quill('#editor', { theme: 'snow' });
-    }
-    await initPage();
+    quill = new Quill('#editor', { theme: 'snow' });
+    initApp();
 });
 
-async function initPage() {
-    // إعداد البيانات التلقائية
-    document.getElementById('orderNo').value = logic.generateOrderNumber();
+async function initApp() {
+    document.getElementById('orderNo').value = logic.generateOrderID();
     document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('orderTime').value = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-
-    // جلب العملاء من قاعدة البيانات
-    const cSnap = await getDocs(collection(db, "customers"));
-    const cSelect = document.getElementById('customerSelect');
-    cSelect.innerHTML = '<option value="">-- عميل جديد / اختر عميل --</option>';
-    cSnap.forEach(doc => {
-        const c = doc.data();
-        cSelect.innerHTML += `<option value='${JSON.stringify({id: doc.id, ...c})}'>${c.name}</option>`;
-    });
-
-    renderHistory();
+    
+    // جلب العملاء للقائمة
+    const history = await logic.fetchFullData();
+    renderOrdersTable(history);
 }
 
-// تعبئة بيانات العميل عند الاختيار
-window.fillCustomerData = (json) => {
-    if(!json) return;
-    const c = JSON.parse(json);
-    document.getElementById('cName').value = c.name || '';
-    document.getElementById('cPhone').value = c.phone || '';
-    document.getElementById('cEmail').value = c.email || '';
-    document.getElementById('cCity').value = c.city || '';
-};
-
-// إضافة منتج للطلب الحالي
-window.addItem = () => {
+// إضافة منتج للسلة البرمجية
+window.addToCart = () => {
     const item = {
         name: document.getElementById('pName').value,
-        qty: parseInt(document.getElementById('pQty').value) || 1,
-        price: parseFloat(document.getElementById('pPrice').value) || 0,
+        price: parseFloat(document.getElementById('pPrice').value || 0),
+        qty: parseInt(document.getElementById('pQty').value || 1),
+        barcode: logic.generateBarcode(),
         desc: quill.root.innerHTML
     };
-    currentItems.push(item);
-    updateSummary();
+    
+    if(!item.name || item.price <= 0) return alert("أدخل بيانات المنتج");
+    
+    cartItems.push(item);
+    renderCart();
+    calculateTotals();
 };
 
-function updateSummary() {
-    const subtotal = currentItems.reduce((s, i) => s + (i.price * i.qty), 0);
+function calculateTotals() {
+    const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
     const tax = subtotal * 0.15;
+    const total = subtotal + tax;
+
     document.getElementById('subtotalLabel').innerText = subtotal.toFixed(2);
     document.getElementById('taxLabel').innerText = tax.toFixed(2);
-    document.getElementById('totalLabel').innerText = (subtotal + tax).toFixed(2);
+    document.getElementById('totalLabel').innerText = total.toFixed(2);
 }
 
-// حفظ الطلب والطباعة
-window.saveOrder = async () => {
+window.submitOrder = async () => {
+    const isNewCustomer = document.getElementById('newCustomerCheck').checked;
+    const isNewProduct = document.getElementById('newProductCheck').checked;
+
     const orderData = {
         orderNumber: document.getElementById('orderNo').value,
         customerData: {
             name: document.getElementById('cName').value,
             phone: document.getElementById('cPhone').value,
-            address: document.getElementById('cCity').value
+            address: `${document.getElementById('cCity').value}, ${document.getElementById('cStreet').value}`
         },
-        items: currentItems,
-        total: document.getElementById('totalLabel').innerText,
+        items: cartItems,
         paymentMethod: document.getElementById('payMethod').value,
-        status: "جديد"
+        total: document.getElementById('totalLabel').innerText,
+        status: "تم التنفيذ"
     };
 
-    const docRef = await logic.saveToFirebase("orders", orderData);
-    alert("تم الحفظ! جاري الانتقال للطباعة...");
+    // حفظ العميل إذا كان جديداً
+    if(isNewCustomer) await logic.saveData("customers", orderData.customerData);
+    
+    // حفظ المنتجات في المخزون إذا تم الاختيار
+    if(isNewProduct) {
+        for(let item of cartItems) {
+            await logic.saveData("products", { ...item, stock: item.qty });
+        }
+    }
+
+    const docRef = await logic.saveData("orders", orderData);
+    alert("تم الحفظ! جاري فتح صفحة الطباعة...");
     window.location.href = `../../fi-khidmatik/js/order.js?id=${docRef.id}`;
 };
 
-async function renderHistory() {
-    const history = await logic.fetchHistory();
+function renderOrdersTable(data) {
     const tbody = document.getElementById('ordersTableBody');
-    tbody.innerHTML = history.map(o => `
-        <tr class="border-b text-sm">
-            <td class="p-4 font-bold">${o.orderNumber}</td>
-            <td class="p-4">${o.customerName}</td>
-            <td class="p-4">${o.total} ر.س</td>
-            <td class="p-4 flex gap-2">
-                <button onclick="window.location.href='../../fi-khidmatik/js/order.js?id=${o.id}'" class="text-blue-600"><i class="fas fa-print"></i></button>
-                <button onclick="deleteOrder('${o.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
+    tbody.innerHTML = data.map(o => `
+        <tr class="border-b hover:bg-gray-50 transition">
+            <td class="p-4 font-bold text-blue-600">${o.orderNumber}</td>
+            <td class="p-4 font-medium">${o.customerName}</td>
+            <td class="p-4 text-gray-500">${o.date}</td>
+            <td class="p-4 font-black">${o.total} ر.س</td>
+            <td class="p-4">
+                <button onclick="window.location.href='../../fi-khidmatik/js/order.js?id=${o.id}'" class="text-gray-400 hover:text-blue-600"><i class="fas fa-print"></i></button>
             </td>
         </tr>
     `).join('');
