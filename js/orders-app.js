@@ -1,88 +1,125 @@
-// js/orders-app.js
 import { db } from './orders-firebase-db.js';
-import { toast, getOrders } from './orders-logic.js'; 
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getOrders, getStock, deleteOrder, toast } from './orders-logic.js';
+import { collection, addDoc, updateDoc, doc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const container = document.getElementById('ordersContainer');
-const orderModal = document.getElementById('orderModal');
 const orderForm = document.getElementById('orderForm');
+const orderModal = document.getElementById('orderModal');
 
-async function renderOrders() {
-    container.innerHTML = `<div class="col-span-full text-center py-20 opacity-50">جاري تحميل بيانات العملاء...</div>`;
+// 1. توليد رقم طلب تلقائي
+document.getElementById('genNumBtn').onclick = () => {
+    const random = Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('orderNumber').value = `KF-${random}-P`;
+};
 
-    const orders = await getOrders();
-    container.innerHTML = '';
-
-    if (!orders || orders.length === 0) {
-        container.innerHTML = '<p class="col-span-full text-center py-10 text-gray-500 text-lg">لا توجد طلبات مسجلة في مجموعة (customers)</p>';
-        return;
-    }
-
-    orders.forEach(data => {
-        const date = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ar-SA') : 'الآن';
-        
-        // مرونة في قراءة الحقول (الاسم، الجوال، الباقة)
-        const name = data.customerName || data.name || "عميل منصة تيرا";
-        const phone = data.phone || data.mobile || "0000";
-        const pkg = data.packageName || data.package || "سوا";
-        const price = data.price || pkg;
-
-        const card = `
-            <div class="order-card shadow-sm border border-gray-100 p-5 rounded-2xl bg-white transition-hover hover:shadow-md">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="text-xs text-gray-400">${date}</span>
-                    <span class="status-badge px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">جديد</span>
-                </div>
-                <h4 class="font-bold text-lg mb-2">${name}</h4>
-                <p class="text-sm text-gray-500 mb-4"><i class="fas fa-box ml-1 text-blue-400"></i> باقة سوا: ${pkg} ريال</p>
-                <div class="border-t pt-4 flex justify-between items-center">
-                    <span class="font-bold text-blue-600">${price} ريال</span>
-                    <a href="tel:${phone}" class="bg-blue-600 p-2 rounded-xl text-white hover:bg-blue-700 transition-all">
-                        <i class="fas fa-phone-alt"></i> اتصل
-                    </a>
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', card);
-    });
-
-    if (document.getElementById('todayOrdersCount')) {
-        document.getElementById('todayOrdersCount').textContent = orders.length;
-    }
-}
-
-// حفظ طلب جديد في مجموعة customers
-orderForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.innerHTML = 'جاري الحفظ...';
-
-    const newOrder = {
-        customerName: document.getElementById('custName').value.trim(),
-        phone: document.getElementById('custPhone').value.trim(),
-        packageName: document.getElementById('packageSelect').value,
-        price: document.getElementById('packageSelect').value,
-        createdAt: serverTimestamp(),
-        status: "جديد"
-    };
-
-    try {
-        // الحفظ في customers ليظهر مع البقية
-        await addDoc(collection(db, "customers"), newOrder);
-        toast("تم إضافة الطلب بنجاح");
-        orderModal.classList.add('hidden');
-        renderOrders(); 
-    } catch (err) {
-        toast("خطأ في الحفظ", "error");
-    } finally {
-        btn.disabled = false;
-        btn.textContent = "حفظ الطلب";
+// 2. إدارة جلب العميل من الداتا
+document.getElementById('customerSource').onchange = async (e) => {
+    const isDb = e.target.value === 'db';
+    document.getElementById('dbCustomerSection').classList.toggle('hidden', !isDb);
+    if(isDb) {
+        const snap = await getDocs(collection(db, "customers"));
+        const customers = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        document.getElementById('dbCustomerSelect').innerHTML = customers.map(c => 
+            `<option value="${c.id}" data-name="${c.customerName}" data-phone="${c.phone}">${c.customerName}</option>`
+        ).join('');
     }
 };
 
-// إدارة المودال
-document.getElementById('newOrderBtn').onclick = () => { orderForm.reset(); orderModal.classList.remove('hidden'); };
-document.getElementById('closeModalBtn').onclick = () => orderModal.classList.add('hidden');
-document.getElementById('cancelModalBtn').onclick = () => orderModal.classList.add('hidden');
+// عند اختيار عميل من القائمة، تعبئة الحقول تلقائياً
+document.getElementById('dbCustomerSelect').onchange = (e) => {
+    const opt = e.target.options[e.target.selectedIndex];
+    document.getElementById('custName').value = opt.dataset.name;
+    document.getElementById('custPhone').value = opt.dataset.phone;
+};
 
-window.addEventListener('DOMContentLoaded', renderOrders);
+// 3. العرض المطور (مع زر التعديل)
+async function render() {
+    container.innerHTML = '<p class="col-span-full text-center py-10">جاري تحميل منصة تيرا...</p>';
+    const orders = await getOrders();
+    container.innerHTML = '';
+
+    orders.forEach(order => {
+        const div = document.createElement('div');
+        div.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100";
+        div.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+                <span class="text-xs font-bold text-blue-600">${order.orderNumber || 'بدون رقم'}</span>
+                <div class="flex gap-2">
+                    <button class="edit-btn text-green-500"><i class="fas fa-edit"></i></button>
+                    <button class="del-btn text-red-400"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            <h4 class="font-bold">${order.customerName}</h4>
+            <p class="text-xs text-gray-400 mb-4">${order.orderDateTime?.replace('T', ' ') || ''}</p>
+            <div class="flex justify-between border-t pt-4">
+                <span class="font-bold text-blue-600">${order.price} ريال</span>
+                <button class="preview-btn bg-gray-100 px-3 py-1 rounded-lg text-xs font-bold">معاينة</button>
+            </div>
+        `;
+        div.querySelector('.del-btn').onclick = async () => { if(await deleteOrder(order.id)) render(); };
+        div.querySelector('.preview-btn').onclick = () => openPreview(order);
+        div.querySelector('.edit-btn').onclick = () => openEdit(order);
+        container.appendChild(div);
+    });
+
+    const products = await getStock();
+    document.getElementById('stockSelect').innerHTML = products.map(p => `<option value="${p.price}">${p.name}</option>`).join('');
+}
+
+// 4. فتح التعديل
+function openEdit(order) {
+    document.getElementById('modalTitle').textContent = "تعديل طلب عاجل";
+    document.getElementById('editOrderId').value = order.id;
+    document.getElementById('orderNumber').value = order.orderNumber || "KF-000-P";
+    document.getElementById('orderDateTime').value = order.orderDateTime || "";
+    document.getElementById('custName').value = order.customerName;
+    document.getElementById('custPhone').value = order.phone;
+    document.getElementById('paymentMethod').value = order.paymentMethod;
+    orderModal.classList.remove('hidden');
+}
+
+// 5. حفظ الطلب (إضافة أو تعديل)
+orderForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editOrderId').value;
+    const data = {
+        orderNumber: document.getElementById('orderNumber').value,
+        orderDateTime: document.getElementById('orderDateTime').value,
+        customerName: document.getElementById('custName').value,
+        phone: document.getElementById('custPhone').value,
+        paymentMethod: document.getElementById('paymentMethod').value,
+        packageName: document.getElementById('stockSelect').options[document.getElementById('stockSelect').selectedIndex].text,
+        price: document.getElementById('stockSelect').value,
+        updatedAt: serverTimestamp()
+    };
+
+    try {
+        if(id) {
+            await updateDoc(doc(db, "customers", id), data);
+            toast("تم تحديث البيانات");
+        } else {
+            data.createdAt = serverTimestamp();
+            data.status = "جديد";
+            await addDoc(collection(db, "customers"), data);
+            toast("تم إنشاء الطلب بنجاح");
+        }
+        orderModal.classList.add('hidden');
+        render();
+    } catch (e) { toast("خطأ في العملية", "error"); }
+};
+
+// وظائف المودال الباقية (الإغلاق، المعاينة) كما في الملف السابق
+window.addEventListener('DOMContentLoaded', () => {
+    render();
+    // ضبط الوقت الحالي تلقائياً
+    const now = new Date().toISOString().slice(0, 16);
+    document.getElementById('orderDateTime').value = now;
+});
+
+document.getElementById('newOrderBtn').onclick = () => {
+    orderForm.reset();
+    document.getElementById('editOrderId').value = "";
+    document.getElementById('modalTitle').textContent = "إنشاء طلب جديد";
+    orderModal.classList.remove('hidden');
+};
+document.getElementById('closeModalBtn').onclick = () => orderModal.classList.add('hidden');
