@@ -1,17 +1,113 @@
-/* css/orders-style.css */
-.status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-.status-new { background: #dbeafe; color: #1e40af; }
-.status-completed { background: #d1fae5; color: #065f46; }
+/**
+ * منصة في خدمتك - تصميم قسم الطلبات
+ * Modern Clean UI
+ */
 
-.form-section { background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 16px; margin-bottom: 20px; }
-.form-section-title { font-weight: bold; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-right: 4px solid #3b82f6; padding-right: 10px; }
+:root {
+    --primary-blue: #2563eb;
+    --success-green: #10b981;
+    --danger-red: #ef4444;
+    --warning-orange: #f59e0b;
+    --bg-gray: #f8fafc;
+    --border-color: #e2e8f0;
+}
 
-#toast { position: fixed; bottom: 20px; left: 20px; padding: 15px 30px; border-radius: 12px; z-index: 9999; display: none; color: white; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-#toast.success { background: #10b981; }
-#toast.error { background: #ef4444; }
+/* بطاقة الطلب (Order Card) */
+.order-card {
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    background: white;
+}
 
-.loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    border-color: var(--primary-blue);
+}
 
-.order-card { background: white; border-radius: 16px; border: 1px solid #eee; padding: 20px; transition: 0.3s ease; }
-.order-card:hover { transform: translateY(-5px); border-color: #3b82f6; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+/* حالات الطلب (Status Badges) */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-new {
+    background-color: #ebf5ff;
+    color: var(--primary-blue);
+}
+
+.status-processing {
+    background-color: #fffbeb;
+    color: var(--warning-orange);
+}
+
+.status-completed {
+    background-color: #ecfdf5;
+    color: var(--success-green);
+}
+
+.status-cancelled {
+    background-color: #fef2f2;
+    color: var(--danger-red);
+}
+
+/* المودال (Modal) */
+.modal-overlay {
+    backdrop-filter: blur(4px);
+    background-color: rgba(15, 23, 42, 0.5);
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* أزرار وسيلة الدفع */
+.payment-btn {
+    border: 2px solid var(--border-color);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.payment-btn.active {
+    border-color: var(--primary-blue);
+    background-color: #eff6ff;
+    color: var(--primary-blue);
+}
+
+/* تنسيق جدول المنتجات المصغر داخل المودال */
+.product-row {
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* شريط الحسابات المالي */
+.accounting-section {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.total-row {
+    border-top: 2px dashed var(--border-color);
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+/* تحسينات للشاشات الصغيرة */
+@media (max-width: 768px) {
+    .orders-grid {
+        grid-template-columns: 1fr;
+    }
+}
