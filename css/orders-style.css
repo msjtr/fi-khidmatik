@@ -1,6 +1,6 @@
 /**
- * منصة في خدمتك - تصميم قسم الطلبات
- * Modern Clean UI
+ * fi-khidmatik/css/orders-style.css
+ * تصميم منصة في خدمتك - إدارة العمليات
  */
 
 :root {
@@ -8,106 +8,113 @@
     --success-green: #10b981;
     --danger-red: #ef4444;
     --warning-orange: #f59e0b;
+    --slate-800: #1e293b;
     --bg-gray: #f8fafc;
     --border-color: #e2e8f0;
 }
 
 /* بطاقة الطلب (Order Card) */
 .order-card {
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid var(--border-color);
     background: white;
+    border-radius: 1.5rem;
+    overflow: hidden;
 }
 
 .order-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
     border-color: var(--primary-blue);
 }
 
 /* حالات الطلب (Status Badges) */
 .status-badge {
-    padding: 4px 12px;
+    padding: 6px 14px;
     border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.025em;
 }
 
-.status-new {
-    background-color: #ebf5ff;
-    color: var(--primary-blue);
-}
+.status-جديد { background-color: #ebf5ff; color: var(--primary-blue); }
+.status-تحت-التنفيذ { background-color: #fffbeb; color: var(--warning-orange); }
+.status-تم-التنفيذ { background-color: #ecfdf5; color: var(--success-green); }
+.status-ملغي { background-color: #fef2f2; color: var(--danger-red); }
 
-.status-processing {
-    background-color: #fffbeb;
-    color: var(--warning-orange);
-}
-
-.status-completed {
-    background-color: #ecfdf5;
-    color: var(--success-green);
-}
-
-.status-cancelled {
-    background-color: #fef2f2;
-    color: var(--danger-red);
-}
-
-/* المودال (Modal) */
-.modal-overlay {
-    backdrop-filter: blur(4px);
-    background-color: rgba(15, 23, 42, 0.5);
-}
-
+/* أنيميشن المودال والتحميل */
 .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: scale(0.98) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* أزرار وسيلة الدفع */
+/* أزرار وسيلة الدفع (Payment UI) */
 .payment-btn {
-    border: 2px solid var(--border-color);
-    transition: all 0.2s;
+    border: 2px solid #f1f5f9;
+    transition: all 0.3s ease;
     cursor: pointer;
+    color: #64748b;
 }
 
 .payment-btn.active {
     border-color: var(--primary-blue);
     background-color: #eff6ff;
     color: var(--primary-blue);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 }
 
-/* تنسيق جدول المنتجات المصغر داخل المودال */
-.product-row {
-    animation: slideIn 0.2s ease-out;
+/* مؤشر التحميل (Loading Spinner) */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
 }
 
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* شريط الحسابات المالي */
-.accounting-section {
-    background: #f1f5f9;
-    border-radius: 12px;
-    padding: 15px;
+/* تحسينات لجدول المنتجات داخل المودال */
+#productsContainer::-webkit-scrollbar {
+    width: 4px;
 }
 
-.total-row {
-    border-top: 2px dashed var(--border-color);
-    margin-top: 10px;
-    padding-top: 10px;
+#productsContainer::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
 }
 
-/* تحسينات للشاشات الصغيرة */
-@media (max-width: 768px) {
-    .orders-grid {
-        grid-template-columns: 1fr;
-    }
+/* Toast Notifications */
+#toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 12px 24px;
+    border-radius: 1rem;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+.toast-success { background: var(--success-green); }
+.toast-error { background: var(--danger-red); }
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .max-w-5xl { margin: 0; border-radius: 1rem; }
+    .text-6xl { font-size: 2.5rem; }
 }
