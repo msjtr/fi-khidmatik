@@ -1,4 +1,8 @@
-// داخل ملف orders-logic.js
+// orders-logic.js
+import { db } from './firebase-config.js'; // تأكد من استيراد db
+import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// دالة جلب الطلبات
 export async function getOrders() {
     try {
         const snap = await getDocs(collection(db, "orders"));
@@ -8,20 +12,48 @@ export async function getOrders() {
             
             return {
                 id: doc.id,
-                // استخراج الحقول المطلوبة بدقة
-                approvalCode: data.approvalCode || "N/A", // استدعاء رمز الموافقة
+                approvalCode: data.approvalCode || "N/A",
                 orderNumber: data.orderNumber || "KF-000",
                 customerName: data.customerName || "عميل منصة تيرا",
                 packageName: firstItem.name || "باقة غير محددة",
-                price: data.total || 0, // السعر النهائي بعد الخصم
+                price: data.total || 0,
                 paymentMethod: data.paymentMethodName || "تمارا",
                 status: data.status || "مكتمل",
-                ...data // تمرير بقية البيانات (مثل createdAt و discount)
+                ...data 
             };
         });
     } catch (e) {
-        console.error("Error:", e);
+        console.error("Error fetching orders:", e);
         return [];
     }
 }
-// لا تنسى تصدير دالة toast بالأسفل كما فعلنا سابقاً
+
+// --- الدالة المفقودة التي سببت الخطأ ---
+export async function deleteOrder(orderId) {
+    try {
+        const orderRef = doc(db, "orders", orderId);
+        await deleteDoc(orderRef);
+        console.log(`Order ${orderId} deleted successfully`);
+        return true;
+    } catch (e) {
+        console.error("Error deleting order:", e);
+        return false;
+    }
+}
+
+// دالة التنبيه (Toast)
+export function showToast(message, type = "success") {
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 100);
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
