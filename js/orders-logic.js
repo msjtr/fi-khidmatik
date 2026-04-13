@@ -1,48 +1,52 @@
 // orders-logic.js
-import { db } from './firebase.js'; 
-export { db }; // حل مشكلة استيراد db في ملف الـ HTML
+import { db } from './firebase.js';
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+export { db };
 
-// 1. جلب كافة الطلبات (تم تغيير الاسم لـ loadOrders ليطابق طلب صفحة الـ HTML)
-export async function loadOrders() { 
+export async function loadOrders() {
     try {
-        const ordersRef = collection(db, "orders");
-        const snap = await getDocs(ordersRef);
-        return snap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (e) {
-        console.error("خطأ في جلب الطلبات:", e);
-        return [];
-    }
-}
+        // 1. جلب المجموعات الثلاث في وقت واحد (للسرعة)
+        const [ordersSnap, customersSnap, productsSnap] = await Promise.all([
+            getDocs(collection(db, "orders")),
+            getDocs(collection(db, "customers")),
+            getDocs(collection(db, "products"))
+        ]);
 
-// 2. جلب كافة العملاء
-export async function getCustomers() {
-    try {
-        const snap = await getDocs(collection(db, "customers"));
-        return snap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (e) {
-        console.error("خطأ في جلب العملاء:", e);
-        return [];
-    }
-}
+        // 2. تحويل العملاء والمنتجات إلى خرائط (Maps) لسهولة البحث بداخلهم
+        const customersMap = {};
+        customersSnap.forEach(d => customersMap[d.id] = d.data());
 
-// 3. جلب كافة المنتجات
-export async function getProducts() {
-    try {
-        const snap = await getDocs(collection(db, "products"));
-        return snap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        const productsMap = {};
+        productsSnap.forEach(d => productsMap[d.id] = d.data());
+
+        // 3. معالجة الطلبات وربطها بالبيانات الأخرى
+        return ordersSnap.docs.map(doc => {
+            const order = { id: doc.id, ...doc.data() };
+            const customer = customersMap[order.customerId] || {};
+
+            // دمج تفاصيل إضافية من مجموعة المنتجات الأصلية لكل عنصر في الطلب
+            const enrichedItems = (order.items || []).map(item => {
+                const originalProduct = productsMap[item.productId] || {};
+                return {
+                    ...item,
+                    originalCategory: originalProduct.category || 'عام', // مثال لبيانات من مجموعة المنتجات
+                    stockStatus: originalProduct.stock || 'متوفر'
+                };
+            });
+
+            return {
+                ...order,
+                items: enrichedItems,
+                customerFullName: customer.name || 'عميل غير مسجل',
+                customerPhone: customer.phone || '---',
+                customerAddress: `${customer.city || ''} - ${customer.district || ''}`,
+                customerEmail: customer.email || ''
+            };
+        });
+
     } catch (e) {
-        console.error("خطأ في جلب المنتجات:", e);
+        console.error("خطأ في الربط الشامل للبيانات:", e);
         return [];
     }
 }
