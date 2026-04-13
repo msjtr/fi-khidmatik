@@ -1,14 +1,19 @@
 // orders-logic.js
 import { db } from './firebase.js'; 
+// أضف السطر التالي لحل مشكلة استيراد db في ملف الـ HTML إذا كنت تستدعيه من هنا
+export { db }; 
+
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // 1. جلب كافة الطلبات
 export async function getOrders() {
     try {
-        const snap = await getDocs(collection(db, "orders"));
+        // نصيحة: إذا أردت ترتيب الطلبات من الأحدث للأقدم أضف الترتيب هنا
+        const ordersRef = collection(db, "orders");
+        const snap = await getDocs(ordersRef);
         return snap.docs.map(doc => ({
             id: doc.id,
-            ...doc.data() // سيجلب كل الحقول الموجودة في الفايربيز مهما كان اسمها
+            ...doc.data()
         }));
     } catch (e) {
         console.error("خطأ في جلب الطلبات:", e);
