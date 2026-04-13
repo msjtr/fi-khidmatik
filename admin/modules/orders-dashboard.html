@@ -2,108 +2,73 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام إدارة تيرة المتكامل</title>
+    <title>لوحة تحكم تيرة | الطلبات</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .input-group { @apply bg-white p-4 rounded-2xl border border-gray-100 shadow-sm focus-within:ring-2 ring-blue-100 transition-all; }
-        input, select { @apply w-full bg-transparent outline-none font-bold text-gray-700; }
-    </style>
 </head>
-<body class="bg-[#f0f4f8] p-4 md:p-8 font-sans text-right">
+<body class="bg-gray-50 p-6 font-sans text-right">
 
-    <div class="max-w-7xl mx-auto space-y-8">
-        <div class="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm">
-            <div>
-                <h1 class="text-2xl font-black text-gray-800">إنشاء طلب جديد</h1>
-                <p class="text-sm text-gray-400">تحكم كامل في المبيعات والمخزون</p>
-            </div>
-            <button onclick="location.reload()" class="p-4 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition">
-                <i class="fas fa-plus mr-2"></i> طلب جديد
-            </button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="input-group"><label class="block text-[10px] text-gray-400 mb-1">رقم الطلب</label><input id="orderNo"></div>
-                    <div class="input-group"><label class="block text-[10px] text-gray-400 mb-1">التاريخ</label><input type="date" id="orderDate"></div>
-                    <div class="input-group"><label class="block text-[10px] text-gray-400 mb-1">الوقت</label><input type="time" id="orderTime"></div>
-                </div>
-
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                    <h3 class="font-bold border-r-4 border-blue-600 pr-3">بيانات العميل</h3>
-                    <select id="customerSelect" class="w-full p-4 bg-blue-50 rounded-2xl font-bold mb-4"></select>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input id="cName" placeholder="اسم العميل" class="p-4 border rounded-2xl">
-                        <input id="cPhone" placeholder="رقم الهاتف" class="p-4 border rounded-2xl">
-                        <input id="cEmail" placeholder="البريد الإلكتروني" class="p-4 border rounded-2xl col-span-2">
-                    </div>
-                    <div class="grid grid-cols-4 gap-2">
-                        <input placeholder="الدولة" class="p-3 border rounded-xl text-xs">
-                        <input placeholder="المنطقة" class="p-3 border rounded-xl text-xs">
-                        <input placeholder="الحي" class="p-3 border rounded-xl text-xs">
-                        <input placeholder="الشارع" class="p-3 border rounded-xl text-xs">
-                    </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm space-y-6">
-                    <h3 class="font-bold border-r-4 border-green-600 pr-3">تفاصيل المنتجات والخدمات</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input id="pName" placeholder="اسم المنتج" class="p-4 bg-gray-50 rounded-2xl col-span-2 font-bold">
-                        <input id="pPrice" type="number" placeholder="سعر الوحدة" class="p-4 bg-gray-50 rounded-2xl">
-                        <input id="pQty" type="number" value="1" class="p-4 bg-gray-50 rounded-2xl">
-                    </div>
-                    <div id="editor" class="h-40"></div>
+    <div class="max-w-7xl mx-auto space-y-6">
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-2 space-y-6">
                     <div class="flex gap-4">
-                        <button onclick="addItemToOrder()" class="flex-1 bg-green-600 text-white py-4 rounded-2xl font-bold">إضافة للطلب</button>
-                        <button class="flex-1 bg-gray-800 text-white py-4 rounded-2xl font-bold">حفظ في المخزون وتوليد باركود</button>
+                        <input id="orderNo" readonly class="flex-1 p-3 bg-blue-50 rounded-xl font-bold text-blue-700">
+                        <input type="date" id="orderDate" class="p-3 bg-gray-50 rounded-xl">
+                        <input type="time" id="orderTime" class="p-3 bg-gray-50 rounded-xl">
+                    </div>
+
+                    <div class="p-6 border rounded-2xl space-y-4">
+                        <h3 class="font-bold text-gray-700 underline">بيانات العميل</h3>
+                        <select id="customerSelect" onchange="fillCustomerData(this.value)" class="w-full p-3 bg-gray-50 rounded-xl border-none"></select>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input id="cName" placeholder="اسم العميل" class="p-3 border rounded-xl">
+                            <input id="cPhone" placeholder="رقم الهاتف" class="p-3 border rounded-xl">
+                            <input id="cEmail" placeholder="البريد الإلكتروني" class="p-3 border rounded-xl">
+                            <input id="cCity" placeholder="الحي / الشارع" class="p-3 border rounded-xl">
+                        </div>
+                    </div>
+
+                    <div class="p-6 border rounded-2xl space-y-4 bg-green-50/30">
+                        <h3 class="font-bold text-green-700">إضافة منتج / خدمة</h3>
+                        <input id="pName" placeholder="اسم المنتج" class="w-full p-3 border rounded-xl">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input id="pPrice" type="number" placeholder="سعر الوحدة" class="p-3 border rounded-xl">
+                            <input id="pQty" type="number" placeholder="الكمية" class="p-3 border rounded-xl">
+                        </div>
+                        <div id="editor" class="h-32 bg-white"></div>
+                        <button onclick="addItem()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">إضافة المنتج للقائمة +</button>
                     </div>
                 </div>
-            </div>
 
-            <div class="space-y-6">
-                <div class="bg-[#1e293b] text-white p-8 rounded-[3rem] shadow-2xl sticky top-8">
-                    <h3 class="text-xl font-bold mb-8 border-b border-slate-700 pb-4">ملخص الفاتورة</h3>
-                    
-                    <div class="space-y-4">
-                        <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="subtotalLabel">0.00</span></div>
-                        <div class="flex justify-between text-red-400 font-bold">
-                            <span>الخصم:</span>
-                            <input id="discountInput" oninput="calculateInvoice()" class="w-20 bg-transparent text-left border-b border-slate-600" value="0">
-                        </div>
-                        <div class="flex justify-between text-slate-400"><span>الضريبة (15%):</span><span id="taxLabel">0.00</span></div>
-                        <div class="pt-6 border-t border-slate-700 flex justify-between items-center text-3xl font-black text-blue-400">
-                            <span>الإجمالي:</span>
-                            <span id="totalLabel">0.00</span>
-                        </div>
+                <div class="bg-[#1e293b] text-white p-8 rounded-[2.5rem] shadow-xl h-fit sticky top-6">
+                    <h2 class="text-xl font-bold mb-6 border-b border-slate-700 pb-2">ملخص الحساب</h2>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between"><span>المجموع:</span><span id="subtotalLabel">0.00</span></div>
+                        <div class="flex justify-between"><span>الضريبة:</span><span id="taxLabel">0.00</span></div>
+                        <div class="flex justify-between text-2xl font-black text-blue-400 border-t pt-4"><span>الإجمالي:</span><span id="totalLabel">0.00</span></div>
                     </div>
-
-                    <div class="mt-10 space-y-4">
-                        <label class="block text-xs text-slate-500">طريقة الدفع</label>
-                        <select id="payMethod" class="w-full p-4 bg-slate-800 rounded-2xl border-none">
-                            <option>تمارا</option><option>تابي</option><option>إمكان</option><option>نقدي</option>
+                    
+                    <div class="mt-8 space-y-4">
+                        <select id="payMethod" class="w-full p-3 bg-slate-800 rounded-xl border-none">
+                            <option>تمارا</option><option>تابي</option><option>نقدي</option>
                         </select>
-                        <button onclick="saveFullOrder()" class="w-full bg-blue-600 py-6 rounded-3xl font-black text-xl hover:bg-blue-700 transition transform active:scale-95 shadow-xl shadow-blue-900/20">
-                            حفظ واعتماد الفاتورة
-                        </button>
+                        <button onclick="saveOrder()" class="w-full bg-blue-600 py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition">اعتماد وحفظ</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-[2.5rem] shadow-sm p-8 overflow-hidden">
-            <h2 class="text-xl font-black mb-6 text-gray-700">سجل العمليات التاريخي</h2>
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm">
+            <h3 class="font-bold text-lg mb-4">سجل العمليات السابقة</h3>
             <div class="overflow-x-auto">
-                <table class="w-full text-right border-separate border-spacing-y-3">
-                    <thead>
-                        <tr class="text-gray-400 text-xs">
-                            <th class="p-4">رقم الطلب</th><th class="p-4">العميل</th><th class="p-4">التاريخ</th><th class="p-4">الإجمالي</th><th class="p-4">إجراءات</th>
-                        </tr>
+                <table class="w-full text-right">
+                    <thead class="bg-gray-50 text-xs text-gray-500 font-bold uppercase">
+                        <tr><th class="p-4">رقم الطلب</th><th class="p-4">العميل</th><th class="p-4">المبلغ</th><th class="p-4">إجراءات</th></tr>
                     </thead>
-                    <tbody id="ordersTableBody">
-                        </tbody>
+                    <tbody id="ordersTableBody"></tbody>
                 </table>
             </div>
         </div>
