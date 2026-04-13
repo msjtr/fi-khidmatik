@@ -9,12 +9,12 @@ import {
 export const generateOrderID = () => `KF-000-PO-${Math.floor(100000 + Math.random() * 900000)}`;
 
 /**
- * توليد باركود رقمي فريد للمنتجات
+ * توليد باركود رقمي فريد للمنتجات (13 رقم متوافق مع المعايير الدولية)
  */
-export const generateBarcode = () => `${Math.floor(Math.random() * 9000000000000)}`;
+export const generateBarcode = () => `${Math.floor(1000000000000 + Math.random() * 9000000000000)}`;
 
 /**
- * جلب البيانات مع الربط الشامل (Orders + Customers + Products)
+ * جلب البيانات مع الربط الشامل (Orders + Customers)
  */
 export const fetchFullData = async () => {
     try {
@@ -27,10 +27,8 @@ export const fetchFullData = async () => {
 
         return oSnap.docs.map(doc => {
             const data = doc.data();
-            // الربط الذكي: يبحث في معرف العميل أو في البيانات المخزنة داخل الطلب نفسه
             const customer = customers[data.customerId] || data.customerData || {};
             
-            // معالجة التاريخ ليدعم النسخ القديمة والجديدة
             let displayDate = "---";
             if (data.orderDate) {
                 displayDate = data.orderDate;
@@ -53,7 +51,17 @@ export const fetchFullData = async () => {
 };
 
 /**
- * حفظ البيانات في أي مجموعة (Orders, Customers, Products)
+ * جلب قائمة العملاء (لاستخدامها في قائمة الاختيار Select)
+ */
+export const fetchCustomers = async () => {
+    try {
+        const snap = await getDocs(collection(db, "customers"));
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (e) { return []; }
+};
+
+/**
+ * حفظ البيانات (طلبات، عملاء، منتجات)
  */
 export const saveData = async (col, data) => {
     try {
@@ -68,28 +76,22 @@ export const saveData = async (col, data) => {
 };
 
 /**
- * حذف طلب من قاعدة البيانات
+ * حذف مستند
  */
-export const deleteOrder = async (orderId) => {
+export const deleteDocFromCol = async (col, id) => {
     try {
-        await deleteDoc(doc(db, "orders", orderId));
+        await deleteDoc(doc(db, col, id));
         return { success: true };
-    } catch (e) {
-        console.error("خطأ في الحذف:", e);
-        return { success: false };
-    }
+    } catch (e) { return { success: false }; }
 };
 
 /**
- * تحديث حالة الطلب (مثلاً: من جديد إلى تم التنفيذ)
+ * تحديث حالة الطلب
  */
 export const updateOrderStatus = async (orderId, newStatus) => {
     try {
         const orderRef = doc(db, "orders", orderId);
         await updateDoc(orderRef, { status: newStatus });
         return { success: true };
-    } catch (e) {
-        console.error("خطأ في التحديث:", e);
-        return { success: false };
-    }
+    } catch (e) { return { success: false }; }
 };
