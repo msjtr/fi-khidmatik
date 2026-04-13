@@ -10,11 +10,11 @@ const firebaseConfig = {
     appId: "1:186209858482:web:186ca610780799ef562aab"
 };
 
-// تهيئة التطبيق بنظام الـ Modules
+// تهيئة التطبيق (منع التكرار)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-// تصدير db ليتم التعرف عليه في orders-logic.js
+// تصدير db ليتم التعرف عليه في جميع ملفات المشروع
 export const db = getFirestore(app);
 
-// لجعل db متاحاً في الكونسول للمتصفح (اختياري كما فعلت أنت)
+// متاح للكونسول للاختبار البرمجي فقط
 window.db = db;
