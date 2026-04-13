@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const id = urlParams.get('id');
 
     if (!id) {
-        console.error("رقم الطلب مفقود");
+        console.error("رقم الفاتورة مفقود في الرابط");
         return;
     }
 
@@ -16,59 +16,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         if (snap.exists()) {
             renderInvoice(snap.data());
-            // إظهار المحتوى بعد التحميل
+            // إظهار محتوى الفاتورة بعد اكتمال التحميل
             document.getElementById('print-app')?.classList.remove('hidden');
-            document.getElementById('loader')?.classList.add('hidden');
         } else {
-            document.body.innerHTML = "<div class='text-center py-20'><h1>عذراً، الفاتورة غير موجودة</h1></div>";
+            document.body.innerHTML = `
+                <div style="text-align:center; padding:50px; font-family:sans-serif;">
+                    <h2>الفاتورة غير موجودة</h2>
+                    <p>نرجو التأكد من رقم الطلب أو مراجعة الأرشيف</p>
+                </div>`;
         }
     } catch (error) {
-        console.error("Error fetching invoice:", error);
+        console.error("خطأ أثناء جلب الفاتورة:", error);
     }
 });
 
 function renderInvoice(data) {
-    // 1. تأمين بيانات العميل (اللقطة) لضمان عدم توقف الكود (Crash Prevention)
+    // 1. معالجة بيانات العميل (دعم Snapshot للجديد والحقول المباشرة للقديم)
     const cust = data.customerSnapshot || {};
     const addr = cust.address || {};
 
-    setSafeText('inv-cust-name', cust.name);
-    setSafeText('inv-cust-phone', cust.phone);
+    // استخدام Fallback (بدائل) لضمان عرض البيانات مهما كان نوع الطلب
+    setText('inv-cust-name', cust.name || data.customerName || data.clientName || "عميل عام");
+    setText('inv-cust-phone', cust.phone || data.customerPhone || "---");
     
-    // تركيب العنوان بشكل آمن
-    const fullAddr = [addr.city, addr.street].filter(Boolean).join(' - ') || '---';
-    setSafeText('inv-cust-address', fullAddr);
+    // بناء العنوان ذكياً
+    const fullAddr = addr.city ? `${addr.city} - ${addr.street || ''}` : (data.customerAddress || "---");
+    setText('inv-cust-address', fullAddr);
     
-    // 2. الوقت والتاريخ
-    setSafeText('inv-date', data.orderDate);
-    setSafeText('inv-time', data.orderTime);
-    setSafeText('inv-no', data.orderNumber);
+    // 2. الوقت والتاريخ ورقم الطلب
+    setText('inv-date', data.orderDate);
+    setText('inv-time', data.orderTime);
+    setText('inv-no', data.orderNumber || "---");
 
-    // 3. المنتجات (دعم الهيكل القديم والجديد)
+    // 3. عرض المنتجات
     const itemsContainer = document.getElementById('inv-items');
     if (itemsContainer && data.items) {
-        itemsContainer.innerHTML = data.items.map(item => `
-            <div class="flex justify-between border-b py-3 text-sm">
-                <div class="flex flex-col">
-                    <span class="font-bold text-slate-800">${item.name || 'منتج'}</span>
-                    <span class="text-[10px] text-slate-400">الكمية: ${item.qty || 1}</span>
+        itemsContainer.innerHTML = data.items.map(item => {
+            const qty = item.qty || 1;
+            const price = item.price || 0;
+            const total = item.total || (qty * price);
+            
+            return `
+                <div class="flex justify-between border-b py-3 text-sm">
+                    <span>${item.name || 'منتج'} (x${qty})</span>
+                    <span class="font-bold">${total} ر.س</span>
                 </div>
-                <span class="font-black">${item.total || (parseFloat(item.price || 0) * (item.qty || 1))} ر.س</span>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    // 4. الإجماليات (دعم مرن)
-    const totalVal = data.totals?.total || data.total || "0.00";
-    setSafeText('inv-total', totalVal);
+    // 4. الإجماليات
+    const totalAmount = data.totals?.total || data.total || "0.00";
+    setText('inv-total', totalAmount);
 
-    // 5. توليد QR الزكاة (بشرط وجود المكتبة والحاوية)
+    // 5. توليد QR الزكاة والدخل (Tera)
     const qrContainer = document.getElementById("qrcode");
     if (qrContainer && typeof QRCode !== 'undefined') {
-        qrContainer.innerHTML = ""; // تنظيف لتجنب التكرار
-        const qrText = `Seller: Tera | VAT: 300000000000003 | Date: ${data.orderDate} | Total: ${totalVal}`;
+        qrContainer.innerHTML = ""; // تنظيف قبل التوليد
+        const qrContent = `Seller: Tera | Date: ${data.orderDate} | Total: ${totalAmount}`;
         new QRCode(qrContainer, {
-            text: qrText,
+            text: qrContent,
             width: 120,
             height: 120,
             colorDark: "#000000",
@@ -78,8 +85,10 @@ function renderInvoice(data) {
     }
 }
 
-// دالة مساعدة لمنع توقف الكود في حال فقدان عنصر بالـ HTML
-function setSafeText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.innerText = value || "---";
+// دالة مساعدة لتجنب أخطاء innerText إذا كان العنصر غير موجود في الـ HTML
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.innerText = value || "---";
+    }
 }
