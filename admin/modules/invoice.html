@@ -1,204 +1,48 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الفواتير - متجرك الذكي</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 p-6">
+<div class="invoice-container">
+    <header class="invoice-header">
+        <div class="logo">شعار المنصة</div>
+        <div class="info">
+            <h1>فاتورة إلكترونية</h1>
+            <p>رقم شهادة العمل الحر: FL-765735204</p>
+            <p>الرقم الضريبي: 312495447600003</p>
+        </div>
+    </header>
 
-<div class="max-w-6xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">📄 إدارة الفواتير</h1>
-        <div class="flex gap-2">
-            <input type="text" id="searchInput" placeholder="بحث برقم الطلب أو العميل..." class="border rounded-lg px-4 py-2 w-64">
-            <select id="statusFilter" class="border rounded-lg px-4 py-2">
-                <option value="all">جميع الفواتير</option>
-                <option value="مدفوعة">مدفوعة</option>
-                <option value="غير مدفوعة">غير مدفوعة</option>
-            </select>
+    <div class="address-section">
+        <div class="column">
+            <h3>مصدرة من: منصة في خدمتك</h3>
+            <p>المملكة العربية السعودية - حائل</p>
+            <p>حي النقرة - شارع سعد المشاط</p>
+            <p>المبنى: 3085 | الرمز البريدي: 55431</p>
+        </div>
+        <div class="column">
+            <h3>مصدرة إلى: <span id="customerName"></span></h3>
+            <p>الدولة: <span id="customerCountry"></span></p>
+            <p>الجوال: <span id="customerPhone"></span></p>
         </div>
     </div>
 
-    <!-- قائمة الفواتير -->
-    <div id="invoicesList" class="space-y-4">
-        <div class="text-center text-gray-500 py-8">جاري التحميل...</div>
-    </div>
+    <table class="products-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>المنتج</th>
+                <th>الوصف</th>
+                <th>الصورة</th>
+                <th>الكمية</th>
+                <th>سعر الوحدة</th>
+            </tr>
+        </thead>
+        <tbody id="invoiceItems">
+            </tbody>
+    </table>
+
+    <footer class="invoice-footer">
+        <div class="barcode" id="qrcode"></div>
+        <div class="contact-info">
+            <p>الهاتف: 966534051317+</p>
+            <p>البريد: info@fi-khidmatik.com</p>
+            <p>هذه الفاتورة إلكترونية - نسخة معتمدة قانونياً</p>
+        </div>
+    </footer>
 </div>
-
-<script type="module">
-    import { getOrdersWithCustomers, updateOrder } from '../../js/common.js';
-
-    let orders = [];
-    const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-
-    async function init() {
-        orders = await getOrdersWithCustomers();
-        render();
-    }
-
-    function getInvoiceStatus(order) {
-        if (order.paymentStatus === 'مكتمل') {
-            return '<span class="bg-green-100 text-green-800 px-2 py-1 rounded">✅ مدفوعة</span>';
-        }
-        return '<span class="bg-red-100 text-red-800 px-2 py-1 rounded">❌ غير مدفوعة</span>';
-    }
-
-    function filterOrders() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const status = statusFilter.value;
-        
-        return orders.filter(order => {
-            const matchesSearch = order.id.toLowerCase().includes(searchTerm) ||
-                                 (order.customer?.name || '').toLowerCase().includes(searchTerm);
-            const matchesStatus = status === 'all' || 
-                                 (status === 'مدفوعة' && order.paymentStatus === 'مكتمل') ||
-                                 (status === 'غير مدفوعة' && order.paymentStatus !== 'مكتمل');
-            return matchesSearch && matchesStatus;
-        });
-    }
-
-    function render() {
-        const filteredOrders = filterOrders();
-        
-        if (filteredOrders.length === 0) {
-            document.getElementById('invoicesList').innerHTML = '<div class="text-center text-gray-500 py-8">لا توجد فواتير</div>';
-            return;
-        }
-
-        document.getElementById('invoicesList').innerHTML = filteredOrders.map(order => `
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="border-b p-4 bg-gray-50 flex justify-between items-center">
-                    <div>
-                        <span class="font-bold text-lg">فاتورة رقم: #${order.id.substring(0, 8)}</span>
-                        <span class="mr-3 text-sm text-gray-500">${order.date || order.createdAt?.split('T')[0] || '-'}</span>
-                    </div>
-                    <div>${getInvoiceStatus(order)}</div>
-                </div>
-                <div class="p-4">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <p class="text-gray-500 text-sm">العميل</p>
-                            <p class="font-semibold">${escapeHtml(order.customer?.name || 'غير معروف')}</p>
-                            <p class="text-sm">📞 ${order.customer?.phone || '-'}</p>
-                            <p class="text-sm">✉️ ${order.customer?.email || '-'}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500 text-sm">عنوان الشحن</p>
-                            <p class="text-sm">${order.customer?.city || '-'}، ${order.customer?.district || '-'}</p>
-                            <p class="text-sm">${order.customer?.street || '-'}، ${order.customer?.buildingNo || '-'}</p>
-                        </div>
-                    </div>
-                    
-                    <table class="w-full mb-4">
-                        <thead class="bg-gray-100">
-                            <tr class="text-right">
-                                <th class="p-2">المنتج</th>
-                                <th class="p-2">الكمية</th>
-                                <th class="p-2">السعر</th>
-                                <th class="p-2">الإجمالي</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${(order.items || []).map(item => `
-                                <tr class="border-b">
-                                    <td class="p-2">${escapeHtml(item.name)}</td>
-                                    <td class="p-2">${item.quantity}</td>
-                                    <td class="p-2">${item.price} ر.س</td>
-                                    <td class="p-2">${(item.quantity * item.price).toFixed(2)} ر.س</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    
-                    <div class="flex justify-between items-center pt-4 border-t">
-                        <div class="flex gap-2">
-                            <button onclick="printInvoice('${order.id}')" class="bg-gray-600 text-white px-4 py-2 rounded">🖨️ طباعة</button>
-                            <button onclick="markAsPaid('${order.id}')" class="bg-green-600 text-white px-4 py-2 rounded">✅ تحديد كمدفوعة</button>
-                        </div>
-                        <div>
-                            <p class="text-gray-500">الإجمالي</p>
-                            <p class="text-2xl font-bold text-blue-600">${order.total || 0} ر.س</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    window.printInvoice = (orderId) => {
-        const order = orders.find(o => o.id === orderId);
-        if (order) {
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html dir="rtl">
-                <head><title>فاتورة #${orderId.substring(0, 8)}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .invoice-details { margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-                    th { background-color: #f2f2f2; }
-                    .total { font-size: 18px; font-weight: bold; text-align: left; }
-                </style>
-                </head>
-                <body>
-                <div class="header">
-                    <h1>متجرك الذكي</h1>
-                    <p>فاتورة رسمية</p>
-                </div>
-                <div class="invoice-details">
-                    <p><strong>رقم الفاتورة:</strong> #${order.id.substring(0, 8)}</p>
-                    <p><strong>التاريخ:</strong> ${order.date || order.createdAt?.split('T')[0] || '-'}</p>
-                    <p><strong>العميل:</strong> ${order.customer?.name || 'غير معروف'}</p>
-                    <p><strong>رقم الجوال:</strong> ${order.customer?.phone || '-'}</p>
-                </div>
-                <table>
-                    <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
-                    <tbody>
-                        ${(order.items || []).map(item => `
-                            <tr><td>${item.name}</td><td>${item.quantity}</td><td>${item.price} ر.س</td><td>${(item.quantity * item.price).toFixed(2)} ر.س</td></tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="total">الإجمالي: ${order.total || 0} ر.س</div>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-    };
-
-    window.markAsPaid = async (orderId) => {
-        if (confirm('هل أنت متأكد من تحديد هذه الفاتورة كمدفوعة؟')) {
-            try {
-                await updateOrder(orderId, { paymentStatus: 'مكتمل', paymentMethod: 'نقدي', paymentUpdatedAt: new Date().toISOString() });
-                await init();
-            } catch (err) {
-                console.error(err);
-                alert('حدث خطأ');
-            }
-        }
-    };
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    searchInput.addEventListener('input', render);
-    statusFilter.addEventListener('change', render);
-
-    init();
-</script>
-</body>
-</html>
