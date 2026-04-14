@@ -2,155 +2,156 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام تيرة المتكامل - الإدارة</title>
+    <title>إنشاء طلب جديد - تيرة</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
-        body { font-family: 'Tajawal', sans-serif; }
-        .hidden-form { display: none; opacity: 0; transform: translateY(-20px); transition: all 0.4s ease; }
-        .show-form { display: block; opacity: 1; transform: translateY(0); }
-        .floating-add-btn {
-            position: fixed; bottom: 30px; left: 30px;
-            width: 70px; height: 70px; border-radius: 50%;
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            color: white; font-size: 24px; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
-            cursor: pointer; z-index: 1000; display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s ease;
-        }
-        .floating-add-btn:hover { transform: scale(1.1) rotate(90deg); }
-        .ql-editor { text-align: right; min-height: 100px; }
-        /* ستايل أزرار التبديل */
-        .system-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .active-system { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; transform: scale(1.02); }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
     </style>
 </head>
-<body class="bg-[#f8fafc] p-4 md:p-8 text-right">
+<body class="p-4 md:p-8">
 
-    <div id="openFormBtn" class="floating-add-btn" onclick="toggleOrderForm()">
-        <i class="fas fa-plus"></i>
+<div class="max-w-6xl mx-auto bg-white rounded-[2.5rem] shadow-2xl p-8 border border-gray-100">
+    <div class="flex justify-between items-center mb-10 border-b pb-6">
+        <div>
+            <h1 class="text-3xl font-black text-blue-900">إنشاء طلب جديد</h1>
+            <p class="text-slate-400">نظام إدارة فواتير تيرة المتكامل</p>
+        </div>
+        <div class="text-left">
+            <div id="displayOrderID" class="text-xl font-bold text-blue-600">KF-2026-XXXX</div>
+            <div id="displayDate" class="text-sm text-slate-400">14-04-2026</div>
+        </div>
     </div>
 
-    <div class="max-w-7xl mx-auto space-y-8">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 no-print">
-            <div id="btn-new" onclick="switchSystem('new')" 
-                 class="system-btn cursor-pointer p-6 rounded-[2rem] border-2 border-white bg-white shadow-sm flex items-center gap-4">
-                <div class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-bolt"></i></div>
-                <div><h3 class="font-black text-lg">النظام المطور 2026</h3><p class="text-xs text-slate-400">فواتير الـ Snapshot الجديدة</p></div>
-            </div>
-
-            <div id="btn-old" onclick="switchSystem('old')" 
-                 class="system-btn cursor-pointer p-6 rounded-[2rem] border-2 border-white bg-white shadow-sm flex items-center gap-4">
-                <div class="bg-slate-400 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fas fa-archive"></i></div>
-                <div><h3 class="font-black text-lg text-slate-700">الأرشيف القديم</h3><p class="text-xs text-slate-400">مراجعة الفواتير السابقة</p></div>
-            </div>
-        </div>
-
-        <div id="orderFormContainer" class="hidden-form bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-gray-100 mb-12">
-            <div class="flex justify-between items-center mb-10">
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleOrderForm()" class="text-slate-400 hover:text-red-500 transition text-2xl"><i class="fas fa-times-circle"></i></button>
-                    <h2 class="text-3xl font-black text-slate-800 border-r-8 border-blue-600 pr-4">إنشاء طلب جديد</h2>
-                </div>
-                <div class="flex gap-2">
-                    <input id="orderNo" readonly placeholder="رقم الطلب" class="bg-blue-50 p-4 rounded-2xl font-bold text-blue-700 w-48 text-center outline-none">
-                    <input type="date" id="orderDate" class="bg-slate-50 p-4 rounded-2xl outline-none text-slate-600">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                <div class="lg:col-span-2 space-y-10">
-                    <div class="space-y-6">
-                        <h3 class="font-bold text-lg text-slate-700">بيانات العميل التفصيلية</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input id="cName" placeholder="اسم العميل الكامل" class="p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-blue-100">
-                            <input id="cPhone" placeholder="رقم الجوال" class="p-4 bg-slate-50 rounded-2xl outline-none">
-                            <input id="cEmail" placeholder="البريد الإلكتروني" class="p-4 bg-slate-50 rounded-2xl outline-none">
-                            <div class="grid grid-cols-2 gap-2">
-                                <input id="cCity" placeholder="المدينة" class="p-4 bg-slate-50 rounded-2xl outline-none">
-                                <input id="cDistrict" placeholder="الحي" class="p-4 bg-slate-50 rounded-2xl outline-none">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6 bg-slate-50/50 p-8 rounded-[2rem]">
-                        <h3 class="font-bold text-lg text-slate-700">تفاصيل المنتج</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <input id="pName" placeholder="اسم المنتج" class="col-span-2 p-4 rounded-2xl outline-none">
-                            <input id="pPrice" type="number" placeholder="سعر البيع" class="p-4 rounded-2xl outline-none">
-                            <input id="pQty" type="number" value="1" class="p-4 rounded-2xl outline-none">
-                        </div>
-                        <div id="editor" class="bg-white rounded-xl overflow-hidden border border-slate-200"></div>
-                        <button onclick="addToCart()" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-lg hover:bg-slate-900 transition">
-                            <i class="fas fa-cart-plus ml-2"></i> إضافة المنتج للقائمة
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-blue-600 text-white p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between h-fit sticky top-8">
-                    <div class="space-y-6">
-                        <h3 class="text-xl font-bold border-b border-blue-400 pb-4">ملخص الفاتورة</h3>
-                        <div class="space-y-4">
-                            <div class="flex justify-between opacity-80"><span>المجموع:</span><span id="subtotalLabel">0.00</span></div>
-                            <div class="flex justify-between text-3xl font-black pt-6 border-t border-blue-500"><span>الإجمالي:</span><span id="totalLabel">0.00</span></div>
-                        </div>
-                    </div>
-                    <button id="mainSubmitBtn" onclick="submitOrder(event)" class="mt-10 w-full bg-white text-blue-600 py-6 rounded-3xl font-black text-2xl hover:scale-95 transition shadow-xl">
-                        اعتماد وحفظ الفاتورة
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-[2.5rem] shadow-sm p-8 border border-gray-100 min-h-[500px]">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <h2 class="text-2xl font-black text-slate-700 flex items-center gap-3">
-                    <span class="w-2 h-8 bg-blue-600 rounded-full"></span> سجل العمليات
-                </h2>
-                <div class="relative w-full md:w-96">
-                    <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="orderSearch" placeholder="بحث برقم الطلب أو العميل..." class="w-full pr-12 pl-4 py-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-blue-100">
-                </div>
-            </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div class="lg:col-span-2 space-y-8">
             
-            <div class="overflow-x-auto">
-                <table class="w-full text-right border-separate border-spacing-y-3">
-                    <thead>
-                        <tr class="text-slate-400 text-sm font-bold">
-                            <th class="p-4">رقم الطلب</th>
-                            <th class="p-4">العميل</th>
-                            <th class="p-4">التاريخ</th>
-                            <th class="p-4 text-center">الإجمالي</th>
-                            <th class="p-4 text-center">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody">
-                        </tbody>
-                </table>
+            <section class="bg-slate-50 p-6 rounded-3xl space-y-4">
+                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                    <i class="fas fa-user-circle text-blue-600"></i> بيانات العميل
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input id="cName" placeholder="الاسم الكامل" class="p-4 rounded-xl border-none outline-none focus:ring-2 ring-blue-100">
+                    <input id="cPhone" placeholder="رقم الجوال" class="p-4 rounded-xl border-none outline-none">
+                    <input id="cCity" placeholder="المدينة" class="p-4 rounded-xl border-none outline-none">
+                    <input id="cStreet" placeholder="الشارع ورقم المبنى" class="p-4 rounded-xl border-none outline-none">
+                </div>
+            </section>
+
+            <section class="bg-white border p-6 rounded-3xl space-y-4 shadow-sm">
+                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                    <i class="fas fa-box text-blue-600"></i> إضافة منتجات
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <input id="pName" placeholder="اسم المنتج" class="md:col-span-2 p-4 bg-slate-50 rounded-xl outline-none">
+                    <input id="pPrice" type="number" placeholder="السعر" class="p-4 bg-slate-50 rounded-xl outline-none">
+                    <button onclick="addItem()" class="bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">إضافة</button>
+                </div>
+                <div id="cartItems" class="space-y-2 mt-4">
+                    </div>
+            </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-50 p-6 rounded-3xl space-y-4">
+                    <h3 class="font-bold text-slate-700">طريقة الدفع</h3>
+                    <select id="payMethod" class="w-full p-4 rounded-xl outline-none bg-white">
+                        <option value="tamara">تمارا</option>
+                        <option value="tabby">تابي</option>
+                        <option value="mada">مدى / فيزا</option>
+                        <option value="cash">نقدي</option>
+                    </select>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-3xl space-y-4">
+                    <h3 class="font-bold text-slate-700">طريقة الشحن</h3>
+                    <select id="shipMethod" class="w-full p-4 rounded-xl outline-none bg-white">
+                        <option value="pickup">استلام من المقر</option>
+                        <option value="delivery">شحن للموقع</option>
+                    </select>
+                </div>
+            </section>
+        </div>
+
+        <div class="bg-blue-900 text-white p-8 rounded-[3rem] shadow-xl h-fit sticky top-8">
+            <h3 class="text-xl font-bold border-b border-blue-800 pb-4 mb-6">ملخص الحساب</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between opacity-70"><span>المجموع الفرعي:</span><span id="resSubtotal">0.00</span></div>
+                <div class="flex justify-between opacity-70"><span>الضريبة (15%):</span><span id="resTax">0.00</span></div>
+                <div class="flex justify-between text-2xl font-black pt-6 border-t border-blue-800">
+                    <span>الإجمالي:</span><span id="resTotal">0.00</span>
+                </div>
             </div>
+            <button onclick="handleSaveOrder()" class="w-full bg-white text-blue-900 py-6 rounded-3xl font-black text-xl mt-10 hover:scale-95 transition">
+                اعتماد وحفظ الطلب
+            </button>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script>
-        // تفعيل محرّر النصوص
-        var quill = new Quill('#editor', { theme: 'snow', placeholder: 'اكتب ملاحظات الطلب هنا...' });
+<script type="module">
+    import * as logic from '../js/order-logic.js';
 
-        function toggleOrderForm() {
-            const container = document.getElementById('orderFormContainer');
-            const floatingBtn = document.getElementById('openFormBtn');
-            if (container.classList.contains('show-form')) {
-                container.classList.remove('show-form');
-                setTimeout(() => { container.style.display = 'none'; floatingBtn.style.display = 'flex'; }, 400);
-            } else {
-                container.style.display = 'block';
-                setTimeout(() => container.classList.add('show-form'), 10);
-                floatingBtn.style.display = 'none';
-            }
-        }
-    </script>
-    <script type="module" src="../../js/orders-app.js"></script>
+    let cart = [];
+    const orderID = logic.generateOrderID();
+    
+    document.getElementById('displayOrderID').innerText = orderID;
+    document.getElementById('displayDate').innerText = new Date().toLocaleDateString('ar-SA');
+
+    window.addItem = () => {
+        const name = document.getElementById('pName').value;
+        const price = parseFloat(document.getElementById('pPrice').value);
+        if(!name || !price) return alert("أكمل بيانات المنتج");
+
+        cart.push({ name, price, qty: 1 });
+        renderCart();
+        updateTotals();
+        document.getElementById('pName').value = '';
+        document.getElementById('pPrice').value = '';
+    };
+
+    function renderCart() {
+        const container = document.getElementById('cartItems');
+        container.innerHTML = cart.map((item, index) => `
+            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-xl">
+                <span class="font-bold text-slate-700">${item.name}</span>
+                <div class="flex items-center gap-4">
+                    <span class="text-blue-600 font-bold">${item.price} ر.س</span>
+                    <button onclick="cart.splice(${index},1); renderCart(); updateTotals();" class="text-red-400"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateTotals() {
+        const results = logic.calculateFinalOrder(cart);
+        document.getElementById('resSubtotal').innerText = results.subtotal;
+        document.getElementById('resTax').innerText = results.tax;
+        document.getElementById('resTotal').innerText = results.total;
+    }
+
+    window.handleSaveOrder = async () => {
+        if(cart.length === 0) return alert("السلة فارغة");
+        
+        const orderData = {
+            orderNumber: orderID,
+            orderDate: new Date().toISOString().split('T')[0],
+            customerSnapshot: {
+                name: document.getElementById('cName').value,
+                phone: document.getElementById('cPhone').value,
+                address: {
+                    city: document.getElementById('cCity').value,
+                    street: document.getElementById('cStreet').value
+                }
+            },
+            items: cart,
+            totals: logic.calculateFinalOrder(cart),
+            payment: { method: document.getElementById('payMethod').value },
+            shipping: { method: document.getElementById('shipMethod').value }
+        };
+
+        const id = await logic.saveOrder(orderData);
+        window.location.href = `../print.html?id=${id}`;
+    };
+</script>
 </body>
 </html>
