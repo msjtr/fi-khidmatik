@@ -1,9 +1,10 @@
 // js/modules/customers.js
 
-// التعديل: استيراد db من نفس المجلد (حذف ../core/) لأن الملفات بجانب بعضها حسب الصورة
-import { db } from './firebase.js';
+// التعديل الضروري: العودة للخلف خطوة ثم الدخول لمجلد core
+// لأن هذا الملف موجود في js/modules/ وقاعدة البيانات في js/core/
+import { db } from '../core/firebase.js';
 
-// الاستيراد من مكتبة جوجل مباشرة برابط كامل (يبقى كما هو)
+// الاستيراد من مكتبة جوجل (رابط كامل)
 import { 
     collection, 
     getDocs, 
@@ -14,6 +15,9 @@ import {
 
 let allCustomers = [];
 
+/**
+ * تهيئة واجهة العملاء
+ */
 export async function initCustomers(container) {
     container.innerHTML = `
         <div class="module-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -39,6 +43,9 @@ export async function initCustomers(container) {
     await loadCustomers();
 }
 
+/**
+ * جلب العملاء من Firestore
+ */
 async function loadCustomers() {
     const listContainer = document.getElementById('customers-list');
     try {
@@ -52,6 +59,9 @@ async function loadCustomers() {
     }
 }
 
+/**
+ * رندرة بطاقات العملاء
+ */
 function renderCustomers(customers) {
     const container = document.getElementById('customers-list');
     if (!container) return;
@@ -74,6 +84,9 @@ function renderCustomers(customers) {
     `;
 }
 
+/**
+ * فلترة البحث المحلي
+ */
 function filterCustomers(e) {
     const term = e.target.value.toLowerCase();
     const filtered = allCustomers.filter(c => 
