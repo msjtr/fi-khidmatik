@@ -1,42 +1,73 @@
-<div class="module-container">
-    <h2><i class="fas fa-shopping-cart"></i> طلب جديد</h2>
-    <div class="order-form-layout">
-        <div class="order-info">
-            <div class="form-group">
-                <label>رقم الطلب (تلقائي)</label>
-                <input type="text" id="order-number" readonly>
-            </div>
-            <div class="form-group">
-                <label>اختر العميل</label>
-                <select id="customer-select" class="form-control"></select>
-                <button id="add-customer-quick" class="btn-small"><i class="fas fa-user-plus"></i> عميل جديد</button>
-            </div>
-            <div class="form-group">
-                <label>تاريخ الطلب</label>
-                <input type="date" id="order-date">
-            </div>
-        </div>
-        <div class="products-section">
-            <h3>المنتجات</h3>
-            <div class="add-product-row">
-                <select id="product-select" class="form-control"></select>
-                <input type="number" id="product-qty" placeholder="الكمية" value="1" min="1">
-                <button id="add-product-btn" class="btn-primary">إضافة منتج</button>
-            </div>
-            <div class="table-responsive">
-                <table id="order-items-table" class="data-table">
-                    <thead>
-                        <tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th></th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div class="totals">
-                <div>المجموع: <span id="subtotal">0.00</span></div>
-                <div>الضريبة (%<span id="tax-rate">0</span>): <span id="tax-amount">0.00</span></div>
-                <div class="grand-total">الإجمالي النهائي: <span id="total">0.00</span></div>
-            </div>
-            <button id="save-order-btn" class="btn-success">حفظ الطلب</button>
-        </div>
-    </div>
-</div>
+import { db } from '../core/firebase.js';
+import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+export async function initOrderForm(container) {
+    container.innerHTML = await fetch('admin/modules/order-form.html').then(r => r.text());
+    
+    // تحميل العملاء والمنتجات من Firestore
+    const customersSnap = await getDocs(collection(db, "customers"));
+    const productsSnap = await getDocs(collection(db, "products"));
+    
+    const customerSelect = document.getElementById('customer-select');
+    customerSelect.innerHTML = '<option value="">اختر عميل</option>' + 
+        customersSnap.docs.map(d => `<option value="${d.id}">${d.data().name}</option>`).join('');
+    
+    const productSelect = document.getElementById('product-select');
+    productSelect.innerHTML = productsSnap.docs.map(d => 
+        `<option value="${d.id}" data-price="${d.data().price}">${d.data().name} - ${d.data().price}</option>`
+    ).join('');
+    
+    let items = [];
+    
+    window.addProductToTable = () => {
+        const prodId = productSelect.value;
+        const qty = parseInt(document.getElementById('product-qty').value);
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        const price = parseFloat(selectedOption.dataset.price);
+        const name = selectedOption.text.split('-')[0];
+        items.push({ productId: prodId, name, quantity: qty, price });
+        renderItemsTable();
+    };
+    
+    function renderItemsTable() {
+        const tbody = document.querySelector('#order-items-table tbody');
+        tbody.innerHTML = items.map((item, idx) => `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>${item.price}</td>
+                <td>${item.quantity * item.price}</td>
+                <td><button onclick="removeItem(${idx})">حذف</button></td>
+            </tr>
+        `).join('');
+        const subtotal = items.reduce((s, i) => s + (i.price * i.quantity), 0);
+        const taxRate = 15;
+        const tax = subtotal * taxRate / 100;
+        document.getElementById('subtotal').innerText = subtotal;
+        document.getElementById('tax-amount').innerText = tax;
+        document.getElementById('total').innerText = subtotal + tax;
+    }
+    
+    window.removeItem = (idx) => { items.splice(idx, 1); renderItemsTable(); };
+    
+    document.getElementById('add-product-btn').onclick = () => window.addProductToTable();
+    document.getElementById('save-order-btn').onclick = async () => {
+        const customerId = customerSelect.value;
+        const customerName = customerSelect.options[customerSelect.selectedIndex]?.text || '';
+        if (!customerId || items.length === 0) return alert('أكمل البيانات');
+        const total = parseFloat(document.getElementById('total').innerText);
+        await addDoc(collection(db, "orders"), {
+            orderNumber: 'ORD-' + Date.now(),
+            customerId, customerName,
+            items: items,
+            total: total,
+            status: 'pending',
+            createdAt: new Date(),
+            paidAmount: 0
+        });
+        alert('تم حفظ الطلب');
+        items = [];
+        renderItemsTable();
+        customerSelect.value = '';
+    };
+}
