@@ -1,17 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-    authDomain: "msjt301-974bb.firebaseapp.com",
-    projectId: "msjt301-974bb",
-    storageBucket: "msjt301-974bb.firebasestorage.app",
-    messagingSenderId: "186209858482",
-    appId: "1:186209858482:web:186ca610780799ef562aab",
-    measurementId: "G-NDVGC9GPQZ"
-};
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
+import { firebaseConfig } from './config.js';
 
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-export { db, collection, addDoc, getDocs, doc, updateDoc };
+export { db, analytics };
