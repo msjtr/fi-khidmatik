@@ -15,86 +15,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/super-build/ckeditor.js"></script>
-
-    <style>
-        :root { --sidebar-width: 260px; }
-        
-        body { margin: 0; background-color: #f8fafb; }
-
-        /* تنظيم الهيكل */
-        #app { display: flex; flex-direction: column; height: 100vh; }
-        
-        .admin-header { 
-            height: 70px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 25px; 
-            background: #fff; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-            z-index: 1000;
-        }
-
-        .main-layout { display: flex; flex: 1; overflow: hidden; }
-
-        /* تنسيق القائمة الجانبية المباشر لضمان الترتيب */
-        .sidebar { 
-            width: var(--sidebar-width); 
-            background: #fff; 
-            border-left: 1px solid #edf2f7; 
-            display: flex; 
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        .sidebar-nav ul { list-style: none; padding: 20px 10px; margin: 0; }
-        
-        .sidebar-nav li { 
-            padding: 12px 15px; 
-            margin-bottom: 5px; 
-            border-radius: 10px; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            cursor: pointer; 
-            color: #64748b;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-
-        .sidebar-nav li:hover { background: #fff8f3; color: #e67e22; }
-        .sidebar-nav li.active { background: #e67e22; color: #fff; }
-        .sidebar-nav li i { width: 20px; text-align: center; }
-
-        .main-content { 
-            flex: 1; 
-            padding: 25px; 
-            overflow-y: auto; 
-            background: #f8fafb; 
-        }
-
-        .header-logo-img { height: 35px; object-fit: contain; }
-    </style>
 </head>
 <body>
-    <div id="app">
+    <div id="app" style="display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
+        
         <header class="admin-header">
-            <div class="logo" style="display: flex; align-items: center; gap: 10px;">
+            <div class="logo">
                 <img src="images/logo.svg" alt="Tera" class="header-logo-img" onerror="this.src='https://placehold.jp/e67e22/ffffff/50x50.png?text=T'">
-                <h2 style="margin: 0; font-size: 1.2rem; color: #2c3e50;">تيرا جيتواي</h2>
+                <h2>تيرا جيتواي</h2>
             </div>
-            <div id="current-datetime" class="datetime" style="font-size: 0.85rem; color: #64748b;"></div>
+            <div id="current-datetime" class="datetime"></div>
         </header>
         
-        <div class="main-layout">
+        <div class="main-layout" style="display: flex; flex: 1; overflow: hidden;">
+            
             <aside id="sidebar-container" class="sidebar">
                 <nav class="sidebar-nav">
-                    <ul>
-                        <li class="active" onclick="location.reload()"><i class="fas fa-chart-pie"></i> الرئيسية</li>
-                        <li><i class="fas fa-boxes"></i> المنتجات</li>
-                        <li><i class="fas fa-shopping-basket"></i> الطلبات</li>
-                        <li><i class="fas fa-users"></i> العملاء</li>
-                        <li><i class="fas fa-cog"></i> الإعدادات</li>
+                    <ul id="main-menu">
+                        <li class="active" data-module="dashboard">
+                            <i class="fas fa-th-large"></i>
+                            <span>الرئيسية</span>
+                        </li>
+                        <li data-module="products">
+                            <i class="fas fa-box-open"></i>
+                            <span>المنتجات</span>
+                        </li>
+                        <li data-module="orders">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>الطلبات</span>
+                        </li>
+                        <li data-module="customers">
+                            <i class="fas fa-user-friends"></i>
+                            <span>العملاء</span>
+                        </li>
+                        <li data-module="settings">
+                            <i class="fas fa-user-shield"></i>
+                            <span>الإعدادات</span>
+                        </li>
                     </ul>
                 </nav>
             </aside>
@@ -119,12 +76,6 @@
         }
         setInterval(updateDateTime, 1000);
         updateDateTime();
-
-        // إخفاء اللودر عند تحميل ملف الـ main.js
-        window.addEventListener('load', () => {
-            const loader = document.getElementById('page-loader');
-            if(loader) loader.style.display = 'none';
-        });
     </script>
     <script type="module" src="js/main.js"></script>
 </body>
