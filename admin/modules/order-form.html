@@ -1,48 +1,98 @@
-<div class="module-container">
-    <h2><i class="fas fa-shopping-cart"></i> طلب جديد</h2>
-    <div class="order-form-layout">
-        <div class="order-info">
-            <div class="form-group">
-                <label>رقم الطلب (تلقائي)</label>
-                <input type="text" id="order-number" readonly>
+<div class="module-container" style="font-family: 'Tajawal', sans-serif;" dir="rtl">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px;">
+        <h2 style="margin:0; color:#2c3e50;"><i class="fas fa-cart-plus" style="color:#27ae60; margin-left:10px;"></i> إنشاء فاتورة مبيعات جديدة</h2>
+        <div id="order-status-badge" style="background:#e8f5e9; color:#2e7d32; padding:5px 15px; border-radius:20px; font-size:0.85rem; font-weight:bold;">فاتورة جديدة</div>
+    </div>
+
+    <div class="order-form-layout" style="display: grid; grid-template-columns: 350px 1fr; gap: 25px;">
+        
+        <div class="order-info" style="background:#f8f9fa; padding:20px; border-radius:15px; border:1px solid #eee;">
+            <h4 style="margin-top:0; color:#34495e; border-bottom:1px solid #ddd; padding-bottom:10px;">بيانات الفاتورة</h4>
+            
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">رقم الطلب</label>
+                <input type="text" id="order-number" readonly style="width:100%; padding:10px; background:#e9ecef; border:1px solid #ddd; border-radius:8px; font-weight:bold; color:#2c3e50;">
             </div>
-            <div class="form-group">
-                <label>اختر العميل</label>
-                <select id="customer-select" class="form-control"></select>
-                <button id="add-customer-quick" class="btn-small"><i class="fas fa-user-plus"></i> عميل جديد</button>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">العميل</label>
+                <div style="display:flex; gap:5px;">
+                    <select id="customer-select" class="form-control" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;"></select>
+                    <button id="add-customer-quick" class="btn-small" title="إضافة عميل سريع" style="background:#3498db; color:white; border:none; padding:0 12px; border-radius:8px; cursor:pointer;"><i class="fas fa-user-plus"></i></button>
+                </div>
             </div>
-            <div class="form-group">
-                <label>تاريخ الطلب</label>
-                <input type="date" id="order-date">
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">تاريخ الطلب</label>
+                <input type="date" id="order-date" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">طريقة الدفع</label>
+                <select id="payment-method" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="mada">مدى</option>
+                    <option value="tamara">تمارا</option>
+                    <option value="tabby">تابي</option>
+                    <option value="bank">تحويل بنكي</option>
+                    <option value="cash">نقداً</option>
+                </select>
             </div>
         </div>
-        <div class="products-section">
-            <h3>المنتجات</h3>
-            <div class="add-product-row">
-                <select id="product-select" class="form-control"></select>
-                <input type="number" id="product-qty" placeholder="الكمية" value="1" min="1">
-                <button id="add-product-btn" class="btn-primary">إضافة منتج</button>
+
+        <div class="products-section" style="background:white; padding:20px; border-radius:15px; border:1px solid #eee; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+            <h3 style="margin-top:0; color:#2c3e50;">قائمة المنتجات</h3>
+            
+            <div class="add-product-row" style="display:grid; grid-template-columns: 1fr 100px 120px; gap:10px; margin-bottom:20px; background:#fff3e0; padding:15px; border-radius:10px;">
+                <select id="product-select" class="form-control" style="padding:10px; border-radius:8px; border:1px solid #ffcc80;"></select>
+                <input type="number" id="product-qty" placeholder="الكمية" value="1" min="1" style="padding:10px; border-radius:8px; border:1px solid #ffcc80;">
+                <button id="add-product-btn" class="btn-primary" style="background:#e67e22; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    <i class="fas fa-plus"></i> إضافة
+                </button>
             </div>
-            <div class="table-responsive">
-                <table id="order-items-table" class="data-table">
-                    <thead>
+
+            <div class="table-responsive" style="min-height:200px;">
+                <table id="order-items-table" class="data-table" style="width:100%; border-collapse:collapse;">
+                    <thead style="background:#f8f9fa;">
                         <tr>
-                            <th>المنتج</th>
-                            <th>الكمية</th>
-                            <th>السعر</th>
-                            <th>الإجمالي</th>
-                            <th></th>
+                            <th style="padding:12px; text-align:right; border-bottom:2px solid #dee2e6;">المنتج</th>
+                            <th style="padding:12px; text-align:center; border-bottom:2px solid #dee2e6;">الكمية</th>
+                            <th style="padding:12px; text-align:center; border-bottom:2px solid #dee2e6;">السعر</th>
+                            <th style="padding:12px; text-align:center; border-bottom:2px solid #dee2e6;">الإجمالي</th>
+                            <th style="padding:12px; border-bottom:2px solid #dee2e6;"></th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+                        </tbody>
                 </table>
             </div>
-            <div class="totals">
-                <div>المجموع: <span id="subtotal">0.00</span></div>
-                <div>الضريبة (%<span id="tax-rate">0</span>): <span id="tax-amount">0.00</span></div>
-                <div class="grand-total">الإجمالي النهائي: <span id="total">0.00</span></div>
+
+            <div class="totals" style="margin-top:25px; border-top:2px solid #f1f2f6; padding-top:20px; display:flex; flex-direction:column; align-items:flex-end;">
+                <div style="margin-bottom:8px; color:#666;">المجموع الفرعي: <span id="subtotal" style="font-weight:bold; color:#2c3e50;">0.00</span> ريال</div>
+                <div style="margin-bottom:8px; color:#666;">الضريبة (<span id="tax-rate">15</span>%): <span id="tax-amount" style="font-weight:bold; color:#2c3e50;">0.00</span> ريال</div>
+                <div class="grand-total" style="font-size:1.5rem; color:#27ae60; font-weight:800; margin-top:10px; background:#f1f8e9; padding:10px 20px; border-radius:10px;">
+                    الإجمالي النهائي: <span id="total">0.00</span> ريال
+                </div>
             </div>
-            <button id="save-order-btn" class="btn-success">حفظ الطلب</button>
+
+            <div style="display:flex; gap:10px; margin-top:30px;">
+                <button id="save-order-btn" class="btn-success" style="flex:2; background:#2ecc71; color:white; border:none; padding:15px; border-radius:10px; font-size:1.1rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 10px rgba(46,204,113,0.3);">
+                    <i class="fas fa-check-double"></i> حفظ وإصدار الفاتورة
+                </button>
+                <button id="print-draft-btn" style="flex:1; background:#34495e; color:white; border:none; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">
+                    <i class="fas fa-print"></i> طباعة مسودة
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .order-form-layout input:focus, .order-form-layout select:focus {
+        border-color: #3498db !important;
+        outline: none;
+        box-shadow: 0 0 5px rgba(52,152,219,0.2);
+    }
+    #order-items-table tbody tr { border-bottom: 1px solid #f1f1f1; }
+    #order-items-table td { padding: 12px; }
+    .remove-item-btn { color: #e74c3c; cursor: pointer; background: none; border: none; font-size: 1.1rem; }
+</style>
