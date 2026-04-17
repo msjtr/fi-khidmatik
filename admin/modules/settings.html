@@ -1,18 +1,73 @@
-<div class="module-container">
-    <h2><i class="fas fa-sliders-h"></i> إعدادات النظام</h2>
-    <form id="settings-form">
-        <div class="form-group">
-            <label>اسم الشركة / المتجر</label>
-            <input type="text" id="shop-name" class="form-control">
+<div class="module-container" style="font-family: 'Tajawal', sans-serif;" dir="rtl">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px;">
+        <h2 style="margin:0; color:#2c3e50;"><i class="fas fa-cogs" style="color:#7f8c8d; margin-left:10px;"></i> إعدادات المنصة والهوية</h2>
+        <div id="settings-status" style="font-size:0.85rem; color:#95a5a6;">آخر تحديث: <span id="last-sync">--:--</span></div>
+    </div>
+
+    <form id="settings-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+        
+        <div style="background:#fff; padding:20px; border-radius:12px; border:1px solid #eee; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+            <h4 style="margin-top:0; color:#3498db; border-right:4px solid #3498db; padding-right:10px;">المعلومات العامة</h4>
+            
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:8px; font-weight:600;">اسم المنشأة / العلامة التجارية</label>
+                <input type="text" id="shop-name" class="form-control" placeholder="مثلاً: تيرا جيتواي" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:8px; font-weight:600;">الرقم الضريبي (VAT ID)</label>
+                <input type="text" id="tax-id" class="form-control" placeholder="300XXXXXXXXXXXX" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:8px; font-weight:600;">العنوان الرسمي (يظهر في الفاتورة)</label>
+                <input type="text" id="shop-address" class="form-control" placeholder="حائل، المملكة العربية السعودية" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
+            </div>
         </div>
-        <div class="form-group">
-            <label>نسبة الضريبة (%)</label>
-            <input type="number" id="tax-percent" step="0.1" class="form-control">
+
+        <div style="background:#fff; padding:20px; border-radius:12px; border:1px solid #eee; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+            <h4 style="margin-top:0; color:#27ae60; border-right:4px solid #27ae60; padding-right:10px;">الحسابات والعملة</h4>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:8px; font-weight:600;">نسبة الضريبة (%)</label>
+                    <input type="number" id="tax-percent" step="0.1" value="15" class="form-control" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-weight:bold; color:#e74c3c;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:8px; font-weight:600;">العملة</label>
+                    <input type="text" id="currency" class="form-control" placeholder="ريال" value="ريال" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top:15px;">
+                <label style="display:block; margin-bottom:8px; font-weight:600;">شعار المنصة (URL)</label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="text" id="logo-url" class="form-control" placeholder="https://..." style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px;">
+                    <div style="width:45px; height:45px; background:#f8f9fa; border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid #ddd;">
+                        <i class="fas fa-image" style="color:#bdc3c7;"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label>العملة</label>
-            <input type="text" id="currency" class="form-control" placeholder="ريال">
+
+        <div style="grid-column: span 2; display:flex; gap:10px; justify-content: flex-end; margin-top:10px;">
+            <button type="button" id="reset-settings" style="background:#f1f2f6; color:#7f8c8d; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">إلغاء التعديلات</button>
+            <button type="submit" class="btn-success" style="background:#2ecc71; color:white; border:none; padding:12px 40px; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow:0 4px 12px rgba(46,204,113,0.2);">
+                <i class="fas fa-save"></i> حفظ كافة الإعدادات
+            </button>
         </div>
-        <button type="submit" class="btn-success">حفظ الإعدادات</button>
     </form>
 </div>
+
+<style>
+    #settings-form input:focus {
+        border-color: #3498db !important;
+        outline: none;
+        background-color: #fdfeff;
+    }
+    .btn-success:hover {
+        background: #27ae60 !important;
+        transform: translateY(-1px);
+        transition: 0.2s;
+    }
+</style>
