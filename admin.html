@@ -3,24 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tera Gateway | لوحة التحكم</title>
+    <title>Tera Gateway | لوحة التحكم الاحترافية</title>
     
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/table.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+    <style>
+        /* تنسيق سريع لمنطقة التحميل لضمان تجربة مستخدم سلسة */
+        body {
+            margin: 0;
+            background-color: #f8fafb;
+            font-family: 'Tajawal', sans-serif;
+            overflow-x: hidden;
+        }
+        .loader-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 70vh;
+            color: #5d6d7e;
+        }
+        .spinner {
+            width: 45px;
+            height: 45px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #3498db; /* لون تيرا الأساسي */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
     <div id="app">
-        <div id="header-container"></div>
+        <header id="header-container"></header>
         
-        <div class="main-layout">
-            <div id="sidebar-container"></div>
+        <div class="main-layout" style="display: flex; min-height: calc(100vh - 70px);">
+            <aside id="sidebar-container" style="width: 260px; flex-shrink: 0; background: #fff;"></aside>
             
-            <main id="main-content" class="main-content">
-                <div class="loader-placeholder">جاري تحميل النظام...</div>
+            <main id="main-content" class="main-content" style="flex-grow: 1; padding: 25px;">
+                <div class="loader-wrapper">
+                    <div class="spinner"></div>
+                    <p>جاري تشغيل محرك تيرا جيتواي...</p>
+                </div>
             </main>
         </div>
     </div>
