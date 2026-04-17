@@ -26,16 +26,15 @@ export async function initProducts(container) {
                 <form id="product-form">
                     <input type="hidden" id="edit-id">
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:20px;">
-                        <div style="grid-column: span 2;"><label>اسم المنتج</label><input type="text" id="p-name" required></div>
-                        <div><label>كود المنتج (SKU)</label><input type="text" id="p-code"></div>
-                        <div><label>سعر البيع</label><input type="number" id="p-price" step="0.01" required></div>
-                        <div><label>الكمية</label><input type="number" id="p-stock" required></div>
-                        <div><label>رابط فيديو</label><input type="url" id="p-video"></div>
-                        <div style="grid-column: span 2;"><label>الصورة الرئيسية</label><input type="url" id="p-main-image" required></div>
+                        <div style="grid-column: span 2;"><label>اسم المنتج</label><input type="text" id="p-name" required class="form-control"></div>
+                        <div><label>كود المنتج (SKU)</label><input type="text" id="p-code" class="form-control"></div>
+                        <div><label>سعر البيع</label><input type="number" id="p-price" step="0.01" required class="form-control"></div>
+                        <div><label>الكمية</label><input type="number" id="p-stock" required class="form-control"></div>
+                        <div style="grid-column: span 2;"><label>الصورة الرئيسية (URL)</label><input type="url" id="p-main-image" required class="form-control"></div>
                         <div style="grid-column: span 2;"><label>وصف المنتج:</label><div id="p-desc-editor"></div></div>
                     </div>
                     <div style="margin-top:30px; display:flex; gap:15px;">
-                        <button type="submit" class="btn-success" style="flex:2;">حفظ</button>
+                        <button type="submit" class="btn-success" style="flex:2;">حفظ المنتج</button>
                         <button type="button" id="close-modal" class="btn-secondary" style="flex:1;">إلغاء</button>
                     </div>
                 </form>
@@ -50,36 +49,59 @@ export async function initProducts(container) {
 
 async function initFullEditor() {
     try {
-        if (productEditor) { await productEditor.destroy(); productEditor = null; }
+        if (productEditor) {
+            await productEditor.destroy();
+            productEditor = null;
+        }
+
         productEditor = await CKEDITOR.ClassicEditor.create(document.querySelector('#p-desc-editor'), {
+            // تعطيل كافة الإضافات المدفوعة التي تسبب أخطاء الترخيص
             removePlugins: [
-                'SlashCommand', 'Mention', 'DocumentOutline', 'ExportPdf', 'ExportWord', 'CKBox', 'CKFinder', 'EasyImage', 
-                'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges', 'RealTimeCollaborativeRevisionHistory', 
-                'PresenceList', 'Comments', 'TrackChanges', 'TrackChangesData', 'RevisionHistory', 'Pagination', 'WProofreader', 'MathType'
+                'AIAssistant', 'TableOfContents', 'FormatPainter', 'Template', 'PasteFromOfficeEnhanced',
+                'SlashCommand', 'Mention', 'DocumentOutline', 'ExportPdf', 'ExportWord', 'CKBox', 'CKFinder', 
+                'EasyImage', 'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges', 
+                'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments', 'TrackChanges', 
+                'TrackChangesData', 'RevisionHistory', 'Pagination', 'WProofreader', 'MathType'
             ],
-            toolbar: ['heading', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|', 'bold', 'italic', 'underline', 'alignment', '|', 'link', 'insertTable', 'undo', 'redo'],
-            language: 'ar', contentsLangDirection: 'rtl'
+            toolbar: [
+                'heading', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                'bold', 'italic', 'underline', 'alignment', '|',
+                'numberedList', 'bulletedList', '|', 'link', 'insertTable', 'undo', 'redo'
+            ],
+            language: 'ar',
+            contentsLangDirection: 'rtl',
+            licenseKey: '' 
         });
-    } catch (e) { console.error("Editor Error:", e); }
+    } catch (e) { 
+        console.error("خطأ في تشغيل المحرر:", e); 
+    }
 }
 
 async function loadProducts() {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
-    const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-    grid.innerHTML = snap.docs.map(doc => {
-        const p = doc.data();
-        return `
-            <div class="product-card" style="background:white; border-radius:12px; padding:15px; border:1px solid #eee;">
-                <div style="height:150px; background:url('${p.mainImage}') center/cover; border-radius:8px;"></div>
-                <h4 style="margin:10px 0 5px 0;">${p.name}</h4>
-                <div style="color:#e67e22; font-weight:bold;">${p.price} ريال</div>
-                <div style="margin-top:10px; display:flex; gap:5px;">
-                    <button onclick="window.editProductGlobal('${doc.id}')" class="btn-secondary" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
-                    <button onclick="window.deleteProductGlobal('${doc.id}')" class="btn-secondary" style="padding:5px 10px; color:red;"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>`;
-    }).join('');
+    try {
+        const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+        if (snap.empty) {
+            grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">لا توجد منتجات حالياً.</p>';
+            return;
+        }
+        grid.innerHTML = snap.docs.map(doc => {
+            const p = doc.data();
+            return `
+                <div class="product-card" style="background:white; border-radius:12px; padding:15px; border:1px solid #eee; transition:0.3s;">
+                    <div style="height:150px; background:url('${p.mainImage}') center/cover; border-radius:8px; background-color:#f8f9fa;"></div>
+                    <h4 style="margin:12px 0 5px 0; font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</h4>
+                    <div style="color:#e67e22; font-weight:bold; font-size:1.1rem;">${p.price} ريال</div>
+                    <div style="margin-top:15px; display:flex; gap:8px;">
+                        <button onclick="window.editProductGlobal('${doc.id}')" class="btn-secondary" style="flex:1; padding:8px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="window.deleteProductGlobal('${doc.id}')" class="btn-secondary" style="flex:1; padding:8px; color:#e74c3c;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+        }).join('');
+    } catch (err) {
+        grid.innerHTML = '<p style="color:red; text-align:center;">خطأ في تحميل البيانات.</p>';
+    }
 }
 
 function setupProductLogic() {
@@ -94,18 +116,36 @@ function setupProductLogic() {
 
     document.getElementById('product-form').onsubmit = async (e) => {
         e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerText = 'جاري الحفظ...';
+
         const data = {
             name: document.getElementById('p-name').value,
+            code: document.getElementById('p-code').value,
             price: parseFloat(document.getElementById('p-price').value),
             stock: parseInt(document.getElementById('p-stock').value),
             mainImage: document.getElementById('p-main-image').value,
             description: productEditor ? productEditor.getData() : '',
             updatedAt: serverTimestamp()
         };
-        const id = document.getElementById('edit-id').value;
-        id ? await updateDoc(doc(db, "products", id), data) : (data.createdAt = serverTimestamp(), await addDoc(collection(db, "products"), data));
-        modal.style.display = 'none';
-        loadProducts();
+
+        try {
+            const id = document.getElementById('edit-id').value;
+            if (id) {
+                await updateDoc(doc(db, "products", id), data);
+            } else {
+                data.createdAt = serverTimestamp();
+                await addDoc(collection(db, "products"), data);
+            }
+            modal.style.display = 'none';
+            await loadProducts();
+        } catch (err) {
+            alert("حدث خطأ أثناء الحفظ");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'حفظ المنتج';
+        }
     };
 }
 
@@ -114,15 +154,19 @@ window.editProductGlobal = async (id) => {
     if (snap.exists()) {
         const p = snap.data();
         document.getElementById('edit-id').value = id;
-        document.getElementById('p-name').value = p.name;
-        document.getElementById('p-price').value = p.price;
-        document.getElementById('p-stock').value = p.stock;
-        document.getElementById('p-main-image').value = p.mainImage;
+        document.getElementById('p-name').value = p.name || '';
+        document.getElementById('p-code').value = p.code || '';
+        document.getElementById('p-price').value = p.price || 0;
+        document.getElementById('p-stock').value = p.stock || 0;
+        document.getElementById('p-main-image').value = p.mainImage || '';
         if(productEditor) productEditor.setData(p.description || '');
         document.getElementById('product-modal').style.display = 'block';
     }
 };
 
 window.deleteProductGlobal = async (id) => {
-    if (confirm("حذف؟")) { await deleteDoc(doc(db, "products", id)); loadProducts(); }
+    if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
+        await deleteDoc(doc(db, "products", id));
+        loadProducts();
+    }
 };
