@@ -4,34 +4,40 @@ import {
     query, orderBy, serverTimestamp, getDoc 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+let productEditor; // متغير محرر CKEditor
+
 export async function initProducts(container) {
     container.innerHTML = `
         <div class="products-mgmt" dir="rtl" style="font-family: 'Tajawal', sans-serif; padding:20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <h2 style="color:#2c3e50; margin:0;"><i class="fas fa-boxes" style="color:#e67e22; margin-left:10px;"></i> إدارة المنتجات</h2>
-                <button id="btn-add-product" style="background:#e67e22; color:white; border:none; padding:12px 25px; border-radius:10px; cursor:pointer; font-weight:bold;">
+                <h2 style="color:#2c3e50; margin:0;"><i class="fas fa-boxes" style="color:#e67e22; margin-left:10px;"></i> مستودع تيرا جيتواي</h2>
+                <button id="btn-add-product" style="background:#e67e22; color:white; border:none; padding:12px 25px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 4px 12px rgba(230,126,34,0.2);">
                     <i class="fas fa-plus-circle"></i> إضافة منتج جديد
                 </button>
             </div>
-            <div id="products-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px;"></div>
+
+            <div id="products-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px;">
+                <div style="grid-column:1/-1; text-align:center; padding:50px; color:#95a5a6;">جاري جلب بيانات المستودع...</div>
+            </div>
         </div>
 
         <div id="product-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; overflow-y:auto; padding:20px;">
-            <div style="background:white; max-width:950px; margin:10px auto; border-radius:15px; padding:30px;">
-                <h3 id="modal-title" style="color:#e67e22; border-bottom:1px solid #eee; padding-bottom:15px;">إضافة/تعديل منتج</h3>
+            <div style="background:white; max-width:900px; margin:10px auto; border-radius:15px; padding:30px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                <h3 id="modal-title" style="color:#e67e22; border-bottom:2px solid #f1f2f6; padding-bottom:15px;">بيانات المنتج</h3>
+                
                 <form id="product-form">
                     <input type="hidden" id="edit-id">
                     
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:20px;">
                         <input type="text" id="p-name" placeholder="اسم المنتج" required style="grid-column: span 2; padding:12px; border:1px solid #ddd; border-radius:8px;">
-                        <input type="text" id="p-code" placeholder="SKU" style="padding:12px; border:1px solid #ddd; border-radius:8px;">
-                        <input type="number" id="p-price" placeholder="السعر" step="0.01" required style="padding:12px; border:1px solid #ddd; border-radius:8px;">
-                        <input type="number" id="p-stock" placeholder="الكمية" required style="padding:12px; border:1px solid #ddd; border-radius:8px;">
-                        <input type="url" id="p-main-image" placeholder="رابط الصورة" style="padding:12px; border:1px solid #ddd; border-radius:8px;">
+                        <input type="text" id="p-code" placeholder="كود SKU" style="padding:12px; border:1px solid #ddd; border-radius:8px;">
+                        <input type="number" id="p-price" placeholder="سعر البيع" step="0.01" required style="padding:12px; border:1px solid #ddd; border-radius:8px;">
+                        <input type="number" id="p-stock" placeholder="الكمية المتوفرة" required style="padding:12px; border:1px solid #ddd; border-radius:8px;">
+                        <input type="url" id="p-main-image" placeholder="رابط الصورة الرئيسية" style="grid-column: span 2; padding:12px; border:1px solid #ddd; border-radius:8px;">
                         
                         <div style="grid-column: span 2; margin-top:10px;">
-                            <label style="font-weight:bold; display:block; margin-bottom:10px;">وصف المنتج (نظام Word المتكامل):</label>
-                            <textarea id="p-desc-editor"></textarea>
+                            <label style="font-weight:bold; display:block; margin-bottom:10px;">وصف المنتج:</label>
+                            <div id="p-desc-editor"></div>
                         </div>
                     </div>
 
@@ -44,38 +50,38 @@ export async function initProducts(container) {
         </div>
     `;
 
-    // تهيئة محرر TinyMCE بخصائص الوورد
-    initTinyMCE();
+    // تهيئة محرر CKEditor
+    await initCKEditor();
     setupProductLogic();
     await loadProducts();
 }
 
-function initTinyMCE() {
-    tinymce.init({
-        selector: '#p-desc-editor',
-        height: 350,
-        directionality: 'rtl',
-        language: 'ar',
-        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
-        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table | removeformat | help',
-        content_style: 'body { font-family:Tajawal,Arial,sans-serif; font-size:14px }',
-        branding: false,
-        promotion: false
-    });
+async function initCKEditor() {
+    try {
+        productEditor = await ClassicEditor.create(document.querySelector('#p-desc-editor'), {
+            language: 'ar',
+            toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'insertTable', 'undo', 'redo'],
+            contentDirection: 'rtl'
+        });
+    } catch (error) {
+        console.error("خطأ في تشغيل المحرر:", error);
+    }
 }
 
 async function loadProducts() {
     const grid = document.getElementById('products-grid');
     const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-    const defaultImg = "https://placehold.jp/24/3498db/ffffff/300x180.png?text=TERA+GATEWAY";
+    
+    // صورة احتياطية في حال تعطل الرابط
+    const defaultImg = "https://placehold.jp/24/e67e22/ffffff/300x180.png?text=Tera+Gateway";
 
     grid.innerHTML = snap.docs.map(doc => {
         const p = doc.data();
         return `
-            <div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05); border:1px solid #eee;">
+            <div class="product-card" style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05); border:1px solid #eee;">
                 <div style="height:160px; background:url('${p.mainImage || defaultImg}') center/cover;"></div>
                 <div style="padding:15px;">
-                    <h4 style="margin:0;">${p.name}</h4>
+                    <h4 style="margin:0; color:#2c3e50;">${p.name}</h4>
                     <div style="color:#e67e22; font-weight:bold; margin-top:5px;">${parseFloat(p.price).toFixed(2)} ريال</div>
                     <div style="margin-top:15px; display:flex; gap:10px;">
                         <button onclick="window.editProduct('${doc.id}')" style="flex:1; background:#f1f2f6; border:none; padding:8px; border-radius:5px; cursor:pointer;"><i class="fas fa-edit"></i></button>
@@ -91,7 +97,7 @@ function setupProductLogic() {
     
     document.getElementById('btn-add-product').onclick = () => {
         document.getElementById('product-form').reset();
-        tinymce.get('p-desc-editor').setContent('');
+        if (productEditor) productEditor.setData('');
         document.getElementById('edit-id').value = '';
         modal.style.display = 'block';
     };
@@ -101,8 +107,8 @@ function setupProductLogic() {
     document.getElementById('product-form').onsubmit = async (e) => {
         e.preventDefault();
         
-        // استخراج المحتوى من المحرر
-        const descriptionHtml = tinymce.get('p-desc-editor').getContent();
+        // جلب البيانات من محرر CKEditor
+        const descriptionHtml = productEditor ? productEditor.getData() : '';
 
         const data = {
             name: document.getElementById('p-name').value,
@@ -115,15 +121,19 @@ function setupProductLogic() {
         };
 
         const id = document.getElementById('edit-id').value;
-        if (id) {
-            await updateDoc(doc(db, "products", id), data);
-        } else {
-            data.createdAt = serverTimestamp();
-            await addDoc(collection(db, "products"), data);
+        try {
+            if (id) {
+                await updateDoc(doc(db, "products", id), data);
+            } else {
+                data.createdAt = serverTimestamp();
+                await addDoc(collection(db, "products"), data);
+            }
+            modal.style.display = 'none';
+            loadProducts();
+        } catch (error) {
+            console.error("Error saving:", error);
+            alert("حدث خطأ أثناء الحفظ");
         }
-        
-        modal.style.display = 'none';
-        loadProducts();
     };
 }
 
@@ -138,17 +148,14 @@ window.editProduct = async (id) => {
         document.getElementById('p-stock').value = p.stock;
         document.getElementById('p-main-image').value = p.mainImage || '';
         
-        // وضع المحتوى داخل المحرر عند التعديل
-        if (tinymce.get('p-desc-editor')) {
-            tinymce.get('p-desc-editor').setContent(p.description || '');
-        }
+        if (productEditor) productEditor.setData(p.description || '');
         
         document.getElementById('product-modal').style.display = 'block';
     }
 };
 
 window.deleteProduct = async (id) => {
-    if (confirm("هل تريد حذف هذا المنتج؟")) {
+    if (confirm("هل أنت متأكد من حذف المنتج؟")) {
         await deleteDoc(doc(db, "products", id));
         loadProducts();
     }
