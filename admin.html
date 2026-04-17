@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tera Gateway | لوحة التحكم الاحترافية</title>
+    <title>Tera Gateway | لوحة التحكم</title>
     
-    <link rel="icon" type="image/png" href="./assets/img/logo.png">
-    <link rel="apple-touch-icon" href="./assets/img/logo.png">
-
+    <link rel="icon" type="image/svg+xml" href="fi-khidmatik/images/logo.svg">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/table.css">
     
@@ -17,46 +15,64 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/super-build/ckeditor.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
     <style>
-        /* إعدادات إضافية لضمان عمل المحرر فوق النوافذ المنبثقة */
         :root {
             --ck-z-default: 10000;
             --ck-z-modal: 10001;
+        }
+
+        /* إصلاح القائمة الجانبية لتكون ثابتة ومنفصلة عن المحتوى */
+        .main-layout {
+            display: flex;
+            min-height: calc(100vh - 70px);
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: white;
+            border-left: 1px solid #edf2f7;
+            z-index: 900;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 25px;
+            background: #f8fafb;
+            min-width: 0; /* لمنع تمدد المحتوى خارج الشاشة */
+        }
+
+        .header-logo-img {
+            height: 40px;
+            margin-left: 12px;
+            object-fit: contain;
         }
 
         .ck-editor__editable {
             min-height: 300px;
             text-align: right !important;
             direction: rtl !important;
-            background-color: white !important;
         }
 
-        /* تنسيق الهيدر في حال لم يتم تحميله ديناميكياً بعد */
-        .header-placeholder {
-            height: 70px;
-            background: white;
+        /* واجهة التحميل */
+        .loader-wrapper {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            padding: 0 25px;
-            border-bottom: 1px solid #f1f2f6;
-        }
-
-        .header-logo-img {
-            height: 45px;
-            margin-left: 15px;
-            object-fit: contain;
+            justify-content: center;
+            padding: 100px 0;
         }
     </style>
 </head>
 <body>
     <div id="app">
         <header id="header-container" class="admin-header">
-            <div class="logo">
-                <img src="./assets/img/logo.png" alt="Tera Logo" class="header-logo-img" onerror="this.src='https://placehold.jp/24/e67e22/ffffff/100x100.png?text=T'">
-                <h2>تيرا جيتواي</h2>
+            <div class="logo" style="display: flex; align-items: center;">
+                <img src="fi-khidmatik/images/logo.svg" alt="Tera Logo" class="header-logo-img" onerror="this.src='https://placehold.jp/e67e22/ffffff/100x100.png?text=T'">
+                <h2 style="margin: 0; font-size: 1.4rem; color: #e67e22;">تيرا جيتواي</h2>
             </div>
             <div class="header-tools">
                 <div id="current-datetime" class="datetime"></div>
@@ -64,13 +80,13 @@
         </header>
         
         <div class="main-layout">
-            <aside id="sidebar-container" class="sidebar"></aside>
+            <aside id="sidebar-container" class="sidebar">
+                </aside>
             
             <main id="main-content" class="main-content">
                 <div class="loader-wrapper">
-                    <img src="./assets/img/logo.png" alt="Tera Logo" class="loader-logo" onerror="this.style.display='none'">
                     <div class="spinner"></div>
-                    <p style="margin-top: 15px; font-weight: 500;">جاري تشغيل محرك تيرا جيتواي...</p>
+                    <p style="margin-top: 15px; font-weight: 500; color: #64748b;">جاري تحميل لوحة التحكم...</p>
                 </div>
             </main>
         </div>
@@ -79,15 +95,12 @@
     <div id="modal-container"></div>
 
     <script>
+        // تحديث الوقت الحي
         function updateDateTime() {
             const now = new Date();
             const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                weekday: 'long', year: 'numeric', month: 'long', 
+                day: 'numeric', hour: '2-digit', minute: '2-digit'
             };
             const dtElement = document.getElementById('current-datetime');
             if(dtElement) dtElement.innerText = now.toLocaleDateString('ar-SA', options);
