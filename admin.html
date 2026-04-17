@@ -7,74 +7,61 @@
     
     <link rel="icon" type="image/svg+xml" href="images/logo.svg">
     <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="css/table.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/super-build/ckeditor.js"></script>
 </head>
 <body>
-    <div id="app" class="app-wrapper">
+    <div id="app" class="app-container">
         <header class="admin-header">
             <div class="header-right">
-                <div class="logo-wrapper">
-                    <img src="images/logo.svg" alt="Tera" class="header-logo-img" onerror="this.src='https://placehold.jp/e67e22/ffffff/50x50.png?text=T'">
-                    <span class="brand-text">تيرا جيتواي</span>
+                <button id="sidebar-toggle" class="sidebar-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo-area">
+                    <img src="images/logo.svg" alt="Tera" class="logo-img" onerror="this.src='https://placehold.jp/e67e22/ffffff/50x50.png?text=T'">
+                    <span class="logo-text">تيرا جيتواي</span>
                 </div>
             </div>
-            <div class="header-left">
-                <div id="current-datetime" class="datetime-badge"></div>
-            </div>
+            <div id="current-datetime" class="datetime-display"></div>
         </header>
         
-        <div class="main-layout">
+        <div class="main-wrapper">
             <aside id="sidebar-container" class="sidebar">
                 <nav class="sidebar-nav">
                     <ul>
-                        <li class="active" data-module="dashboard">
-                            <i class="fas fa-th-large"></i>
-                            <span>الرئيسية</span>
-                        </li>
-                        <li data-module="products">
-                            <i class="fas fa-box-open"></i>
-                            <span>المنتجات</span>
-                        </li>
-                        <li data-module="orders">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                            <span>طلبات التقسيط</span>
-                        </li>
-                        <li data-module="customers">
-                            <i class="fas fa-user-friends"></i>
-                            <span>العملاء</span>
-                        </li>
-                        <li data-module="settings">
-                            <i class="fas fa-cog"></i>
-                            <span>الإعدادات</span>
-                        </li>
+                        <li class="active" data-module="dashboard"><i class="fas fa-th-large"></i> <span>الرئيسية</span></li>
+                        <li data-module="products"><i class="fas fa-box-open"></i> <span>المنتجات</span></li>
+                        <li data-module="orders"><i class="fas fa-file-invoice-dollar"></i> <span>الطلبات</span></li>
+                        <li data-module="customers"><i class="fas fa-user-friends"></i> <span>العملاء</span></li>
+                        <li data-module="settings"><i class="fas fa-cog"></i> <span>الإعدادات</span></li>
                     </ul>
                 </nav>
             </aside>
             
-            <main id="main-content" class="content-area">
-                <div class="loader-placeholder">
-                    <div class="spinner"></div>
-                    <p>جاري تحميل البيانات...</p>
-                </div>
-            </main>
+            <main id="main-content" class="content-body"></main>
         </div>
     </div>
 
     <script>
-        function updateDateTime() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            document.getElementById('current-datetime').innerText = now.toLocaleDateString('ar-SA', options);
-        }
-        setInterval(updateDateTime, 1000);
-        updateDateTime();
+        // كود الفتح والإغلاق والتاريخ
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar-container');
+            
+            btn.onclick = () => {
+                sidebar.classList.toggle('collapsed');
+            };
+
+            function updateDateTime() {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                document.getElementById('current-datetime').innerText = now.toLocaleDateString('ar-SA', options);
+            }
+            setInterval(updateDateTime, 1000);
+            updateDateTime();
+        });
     </script>
     <script type="module" src="js/main.js"></script>
 </body>
