@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tera Gateway | لوحة التحكم الاحترافية</title>
     
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <link rel="apple-touch-icon" href="assets/img/logo.png">
+
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/table.css">
     
@@ -14,10 +17,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
     <style>
-        /* تنسيق سريع لمنطقة التحميل لضمان تجربة مستخدم سلسة */
         body {
             margin: 0;
             background-color: #f8fafb;
@@ -32,16 +35,22 @@
             height: 70vh;
             color: #5d6d7e;
         }
+        /* تصميم شعار متحرك بسيط أثناء التحميل */
+        .loader-logo {
+            width: 80px;
+            margin-bottom: 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
         .spinner {
             width: 45px;
             height: 45px;
             border: 4px solid #e2e8f0;
-            border-top: 4px solid #3498db; /* لون تيرا الأساسي */
+            border-top: 4px solid #e67e22; /* تم تغيير اللون لبرتقالي تيرا */
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.95); } }
     </style>
 </head>
 <body>
@@ -53,8 +62,9 @@
             
             <main id="main-content" class="main-content" style="flex-grow: 1; padding: 25px;">
                 <div class="loader-wrapper">
+                    <img src="assets/img/logo.png" alt="Tera Logo" class="loader-logo" onerror="this.style.display='none'">
                     <div class="spinner"></div>
-                    <p>جاري تشغيل محرك تيرا جيتواي...</p>
+                    <p style="margin-top: 15px; font-weight: 500;">جاري تشغيل محرك تيرا جيتواي...</p>
                 </div>
             </main>
         </div>
