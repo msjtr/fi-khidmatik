@@ -1,106 +1,107 @@
-/**
- * js/modules/products.js
- * موديول إدارة المستودع - منصة تيرا
- */
-
 import { db } from '../core/firebase.js';
 import { 
-    collection, getDocs, deleteDoc, doc, query, orderBy 
+    collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-export async function initProducts(container) {
-    try {
-        // تحميل الواجهة التي أرسلتها أنت
-        const response = await fetch('./admin/modules/products.html');
-        const html = await response.text();
-        container.innerHTML = html;
+let allProducts = []; // لتخزين المنتجات محلياً للبحث والفلترة السريعة
 
-        console.log("✅ تم تحميل واجهة المستودع.");
-        
-        // تشغيل الجلب فوراً
+export async function initProducts(container) {
+    const response = await fetch('./admin/modules/products.html');
+    container.innerHTML = await response.text();
+
+    setupEventListeners();
+    fetchProducts();
+}
+
+function setupEventListeners() {
+    // زر فتح نافذة الإضافة
+    document.getElementById('new-product-btn').onclick = () => {
+        document.getElementById('product-form').reset();
+        document.getElementById('p-id').value = "";
+        document.getElementById('modal-title').innerText = "إضافة منتج جديد";
+        document.getElementById('product-modal').style.display = 'flex';
+    };
+
+    // معالج الحفظ (إضافة أو تعديل)
+    document.getElementById('product-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('p-id').value;
+        const data = {
+            name: document.getElementById('p-name').value,
+            code: document.getElementById('p-code').value,
+            price: Number(document.getElementById('p-price').value),
+            stock: Number(document.getElementById('p-stock').value),
+            category: document.getElementById('p-category').value,
+            mainImage: document.getElementById('p-image').value,
+            description: document.getElementById('p-desc').value,
+            updatedAt: serverTimestamp()
+        };
+
+        if (id) {
+            await updateDoc(doc(db, "products", id), data);
+        } else {
+            data.createdAt = serverTimestamp();
+            await addDoc(collection(db, "products"), data);
+        }
+        document.getElementById('product-modal').style.display = 'none';
         fetchProducts();
-        
-    } catch (error) {
-        console.error("❌ خطأ في تحميل الواجهة:", error);
-    }
+    };
+
+    // البحث والفلترة
+    document.getElementById('search-product').oninput = renderFiltered;
+    document.getElementById('category-filter').onchange = renderFiltered;
 }
 
 async function fetchProducts() {
-    // الـ ID الصحيح حسب الكود الذي أرسلته أنت
-    const tableBody = document.getElementById('products-list-body');
-    
-    if (!tableBody) {
-        console.error("❌ لم يتم العثور على 'products-list-body' في ملف HTML.");
-        return;
-    }
-
-    try {
-        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-        
-        tableBody.innerHTML = ""; // تنظيف رسالة "جاري فحص المستودع"
-
-        if (snapshot.empty) {
-            tableBody.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center;">المستودع فارغ حالياً.</td></tr>`;
-            return;
-        }
-
-        snapshot.forEach((docSnap) => {
-            const p = docSnap.data();
-            const pId = docSnap.id;
-            
-            // تحديد لون حالة المخزون
-            let stockClass = 'stock-in';
-            let stockText = 'متوفر';
-            if (p.stock <= 0) {
-                stockClass = 'stock-out';
-                stockText = 'نفد';
-            } else if (p.stock < 5) {
-                stockClass = 'stock-low';
-                stockText = 'منخفض';
-            }
-
-            // حقن الصف في الجدول
-            tableBody.innerHTML += `
-                <tr style="border-bottom: 1px solid #f1f1f1;">
-                    <td style="padding:15px;">
-                        <div class="product-img-slot">
-                            <img src="${p.mainImage || 'admin/images/default-product.png'}" alt="">
-                        </div>
-                    </td>
-                    <td style="padding:15px;">
-                        <div style="font-weight:bold; color:#2c3e50;">${p.name}</div>
-                        <div style="font-size:0.75rem; color:#95a5a6;">${p.code || 'بدون كود'}</div>
-                    </td>
-                    <td style="padding:15px; font-weight:bold; color:#e67e22;">${p.price} ريال</td>
-                    <td style="padding:15px;">${p.stock}</td>
-                    <td style="padding:15px;">
-                        <span class="stock-badge ${stockClass}">${stockText}</span>
-                    </td>
-                    <td style="padding:15px;">
-                        <button onclick="deleteProduct('${pId}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        console.log("✅ تم تحديث قائمة المستودع.");
-
-    } catch (err) {
-        console.error("❌ خطأ أثناء جلب المنتجات:", err);
-        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:20px;">خطأ في الاتصال بقاعدة البيانات.</td></tr>`;
-    }
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    allProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderFiltered();
 }
 
-// دالة الحذف
+function renderFiltered() {
+    const searchTerm = document.getElementById('search-product').value.toLowerCase();
+    const catFilter = document.getElementById('category-filter').value;
+    const tbody = document.getElementById('products-list-body');
+
+    const filtered = allProducts.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm) || p.code.toLowerCase().includes(searchTerm);
+        const matchesCat = catFilter === "all" || p.category === catFilter;
+        return matchesSearch && matchesCat;
+    });
+
+    tbody.innerHTML = filtered.map(p => `
+        <tr>
+            <td style="padding:15px;"><div class="product-img-slot"><img src="${p.mainImage || 'admin/images/default-product.png'}"></div></td>
+            <td style="padding:15px;"><strong>${p.name}</strong><br><small>${p.code}</small></td>
+            <td style="padding:15px;">${p.category}</td>
+            <td style="padding:15px; color:#e67e22; font-weight:bold;">${p.price} ريال</td>
+            <td style="padding:15px;">${p.stock}</td>
+            <td style="padding:15px;">
+                <button onclick="editProduct('${p.id}')" style="color:#3498db; background:none; border:none; cursor:pointer; margin-left:10px;"><i class="fas fa-edit"></i></button>
+                <button onclick="deleteProduct('${p.id}')" style="color:#e74c3c; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.editProduct = (id) => {
+    const p = allProducts.find(x => x.id === id);
+    document.getElementById('p-id').value = p.id;
+    document.getElementById('p-name').value = p.name;
+    document.getElementById('p-code').value = p.code;
+    document.getElementById('p-price').value = p.price;
+    document.getElementById('p-stock').value = p.stock;
+    document.getElementById('p-category').value = p.category || "cards";
+    document.getElementById('p-image').value = p.mainImage || "";
+    document.getElementById('p-desc').value = p.description || "";
+    document.getElementById('modal-title').innerText = "تعديل المنتج";
+    document.getElementById('product-modal').style.display = 'flex';
+};
+
 window.deleteProduct = async (id) => {
-    if (confirm("هل تريد إزالة هذا المنتج من المستودع؟")) {
-        try {
-            await deleteDoc(doc(db, "products", id));
-            fetchProducts();
-        } catch (err) {
-            console.error("❌ فشل الحذف:", err);
-        }
+    if (confirm("حذف المنتج نهائياً؟")) {
+        await deleteDoc(doc(db, "products", id));
+        fetchProducts();
     }
 };
