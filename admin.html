@@ -1,99 +1,61 @@
-/* ضبط عام */
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tera Gateway | لوحة التحكم</title>
+    
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <header class="main-header">
+            <div class="header-right">
+                <button id="sidebar-toggle" class="btn-sidebar"><i class="fas fa-bars"></i></button>
+                <div class="brand-box">
+                    <img src="images/logo.svg" alt="Tera" class="logo-small" onerror="this.src='https://placehold.jp/e67e22/ffffff/50x50.png?text=T'">
+                    <span class="brand-name">Tera Gateway</span>
+                </div>
+            </div>
+            <div id="current-datetime" class="header-time"></div>
+        </header>
 
-:root {
-    --primary-orange: #e67e22;
-    --sidebar-dark: #1a202c; /* اللون الكحلي الداكن الذي تفضله */
-    --text-white: #ffffff;
-    --text-muted: #a0aec0;
-    --header-height: 70px;
-}
+        <div class="body-container">
+            <aside id="sidebar" class="sidebar">
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="active" data-module="dashboard"><i class="fas fa-home"></i> <span>الرئيسية</span></li>
+                        <li data-module="products"><i class="fas fa-box"></i> <span>المنتجات</span></li>
+                        <li data-module="orders"><i class="fas fa-file-invoice"></i> <span>طلبات التقسيط</span></li>
+                        <li data-module="customers"><i class="fas fa-users"></i> <span>العملاء</span></li>
+                        <li data-module="settings"><i class="fas fa-cog"></i> <span>الإعدادات</span></li>
+                    </ul>
+                </nav>
+            </aside>
 
-.app-layout { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+            <main id="main-content" class="main-content">
+                </main>
+        </div>
+    </div>
 
-/* الهيدر: ثابت وواضح */
-.main-header {
-    height: var(--header-height);
-    background: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    border-bottom: 2px solid #edf2f7;
-    z-index: 1000;
-}
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        
+        toggleBtn.onclick = () => {
+            sidebar.classList.toggle('collapsed');
+        };
 
-.header-right { display: flex; align-items: center; gap: 15px; }
-
-.btn-sidebar {
-    background: var(--sidebar-dark);
-    color: white;
-    border: none;
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.brand-box { display: flex; align-items: center; gap: 10px; }
-.logo-small { height: 32px; width: auto; }
-.brand-name { color: var(--primary-orange); font-weight: 800; font-size: 1.3rem; }
-
-/* القائمة الجانبية: الألوان المطلوبة */
-.body-container { display: flex; flex: 1; overflow: hidden; }
-
-.sidebar {
-    width: 260px;
-    background: var(--sidebar-dark);
-    transition: 0.3s ease;
-    overflow-y: auto;
-    flex-shrink: 0;
-}
-
-.sidebar.collapsed { width: 0; opacity: 0; }
-
-.sidebar-nav ul { list-style: none; padding: 20px 12px; }
-
-.sidebar-nav li {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 14px 18px;
-    margin-bottom: 5px;
-    border-radius: 10px;
-    color: var(--text-muted);
-    font-weight: 700; /* خط عريض جداً كما طلبت */
-    cursor: pointer;
-    transition: 0.2s;
-    white-space: nowrap;
-}
-
-.sidebar-nav li i { font-size: 1.2rem; width: 25px; text-align: center; }
-
-.sidebar-nav li:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-white); }
-.sidebar-nav li:hover i { color: var(--primary-orange); }
-
-.sidebar-nav li.active {
-    background: var(--primary-orange);
-    color: var(--text-white) !important;
-    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
-}
-
-.sidebar-nav li.active i { color: var(--text-white) !important; }
-
-/* المحتوى */
-.main-content {
-    flex: 1;
-    padding: 30px;
-    background: #f8fafb;
-    overflow-y: auto;
-}
-
-.header-time {
-    background: #f1f5f9;
-    padding: 7px 15px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #475569;
-}
+        function updateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('current-datetime').innerText = now.toLocaleDateString('ar-SA', options);
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>
