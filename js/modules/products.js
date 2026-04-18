@@ -63,7 +63,7 @@ export async function initProducts(container) {
                     </div>
 
                     <div style="margin-bottom:25px;">
-                        <label style="font-weight:700; display:block; margin-bottom:10px;">الوصف التفصيلي (HTML)</label>
+                        <label style="font-weight:700; display:block; margin-bottom:10px;">وصف المنتج التفصيلي</label>
                         <textarea id="p-description"></textarea>
                     </div>
 
@@ -84,7 +84,6 @@ export async function initProducts(container) {
     }, 100);
 }
 
-// دالة جلب البيانات من Firestore
 async function fetchProducts() {
     const grid = document.getElementById('products-list-grid');
     if (!grid) return;
@@ -94,7 +93,7 @@ async function fetchProducts() {
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
-            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#94a3b8;">لا توجد منتجات مسجلة في تيرا حتى الآن.</div>`;
+            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#94a3b8;">لا توجد منتجات مسجلة حالياً.</div>`;
             return;
         }
 
@@ -102,25 +101,24 @@ async function fetchProducts() {
         snapshot.forEach((docSnap) => {
             const p = docSnap.data();
             grid.innerHTML += `
-                <div class="order-card" style="border-top: 4px solid #e67e22;">
-                    <div class="order-header">
-                        <div class="order-id">#${p.code}</div>
-                        <span class="order-status ${p.stock > 0 ? 'status-completed' : 'status-cancelled'}">
-                            ${p.stock > 0 ? 'متوفر' : 'منتهي'}
-                        </span>
+                <div class="order-card">
+                    <div style="height:150px; background:#f8fafc; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                        ${p.mainImage ? `<img src="${p.mainImage}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-image fa-2x" style="color:#cbd5e1;"></i>`}
                     </div>
-                    <div class="order-body">
-                        <div style="font-weight:800; font-size:1.1rem; color:#1a202c; margin-bottom:10px;">${p.name}</div>
-                        <div class="info-row" style="margin-bottom:15px;">
-                            <span class="info-label">المخزون الحالي:</span>
-                            <span class="info-value" style="color:${p.stock < 10 ? '#e74c3c' : '#27ae60'}">${p.stock} قطعة</span>
+                    <div class="order-body" style="padding:15px;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="font-size:0.7rem; font-weight:800; color:#e67e22;">#${p.code}</span>
+                            <span class="order-status ${p.stock > 0 ? 'status-completed' : 'status-cancelled'}">
+                                ${p.stock > 0 ? 'متوفر' : 'منتهي'}
+                            </span>
                         </div>
+                        <h4 style="margin:10px 0; font-weight:800;">${p.name}</h4>
                         <div class="order-finance">
                             <span class="finance-label">السعر</span>
                             <span class="finance-value">${p.price} <small>SAR</small></span>
                         </div>
                     </div>
-                    <div class="order-footer">
+                    <div class="order-footer" style="padding:10px;">
                         <button class="btn-action" style="flex:1;" onclick="deleteProduct('${docSnap.id}')">
                             <i class="fas fa-trash-alt" style="color:#e74c3c;"></i> حذف
                         </button>
@@ -129,11 +127,9 @@ async function fetchProducts() {
         });
     } catch (err) {
         console.error("Fetch Error:", err);
-        grid.innerHTML = `<div style="color:red; text-align:center; grid-column:1/-1;">خطأ في جلب المنتجات. تأكد من إعدادات Firestore.</div>`;
     }
 }
 
-// دالة حفظ المنتج
 function setupFormHandler() {
     const form = document.getElementById('product-main-form');
     if (!form) return;
@@ -142,7 +138,6 @@ function setupFormHandler() {
         e.preventDefault();
         const btn = document.getElementById('save-btn');
         btn.disabled = true;
-        btn.innerText = "جاري الحفظ...";
 
         try {
             await addDoc(collection(db, "products"), {
@@ -158,22 +153,27 @@ function setupFormHandler() {
             form.reset();
             if(editorInstance) editorInstance.setData('');
             fetchProducts();
-            alert("تم حفظ المنتج بنجاح في قاعدة البيانات!");
+            alert("تم الحفظ!");
         } catch (err) {
-            console.error("Save Error:", err);
-            alert("فشل الحفظ، تأكد من اتصال الإنترنت.");
+            console.error(err);
         } finally {
             btn.disabled = false;
-            btn.innerText = "حفظ المنتج ونشره";
         }
     };
 }
 
-// دالة الحذف المرتبطة بـ Firestore
 window.deleteProduct = async (id) => {
-    if (confirm("هل تريد حذف هذا المنتج نهائياً من قاعدة بيانات تيرا؟")) {
+    if (confirm("هل تريد حذف المنتج؟")) {
         try {
             await deleteDoc(doc(db, "products", id));
             fetchProducts();
-        } catch (err) { 
-            console.error(err);
+        } catch (err) { console.error(err); }
+    }
+};
+
+async function initFullEditor(elementId) {
+    if (typeof ClassicEditor !== 'undefined') {
+        ClassicEditor.create(document.getElementById(elementId), { language: 'ar', direction: 'rtl' })
+            .then(editor => { editorInstance = editor; });
+    }
+}
