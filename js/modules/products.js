@@ -1,145 +1,129 @@
-// js/modules/products.js
-// تعديل المسار ليناسب GitHub Pages وتجنب خطأ 404
-import { db } from '/fi-khidmatik/js/firebase-config.js'; 
+/**
+ * js/modules/products.js
+ * موديول إدارة المنتجات - منصة تيرا
+ */
+
+// استيراد قاعدة البيانات من المسار الصحيح حسب هيكل مشروعك
+import { db } from '../core/firebase.js';
 
 import { 
     collection, addDoc, getDocs, deleteDoc, doc, 
     serverTimestamp, query, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// متغير لمحرر النصوص (CKEditor) إذا كنت تستخدمه في واجهة المنتجات
 let editorInstance; 
 
+/**
+ * دالة تشغيل موديول المنتجات
+ * @param {HTMLElement} container - الحاوية التي سيتم حقن الواجهة داخلها
+ */
 export async function initProducts(container) {
-    console.log("products.js: جاري محاولة الربط بالقاعدة...");
+    // تحميل واجهة المنتجات من مجلد admin/modules/products.html
+    try {
+        const response = await fetch('./admin/modules/products.html');
+        const html = await response.text();
+        container.innerHTML = html;
 
-    container.innerHTML = `
-        <div class="products-wrapper" style="animation: fadeIn 0.4s ease;">
-            <div class="module-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                <div>
-                    <h2 style="font-weight:800; color:#1a202c; font-size:1.8rem;">إدارة المنتجات</h2>
-                    <p style="color:#64748b;">منصة تيرا - الربط المباشر بـ Firestore</p>
-                </div>
-                <button onclick="document.getElementById('product-form-section').scrollIntoView({behavior:'smooth'})" 
-                        class="btn-main" style="background:#e67e22; color:white; border:none; padding:12px 25px; border-radius:12px; font-weight:800; cursor:pointer;">
-                    <i class="fas fa-plus-circle"></i> إضافة منتج جديد
-                </button>
-            </div>
-
-            <div id="products-list-grid" class="orders-grid">
-                <div style="grid-column: 1/-1; text-align:center; padding:50px;">
-                    <i class="fas fa-circle-notch fa-spin fa-2x" style="color:#e67e22;"></i>
-                    <p style="margin-top:15px; color:#64748b;">جاري استدعاء البيانات...</p>
-                </div>
-            </div>
-
-            <hr style="margin:50px 0; border:0; border-top:2px dashed #e2e8f0;">
-
-            <section id="product-form-section" class="order-card" style="padding:30px; background:#fff; border-radius:20px; border:1px solid #f1f5f9;">
-                <h3 style="font-weight:800; color:#1a202c; margin-bottom:25px; border-right:4px solid #e67e22; padding-right:15px;">إدخال منتج جديد</h3>
-                <form id="product-main-form">
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:20px;">
-                        <div>
-                            <label style="font-weight:700;">اسم المنتج</label>
-                            <input type="text" id="p-name" required class="form-input" style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:10px;">
-                        </div>
-                        <div>
-                            <label style="font-weight:700;">كود SKU</label>
-                            <input type="text" id="p-code" required class="form-input" style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:10px;">
-                        </div>
-                    </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px; margin-bottom:20px;">
-                        <div>
-                            <label style="font-weight:700;">السعر</label>
-                            <input type="number" id="p-price" required style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:10px;">
-                        </div>
-                        <div>
-                            <label style="font-weight:700;">الكمية</label>
-                            <input type="number" id="p-stock" required style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:10px;">
-                        </div>
-                        <div>
-                            <label style="font-weight:700;">رابط الصورة</label>
-                            <input type="url" id="p-img" style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:10px;">
-                        </div>
-                    </div>
-                    <div style="margin-bottom:25px;">
-                        <label style="font-weight:700;">الوصف</label>
-                        <textarea id="p-description"></textarea>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end;">
-                        <button type="submit" id="save-btn" class="btn-main" style="background:#1a202c; color:#fff; padding:15px 45px; border-radius:12px; border:none; cursor:pointer;">حفظ المنتج</button>
-                    </div>
-                </form>
-            </section>
-        </div>
-    `;
-
-    setTimeout(() => {
-        initFullEditor('p-description');
+        // بعد تحميل الواجهة، نبدأ بجلب البيانات وربط الأزرار
+        console.log("تم تحميل واجهة المنتجات بنجاح.");
+        
         fetchProducts(); 
         setupFormHandler(); 
-    }, 100);
+        
+    } catch (error) {
+        console.error("خطأ في تحميل واجهة المنتجات:", error);
+        container.innerHTML = `<p style="color:red; padding:20px;">حدث خطأ أثناء تحميل واجهة المنتجات.</p>`;
+    }
 }
 
+/**
+ * جلب المنتجات من Firestore وعرضها في الجدول أو الشبكة
+ */
 async function fetchProducts() {
-    const grid = document.getElementById('products-list-grid');
+    const grid = document.getElementById('products-list-grid'); // تأكد أن هذا ID موجود في products.html
     if (!grid) return;
+
     try {
         const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
-        grid.innerHTML = "";
+        
+        grid.innerHTML = ""; // تنظيف الحاوية
+
         if (snapshot.empty) {
-            grid.innerHTML = `<p style="grid-column:1/-1; text-align:center;">لا يوجد منتجات.</p>`;
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:20px;">لا توجد باقات مضافة حالياً.</div>`;
             return;
         }
+
         snapshot.forEach((docSnap) => {
             const p = docSnap.data();
+            const pId = docSnap.id;
+            
+            // بناء بطاقة المنتج بأسلوب تيرا النظيف
             grid.innerHTML += `
-                <div class="order-card">
+                <div class="order-card" style="border-top: 4px solid #e67e22;">
                     <div class="order-body" style="padding:15px;">
-                        <h4 style="font-weight:800;">${p.name}</h4>
-                        <p style="color:#e67e22; font-weight:700;">${p.price} SAR</p>
-                        <p style="font-size:0.8rem;">المخزون: ${p.stock}</p>
+                        <h4 style="font-weight:800; margin-bottom:10px;">${p.name}</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:#e67e22; font-weight:700;">${p.price} ريال</span>
+                            <span style="font-size:0.85rem; color:#64748b;">المخزون: ${p.stock}</span>
+                        </div>
                     </div>
-                    <div class="order-footer">
-                        <button onclick="deleteProduct('${docSnap.id}')" style="color:red; border:none; background:none; cursor:pointer;">حذف</button>
+                    <div class="order-footer" style="padding:10px; background:#f8fafc; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end;">
+                        <button onclick="deleteProduct('${pId}')" style="color:#ef4444; background:none; border:none; cursor:pointer; font-size:0.9rem;">
+                            <i class="fas fa-trash-alt"></i> حذف
+                        </button>
                     </div>
                 </div>`;
         });
-    } catch (err) { console.error("Error:", err); }
+    } catch (err) {
+        console.error("خطأ في جلب البيانات:", err);
+    }
 }
 
+/**
+ * معالج إرسال النموذج لإضافة منتج جديد
+ */
 function setupFormHandler() {
     const form = document.getElementById('product-main-form');
     if (!form) return;
+
     form.onsubmit = async (e) => {
         e.preventDefault();
+        
+        const saveBtn = document.getElementById('save-btn');
+        if(saveBtn) saveBtn.disabled = true;
+
         try {
             await addDoc(collection(db, "products"), {
                 name: document.getElementById('p-name').value,
-                code: document.getElementById('p-code').value,
                 price: Number(document.getElementById('p-price').value),
                 stock: Number(document.getElementById('p-stock').value),
-                mainImage: document.getElementById('p-img').value || "",
-                description: editorInstance ? editorInstance.getData() : "",
                 createdAt: serverTimestamp()
             });
+
             form.reset();
             fetchProducts();
-            alert("تم الحفظ!");
-        } catch (err) { alert("خطأ في الحفظ"); }
+            alert("تمت إضافة الباقة بنجاح إلى منصة تيرا.");
+        } catch (err) {
+            console.error("خطأ في الحفظ:", err);
+            alert("فشل الحفظ، تأكد من إعدادات Firestore.");
+        } finally {
+            if(saveBtn) saveBtn.disabled = false;
+        }
     };
 }
 
+/**
+ * حذف منتج (متاحة عالمياً ليتم استدعاؤها من الـ HTML)
+ */
 window.deleteProduct = async (id) => {
-    if (confirm("حذف؟")) {
-        await deleteDoc(doc(db, "products", id));
-        fetchProducts();
+    if (confirm("هل أنت متأكد من حذف هذه الباقة؟")) {
+        try {
+            await deleteDoc(doc(db, "products", id));
+            fetchProducts();
+        } catch (err) {
+            console.error("خطأ في الحذف:", err);
+        }
     }
 };
-
-async function initFullEditor(elementId) {
-    if (typeof ClassicEditor !== 'undefined') {
-        ClassicEditor.create(document.getElementById(elementId), { language: 'ar', direction: 'rtl' })
-            .then(editor => { editorInstance = editor; });
-    }
-}
