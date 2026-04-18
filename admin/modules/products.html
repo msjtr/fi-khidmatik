@@ -1,13 +1,8 @@
 <div class="module-container" style="font-family: 'Tajawal', sans-serif;" dir="rtl">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
         <h2 style="margin:0; color:#2c3e50;"><i class="fas fa-cubes" style="color:#e67e22; margin-left:10px;"></i> إدارة مستودع المنتجات</h2>
-        
         <div style="display:flex; gap:10px;">
-            <button id="stock-alerts-btn" style="background:#fff3e0; color:#e67e22; border:1px solid #ffe0b2; padding:10px 15px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold;">
-                <i class="fas fa-exclamation-triangle"></i> تنبيهات النقص
-            </button>
-            
-            <button id="new-product-btn" class="btn-primary" style="background:#e67e22; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow:0 4px 10px rgba(230,126,34,0.2);">
+            <button id="new-product-btn" class="btn-primary" style="background:#e67e22; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
                 <i class="fas fa-plus"></i> إضافة منتج جديد
             </button>
         </div>
@@ -15,10 +10,10 @@
 
     <div style="display:grid; grid-template-columns: 2fr 1fr; gap:15px; margin-bottom: 20px; background:#f8f9fa; padding:15px; border-radius:12px; border: 1px solid #eee;">
         <div style="position:relative;">
-            <i class="fas fa-barcode" style="position:absolute; right:15px; top:12px; color:#bdc3c7;"></i>
-            <input type="text" id="search-product" placeholder="بحث باسم المنتج، الكود (SKU)، أو الباركود..." style="width:100%; padding:10px 40px 10px 10px; border:1px solid #ddd; border-radius:8px;">
+            <i class="fas fa-search" style="position:absolute; right:15px; top:12px; color:#bdc3c7;"></i>
+            <input type="text" id="search-product" placeholder="بحث باسم المنتج أو الكود..." style="width:100%; padding:10px 40px 10px 10px; border:1px solid #ddd; border-radius:8px;">
         </div>
-        <select id="category-filter" style="padding:10px; border:1px solid #ddd; border-radius:8px; background:white; cursor:pointer;">
+        <select id="category-filter" style="padding:10px; border:1px solid #ddd; border-radius:8px; background:white;">
             <option value="all">جميع التصنيفات</option>
             <option value="cards">بطاقات شحن</option>
             <option value="services">خدمات تقنية</option>
@@ -26,59 +21,46 @@
         </select>
     </div>
 
-    <div id="products-table-container" style="background:white; border-radius:15px; border:1px solid #eee; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+    <div id="products-table-container" style="background:white; border-radius:15px; border:1px solid #eee; overflow:hidden;">
         <table style="width:100%; border-collapse:collapse; text-align:right;">
             <thead style="background:#fcfcfc; color:#7f8c8d; font-size:0.85rem;">
                 <tr>
                     <th style="padding:15px; border-bottom:2px solid #f1f1f1;">الصورة</th>
                     <th style="padding:15px; border-bottom:2px solid #f1f1f1;">المنتج / SKU</th>
+                    <th style="padding:15px; border-bottom:2px solid #f1f1f1;">التصنيف</th>
                     <th style="padding:15px; border-bottom:2px solid #f1f1f1;">سعر البيع</th>
                     <th style="padding:15px; border-bottom:2px solid #f1f1f1;">المخزون</th>
-                    <th style="padding:15px; border-bottom:2px solid #f1f1f1;">الحالة</th>
                     <th style="padding:15px; border-bottom:2px solid #f1f1f1;">الإجراءات</th>
                 </tr>
             </thead>
             <tbody id="products-list-body">
-                <tr>
-                    <td colspan="6" style="text-align:center; padding:50px; color:#bdc3c7;">
-                        <i class="fas fa-box-open fa-3x" style="margin-bottom:10px; display:block;"></i>
-                        جاري فحص المستودع وتحديث المنتجات...
-                    </td>
-                </tr>
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
 
-<style>
-    #products-list-body tr:hover {
-        background-color: #fffaf5;
-        transition: background 0.2s ease;
-    }
-    .stock-badge {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
-    .stock-in { background: #e8f5e9; color: #2e7d32; } /* متوفر */
-    .stock-low { background: #fff3e0; color: #ef6c00; } /* منخفض */
-    .stock-out { background: #ffebee; color: #c62828; } /* نفد */
-    
-    .product-img-slot {
-        width: 50px;
-        height: 50px;
-        border-radius: 8px;
-        background: #f1f2f6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border: 1px solid #eee;
-    }
-    .product-img-slot img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-</style>
+<div id="product-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; width:90%; max-width:600px; padding:25px; border-radius:15px; position:relative;">
+        <h3 id="modal-title">إضافة منتج جديد</h3>
+        <form id="product-form">
+            <input type="hidden" id="p-id">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                <input type="text" id="p-name" placeholder="اسم المنتج" required style="padding:10px; border:1px solid #ddd; border-radius:8px;">
+                <input type="text" id="p-code" placeholder="الكود (SKU)" required style="padding:10px; border:1px solid #ddd; border-radius:8px;">
+                <input type="number" id="p-price" placeholder="السعر" required style="padding:10px; border:1px solid #ddd; border-radius:8px;">
+                <input type="number" id="p-stock" placeholder="الكمية" required style="padding:10px; border:1px solid #ddd; border-radius:8px;">
+                <select id="p-category" style="padding:10px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="cards">بطاقات شحن</option>
+                    <option value="services">خدمات تقنية</option>
+                    <option value="devices">أجهزة</option>
+                </select>
+                <input type="text" id="p-image" placeholder="رابط الصورة" style="padding:10px; border:1px solid #ddd; border-radius:8px;">
+            </div>
+            <textarea id="p-desc" placeholder="وصف المنتج (HTML)" style="width:100%; margin-top:15px; padding:10px; border:1px solid #ddd; border-radius:8px; height:80px;"></textarea>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button type="submit" style="flex:2; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">حفظ المنتج</button>
+                <button type="button" onclick="document.getElementById('product-modal').style.display='none'" style="flex:1; background:#eee; border:none; padding:12px; border-radius:8px; cursor:pointer;">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
