@@ -1,5 +1,10 @@
+/**
+ * المسار الحالي: js/utils/calculations.js
+ */
+
 export const calculateProductProfit = (cost, price) => {
-    return (Number(price) || 0) - (Number(cost) || 0);
+    const result = (Number(price) || 0) - (Number(cost) || 0);
+    return result.toFixed(2);
 };
 
 export const getStockStatus = (stock) => {
