@@ -1,31 +1,112 @@
-.invoice-wrapper {
+/* تنسيق الفواتير */
+.invoice-container {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
     max-width: 800px;
     margin: 20px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    direction: rtl;
-    font-family: 'Tajawal', sans-serif;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .invoice-header {
     text-align: center;
-    border-bottom: 2px solid #eee;
-    margin-bottom: 20px;
+    border-bottom: 2px solid #e67e22;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
 }
 
-.invoice-items table {
+.invoice-logo {
+    width: 60px;
+    margin-bottom: 10px;
+}
+
+.invoice-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+.invoice-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.invoice-info-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+.invoice-info-label {
+    font-weight: 600;
+    color: #475569;
+}
+
+.invoice-info-value {
+    color: #2c3e50;
+}
+
+.invoice-items-table {
     width: 100%;
     border-collapse: collapse;
+    margin-bottom: 25px;
 }
 
-.invoice-items th, .invoice-items td {
-    border: 1px solid #ddd;
-    padding: 8px;
+.invoice-items-table th,
+.invoice-items-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: right;
+}
+
+.invoice-items-table th {
+    background: #f8f9fa;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.invoice-totals {
+    text-align: left;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #e9ecef;
+}
+
+.invoice-total {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #e67e22;
+}
+
+.invoice-footer {
     text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    font-size: 0.8rem;
+    color: #95a5a6;
 }
 
 @media print {
-    body { margin: 0; padding: 0; }
-    .invoice-wrapper { margin: 0; box-shadow: none; }
+    .app-header,
+    .app-sidebar,
+    .sidebar-trigger,
+    .btn-print,
+    .btn-close {
+        display: none !important;
+    }
+    
+    .invoice-container {
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+    }
+    
+    body {
+        background: white;
+    }
 }
