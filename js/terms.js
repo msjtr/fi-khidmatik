@@ -1,4 +1,37 @@
-// Placeholder for terms & conditions logic
-export const getTermsText = () => {
-    return "شروط استخدام النظام: جميع الحقوق محفوظة © 2025";
-};
+/**
+ * js/terms.js
+ * الشروط والأحكام
+ */
+
+export const termsContent = `
+    <div style="padding: 30px; max-width: 800px; margin: 0 auto;">
+        <h1 style="text-align: center; color: #e67e22;">الشروط والأحكام</h1>
+        <p style="text-align: center; color: #7f8c8d;">آخر تحديث: ${new Date().toLocaleDateString('ar-SA')}</p>
+        
+        <h3>1. مقدمة</h3>
+        <p>مرحباً بك في نظام تيرا جيتواي. باستخدامك لهذا النظام، فإنك توافق على الالتزام بهذه الشروط والأحكام.</p>
+        
+        <h3>2. استخدام النظام</h3>
+        <p>يُسمح باستخدام هذا النظام فقط للأغراض التجارية المشروعة المتعلقة بإدارة المبيعات والتقسيط.</p>
+        
+        <h3>3. البيانات والمعلومات</h3>
+        <p>أنت مسؤول عن دقة وصحة جميع البيانات التي تدخلها في النظام. نحن نلتزم بحماية خصوصية بياناتك وفقاً لسياسة الخصوصية.</p>
+        
+        <h3>4. الضمان</h3>
+        <p>نحن نبذل قصارى جهدنا لضمان عمل النظام بشكل صحيح، لكننا لا نضمن خلوه من الأخطاء.</p>
+        
+        <h3>5. التعديلات</h3>
+        <p>نحتفظ بالحق في تعديل هذه الشروط في أي وقت. سيتم إخطارك بأي تغييرات جوهرية.</p>
+        
+        <h3>6. اتصل بنا</h3>
+        <p>للاستفسارات، يرجى التواصل مع فريق الدعم الفني.</p>
+    </div>
+`;
+
+export function showTerms(container) {
+    if (container) {
+        container.innerHTML = termsContent;
+    }
+}
+
+export default { termsContent, showTerms };
