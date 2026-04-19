@@ -1,62 +1,41 @@
 /**
- * المحرك الرئيسي لمنصة تيرا جيتواي - Tera Gateway
- * المسار: js/main.js
+ * js/main.js
  */
-
-// تأكد أن أسماء الملفات في مجلد modules مطابقة تماماً لهذه الأسماء
-import { initOrdersDashboard } from './modules/orders-dashboard.js'; 
-import { initCustomers } from './modules/customers.js';
 import { initProducts } from './modules/products.js';
+// تأكد أن هذه الملفات موجودة فعلياً بهذا الاسم في المجلد
+// import { initOrdersDashboard } from './modules/orders-dashboard.js';
+// import { initCustomers } from './modules/customers.js';
 
 async function switchModule(moduleName) {
+    console.log("المحرك بدأ تنفيذ الموديول:", moduleName);
     const container = document.getElementById('module-container');
-    const loader = document.getElementById('loader');
-
     if (!container) return;
 
-    // 1. تحديث شكل القائمة الجانبية
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('data-module') === moduleName) {
-            item.classList.add('active');
-        }
-    });
-
-    // 2. إظهار التحميل
-    if(loader) loader.style.display = 'block';
+    // تنظيف الحاوية وإظهار اللودر
+    container.innerHTML = '';
     
     try {
-        switch (moduleName) {
-            case 'customers':
-                await initCustomers(container);
-                break;
-            case 'products':
-                await initProducts(container);
-                break;
-            case 'orders':
-            case 'dashboard':
-                await initOrdersDashboard(container);
-                break;
-            case 'settings':
-                container.innerHTML = `<div style="padding:40px;"><h2>الإعدادات</h2><p>قيد التطوير...</p></div>`;
-                break;
-            default:
-                await initOrdersDashboard(container);
+        if (moduleName === 'products') {
+            await initProducts(container);
+        } else if (moduleName === 'dashboard' || moduleName === 'orders') {
+            // مؤقتاً حتى ترفع ملف Orders
+            container.innerHTML = '<h2 style="padding:20px;">قسم الطلبات قيد الرفع...</h2>';
+        } else if (moduleName === 'customers') {
+            container.innerHTML = '<h2 style="padding:20px;">قسم العملاء قيد الرفع...</h2>';
+        } else {
+            container.innerHTML = '<h2 style="padding:20px;">قسم الإعدادات</h2>';
         }
-    } catch (error) {
-        console.error("Module Load Error:", error);
-        container.innerHTML = `<div style="padding:40px; color:red;">خطأ في تحميل القسم.</div>`;
-    } finally {
-        if(loader) setTimeout(() => { loader.style.display = 'none'; }, 300);
+    } catch (err) {
+        console.error("خطأ أثناء تحميل الموديول:", err);
+        container.innerHTML = '<p style="color:red; padding:20px;">فشل تحميل القسم، راجع الـ Console</p>';
     }
 }
 
-// تصدير الدالة للنطاق العام
+// السطر الأهم لحل مشكلتك:
 window.switchModule = switchModule;
 
-// التشغيل التلقائي عند التحميل
-(async () => {
-    const getHash = () => window.location.hash.replace('#', '') || 'dashboard';
-    await switchModule(getHash());
-    window.addEventListener('hashchange', () => switchModule(getHash()));
-})();
+// تشغيل موديول افتراضي عند فتح الصفحة
+window.addEventListener('DOMContentLoaded', () => {
+    const defaultModule = window.location.hash.replace('#', '') || 'dashboard';
+    switchModule(defaultModule);
+});
