@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tera Gateway | لوحة التحكم</title>
     
+    <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+    
     <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -50,8 +52,8 @@
             </aside>
 
             <main id="main-content" class="app-content">
-                <div id="loader" class="content-loader" style="display:none;">
-                    <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
+                <div id="loader" class="content-loader" style="display:none; text-align: center; padding: 50px;">
+                    <i class="fas fa-circle-notch fa-spin fa-2x"></i> <br> جاري التحميل...
                 </div>
                 <div id="module-container">
                     </div>
@@ -60,18 +62,19 @@
     </div>
 
     <script>
-        // دالة عالمية للتبديل يتم استدعاؤها من أي مكان
+        // دالة تنفيذ الموديولات - مرتبطة بـ main.js
         window.executeModule = function(moduleName) {
-            console.log("إرسال طلب لفتح قسم: " + moduleName);
+            console.log("محاولة فتح: " + moduleName);
+            const loader = document.getElementById('loader');
+            const container = document.getElementById('module-container');
             
-            // التأكد من أن الملف main.js جاهز ومستعد
             if (typeof window.switchModule === 'function') {
+                container.innerHTML = ''; // تنظيف الحاوية
+                loader.style.display = 'block';
                 window.switchModule(moduleName);
+                setTimeout(() => { loader.style.display = 'none'; }, 500);
             } else {
-                // محاولة إعادة المحاولة بعد ثانية لو لم يتحمل الملف
-                setTimeout(() => {
-                    if (typeof window.switchModule === 'function') window.switchModule(moduleName);
-                }, 1000);
+                console.error("خطأ: ملف main.js لم يتم تحميله بعد أو دالة switchModule غير معرفة.");
             }
         };
 
@@ -80,36 +83,29 @@
             const toggleBtn = document.getElementById('sidebar-toggle');
             const menuItems = document.querySelectorAll('.nav-item');
 
-            // 1. تشغيل الفتح والإغلاق
             toggleBtn.onclick = (e) => {
                 e.stopPropagation();
                 sidebar.classList.toggle('is-closed');
             };
 
-            // 2. تفعيل الأزرار
             menuItems.forEach(item => {
                 item.onclick = function() {
-                    // مظهر الزر النشط
                     menuItems.forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
-                    
                     const targetModule = this.getAttribute('data-module');
                     window.executeModule(targetModule);
 
-                    // إغلاق القائمة تلقائياً في الجوال بعد الاختيار
                     if (window.innerWidth < 768) {
                         sidebar.classList.add('is-closed');
                     }
                 };
             });
 
-            // 3. تحديث الساعة
             const updateTime = () => {
                 const now = new Date();
-                const timeString = now.toLocaleDateString('ar-SA', {
+                document.getElementById('current-datetime').innerText = now.toLocaleDateString('ar-SA', {
                     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 });
-                document.getElementById('current-datetime').innerText = timeString;
             };
             setInterval(updateTime, 1000); updateTime();
         });
