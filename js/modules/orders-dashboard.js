@@ -1,12 +1,13 @@
 /**
  * js/modules/orders-dashboard.js
  * موديول لوحة الطلبات والفواتير - تيرا جيتواي
+ * @version 2.1.0
  */
 
 import { db } from '../core/firebase.js';
 import { 
     collection, getDocs, addDoc, doc, updateDoc, deleteDoc, 
-    query, orderBy, serverTimestamp, getDoc, where
+    query, orderBy, serverTimestamp, getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ===================== دوال مساعدة =====================
@@ -97,6 +98,16 @@ function generateOrderNumber() {
     return `INV-${year}${month}${day}-${random}`;
 }
 
+/**
+ * تنسيق العملة
+ */
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount) + ' ر.س';
+}
+
 // ===================== حساب الإجماليات =====================
 
 /**
@@ -128,6 +139,41 @@ function calculateTotals() {
     if (totalEl) totalEl.textContent = total.toFixed(2);
     
     return { subtotal, tax, total };
+}
+
+/**
+ * حساب إجمالي الفواتير (للإحصائيات)
+ */
+async function calculateTotalStats() {
+    try {
+        const snap = await getDocs(collection(db, "orders"));
+        let totalAmount = 0;
+        let totalOrders = 0;
+        
+        snap.forEach(doc => {
+            const order = doc.data();
+            totalAmount += order.total || 0;
+            totalOrders++;
+        });
+        
+        const statsContainer = document.getElementById('orders-stats');
+        if (statsContainer) {
+            statsContainer.innerHTML = `
+                <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 25px; border-radius: 12px; color: white; text-align: center;">
+                        <div style="font-size: 1.8rem; font-weight: bold;">${totalOrders}</div>
+                        <div style="font-size: 0.8rem;">إجمالي الفواتير</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 15px 25px; border-radius: 12px; color: white; text-align: center;">
+                        <div style="font-size: 1.8rem; font-weight: bold;">${formatCurrency(totalAmount)}</div>
+                        <div style="font-size: 0.8rem;">إجمالي المبيعات</div>
+                    </div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error("Error calculating stats:", error);
+    }
 }
 
 // ===================== إدارة بنود المنتجات =====================
@@ -178,8 +224,12 @@ function addItemRow(itemData = null) {
     
     const deleteBtn = row.querySelector('.del-row-btn');
     deleteBtn.addEventListener('click', () => {
-        row.remove();
-        calculateTotals();
+        if (document.querySelectorAll('#items-body tr').length > 1) {
+            row.remove();
+            calculateTotals();
+        } else {
+            showNotification('لا يمكن حذف جميع البنود', 'error');
+        }
     });
     
     tbody.appendChild(row);
@@ -280,6 +330,15 @@ async function loadOrders() {
                 ? order.createdAt.toDate().toLocaleDateString('ar-SA') 
                 : '---';
             
+            // تحديد حالة الطلب (يمكنك إضافة حقل status في قاعدة البيانات)
+            const status = order.status || 'pending';
+            const statusColors = {
+                paid: { bg: '#d4edda', color: '#155724', text: 'مدفوع' },
+                pending: { bg: '#fff3cd', color: '#856404', text: 'قيد الانتظار' },
+                overdue: { bg: '#f8d7da', color: '#721c24', text: 'متأخر' }
+            };
+            const statusStyle = statusColors[status] || statusColors.pending;
+            
             return `
                 <div class="order-card" data-id="${doc.id}" style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border-right:6px solid #3498db; transition:0.3s;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
@@ -293,24 +352,35 @@ async function loadOrders() {
                         </div>
                         <div style="display:flex; gap:8px;">
                             <button class="edit-order-btn" data-id="${doc.id}" 
-                                    style="color:#f39c12; background:#fff9f0; border:1px solid #ffeeba; width:35px; height:35px; border-radius:8px; cursor:pointer;">
+                                    style="color:#f39c12; background:#fff9f0; border:1px solid #ffeeba; width:35px; height:35px; border-radius:8px; cursor:pointer; transition:0.3s;">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="delete-order-btn" data-id="${doc.id}" 
-                                    style="color:#e74c3c; background:#fff5f5; border:1px solid #fab1a0; width:35px; height:35px; border-radius:8px; cursor:pointer;">
+                                    style="color:#e74c3c; background:#fff5f5; border:1px solid #fab1a0; width:35px; height:35px; border-radius:8px; cursor:pointer; transition:0.3s;">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     </div>
                     <h4 style="margin:0 0 10px 0; color:#2c3e50;">${escapeHtml(order.customerName)}</h4>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:15px; border-top:1px solid #f1f2f6;">
-                        <div style="color:#27ae60; font-size:1.2rem; font-weight:800;">
-                            ${order.total?.toFixed(2) || '0.00'} <small style="font-size:0.7rem;">ريال</small>
+                        <div>
+                            <div style="color:#27ae60; font-size:1.2rem; font-weight:800;">
+                                ${order.total?.toFixed(2) || '0.00'} <small style="font-size:0.7rem;">ريال</small>
+                            </div>
+                            <span style="display:inline-block; margin-top:5px; padding:2px 8px; border-radius:12px; font-size:0.7rem; background:${statusStyle.bg}; color:${statusStyle.color};">
+                                ${statusStyle.text}
+                            </span>
                         </div>
-                        <button class="print-order-btn" data-id="${doc.id}" 
-                                style="background:#34495e; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
-                            <i class="fas fa-print"></i> طباعة
-                        </button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="print-order-btn" data-id="${doc.id}" 
+                                    style="background:#34495e; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-size:0.85rem; transition:0.3s;">
+                                <i class="fas fa-print"></i> طباعة
+                            </button>
+                            <button class="export-pdf-btn" data-id="${doc.id}" 
+                                    style="background:#e67e22; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem; transition:0.3s;">
+                                <i class="fas fa-file-pdf"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -318,12 +388,16 @@ async function loadOrders() {
         
         // ربط الأحداث
         attachOrderEvents();
+        await calculateTotalStats();
         
     } catch (error) {
         console.error("Error loading orders:", error);
         list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#e74c3c;">
             <i class="fas fa-exclamation-triangle fa-2x"></i>
             <p>حدث خطأ في تحميل البيانات: ${error.message}</p>
+            <button onclick="location.reload()" style="margin-top:15px; padding:8px 20px; background:#e67e22; color:white; border:none; border-radius:8px; cursor:pointer;">
+                <i class="fas fa-sync-alt"></i> إعادة المحاولة
+            </button>
         </div>`;
         showNotification('فشل تحميل قائمة الطلبات', 'error');
     }
@@ -356,6 +430,14 @@ function attachOrderEvents() {
         btn.addEventListener('click', handler);
         btn._printHandler = handler;
     });
+    
+    // أزرار تصدير PDF
+    document.querySelectorAll('.export-pdf-btn').forEach(btn => {
+        btn.removeEventListener('click', btn._pdfHandler);
+        const handler = () => exportToPDF(btn.dataset.id);
+        btn.addEventListener('click', handler);
+        btn._pdfHandler = handler;
+    });
 }
 
 // ===================== عمليات CRUD =====================
@@ -384,6 +466,7 @@ async function saveOrder(orderData, id = null) {
         } else {
             data.createdAt = serverTimestamp();
             data.orderNumber = generateOrderNumber();
+            data.status = 'pending';
             await addDoc(collection(db, "orders"), data);
             showNotification('تم إنشاء الفاتورة بنجاح', 'success');
         }
@@ -408,9 +491,6 @@ async function saveOrder(orderData, id = null) {
 async function editOrder(id) {
     if (!id) return;
     
-    const modal = document.getElementById('order-modal');
-    const loader = document.getElementById('order-loader');
-    
     try {
         const snap = await getDoc(doc(db, "orders", id));
         if (!snap.exists()) {
@@ -432,13 +512,14 @@ async function editOrder(id) {
         if (order.items && order.items.length > 0) {
             order.items.forEach(item => addItemRow(item));
         } else {
-            addItemRow(); // إضافة صف فارغ
+            addItemRow();
         }
         
         const titleEl = document.getElementById('modal-title');
         if (titleEl) titleEl.innerText = `✏️ تعديل الفاتورة: ${order.orderNumber || ''}`;
         
-        modal.style.display = 'block';
+        const modal = document.getElementById('order-modal');
+        if (modal) modal.style.display = 'block';
         
     } catch (error) {
         console.error("Error loading order for edit:", error);
@@ -454,7 +535,6 @@ async function deleteOrder(id) {
         return;
     }
     
-    // تحديث متفائل - إزالة البطاقة فوراً
     const card = document.querySelector(`.order-card[data-id="${id}"]`);
     if (card) {
         card.style.opacity = '0.5';
@@ -468,7 +548,7 @@ async function deleteOrder(id) {
     } catch (error) {
         console.error("Error deleting order:", error);
         showNotification('حدث خطأ أثناء الحذف: ' + error.message, 'error');
-        await loadOrders(); // إعادة تحميل لاستعادة البيانات
+        await loadOrders();
     }
 }
 
@@ -497,7 +577,7 @@ async function printInvoice(id) {
                 <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">${item.quantity}</td>
                 <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">${item.price.toFixed(2)}</td>
                 <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">${(item.quantity * item.price).toFixed(2)}</td>
-            </tr>
+             </tr>
         `).join('');
         
         const date = new Date().toLocaleDateString('ar-SA');
@@ -544,6 +624,9 @@ async function printInvoice(id) {
                         color: white;
                         padding: 10px;
                         text-align: center;
+                    }
+                    td {
+                        padding: 8px;
                     }
                     .totals {
                         text-align: left;
@@ -612,13 +695,20 @@ async function printInvoice(id) {
 }
 
 /**
+ * تصدير الفاتورة كملف PDF (باستخدام window.print المحسن)
+ */
+async function exportToPDF(id) {
+    showNotification('جاري تجهيز ملف PDF...', 'success');
+    await printInvoice(id);
+}
+
+/**
  * إغلاق مودال الطلب
  */
 function closeOrderModal() {
     const modal = document.getElementById('order-modal');
     if (modal) modal.style.display = 'none';
     
-    // تنظيف النموذج
     const form = document.getElementById('order-form');
     if (form) form.reset();
     document.getElementById('edit-id').value = '';
@@ -644,7 +734,6 @@ function setupLogic() {
         return;
     }
     
-    // إنشاء طلب جديد
     createBtn.onclick = () => {
         form.reset();
         document.getElementById('edit-id').value = '';
@@ -652,7 +741,7 @@ function setupLogic() {
         const itemsBody = document.getElementById('items-body');
         if (itemsBody) itemsBody.innerHTML = '';
         
-        addItemRow(); // إضافة سطر أول تلقائياً
+        addItemRow();
         
         const titleEl = document.getElementById('modal-title');
         if (titleEl) titleEl.innerText = "📝 فاتورة مبيعات جديدة";
@@ -660,25 +749,20 @@ function setupLogic() {
         modal.style.display = 'block';
     };
     
-    // إغلاق المودال
     closeBtn.onclick = closeOrderModal;
     
-    // إغلاق عند النقر خارج المودال
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeOrderModal();
     });
     
-    // إغلاق بالضغط على ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.style.display === 'block') {
             closeOrderModal();
         }
     });
     
-    // إضافة بند جديد
     addItemBtn.onclick = () => addItemRow();
     
-    // حفظ النموذج
     form.onsubmit = async (e) => {
         e.preventDefault();
         
@@ -694,7 +778,6 @@ function setupLogic() {
             total: subtotalResult.total
         };
         
-        // التحقق من صحة البيانات
         const errors = validateOrder(orderData);
         if (errors.length > 0) {
             showNotification(errors.join('\n'), 'error');
@@ -729,6 +812,8 @@ export async function initOrdersDashboard(container) {
                 </button>
             </div>
 
+            <div id="orders-stats"></div>
+            
             <div id="orders-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap:20px;">
                 <div style="grid-column:1/-1; text-align:center; padding:50px;">
                     <i class="fas fa-spinner fa-spin fa-2x" style="color:#3498db;"></i>
@@ -817,4 +902,4 @@ export async function initOrdersDashboard(container) {
 }
 
 // ===================== تصدير الدوال للاستخدام الخارجي =====================
-export { loadOrders, saveOrder, deleteOrder, editOrder, printInvoice };
+export { loadOrders, saveOrder, deleteOrder, editOrder, printInvoice, exportToPDF };
