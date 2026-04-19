@@ -4,8 +4,8 @@
 
 console.log('🚀 main.js تم تحميله بنجاح');
 
-// استيراد الموديولات الموجودة
-import { initProducts } from './modules/products.js';
+// استيراد الموديولات الموجودة - تم التعديل هنا
+import { initProducts } from './modules/products-ui.js';
 
 // استيرادات اختيارية
 let initOrders, initCustomers, initSettings, initDashboard;
@@ -283,11 +283,32 @@ if (typeof initCustomers !== 'function') {
                 <div style="background: white; border-radius: 12px; overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; min-width: 500px;">
                         <thead style="background: #f8f9fa;">
-                            <tr><th style="padding: 12px;">الاسم</th><th style="padding: 12px;">الجوال</th><th style="padding: 12px;">المدينة</th><th style="padding: 12px;">الإجراءات</th></tr>
+                            <tr>
+                                <th style="padding: 12px;">الاسم</th>
+                                <th style="padding: 12px;">الجوال</th>
+                                <th style="padding: 12px;">المدينة</th>
+                                <th style="padding: 12px;">الإجراءات</th>
+                            </tr>
                         </thead>
                         <tbody>
-                            <tr><td style="padding: 10px;">محمد عبدالله</td><td>0501234567</td><td>الرياض</td><td><button style="color:#f39c12;">تعديل</button> <button style="color:#e74c3c;">حذف</button></td></tr>
-                            <tr><td style="padding: 10px;">نورة أحمد</td><td>0551234567</td><td>جدة</td><td><button style="color:#f39c12;">تعديل</button> <button style="color:#e74c3c;">حذف</button></td></tr>
+                            <tr>
+                                <td style="padding: 10px;">محمد عبدالله</td>
+                                <td style="padding: 10px;">0501234567</td>
+                                <td style="padding: 10px;">الرياض</td>
+                                <td style="padding: 10px;">
+                                    <button style="color:#f39c12; background:none; border:none; cursor:pointer;">تعديل</button>
+                                    <button style="color:#e74c3c; background:none; border:none; cursor:pointer;">حذف</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px;">نورة أحمد</td>
+                                <td style="padding: 10px;">0551234567</td>
+                                <td style="padding: 10px;">جدة</td>
+                                <td style="padding: 10px;">
+                                    <button style="color:#f39c12; background:none; border:none; cursor:pointer;">تعديل</button>
+                                    <button style="color:#e74c3c; background:none; border:none; cursor:pointer;">حذف</button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -346,7 +367,7 @@ if (typeof initSettings !== 'function') {
                             <label>نسبة الضريبة (%)</label>
                             <input type="number" value="15" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
                         </div>
-                        <button type="submit" style="background:#e67e22; color:white; padding:10px 20px; border:none; border-radius:8px;">حفظ</button>
+                        <button type="submit" style="background:#e67e22; color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer;">حفظ</button>
                     </form>
                 </div>
             </div>
@@ -370,3 +391,5 @@ initCustomers = window.initCustomers;
 initOrders = window.initOrders;
 initSettings = window.initSettings;
 initDashboard = window.initDashboard;
+
+console.log('✅ جميع الدوال الاحتياطية تم تجهيزها');
