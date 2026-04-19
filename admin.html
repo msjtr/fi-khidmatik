@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="نظام Tera Gateway لإدارة المبيعات والتقسيط - لوحة التحكم">
+    <meta name="theme-color" content="#e67e22">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <title>Tera Gateway | لوحة التحكم</title>
     
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/images/logo.svg">
     
     <!-- Font Awesome & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,7 +24,9 @@
     <link rel="stylesheet" href="/css/invoice.css">
 
     <style>
-        /* تحسينات إضافية للمؤشر والتحميل */
+        /* ==================== تحسينات إضافية ==================== */
+        
+        /* تحسين مؤشر التحميل */
         #loader {
             display: none;
             position: absolute;
@@ -32,7 +40,22 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
             text-align: center;
             min-width: 200px;
+            backdrop-filter: blur(4px);
         }
+        
+        /* شريط تقدم التحميل */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, #e67e22, #f39c12);
+            z-index: 10000;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(230,126,34,0.5);
+        }
+        
         .app-content { 
             position: relative; 
             min-height: 400px; 
@@ -40,21 +63,99 @@
         
         /* تحسين للشاشات الصغيرة */
         @media (max-width: 768px) {
+            .app-sidebar {
+                transition: transform 0.3s ease;
+            }
             .app-sidebar.is-closed {
                 transform: translateX(-100%);
             }
             .header-clock {
-                font-size: 12px;
+                font-size: 11px;
             }
             .app-brand span {
                 display: none;
             }
+            .app-brand img {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        
+        /* تحسين للشاشات الكبيرة */
+        @media (min-width: 1200px) {
+            .app-sidebar {
+                width: 280px;
+            }
+            .app-content {
+                margin-right: 280px;
+            }
+            .app-sidebar.is-closed {
+                transform: translateX(-280px);
+            }
+        }
+        
+        /* رسائل الإشعارات المخصصة */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 10001;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        /* دعم الوضع المظلم (اختياري) */
+        @media (prefers-color-scheme: dark) {
+            body.dark-mode-supported {
+                background: #1a1a2e;
+            }
+        }
+        
+        /* تحسين التمرير */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #e67e22;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d35400;
         }
     </style>
 </head>
 <body>
 
     <div class="app-shell">
+        <!-- شريط تقدم التحميل -->
+        <div id="progress-bar"></div>
+        
         <header class="app-header">
             <div class="header-right">
                 <button id="sidebar-toggle" class="sidebar-trigger" aria-label="فتح/إغلاق القائمة">
@@ -72,23 +173,30 @@
             <aside id="main-sidebar" class="app-sidebar">
                 <nav class="side-nav">
                     <ul id="admin-menu">
-                        <li class="nav-item" data-module="dashboard">
+                        <li class="nav-item" data-module="dashboard" data-icon="chart-line">
                             <i class="fas fa-chart-line"></i> <span>الرئيسية</span>
                         </li>
-                        <li class="nav-item" data-module="products">
+                        <li class="nav-item" data-module="products" data-icon="box">
                             <i class="fas fa-box"></i> <span>المنتجات</span>
                         </li>
-                        <li class="nav-item" data-module="orders">
+                        <li class="nav-item" data-module="orders" data-icon="receipt">
                             <i class="fas fa-receipt"></i> <span>طلبات التقسيط</span>
                         </li>
-                        <li class="nav-item" data-module="customers">
+                        <li class="nav-item" data-module="customers" data-icon="users">
                             <i class="fas fa-users"></i> <span>العملاء</span>
                         </li>
-                        <li class="nav-item" data-module="settings">
+                        <li class="nav-item" data-module="settings" data-icon="cog">
                             <i class="fas fa-cog"></i> <span>الإعدادات</span>
                         </li>
                     </ul>
                 </nav>
+                
+                <!-- إضافة زر تسجيل الخروج (اختياري) -->
+                <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(0,0,0,0.1); margin-top: auto;">
+                    <button id="logout-btn" style="width: 100%; background: none; border: none; color: #e74c3c; cursor: pointer; padding: 10px; text-align: right; font-family: 'Tajawal', sans-serif;">
+                        <i class="fas fa-sign-out-alt"></i> <span>تسجيل الخروج</span>
+                    </button>
+                </div>
             </aside>
 
             <main id="main-content" class="app-content">
@@ -105,82 +213,221 @@
     <script type="module" src="/js/main.js"></script>
     
     <script>
-        // هذا الكود المستقل (non-module) للتعامل مع العناصر التي لا تحتاج إلى Firebase
+        // ==================== الكود المستقل (non-module) ====================
         (function() {
-            // إدارة القائمة الجانبية والساعة
-            document.addEventListener('DOMContentLoaded', () => {
-                const sidebar = document.getElementById('main-sidebar');
-                const toggleBtn = document.getElementById('sidebar-toggle');
-
-                if (toggleBtn) {
-                    toggleBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        sidebar.classList.toggle('is-closed');
-                    });
+            'use strict';
+            
+            // ========== إدارة القائمة الجانبية ==========
+            const sidebar = document.getElementById('main-sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            
+            // حفظ حالة القائمة في localStorage
+            const SIDEBAR_STATE_KEY = 'sidebar_closed';
+            
+            function loadSidebarState() {
+                if (!sidebar) return;
+                const isClosed = localStorage.getItem(SIDEBAR_STATE_KEY) === 'true';
+                if (isClosed) {
+                    sidebar.classList.add('is-closed');
+                } else {
+                    sidebar.classList.remove('is-closed');
                 }
-
-                // تحديث الوقت والتاريخ
-                const updateTime = () => {
-                    const now = new Date();
-                    const options = { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric', 
-                        hour: '2-digit', 
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: true
-                    };
-                    const timeElement = document.getElementById('current-datetime');
-                    if (timeElement) {
-                        timeElement.innerText = now.toLocaleDateString('en-GB', options);
+            }
+            
+            function saveSidebarState(isClosed) {
+                localStorage.setItem(SIDEBAR_STATE_KEY, isClosed);
+            }
+            
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('is-closed');
+                    const isClosed = sidebar.classList.contains('is-closed');
+                    saveSidebarState(isClosed);
+                });
+            }
+            
+            // تحميل الحالة المحفوظة
+            loadSidebarState();
+            
+            // ========== تحديث الوقت والتاريخ ==========
+            let timeInterval = null;
+            
+            function updateTime() {
+                const now = new Date();
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                };
+                const timeElement = document.getElementById('current-datetime');
+                if (timeElement) {
+                    timeElement.innerText = now.toLocaleDateString('en-GB', options);
+                }
+            }
+            
+            // تحديث فوري ثم كل ثانية
+            updateTime();
+            timeInterval = setInterval(updateTime, 1000);
+            
+            // ========== إغلاق القائمة في الجوال ==========
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 768 && sidebar && !sidebar.contains(e.target) && !toggleBtn?.contains(e.target)) {
+                    sidebar.classList.add('is-closed');
+                }
+            });
+            
+            // ========== إغلاق القائمة عند تغيير حجم النافذة ==========
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (window.innerWidth >= 768) {
+                        // على الشاشات الكبيرة، أظهر القائمة
+                        if (sidebar && localStorage.getItem(SIDEBAR_STATE_KEY) !== 'true') {
+                            sidebar.classList.remove('is-closed');
+                        }
+                    } else {
+                        // على الشاشات الصغيرة، أخفي القائمة
+                        if (sidebar) {
+                            sidebar.classList.add('is-closed');
+                        }
+                    }
+                }, 150);
+            });
+            
+            // ========== شريط تقدم التحميل ==========
+            const progressBar = document.getElementById('progress-bar');
+            
+            window.showProgress = function(percent) {
+                if (progressBar) {
+                    progressBar.style.width = percent + '%';
+                    if (percent >= 100) {
+                        setTimeout(() => {
+                            progressBar.style.width = '0%';
+                        }, 500);
+                    }
+                }
+            };
+            
+            // ========== عرض إشعارات منبثقة ==========
+            window.showToast = function(message, duration = 3000) {
+                // إزالة أي إشعار سابق
+                const existingToast = document.querySelector('.toast-notification');
+                if (existingToast) existingToast.remove();
+                
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(-50%) translateY(20px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            };
+            
+            // ========== تفعيل الموديول الافتراضي ==========
+            function initializeDefaultModule() {
+                const hash = window.location.hash.substring(1);
+                const validModules = ['dashboard', 'products', 'orders', 'customers', 'settings'];
+                const defaultModule = hash && validModules.includes(hash) ? hash : 'dashboard';
+                
+                // تحديث الـ URL hash إذا كان فارغاً
+                if (!hash) {
+                    window.location.hash = defaultModule;
+                }
+                
+                // دالة المحاولة مع إعادة المحاولة
+                const trySwitchModule = (attempt = 1, maxAttempts = 10) => {
+                    if (typeof window.switchModule === 'function') {
+                        window.switchModule(defaultModule);
+                    } else if (attempt < maxAttempts) {
+                        console.log(`⏳ انتظار تحميل main.js... المحاولة ${attempt}/${maxAttempts}`);
+                        setTimeout(() => trySwitchModule(attempt + 1, maxAttempts), 200);
+                    } else {
+                        console.error('❌ فشل في تحميل main.js');
+                        const container = document.getElementById('module-container');
+                        if (container) {
+                            container.innerHTML = `
+                                <div style="padding: 40px; text-align: center; color: #e74c3c;">
+                                    <i class="fas fa-exclamation-triangle fa-3x"></i>
+                                    <h3>حدث خطأ في تحميل النظام</h3>
+                                    <p>يرجى تحديث الصفحة أو التحقق من اتصال الإنترنت</p>
+                                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: #e67e22; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                        <i class="fas fa-sync-alt"></i> إعادة تحميل
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        window.showToast('فشل في تحميل النظام، يرجى تحديث الصفحة', 5000);
                     }
                 };
                 
-                updateTime();
-                setInterval(updateTime, 1000); 
-
-                // إغلاق القائمة تلقائياً في الجوال عند النقر في أي مكان
-                document.addEventListener('click', (e) => {
-                    if (window.innerWidth < 768 && sidebar && !sidebar.contains(e.target) && !toggleBtn?.contains(e.target)) {
-                        sidebar.classList.add('is-closed');
-                    }
-                });
-
-                // تفعيل الموديول الأول عند التحميل
-                const hash = window.location.hash.substring(1);
-                const defaultModule = hash && ['dashboard', 'products', 'orders', 'customers', 'settings'].includes(hash) 
-                    ? hash 
-                    : 'dashboard';
-                
-                // انتظر قليلاً حتى يتم تحميل main.js بالكامل
-                setTimeout(() => {
-                    if (typeof window.switchModule === 'function') {
-                        window.switchModule(defaultModule);
-                    } else {
-                        console.warn('main.js لم يتم تحميله بعد، إعادة المحاولة...');
-                        const checkInterval = setInterval(() => {
-                            if (typeof window.switchModule === 'function') {
-                                window.switchModule(defaultModule);
-                                clearInterval(checkInterval);
-                            }
-                        }, 200);
-                    }
-                }, 100);
-            });
-
-            // إضافة دالة مساعدة لتحديد العنصر النشط في القائمة (سيتم استدعاؤها من main.js)
+                setTimeout(() => trySwitchModule(), 100);
+            }
+            
+            // ========== دالة تحديد العنصر النشط في القائمة ==========
             window.setActiveNavItem = function(moduleName) {
                 const items = document.querySelectorAll('#admin-menu .nav-item');
                 items.forEach(item => {
                     if (item.getAttribute('data-module') === moduleName) {
                         item.classList.add('active');
+                        // إضافة تأثير بصري
+                        item.style.transition = 'all 0.3s ease';
                     } else {
                         item.classList.remove('active');
                     }
                 });
             };
+            
+            // ========== دالة تسجيل الخروج (اختياري) ==========
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                        // تنظيف التخزين المحلي
+                        localStorage.removeItem('sidebar_closed');
+                        // إعادة التوجيه إلى صفحة تسجيل الدخول (إذا وجدت)
+                        window.location.href = '/login.html';
+                    }
+                });
+            }
+            
+            // ========== بدء التطبيق ==========
+            document.addEventListener('DOMContentLoaded', initializeDefaultModule);
+            
+            // ========== تنظيف المؤقتات عند إغلاق الصفحة ==========
+            window.addEventListener('beforeunload', () => {
+                if (timeInterval) clearInterval(timeInterval);
+            });
+            
+            // ========== دعم PWA (تسجيل Service Worker) ==========
+            if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(registration => {
+                        console.log('✅ Service Worker registered:', registration.scope);
+                    }).catch(error => {
+                        console.warn('⚠️ Service Worker registration failed:', error);
+                    });
+                });
+            }
+            
+            // ========== إضافة تأثيرات تحسينية ==========
+            // منع النقر المزدوج على الأزرار
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && btn.classList.contains('no-double-click')) {
+                    btn.disabled = true;
+                    setTimeout(() => { btn.disabled = false; }, 1000);
+                }
+            });
         })();
     </script>
 </body>
