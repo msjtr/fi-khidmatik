@@ -4,7 +4,7 @@
 
 console.log('🚀 main.js تم تحميله بنجاح');
 
-// استيراد الموديولات - باستخدام الاستيراد الديناميكي للأمان
+// استيراد الموديولات - باستخدام الاستيراد الديناميكي
 let initProducts, initOrders, initCustomers, initSettings, initDashboard;
 
 // تحميل موديول المنتجات
@@ -18,7 +18,7 @@ try {
 
 // تحميل موديول الطلبات
 try {
-    const ordersModule = await import('./modules/orders.js');
+    const ordersModule = await import('./modules/orders-dashboard.js');
     initOrders = ordersModule.initOrdersDashboard || ordersModule.initOrders || ordersModule.default;
     console.log('✅ موديول الطلبات تم تحميله');
 } catch (e) {
@@ -27,7 +27,7 @@ try {
 
 // تحميل موديول العملاء
 try {
-    const customersModule = await import('./modules/customers.js');
+    const customersModule = await import('./modules/customers-ui.js');
     initCustomers = customersModule.initCustomers || customersModule.default;
     console.log('✅ موديول العملاء تم تحميله');
 } catch (e) {
