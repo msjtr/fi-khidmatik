@@ -3,15 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طباعة الفاتورة</title>
-    <link rel="stylesheet" href="css/invoice.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <title>طباعة - تيرا جيتواي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none; }
+        }
+        .no-print {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .no-print button {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        #print-content {
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div id="invoice-content" class="invoice-wrapper">
-        <!-- Invoice will be injected here -->
+    <div class="no-print">
+        <button onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
+        <button onclick="window.close()"><i class="fas fa-times"></i> إغلاق</button>
     </div>
-    <script type="module" src="js/print.js"></script>
+    <div id="print-content">
+        <div style="text-align: center; border-bottom: 2px solid #e67e22; padding-bottom: 15px;">
+            <h2>تيرا جيتواي</h2>
+            <p>نظام إدارة المبيعات والتقسيط</p>
+        </div>
+        <div id="dynamic-content">
+            <!-- المحتوى الديناميكي -->
+        </div>
+    </div>
+    
+    <script>
+        // استلام البيانات من localStorage
+        const printData = localStorage.getItem('printData');
+        if (printData) {
+            try {
+                const data = JSON.parse(printData);
+                document.getElementById('dynamic-content').innerHTML = data.html || '<p>لا توجد بيانات للطباعة</p>';
+            } catch(e) {
+                console.error('Error parsing print data:', e);
+            }
+        }
+        
+        // طباعة تلقائية
+        setTimeout(() => window.print(), 500);
+    </script>
 </body>
 </html>
