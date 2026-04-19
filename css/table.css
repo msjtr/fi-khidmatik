@@ -1,20 +1,102 @@
+/* تنسيق الجداول */
+.table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
 .data-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 15px 0;
-}
-
-.data-table th, .data-table td {
-    border: 1px solid #e2e8f0;
-    padding: 10px;
-    text-align: center;
+    text-align: right;
+    min-width: 600px;
 }
 
 .data-table th {
-    background: #f8fafc;
-    font-weight: bold;
+    background: #f8f9fa;
+    padding: 15px;
+    font-weight: 700;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 0.85rem;
 }
 
-.table-responsive {
-    overflow-x: auto;
+.data-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f3f5;
+    color: #4a5568;
+}
+
+.data-table tr:hover {
+    background: #fef5e8;
+}
+
+/* أزرار الإجراءات */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.btn-edit {
+    color: #f39c12;
+}
+
+.btn-edit:hover {
+    background: #fef5e8;
+}
+
+.btn-delete {
+    color: #e74c3c;
+}
+
+.btn-delete:hover {
+    background: #fee;
+}
+
+.btn-view {
+    color: #3498db;
+}
+
+.btn-view:hover {
+    background: #e3f2fd;
+}
+
+/* حالة الصفوف */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-info {
+    background: #d1ecf1;
+    color: #0c5460;
 }
