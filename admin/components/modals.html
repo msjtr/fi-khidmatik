@@ -1,7 +1,40 @@
-<!-- Shared Modal Structure -->
-<div id="genericModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <div id="modal-body"></div>
+<!-- مودال تأكيد -->
+<div id="confirm-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="background: white; width: 300px; padding: 20px; border-radius: 12px; text-align: center;">
+        <i class="fas fa-question-circle fa-3x" style="color: #e67e22;"></i>
+        <h3 id="confirm-title">تأكيد</h3>
+        <p id="confirm-message">هل أنت متأكد؟</p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <button id="confirm-yes" style="background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">نعم</button>
+            <button id="confirm-no" style="background: #95a5a6; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">لا</button>
+        </div>
     </div>
 </div>
+
+<script>
+    window.showConfirm = (title, message, onConfirm) => {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-title').innerText = title;
+        document.getElementById('confirm-message').innerHTML = message;
+        modal.style.display = 'flex';
+        
+        const yesBtn = document.getElementById('confirm-yes');
+        const noBtn = document.getElementById('confirm-no');
+        
+        const handler = () => {
+            modal.style.display = 'none';
+            yesBtn.removeEventListener('click', confirmHandler);
+            noBtn.removeEventListener('click', cancelHandler);
+        };
+        
+        const confirmHandler = () => {
+            onConfirm();
+            handler();
+        };
+        
+        const cancelHandler = () => handler();
+        
+        yesBtn.addEventListener('click', confirmHandler);
+        noBtn.addEventListener('click', cancelHandler);
+    };
+</script>
