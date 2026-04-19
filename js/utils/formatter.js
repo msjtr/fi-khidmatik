@@ -1,9 +1,10 @@
-export const formatCurrency = (amount, currency = 'ريال') => {
-    return `${Number(amount).toFixed(2)} ${currency}`;
+export const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'SAR',
+    }).format(amount);
 };
 
-export const formatDate = (timestamp) => {
-    if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('ar-EG');
+export const toEnglishDigits = (str) => {
+    return str.replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
 };
