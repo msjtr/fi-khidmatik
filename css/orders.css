@@ -1,177 +1,93 @@
-/* --- تحسينات شبكة المنتجات والطلبات --- */
+/* تنسيق بطاقات الطلبات */
 .orders-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 25px;
-    padding: 10px;
-}
-
-/* بطاقة المنتج المطورة */
-.order-card {
-    background: #ffffff;
-    border-radius: 20px; /* زوايا أنعم */
-    border: 1px solid #f1f5f9;
-    position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-}
-
-.order-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
-    border-color: #e67e22;
-}
-
-/* شاشة عرض الصورة المصغرة للمنتج */
-.product-thumb-container {
-    width: 100%;
-    height: 180px;
-    background: #f8fafc;
-    position: relative;
-    overflow: hidden;
-}
-
-.product-thumb-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-}
-
-.order-card:hover .product-thumb-container img {
-    transform: scale(1.1);
-}
-
-/* بادج المخزون (Stock Level) */
-.stock-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    backdrop-filter: blur(8px);
-    z-index: 2;
-}
-
-.stock-high { background: rgba(39, 174, 96, 0.1); color: #27ae60; border: 1px solid rgba(39, 174, 96, 0.2); }
-.stock-low { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2); }
-
-/* تفاصيل المنتج داخل البطاقة */
-.order-body {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
     padding: 20px;
 }
 
-.product-code-label {
-    font-size: 0.7rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.order-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.order-number {
+    background: #fef5e8;
+    color: #e67e22;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
     font-weight: 700;
 }
 
-.product-title {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin: 5px 0 15px 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.order-date {
+    font-size: 0.7rem;
+    color: #95a5a6;
 }
 
-/* قسم السعر الاحترافي */
-.order-finance {
-    background: #fff8f3; /* لون مشتق من برتقالي تيرا */
-    border-radius: 14px;
-    padding: 12px 18px;
+.order-customer {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.customer-name {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.customer-phone {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.order-details {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.finance-label {
-    font-size: 0.8rem;
-    color: #e67e22;
-    font-weight: 700;
+.order-amount {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #27ae60;
 }
 
-.finance-value {
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: #1a202c;
+.order-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
 }
 
-/* تصميم النموذج (Form) لإضافة منتج */
-.product-form-card {
-    background: #fff;
-    padding: 35px;
-    border-radius: 24px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+.order-status.paid {
+    background: #d4edda;
+    color: #155724;
 }
 
-.form-group label {
-    display: block;
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 10px;
-    font-size: 0.9rem;
+.order-status.pending {
+    background: #fff3cd;
+    color: #856404;
 }
 
-.form-input {
-    width: 100%;
-    padding: 14px 18px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    background: #fbfcfd;
-    transition: all 0.2s;
-    font-family: 'Tajawal', sans-serif;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #e67e22;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.1);
-}
-
-/* أزرار التحكم السفلى */
-.order-footer {
-    padding: 15px 20px;
-    background: #f8fafc;
-    border-top: 1px solid #f1f5f9;
-    display: flex;
-    gap: 12px;
-}
-
-.btn-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-icon:hover {
-    background: #fee2e2;
-    color: #ef4444;
-    border-color: #fecaca;
-}
-
-.btn-edit:hover {
-    background: #eff6ff;
-    color: #2563eb;
-    border-color: #dbeafe;
+.order-status.overdue {
+    background: #f8d7da;
+    color: #721c24;
 }
