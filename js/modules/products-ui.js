@@ -1,21 +1,44 @@
 /**
  * js/modules/products-ui.js
- * موديول المنتجات - جلب بيانات حقيقية من Firebase
+ * جلب المنتجات من Firebase - نسخة مبسطة
  */
 
 import { db } from '../core/firebase.js';
-import { 
-    collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
-    query, orderBy, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 console.log('🚀 products-ui.js تم تحميله');
 
-// ===================== دوال مساعدة =====================
+// ===================== جلب المنتجات =====================
+
+async function loadProducts() {
+    console.log('🔄 جلب المنتجات من Firebase...');
+    try {
+        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        console.log(`✅ تم العثور على ${querySnapshot.size} منتج`);
+        
+        const products = [];
+        querySnapshot.forEach(doc => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        console.log('📦 المنتجات:', products);
+        return products;
+    } catch (error) {
+        console.error('❌ خطأ في جلب المنتجات:', error);
+        return [];
+    }
+}
+
+// ===================== عرض المنتجات =====================
+
+function formatCurrency(amount) {
+    var num = Number(amount) || 0;
+    return num.toFixed(2) + ' ر.س';
+}
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
+    return String(str).replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -23,316 +46,68 @@ function escapeHtml(str) {
     });
 }
 
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        z-index: 10001;
-        font-weight: bold;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        direction: rtl;
-        font-family: 'Tajawal', sans-serif;
-    `;
-    notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${message}`;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
-}
-
-function formatCurrency(amount) {
-    var num = Number(amount) || 0;
-    return num.toFixed(2) + ' ر.س';
-}
-
-function getStockStatus(stock) {
-    var qty = Number(stock) || 0;
-    if (qty <= 0) return { label: 'نفد', color: '#e74c3c', icon: 'fa-times-circle' };
-    if (qty <= 5) return { label: 'قليل', color: '#e67e22', icon: 'fa-exclamation-triangle' };
-    return { label: 'متوفر', color: '#27ae60', icon: 'fa-check-circle' };
-}
-
-// ===================== جلب المنتجات من Firebase =====================
-
-async function loadProductsFromFirebase() {
-    try {
-        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        const products = [];
-        querySnapshot.forEach(doc => {
-            products.push({ id: doc.id, ...doc.data() });
-        });
-        return products;
-    } catch (error) {
-        console.error("خطأ في جلب المنتجات:", error);
-        return [];
-    }
-}
-
-// ===================== عرض المنتجات =====================
-
-async function renderProductsGrid() {
-    const grid = document.getElementById('products-list-grid');
-    if (!grid) return;
+async function displayProducts(container) {
+    console.log('🔄 عرض المنتجات...');
     
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p>جاري تحميل المنتجات...</p></div>';
-    
-    const products = await loadProductsFromFirebase();
+    const products = await loadProducts();
     
     if (!products || products.length === 0) {
-        grid.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #95a5a6;">
-                <i class="fas fa-box-open fa-3x" style="margin-bottom: 15px; display: block;"></i>
-                لا توجد منتجات مسجلة حالياً
+        container.innerHTML = `
+            <div style="padding: 40px; text-align: center; color: #7f8c8d;">
+                <i class="fas fa-box-open fa-3x" style="margin-bottom: 10px; display: block;"></i>
+                <p>لا توجد منتجات مسجلة حالياً</p>
+                <p style="font-size: 0.8rem;">مجموعة products في Firebase: 0 مستند</p>
             </div>
         `;
         return;
     }
     
-    grid.innerHTML = products.map(product => {
-        const status = getStockStatus(product.stock);
-        const shortDescription = product.description ? product.description.replace(/<[^>]*>/g, '').substring(0, 100) : '';
-        
-        return `
-            <div class="product-card" data-id="${product.id}" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-right: 4px solid ${status.color};">
-                ${product.mainImage ? `
-                <div style="height: 160px; overflow: hidden; background: #f8f9fa;">
-                    <img src="${escapeHtml(product.mainImage)}" alt="${escapeHtml(product.name)}" 
-                         style="width: 100%; height: 100%; object-fit: cover;"
-                         onerror="this.src='https://via.placeholder.com/300x160/e67e22/ffffff?text=Tera'">
-                </div>
-                ` : `
-                <div style="height: 160px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-box fa-3x" style="color: white; opacity: 0.7;"></i>
-                </div>
-                `}
-                
-                <div style="padding: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                        <h4 style="margin: 0; color: #2c3e50; font-size: 1rem;">${escapeHtml(product.name)}</h4>
-                        <span style="background: ${status.color}20; color: ${status.color}; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;">
-                            <i class="fas ${status.icon}"></i> ${status.label}
-                        </span>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
-                        <span style="font-size: 1.2rem; font-weight: bold; color: #e67e22;">${formatCurrency(product.price)}</span>
-                        <span style="color: #7f8c8d; font-size: 0.8rem;">
-                            <i class="fas fa-warehouse"></i> المخزون: ${product.stock || 0}
-                        </span>
-                    </div>
-                    
-                    ${product.code ? `
-                    <div style="margin-bottom: 10px;">
-                        <span style="background: #f8f9fa; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: #95a5a6;">
-                            <i class="fas fa-barcode"></i> ${escapeHtml(product.code)}
-                        </span>
-                    </div>
-                    ` : ''}
-                    
-                    ${shortDescription ? `
-                    <div style="margin-bottom: 15px;">
-                        <p style="color: #7f8c8d; font-size: 0.8rem; margin: 0; line-height: 1.4;">${escapeHtml(shortDescription)}...</p>
-                    </div>
-                    ` : ''}
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f5f9;">
-                        <button class="edit-product-btn" data-id="${product.id}" 
-                                style="flex: 1; background: #f39c12; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
-                            <i class="fas fa-edit"></i> تعديل
-                        </button>
-                        <button class="delete-product-btn" data-id="${product.id}" 
-                                style="flex: 1; background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">
-                            <i class="fas fa-trash-alt"></i> حذف
-                        </button>
-                    </div>
-                </div>
+    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
+    
+    products.forEach(product => {
+        html += `
+            <div style="background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-right: 4px solid #e67e22;">
+                <h4 style="margin: 0 0 10px 0;">${escapeHtml(product.name)}</h4>
+                <div style="color: #e67e22; font-size: 1.2rem; font-weight: bold;">${formatCurrency(product.price)}</div>
+                <div style="color: #7f8c8d; font-size: 0.8rem;">المخزون: ${product.stock || 0}</div>
+                ${product.code ? `<div style="color: #95a5a6; font-size: 0.7rem;">كود: ${escapeHtml(product.code)}</div>` : ''}
+                <div style="margin-top: 10px; font-size: 0.8rem; color: #27ae60;">✅ منتج حقيقي من Firebase</div>
             </div>
         `;
-    }).join('');
-    
-    // ربط أحداث التعديل والحذف
-    document.querySelectorAll('.edit-product-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.id;
-            const product = products.find(p => p.id === id);
-            if (product) showProductModal('edit', product);
-        });
     });
     
-    document.querySelectorAll('.delete-product-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('⚠️ هل أنت متأكد من حذف هذا المنتج؟')) {
-                const id = btn.dataset.id;
-                await deleteDoc(doc(db, "products", id));
-                showNotification('تم حذف المنتج بنجاح', 'success');
-                await renderProductsGrid();
-            }
-        });
-    });
-}
-
-// ===================== فتح وإغلاق المودال =====================
-
-export function showProductModal(mode = 'add', productData = null) {
-    const modal = document.getElementById('product-modal');
-    if (!modal) return;
-    
-    const title = document.getElementById('modal-title');
-    
-    if (mode === 'add') {
-        title.innerText = '➕ إضافة منتج جديد';
-        document.getElementById('product-form').reset();
-        document.getElementById('edit-id').value = '';
-        document.getElementById('product-code').value = 'PROD-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-    } else if (mode === 'edit' && productData) {
-        title.innerText = '✏️ تعديل المنتج';
-        document.getElementById('edit-id').value = productData.id || '';
-        document.getElementById('product-code').value = productData.code || '';
-        document.getElementById('product-name').value = productData.name || '';
-        document.getElementById('product-price').value = productData.price || 0;
-        document.getElementById('product-stock').value = productData.stock || 0;
-        document.getElementById('product-description').value = productData.description || '';
-        document.getElementById('product-image').value = productData.mainImage || '';
-    }
-    
-    modal.style.display = 'flex';
-}
-
-export function closeProductModal() {
-    const modal = document.getElementById('product-modal');
-    if (modal) modal.style.display = 'none';
-    document.getElementById('product-form').reset();
-    document.getElementById('edit-id').value = '';
-}
-
-// ===================== حفظ المنتج =====================
-
-async function saveProduct(e) {
-    e.preventDefault();
-    
-    const id = document.getElementById('edit-id').value;
-    const productData = {
-        code: document.getElementById('product-code').value,
-        name: document.getElementById('product-name').value,
-        price: parseFloat(document.getElementById('product-price').value) || 0,
-        stock: parseInt(document.getElementById('product-stock').value) || 0,
-        description: document.getElementById('product-description').value,
-        mainImage: document.getElementById('product-image').value,
-        updatedAt: serverTimestamp()
-    };
-    
-    try {
-        if (id) {
-            await updateDoc(doc(db, "products", id), productData);
-            showNotification('تم تحديث المنتج بنجاح', 'success');
-        } else {
-            productData.createdAt = serverTimestamp();
-            await addDoc(collection(db, "products"), productData);
-            showNotification('تم إضافة المنتج بنجاح', 'success');
-        }
-        closeProductModal();
-        await renderProductsGrid();
-    } catch (error) {
-        console.error("خطأ في حفظ المنتج:", error);
-        showNotification('حدث خطأ في حفظ المنتج', 'error');
-    }
+    html += '</div>';
+    container.innerHTML = html;
+    console.log('✅ تم عرض المنتجات بنجاح');
 }
 
 // ===================== الدالة الرئيسية =====================
 
 export async function initProducts(container) {
-    if (!container) return;
+    console.log('✅ initProducts تم استدعاؤها');
     
+    if (!container) {
+        console.error('❌ container غير موجود');
+        return;
+    }
+
     container.innerHTML = `
-        <div style="padding: 25px; font-family: 'Tajawal', sans-serif;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
-                <div>
-                    <h2 style="color: #2c3e50; margin: 0;">
-                        <i class="fas fa-box" style="color: #e67e22;"></i> 
-                        إدارة المنتجات
-                    </h2>
-                    <p style="color: #7f8c8d; margin: 5px 0 0 0;">إدارة المخزون والمنتجات</p>
-                </div>
-                <button id="add-product-btn" style="background: #e67e22; color: white; border: none; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-weight: bold;">
-                    <i class="fas fa-plus"></i> إضافة منتج جديد
-                </button>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <input type="text" id="search-products" placeholder="بحث عن منتج..." 
-                       style="width: 100%; max-width: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-            </div>
-            
-            <div id="products-list-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+        <div style="padding: 20px; font-family: 'Tajawal', sans-serif;">
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">
+                <i class="fas fa-box" style="color: #e67e22;"></i> 
+                إدارة المنتجات
+            </h2>
+            <div id="products-content" style="margin-top: 20px;">
+                <div style="text-align: center; padding: 40px;">
                     <i class="fas fa-spinner fa-spin fa-2x"></i>
                     <p>جاري تحميل المنتجات...</p>
                 </div>
             </div>
         </div>
-        
-        <div id="product-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;">
-            <div style="background: white; width: 90%; max-width: 600px; padding: 25px; border-radius: 16px; max-height: 90vh; overflow-y: auto;">
-                <h3 id="modal-title" style="margin: 0 0 20px 0;">إضافة منتج جديد</h3>
-                <form id="product-form">
-                    <input type="hidden" id="edit-id">
-                    <div style="margin-bottom: 15px;">
-                        <label>رمز المنتج</label>
-                        <input type="text" id="product-code" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label>اسم المنتج *</label>
-                        <input type="text" id="product-name" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div>
-                            <label>السعر *</label>
-                            <input type="number" id="product-price" step="0.01" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        </div>
-                        <div>
-                            <label>الكمية *</label>
-                            <input type="number" id="product-stock" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label>وصف المنتج</label>
-                        <textarea id="product-description" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label>رابط الصورة</label>
-                        <input type="url" id="product-image" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                    </div>
-                    <div style="display: flex; gap: 15px;">
-                        <button type="submit" style="flex: 2; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer;">حفظ</button>
-                        <button type="button" id="close-product-modal" style="flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer;">إلغاء</button>
-                    </div>
-                </form>
-            </div>
-        </div>
     `;
     
-    // ربط الأحداث
-    document.getElementById('add-product-btn').addEventListener('click', () => showProductModal());
-    document.getElementById('close-product-modal').addEventListener('click', () => closeProductModal());
-    document.getElementById('product-form').addEventListener('submit', saveProduct);
-    
-    // تحميل المنتجات
-    await renderProductsGrid();
-    
-    // البحث
-    document.getElementById('search-products').addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        document.querySelectorAll('.product-card').forEach(card => {
-            const name = card.querySelector('h4')?.innerText.toLowerCase() || '';
-            card.style.display = name.includes(term) ? '' : 'none';
-        });
-    });
+    const productsContainer = document.getElementById('products-content');
+    await displayProducts(productsContainer);
 }
 
-export default { initProducts, showProductModal, closeProductModal };
+export default { initProducts };
