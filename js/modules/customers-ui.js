@@ -1,27 +1,28 @@
 /**
  * js/modules/customers-ui.js
- * دوال واجهة المستخدم للعملاء - تيرا جيتواي
- * @version 2.1.0
+ * موديول العملاء - جلب بيانات حقيقية من Firebase
  */
+
+import { db } from '../core/firebase.js';
+import { 
+    collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
+    query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+console.log('🚀 customers-ui.js تم تحميله');
 
 // ===================== دوال مساعدة =====================
 
-/**
- * منع هجمات XSS
- */
 function escapeHtml(str) {
     if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
 }
 
-/**
- * عرض إشعار منبثق
- */
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.style.cssText = `
@@ -44,9 +45,6 @@ function showNotification(message, type = 'success') {
     setTimeout(() => notification.remove(), 3000);
 }
 
-/**
- * تنسيق العنوان الكامل من بيانات العميل
- */
 function formatFullAddress(customer) {
     if (!customer) return '';
     const parts = [];
@@ -60,66 +58,32 @@ function formatFullAddress(customer) {
     return parts.length > 0 ? parts.join('، ') : 'لا يوجد عنوان';
 }
 
-// ===================== فتح وإغلاق المودال =====================
+// ===================== جلب العملاء من Firebase =====================
 
-/**
- * فتح نافذة إضافة/تعديل عميل
- * @param {string} mode - 'add' أو 'edit'
- * @param {Object} customerData - بيانات العميل (في حالة التعديل)
- */
-export function showCustomerModal(mode = 'add', customerData = null) {
-    const modal = document.getElementById('customer-modal');
-    if (!modal) return;
-    
-    const title = document.getElementById('modal-title');
-    const form = document.getElementById('customer-form');
-    
-    if (!form) return;
-    
-    if (mode === 'add') {
-        title.innerText = '➕ إضافة عميل جديد';
-        form.reset();
-        document.getElementById('edit-id').value = '';
-    } else if (mode === 'edit' && customerData) {
-        title.innerText = '✏️ تعديل بيانات العميل';
-        document.getElementById('edit-id').value = customerData.id || '';
-        document.getElementById('c-name').value = customerData.name || '';
-        document.getElementById('c-phone').value = customerData.phone || '';
-        document.getElementById('c-email').value = customerData.email || '';
-        document.getElementById('c-city').value = customerData.city || '';
-        document.getElementById('c-district').value = customerData.district || '';
-        document.getElementById('c-street').value = customerData.street || '';
-        document.getElementById('c-building').value = customerData.buildingNo || '';
-        document.getElementById('c-additional').value = customerData.additionalNo || '';
-        document.getElementById('c-pobox').value = customerData.poBox || '';
-        document.getElementById('c-country').value = customerData.country || 'السعودية';
+async function loadCustomersFromFirebase() {
+    try {
+        const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        const customers = [];
+        querySnapshot.forEach(doc => {
+            customers.push({ id: doc.id, ...doc.data() });
+        });
+        return customers;
+    } catch (error) {
+        console.error("خطأ في جلب العملاء:", error);
+        return [];
     }
-    
-    modal.style.display = 'flex';
 }
 
-/**
- * إغلاق نافذة العميل
- */
-export function closeCustomerModal() {
-    const modal = document.getElementById('customer-modal');
-    if (modal) modal.style.display = 'none';
-    
-    // تنظيف النموذج
-    const form = document.getElementById('customer-form');
-    if (form) form.reset();
-    document.getElementById('edit-id').value = '';
-}
+// ===================== عرض العملاء =====================
 
-// ===================== عرض جدول العملاء =====================
-
-/**
- * عرض العملاء في الجدول
- * @param {Array} customers - مصفوفة العملاء
- */
-export function renderCustomersTable(customers) {
+async function renderCustomersTable() {
     const tbody = document.getElementById('customers-table-body');
     if (!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل العملاء...</td></tr>';
+    
+    const customers = await loadCustomersFromFirebase();
     
     if (!customers || customers.length === 0) {
         tbody.innerHTML = `
@@ -147,28 +111,118 @@ export function renderCustomersTable(customers) {
                 </td>
                 <td style="padding: 12px; text-align: center;">
                     <button class="edit-customer-btn" data-id="${customer.id}" 
-                            style="color: #f39c12; background: none; border: none; cursor: pointer; margin-left: 10px; font-size: 1rem;">
+                            style="color: #f39c12; background: none; border: none; cursor: pointer; margin-left: 10px;">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="delete-customer-btn" data-id="${customer.id}" 
-                            style="color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 1rem;">
+                            style="color: #e74c3c; background: none; border: none; cursor: pointer;">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
             </tr>
         `;
     }).join('');
+    
+    // ربط أحداث التعديل والحذف
+    document.querySelectorAll('.edit-customer-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.id;
+            const customer = customers.find(c => c.id === id);
+            if (customer) showCustomerModal('edit', customer);
+        });
+    });
+    
+    document.querySelectorAll('.delete-customer-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (confirm('⚠️ هل أنت متأكد من حذف هذا العميل؟')) {
+                const id = btn.dataset.id;
+                await deleteDoc(doc(db, "customers", id));
+                showNotification('تم حذف العميل بنجاح', 'success');
+                await renderCustomersTable();
+            }
+        });
+    });
 }
 
-// ===================== الدالة الرئيسية لتهيئة الموديول =====================
+// ===================== فتح وإغلاق المودال =====================
 
-/**
- * تهيئة موديول العملاء - الدالة الرئيسية
- */
+export function showCustomerModal(mode = 'add', customerData = null) {
+    const modal = document.getElementById('customer-modal');
+    if (!modal) return;
+    
+    const title = document.getElementById('modal-title');
+    
+    if (mode === 'add') {
+        title.innerText = '➕ إضافة عميل جديد';
+        document.getElementById('customer-form').reset();
+        document.getElementById('edit-id').value = '';
+    } else if (mode === 'edit' && customerData) {
+        title.innerText = '✏️ تعديل بيانات العميل';
+        document.getElementById('edit-id').value = customerData.id || '';
+        document.getElementById('c-name').value = customerData.name || '';
+        document.getElementById('c-phone').value = customerData.phone || '';
+        document.getElementById('c-email').value = customerData.email || '';
+        document.getElementById('c-city').value = customerData.city || '';
+        document.getElementById('c-district').value = customerData.district || '';
+        document.getElementById('c-street').value = customerData.street || '';
+        document.getElementById('c-building').value = customerData.buildingNo || '';
+        document.getElementById('c-additional').value = customerData.additionalNo || '';
+        document.getElementById('c-pobox').value = customerData.poBox || '';
+        document.getElementById('c-country').value = customerData.country || 'السعودية';
+    }
+    
+    modal.style.display = 'flex';
+}
+
+export function closeCustomerModal() {
+    const modal = document.getElementById('customer-modal');
+    if (modal) modal.style.display = 'none';
+    document.getElementById('customer-form').reset();
+    document.getElementById('edit-id').value = '';
+}
+
+// ===================== حفظ العميل =====================
+
+async function saveCustomer(e) {
+    e.preventDefault();
+    
+    const id = document.getElementById('edit-id').value;
+    const customerData = {
+        name: document.getElementById('c-name').value,
+        phone: document.getElementById('c-phone').value,
+        email: document.getElementById('c-email').value,
+        city: document.getElementById('c-city').value,
+        district: document.getElementById('c-district').value,
+        street: document.getElementById('c-street').value,
+        buildingNo: document.getElementById('c-building').value,
+        additionalNo: document.getElementById('c-additional').value,
+        poBox: document.getElementById('c-pobox').value,
+        country: document.getElementById('c-country').value,
+        updatedAt: serverTimestamp()
+    };
+    
+    try {
+        if (id) {
+            await updateDoc(doc(db, "customers", id), customerData);
+            showNotification('تم تحديث بيانات العميل بنجاح', 'success');
+        } else {
+            customerData.createdAt = serverTimestamp();
+            await addDoc(collection(db, "customers"), customerData);
+            showNotification('تم إضافة العميل بنجاح', 'success');
+        }
+        closeCustomerModal();
+        await renderCustomersTable();
+    } catch (error) {
+        console.error("خطأ في حفظ العميل:", error);
+        showNotification('حدث خطأ في حفظ البيانات', 'error');
+    }
+}
+
+// ===================== الدالة الرئيسية =====================
+
 export async function initCustomers(container) {
     if (!container) return;
     
-    // عرض واجهة العملاء
     container.innerHTML = `
         <div style="padding: 25px; font-family: 'Tajawal', sans-serif;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
@@ -177,260 +231,118 @@ export async function initCustomers(container) {
                         <i class="fas fa-users" style="color: #e67e22;"></i> 
                         إدارة العملاء
                     </h2>
-                    <p style="color: #7f8c8d; margin: 5px 0 0 0; font-size: 0.85rem;">
-                        <i class="fas fa-address-card"></i> إدارة بيانات العملاء والعناوين
-                    </p>
+                    <p style="color: #7f8c8d; margin: 5px 0 0 0;">إدارة بيانات العملاء والعناوين</p>
                 </div>
-                <button id="add-customer-btn" style="background: #e67e22; color: white; border: none; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(230,126,34,0.3); transition: 0.3s;">
+                <button id="add-customer-btn" style="background: #e67e22; color: white; border: none; padding: 10px 24px; border-radius: 10px; cursor: pointer; font-weight: bold;">
                     <i class="fas fa-user-plus"></i> إضافة عميل جديد
                 </button>
             </div>
             
-            <div style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
-                <div style="position: relative; flex: 1; max-width: 300px;">
-                    <i class="fas fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #95a5a6;"></i>
-                    <input type="text" id="search-customers" placeholder="بحث عن عميل..." 
-                           style="width: 100%; padding: 10px 35px 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Tajawal', sans-serif;">
-                </div>
-                <button id="refresh-customers-btn" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
-                    <i class="fas fa-sync-alt"></i> تحديث
-                </button>
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="search-customers" placeholder="بحث عن عميل..." 
+                       style="width: 100%; max-width: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
             </div>
             
-            <div style="background: white; border-radius: 15px; overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="background: white; border-radius: 15px; overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
-                    <thead style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+                    <thead style="background: #f8f9fa;">
                         <tr>
-                            <th style="padding: 15px; text-align: right;">#</th>
-                            <th style="padding: 15px; text-align: right;">الاسم</th>
-                            <th style="padding: 15px; text-align: right;">الجوال</th>
-                            <th style="padding: 15px; text-align: right;">البريد</th>
-                            <th style="padding: 15px; text-align: right;">المدينة</th>
-                            <th style="padding: 15px; text-align: right;">العنوان</th>
-                            <th style="padding: 15px; text-align: center;">الإجراءات</th>
+                            <th style="padding: 15px;">#</th>
+                            <th style="padding: 15px;">الاسم</th>
+                            <th style="padding: 15px;">الجوال</th>
+                            <th style="padding: 15px;">البريد</th>
+                            <th style="padding: 15px;">المدينة</th>
+                            <th style="padding: 15px;">العنوان</th>
+                            <th style="padding: 15px;">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="customers-table-body">
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px;">
-                                <i class="fas fa-spinner fa-spin"></i> جاري تحميل العملاء...
-                            </td>
-                        </tr>
+                        <tr><td colspan="7" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل العملاء...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
         
-        <!-- مودال إضافة/تعديل عميل -->
-        <div id="customer-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-            <div style="background: white; width: 90%; max-width: 650px; padding: 25px; border-radius: 16px; box-shadow: 0 20px 35px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
-                <h3 id="modal-title" style="margin: 0 0 20px 0; color: #2c3e50; border-bottom: 2px solid #e67e22; padding-bottom: 10px;">إضافة عميل جديد</h3>
+        <div id="customer-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: white; width: 90%; max-width: 650px; padding: 25px; border-radius: 16px; max-height: 90vh; overflow-y: auto;">
+                <h3 id="modal-title" style="margin: 0 0 20px 0;">إضافة عميل جديد</h3>
                 <form id="customer-form">
                     <input type="hidden" id="edit-id">
-                    
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px;">
                         <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">الاسم الكامل *</label>
+                            <label>الاسم الكامل *</label>
                             <input type="text" id="c-name" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">رقم الجوال *</label>
+                            <label>رقم الجوال *</label>
                             <input type="tel" id="c-phone" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">البريد الإلكتروني</label>
+                            <label>البريد الإلكتروني</label>
                             <input type="email" id="c-email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                     </div>
                     
-                    <h4 style="color: #e67e22; margin: 20px 0 10px 0; border-right: 3px solid #e67e22; padding-right: 10px;">
-                        <i class="fas fa-location-dot"></i> العنوان الوطني
-                    </h4>
+                    <h4 style="color: #e67e22; margin: 15px 0 10px 0;">العنوان الوطني</h4>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
                         <div>
-                            <label style="display: block; margin-bottom: 5px;">الدولة</label>
+                            <label>الدولة</label>
                             <input type="text" id="c-country" value="السعودية" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px;">المدينة</label>
+                            <label>المدينة</label>
                             <input type="text" id="c-city" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px;">الحي</label>
+                            <label>الحي</label>
                             <input type="text" id="c-district" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px;">الشارع</label>
+                            <label>الشارع</label>
                             <input type="text" id="c-street" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px;">رقم المبنى</label>
+                            <label>رقم المبنى</label>
                             <input type="text" id="c-building" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px;">الرقم الإضافي</label>
+                            <label>الرقم الإضافي</label>
                             <input type="text" id="c-additional" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px;">الرمز البريدي</label>
+                            <label>الرمز البريدي</label>
                             <input type="text" id="c-pobox" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
                     </div>
                     
-                    <div style="display: flex; gap: 15px; margin-top: 25px;">
-                        <button type="submit" style="flex: 2; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                            <i class="fas fa-save"></i> حفظ البيانات
-                        </button>
-                        <button type="button" id="close-customer-modal" style="flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                            <i class="fas fa-times"></i> إلغاء
-                        </button>
+                    <div style="display: flex; gap: 15px;">
+                        <button type="submit" style="flex: 2; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer;">حفظ</button>
+                        <button type="button" id="close-customer-modal" style="flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer;">إلغاء</button>
                     </div>
                 </form>
             </div>
         </div>
     `;
     
-    // عرض عملاء تجريبيين (سيتم استبدالهم ببيانات حقيقية من Firebase)
-    const demoCustomers = [
-        { 
-            id: '1', 
-            name: 'أحمد محمد', 
-            phone: '0501234567', 
-            email: 'ahmed@example.com', 
-            city: 'الرياض', 
-            district: 'الملز',
-            street: 'الرياض',
-            buildingNo: '123',
-            additionalNo: '456',
-            poBox: '12345',
-            country: 'السعودية'
-        },
-        { 
-            id: '2', 
-            name: 'سارة علي', 
-            phone: '0551234567', 
-            email: 'sara@example.com', 
-            city: 'جدة', 
-            district: 'الروضة',
-            street: 'الأمير سلطان',
-            buildingNo: '789',
-            additionalNo: '101',
-            poBox: '54321',
-            country: 'السعودية'
-        }
-    ];
-    
-    renderCustomersTable(demoCustomers);
-    
     // ربط الأحداث
-    const addBtn = document.getElementById('add-customer-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', () => showCustomerModal());
-    }
+    document.getElementById('add-customer-btn').addEventListener('click', () => showCustomerModal());
+    document.getElementById('close-customer-modal').addEventListener('click', () => closeCustomerModal());
+    document.getElementById('customer-form').addEventListener('submit', saveCustomer);
     
-    const closeBtn = document.getElementById('close-customer-modal');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => closeCustomerModal());
-    }
-    
-    const modal = document.getElementById('customer-modal');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeCustomerModal();
-        });
-    }
-    
-    // زر تحديث
-    const refreshBtn = document.getElementById('refresh-customers-btn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            renderCustomersTable(demoCustomers);
-            showNotification('تم تحديث القائمة', 'success');
-        });
-    }
+    // تحميل العملاء
+    await renderCustomersTable();
     
     // البحث
-    const searchInput = document.getElementById('search-customers');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#customers-table-body tr');
-            rows.forEach(row => {
-                const name = row.querySelector('td:nth-child(2)')?.innerText.toLowerCase() || '';
-                const phone = row.querySelector('td:nth-child(3)')?.innerText.toLowerCase() || '';
-                if (name.includes(term) || phone.includes(term)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
-    }
-    
-    // معالجة إرسال النموذج
-    const form = document.getElementById('customer-form');
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            
-            const customerData = {
-                name: document.getElementById('c-name').value,
-                phone: document.getElementById('c-phone').value,
-                email: document.getElementById('c-email').value,
-                city: document.getElementById('c-city').value,
-                district: document.getElementById('c-district').value,
-                street: document.getElementById('c-street').value,
-                buildingNo: document.getElementById('c-building').value,
-                additionalNo: document.getElementById('c-additional').value,
-                poBox: document.getElementById('c-pobox').value,
-                country: document.getElementById('c-country').value
-            };
-            
-            if (id) {
-                showNotification('تم تحديث بيانات العميل بنجاح', 'success');
-            } else {
-                showNotification('تم إضافة العميل بنجاح', 'success');
-            }
-            
-            closeCustomerModal();
-            
-            // إضافة العميل الجديد إلى القائمة التجريبية
-            const newCustomer = { id: Date.now().toString(), ...customerData };
-            demoCustomers.push(newCustomer);
-            renderCustomersTable(demoCustomers);
-        });
-    }
-    
-    // ربط أحداث التعديل والحذف بعد التحميل
-    document.querySelectorAll('.edit-customer-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.id;
-            const customer = demoCustomers.find(c => c.id === id);
-            if (customer) showCustomerModal('edit', customer);
-        });
-    });
-    
-    document.querySelectorAll('.delete-customer-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (confirm('⚠️ هل أنت متأكد من حذف هذا العميل؟\nلا يمكن التراجع عن هذا الإجراء.')) {
-                const id = btn.dataset.id;
-                const index = demoCustomers.findIndex(c => c.id === id);
-                if (index !== -1) {
-                    demoCustomers.splice(index, 1);
-                    renderCustomersTable(demoCustomers);
-                    showNotification('تم حذف العميل بنجاح', 'success');
-                }
-            }
+    document.getElementById('search-customers').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#customers-table-body tr');
+        rows.forEach(row => {
+            const name = row.querySelector('td:nth-child(2)')?.innerText.toLowerCase() || '';
+            const phone = row.querySelector('td:nth-child(3)')?.innerText.toLowerCase() || '';
+            row.style.display = (name.includes(term) || phone.includes(term)) ? '' : 'none';
         });
     });
 }
 
-// ===================== تصدير الدوال =====================
-export default {
-    showCustomerModal,
-    closeCustomerModal,
-    renderCustomersTable,
-    initCustomers
-};
+export default { initCustomers, showCustomerModal, closeCustomerModal };
