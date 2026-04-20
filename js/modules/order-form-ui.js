@@ -1,7 +1,8 @@
 /**
  * js/modules/order-form-ui.js
  * دوال واجهة المستخدم لنموذج الطلب
- * @version 2.3.0
+ * يدعم جميع بيانات العميل مع Fallback
+ * @version 3.0.0
  */
 
 // ===================== دوال مساعدة =====================
@@ -38,6 +39,9 @@ function showNotification(message, type = 'success') {
     setTimeout(() => notification.remove(), 3000);
 }
 
+/**
+ * تنسيق العنوان الكامل من بيانات العميل
+ */
 function formatFullAddress(customer) {
     if (!customer) return '';
     const parts = [];
@@ -55,8 +59,7 @@ function formatFullAddress(customer) {
 function calculateItemTotals() {
     let subtotal = 0;
     
-    const rows = document.querySelectorAll('#items-body tr');
-    rows.forEach(row => {
+    document.querySelectorAll('#items-body tr').forEach(row => {
         const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
         const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
         const rowTotal = qty * price;
@@ -87,17 +90,12 @@ function attachItemEvents(row) {
     const priceInput = row.querySelector('.item-price');
     const removeBtn = row.querySelector('.remove-item');
     
-    if (qtyInput) {
-        qtyInput.addEventListener('input', () => calculateItemTotals());
-    }
-    if (priceInput) {
-        priceInput.addEventListener('input', () => calculateItemTotals());
-    }
+    if (qtyInput) qtyInput.addEventListener('input', () => calculateItemTotals());
+    if (priceInput) priceInput.addEventListener('input', () => calculateItemTotals());
     
     if (removeBtn) {
         removeBtn.addEventListener('click', () => {
-            const rows = document.querySelectorAll('#items-body tr');
-            if (rows.length > 1) {
+            if (document.querySelectorAll('#items-body tr').length > 1) {
                 row.remove();
                 calculateItemTotals();
             } else {
@@ -151,8 +149,7 @@ export function addEmptyItemRow() {
 
 export function collectOrderItems() {
     const items = [];
-    const rows = document.querySelectorAll('#items-body tr');
-    rows.forEach(row => {
+    document.querySelectorAll('#items-body tr').forEach(row => {
         const name = row.querySelector('.item-name')?.value?.trim();
         if (name) {
             items.push({
@@ -182,11 +179,17 @@ export function resetOrderForm() {
     calculateItemTotals();
 }
 
-// ===================== إدارة بيانات العميل =====================
+// ===================== إدارة بيانات العميل (مع Fallback) =====================
 
+/**
+ * تعبئة بيانات العميل في النموذج مع تطبيق Fallback
+ * @param {Object} customer - بيانات العميل من قاعدة البيانات (كاملة)
+ * @param {Object} existingOrder - بيانات الطلب الحالي (في حالة التعديل)
+ */
 export function fillCustomerData(customer, existingOrder = null) {
     if (!customer) return;
     
+    // تطبيق Fallback: استخدم بيانات الطلب إذا موجودة، وإلا استخدم بيانات العميل
     const nameField = document.getElementById('c-name');
     const phoneField = document.getElementById('c-phone');
     const emailField = document.getElementById('c-email');
@@ -202,18 +205,22 @@ export function fillCustomerData(customer, existingOrder = null) {
         emailField.value = (existingOrder?.email) || customer.email || '';
     }
     
+    // تنسيق العنوان من بيانات العميل (وليس من shippingAddress)
     const fullAddress = formatFullAddress(customer);
     if (addressField) {
         addressField.value = (existingOrder?.address) || fullAddress;
     }
     
-    // تخزين بيانات العميل في hidden field
+    // تخزين بيانات العميل الكاملة في hidden field
     const customerDataField = document.getElementById('customer-data');
     if (customerDataField) {
         customerDataField.value = JSON.stringify(customer);
     }
 }
 
+/**
+ * تنظيف جميع حقول العميل
+ */
 export function clearCustomerFields() {
     const fields = ['c-name', 'c-phone', 'c-email', 'c-address'];
     fields.forEach(id => {
@@ -225,6 +232,10 @@ export function clearCustomerFields() {
     if (customerDataField) customerDataField.value = '';
 }
 
+/**
+ * الحصول على بيانات العميل من النموذج
+ * @returns {Object} بيانات العميل المدخلة
+ */
 export function getCustomerDataFromForm() {
     return {
         name: document.getElementById('c-name')?.value?.trim() || '',
@@ -232,6 +243,23 @@ export function getCustomerDataFromForm() {
         email: document.getElementById('c-email')?.value?.trim() || '',
         address: document.getElementById('c-address')?.value?.trim() || ''
     };
+}
+
+/**
+ * الحصول على بيانات العميل الكاملة من hidden field
+ * @returns {Object|null} بيانات العميل المخزنة أو null
+ */
+export function getStoredCustomerData() {
+    const customerDataField = document.getElementById('customer-data');
+    if (customerDataField && customerDataField.value) {
+        try {
+            return JSON.parse(customerDataField.value);
+        } catch (e) {
+            console.error('Error parsing customer data:', e);
+            return null;
+        }
+    }
+    return null;
 }
 
 // ===================== إدارة مودال الطلب =====================
@@ -252,6 +280,7 @@ export function showOrderModal(mode = 'add', orderData = null) {
     } else if (mode === 'edit' && orderData) {
         if (title) title.innerText = `✏️ تعديل الفاتورة: ${orderData.orderNumber || ''}`;
         
+        // تعبئة بيانات الطلب الأساسية
         const nameField = document.getElementById('c-name');
         const phoneField = document.getElementById('c-phone');
         const emailField = document.getElementById('c-email');
@@ -264,6 +293,15 @@ export function showOrderModal(mode = 'add', orderData = null) {
         if (addressField) addressField.value = orderData.address || '';
         if (editIdField) editIdField.value = orderData.id || '';
         
+        // تخزين بيانات العميل إذا كانت موجودة
+        if (orderData.customerData) {
+            const customerDataField = document.getElementById('customer-data');
+            if (customerDataField) {
+                customerDataField.value = JSON.stringify(orderData.customerData);
+            }
+        }
+        
+        // بنود المنتجات
         const itemsBody = document.getElementById('items-body');
         if (itemsBody) itemsBody.innerHTML = '';
         
@@ -311,8 +349,6 @@ export function validateOrderForm() {
     return { valid: errors.length === 0, errors };
 }
 
-// ===================== دالة مساعدة للتحقق من جاهزية النموذج =====================
-
 export function isOrderFormReady() {
     const customerName = document.getElementById('c-name')?.value?.trim();
     const phone = document.getElementById('c-phone')?.value?.trim();
@@ -338,6 +374,7 @@ export default {
     fillCustomerData,
     clearCustomerFields,
     getCustomerDataFromForm,
+    getStoredCustomerData,
     showOrderModal,
     closeOrderModal,
     validateOrderForm,
