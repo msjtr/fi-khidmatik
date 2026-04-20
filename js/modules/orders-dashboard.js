@@ -1,7 +1,7 @@
 /**
  * js/modules/orders-dashboard.js
- * موديول الطلبات مع دعم بيانات العميل الكاملة (name, phone, email, address)
- * @version 3.0.0
+ * موديول الطلبات - جلب بيانات العميل من customers باستخدام customerId
+ * @version 3.1.0
  */
 
 import { db } from '../core/firebase.js';
@@ -9,7 +9,7 @@ import {
     collection, getDocs, query, orderBy, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-console.log('🚀 orders-dashboard.js (النسخة النهائية) تم تحميله');
+console.log('🚀 orders-dashboard.js (جلب بيانات العملاء) تم تحميله');
 
 // ===================== دوال مساعدة =====================
 
@@ -32,6 +32,7 @@ function formatCurrency(amount) {
 
 /**
  * تنسيق العنوان الكامل من بيانات العميل
+ * يستخدم: city, district, street, buildingNo, additionalNo, poBox, country
  */
 function formatFullAddress(customer) {
     if (!customer) return '';
@@ -40,13 +41,14 @@ function formatFullAddress(customer) {
     if (customer.street) parts.push(`شارع ${customer.street}`);
     if (customer.district) parts.push(`حي ${customer.district}`);
     if (customer.city) parts.push(customer.city);
+    if (customer.additionalNo) parts.push(`رقم إضافي ${customer.additionalNo}`);
     if (customer.poBox) parts.push(`ص.ب ${customer.poBox}`);
     if (customer.country) parts.push(customer.country);
-    return parts.length > 0 ? parts.join('، ') : '';
+    return parts.length > 0 ? parts.join('، ') : 'لا يوجد عنوان مفصل';
 }
 
 /**
- * جلب بيانات العميل الكاملة من customers
+ * جلب بيانات العميل الكاملة من مجموعة customers باستخدام customerId
  */
 async function fetchCustomerData(customerId) {
     if (!customerId) return null;
@@ -63,21 +65,28 @@ async function fetchCustomerData(customerId) {
 
 /**
  * دمج بيانات الطلب مع بيانات العميل (تطبيق Fallback)
- * @param {Object} order - بيانات الطلب من Firebase
- * @param {Object} customer - بيانات العميل من Firebase
- * @returns {Object} - البيانات المدمجة (الطلب + ما ينقصه من العميل)
+ * أولوية: بيانات الطلب ← ثم بيانات العميل
  */
 function mergeOrderWithCustomer(order, customer) {
-    if (!customer) return order;
+    if (!customer) {
+        return {
+            ...order,
+            customerName: order.customerName || 'غير معروف',
+            phone: order.phone || 'غير موجود',
+            email: order.email || '',
+            address: order.shippingAddress || 'لا يوجد عنوان',
+            customerData: null
+        };
+    }
     
+    // تطبيق Fallback: استخدم بيانات الطلب إذا موجودة، وإلا استخدم بيانات العميل
     return {
         ...order,
-        // تطبيق Fallback: استخدم بيانات الطلب إذا موجودة، وإلا استخدم بيانات العميل
         customerName: order.customerName || customer.name || 'غير معروف',
         phone: order.phone || customer.phone || 'غير موجود',
         email: order.email || customer.email || '',
-        address: order.address || formatFullAddress(customer),
-        // الاحتفاظ ببيانات العميل الأصلية للتوسع المستقبلي
+        address: order.shippingAddress || formatFullAddress(customer),
+        // حفظ بيانات العميل الكاملة للاستخدام المستقبلي
         customerData: {
             name: customer.name,
             phone: customer.phone,
@@ -96,7 +105,6 @@ function mergeOrderWithCustomer(order, customer) {
 // ===================== عرض الطلبات =====================
 
 async function displayOrders(container) {
-    // عرض مؤشر تحميل
     container.innerHTML = `
         <div style="padding: 40px; text-align: center;">
             <i class="fas fa-spinner fa-spin fa-2x" style="color: #e67e22;"></i>
@@ -128,10 +136,11 @@ async function displayOrders(container) {
             let total = order.total || 0;
             totalSales += total;
             
-            // جلب بيانات العميل إذا كان هناك customerId
+            // جلب بيانات العميل باستخدام customerId
             let customer = null;
             if (order.customerId) {
                 customer = await fetchCustomerData(order.customerId);
+                console.log(`📦 جلب بيانات العميل ${order.customerId}:`, customer ? 'تم بنجاح' : 'غير موجود');
             }
             
             // دمج بيانات الطلب مع بيانات العميل (تطبيق Fallback)
@@ -139,7 +148,7 @@ async function displayOrders(container) {
             
             const date = order.createdAt?.toDate?.() 
                 ? order.createdAt.toDate().toLocaleDateString('ar-SA') 
-                : 'تاريخ غير معروف';
+                : order.orderDate || 'تاريخ غير معروف';
             
             ordersHtml += `
                 <div class="order-card" style="background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-right: 4px solid #e67e22;">
@@ -147,14 +156,14 @@ async function displayOrders(container) {
                     <!-- رأس البطاقة: رقم الطلب والتاريخ -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
                         <span style="background: #e67e22; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">
-                            🧾 ${escapeHtml(mergedOrder.orderNumber || orderId.slice(0, 8))}
+                            🧾 ${escapeHtml(order.orderNumber || orderId.slice(0, 8))}
                         </span>
                         <span style="color: #7f8c8d; font-size: 0.8rem;">
                             <i class="far fa-calendar-alt"></i> ${date}
                         </span>
                     </div>
                     
-                    <!-- معلومات العميل الكاملة -->
+                    <!-- معلومات العميل الكاملة (من الطلب أو من customer) -->
                     <div style="margin-bottom: 15px;">
                         <div style="display: flex; align-items: center; margin-bottom: 8px;">
                             <i class="fas fa-user" style="color: #e67e22; width: 25px;"></i>
@@ -173,7 +182,7 @@ async function displayOrders(container) {
                             <span>${escapeHtml(mergedOrder.email)}</span>
                         </div>
                         ` : ''}
-                        ${mergedOrder.address ? `
+                        ${mergedOrder.address && mergedOrder.address !== 'لا يوجد عنوان' ? `
                         <div style="display: flex; align-items: flex-start; margin-bottom: 8px;">
                             <i class="fas fa-location-dot" style="color: #e67e22; width: 25px; margin-top: 3px;"></i>
                             <strong style="margin-left: 8px;">العنوان:</strong>
@@ -182,13 +191,31 @@ async function displayOrders(container) {
                         ` : ''}
                     </div>
                     
-                    <!-- المبلغ -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #eee;">
-                        <span style="color: #7f8c8d;"><i class="fas fa-box"></i> عدد المنتجات: ${order.items?.length || 0}</span>
-                        <span style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
+                    <!-- معلومات الدفع والمنتجات -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #eee;">
+                        <div>
+                            <span style="color: #7f8c8d; font-size: 0.8rem;">
+                                <i class="fas fa-box"></i> المنتجات: ${order.items?.length || 0}
+                            </span>
+                            ${order.paymentMethodName ? `
+                            <span style="color: #7f8c8d; font-size: 0.8rem; margin-right: 15px;">
+                                <i class="fas fa-credit-card"></i> ${escapeHtml(order.paymentMethodName)}
+                            </span>
+                            ` : ''}
+                        </div>
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
                             ${formatCurrency(total)}
+                        </div>
+                    </div>
+                    
+                    <!-- حالة الطلب (إذا وجدت) -->
+                    ${order.status ? `
+                    <div style="margin-top: 10px; text-align: left;">
+                        <span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;">
+                            الحالة: ${escapeHtml(order.status)}
                         </span>
                     </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -204,7 +231,7 @@ async function displayOrders(container) {
         
         ordersHtml += '</div>';
         container.innerHTML = ordersHtml;
-        console.log('✅ تم عرض الطلبات بنجاح مع بيانات العملاء الكاملة');
+        console.log('✅ تم عرض الطلبات بنجاح مع بيانات العملاء من customers');
 
     } catch (error) {
         console.error("خطأ في جلب الطلبات:", error);
