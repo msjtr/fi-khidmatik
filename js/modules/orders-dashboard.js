@@ -934,4 +934,9 @@ export async function initOrders(container) {
 }
 
 // ===================== تصدير الدوال للاستخدام الخارجي =====================
+export { loadOrders, saveOrder, deleteOrder, editOrder, printInvoice, initOrders, initOrdersDashboard }; 
+// ===================== تصدير الدوال للاستخدام الخارجي =====================
 export { loadOrders, saveOrder, deleteOrder, editOrder, printInvoice, initOrders, initOrdersDashboard };
+
+// تصدير افتراضي أيضاً
+export default { initOrdersDashboard, initOrders };
