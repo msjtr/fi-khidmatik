@@ -234,7 +234,6 @@ async function loadCustomerOptions() {
         
         snap.forEach(doc => {
             const c = doc.data();
-            // تخزين جميع بيانات العميل كاملة (name, phone, email, city, district, street, buildingNo, additionalNo, poBox, country)
             const customerData = {
                 id: doc.id,
                 name: c.name || '',
@@ -256,7 +255,6 @@ async function loadCustomerOptions() {
             sel.appendChild(option);
         });
         
-        // ربط حدث تغيير العميل
         sel.addEventListener('change', (e) => {
             const selected = e.target.options[e.target.selectedIndex];
             if (!selected.value) {
@@ -276,9 +274,6 @@ async function loadCustomerOptions() {
     }
 }
 
-/**
- * تنظيف حقول بيانات العميل
- */
 function clearCustomerFields() {
     document.getElementById('c-name').value = '';
     document.getElementById('c-phone').value = '';
@@ -286,13 +281,7 @@ function clearCustomerFields() {
     document.getElementById('c-address').value = '';
 }
 
-/**
- * تعبئة بيانات العميل في النموذج (مع Fallback)
- * @param {Object} customer - بيانات العميل من قاعدة البيانات (كاملة)
- * @param {Object} existingOrder - بيانات الطلب الحالي (في حالة التعديل)
- */
 function fillCustomerData(customer, existingOrder = null) {
-    // تطبيق Fallback: استخدم بيانات الطلب إذا موجودة، وإلا استخدم بيانات العميل
     const nameField = document.getElementById('c-name');
     const phoneField = document.getElementById('c-phone');
     const emailField = document.getElementById('c-email');
@@ -308,7 +297,6 @@ function fillCustomerData(customer, existingOrder = null) {
         emailField.value = (existingOrder?.email) || customer?.email || '';
     }
     
-    // تنسيق العنوان من بيانات العميل (وليس من shippingAddress)
     const fullAddress = formatFullAddress(customer);
     if (addressField) {
         addressField.value = (existingOrder?.address) || fullAddress;
@@ -564,21 +552,18 @@ async function editOrder(id) {
         
         const order = snap.data();
         
-        // تعبئة الحقول الأساسية من الطلب
         document.getElementById('edit-id').value = id;
         document.getElementById('c-name').value = order.customerName || '';
         document.getElementById('c-phone').value = order.phone || '';
         document.getElementById('c-email').value = order.email || '';
         document.getElementById('c-address').value = order.address || '';
         
-        // إذا كان هناك customerId في الطلب، جلب بيانات العميل الكاملة لتطبيق fallback
         if (order.customerId) {
             try {
                 const customerSnap = await getDoc(doc(db, "customers", order.customerId));
                 if (customerSnap.exists()) {
                     const customer = customerSnap.data();
                     
-                    // تطبيق fallback: إذا كانت بيانات الطلب ناقصة، أكملها من بيانات العميل
                     if (!order.customerName && customer.name) {
                         document.getElementById('c-name').value = customer.name;
                     }
@@ -597,7 +582,6 @@ async function editOrder(id) {
             }
         }
         
-        // تنظيف وإضافة بنود المنتجات
         const itemsBody = document.getElementById('items-body');
         if (itemsBody) itemsBody.innerHTML = '';
         
@@ -664,7 +648,7 @@ async function printInvoice(id) {
                 <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">${item.quantity}</td>
                 <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">${item.price.toFixed(2)}</td>
                 <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">${(item.quantity * item.price).toFixed(2)}</td>
-            </tr>
+             </tr>
         `).join('');
         
         const date = new Date().toLocaleDateString('ar-SA');
@@ -839,7 +823,6 @@ export async function initOrdersDashboard(container) {
             </div>
         </div>
 
-        <!-- مودال إضافة/تعديل طلب -->
         <div id="order-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; overflow-y:auto; padding:20px;">
             <div style="background:white; max-width:900px; margin:20px auto; border-radius:15px; padding:30px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #f1f2f6; padding-bottom:15px;">
@@ -928,15 +911,9 @@ export async function initOrdersDashboard(container) {
     await calculateTotalStats();
 }
 
-// دالة مبسطة للتوافق مع main.js
 export async function initOrders(container) {
     return initOrdersDashboard(container);
 }
 
-// ===================== تصدير الدوال للاستخدام الخارجي =====================
-export { loadOrders, saveOrder, deleteOrder, editOrder, printInvoice, initOrders, initOrdersDashboard }; 
-// ===================== تصدير الدوال للاستخدام الخارجي =====================
+// ===================== تصدير الدوال =====================
 export { loadOrders, saveOrder, deleteOrder, editOrder, printInvoice, initOrders, initOrdersDashboard };
-
-// تصدير افتراضي أيضاً
-export default { initOrdersDashboard, initOrders };
