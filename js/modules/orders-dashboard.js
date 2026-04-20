@@ -1,14 +1,17 @@
 /**
  * js/modules/orders-dashboard.js
- * عرض الطلبات من Firebase مباشرة - نسخة مبسطة ونظيفة
+ * موديول الطلبات مع دعم بيانات العميل الكاملة (name, phone, email, address)
+ * @version 3.0.0
  */
 
 import { db } from '../core/firebase.js';
 import { 
-    collection, getDocs, query, orderBy 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    collection, getDocs, query, orderBy, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 console.log('🚀 orders-dashboard.js (النسخة النهائية) تم تحميله');
+
+// ===================== دوال مساعدة =====================
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -27,25 +30,81 @@ function formatCurrency(amount) {
     }).format(amount) + ' ر.س';
 }
 
-// الدالة الرئيسية التي سيبحث عنها main.js
-export async function initOrdersDashboard(container) {
-    console.log('✅ [initOrdersDashboard] تم استدعاء الدالة بنجاح');
-    
-    if (!container) {
-        console.error('❌ container غير موجود');
-        return;
-    }
+/**
+ * تنسيق العنوان الكامل من بيانات العميل
+ */
+function formatFullAddress(customer) {
+    if (!customer) return '';
+    const parts = [];
+    if (customer.buildingNo) parts.push(`مبنى ${customer.buildingNo}`);
+    if (customer.street) parts.push(`شارع ${customer.street}`);
+    if (customer.district) parts.push(`حي ${customer.district}`);
+    if (customer.city) parts.push(customer.city);
+    if (customer.poBox) parts.push(`ص.ب ${customer.poBox}`);
+    if (customer.country) parts.push(customer.country);
+    return parts.length > 0 ? parts.join('، ') : '';
+}
 
-    // عرض واجهة التحميل
+/**
+ * جلب بيانات العميل الكاملة من customers
+ */
+async function fetchCustomerData(customerId) {
+    if (!customerId) return null;
+    try {
+        const customerDoc = await getDoc(doc(db, "customers", customerId));
+        if (customerDoc.exists()) {
+            return customerDoc.data();
+        }
+    } catch (error) {
+        console.error("Error fetching customer:", error);
+    }
+    return null;
+}
+
+/**
+ * دمج بيانات الطلب مع بيانات العميل (تطبيق Fallback)
+ * @param {Object} order - بيانات الطلب من Firebase
+ * @param {Object} customer - بيانات العميل من Firebase
+ * @returns {Object} - البيانات المدمجة (الطلب + ما ينقصه من العميل)
+ */
+function mergeOrderWithCustomer(order, customer) {
+    if (!customer) return order;
+    
+    return {
+        ...order,
+        // تطبيق Fallback: استخدم بيانات الطلب إذا موجودة، وإلا استخدم بيانات العميل
+        customerName: order.customerName || customer.name || 'غير معروف',
+        phone: order.phone || customer.phone || 'غير موجود',
+        email: order.email || customer.email || '',
+        address: order.address || formatFullAddress(customer),
+        // الاحتفاظ ببيانات العميل الأصلية للتوسع المستقبلي
+        customerData: {
+            name: customer.name,
+            phone: customer.phone,
+            email: customer.email,
+            city: customer.city,
+            district: customer.district,
+            street: customer.street,
+            buildingNo: customer.buildingNo,
+            additionalNo: customer.additionalNo,
+            poBox: customer.poBox,
+            country: customer.country
+        }
+    };
+}
+
+// ===================== عرض الطلبات =====================
+
+async function displayOrders(container) {
+    // عرض مؤشر تحميل
     container.innerHTML = `
-        <div style="padding: 20px; font-family: 'Tajawal', sans-serif; text-align: center;">
+        <div style="padding: 40px; text-align: center;">
             <i class="fas fa-spinner fa-spin fa-2x" style="color: #e67e22;"></i>
-            <p style="margin-top: 15px;">جاري تحميل بيانات الطلبات...</p>
+            <p style="margin-top: 15px;">جاري تحميل الطلبات...</p>
         </div>
     `;
 
     try {
-        // جلب الطلبات من Firebase
         const ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(ordersQuery);
         
@@ -61,41 +120,91 @@ export async function initOrdersDashboard(container) {
 
         let totalSales = 0;
         let ordersHtml = '<div style="padding: 20px;"><h3>📋 قائمة الطلبات</h3>';
-
-        querySnapshot.forEach(doc => {
-            const order = doc.data();
-            const total = order.total || 0;
+        
+        // معالجة كل طلب وجلب بيانات العميل المرتبطة به
+        for (const docSnapshot of querySnapshot.docs) {
+            const order = docSnapshot.data();
+            const orderId = docSnapshot.id;
+            let total = order.total || 0;
             totalSales += total;
+            
+            // جلب بيانات العميل إذا كان هناك customerId
+            let customer = null;
+            if (order.customerId) {
+                customer = await fetchCustomerData(order.customerId);
+            }
+            
+            // دمج بيانات الطلب مع بيانات العميل (تطبيق Fallback)
+            const mergedOrder = mergeOrderWithCustomer(order, customer);
             
             const date = order.createdAt?.toDate?.() 
                 ? order.createdAt.toDate().toLocaleDateString('ar-SA') 
                 : 'تاريخ غير معروف';
             
             ordersHtml += `
-                <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-right: 4px solid #e67e22;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-                        <div>
-                            <div><strong>رقم الطلب:</strong> ${escapeHtml(order.orderNumber || doc.id.slice(0, 8))}</div>
-                            <div><strong>العميل:</strong> ${escapeHtml(order.customerName || 'غير معروف')}</div>
-                            <div><strong>الهاتف:</strong> ${escapeHtml(order.phone || 'غير موجود')}</div>
-                            <div><strong>التاريخ:</strong> ${date}</div>
+                <div class="order-card" style="background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-right: 4px solid #e67e22;">
+                    
+                    <!-- رأس البطاقة: رقم الطلب والتاريخ -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                        <span style="background: #e67e22; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">
+                            🧾 ${escapeHtml(mergedOrder.orderNumber || orderId.slice(0, 8))}
+                        </span>
+                        <span style="color: #7f8c8d; font-size: 0.8rem;">
+                            <i class="far fa-calendar-alt"></i> ${date}
+                        </span>
+                    </div>
+                    
+                    <!-- معلومات العميل الكاملة -->
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <i class="fas fa-user" style="color: #e67e22; width: 25px;"></i>
+                            <strong style="margin-left: 8px;">العميل:</strong>
+                            <span>${escapeHtml(mergedOrder.customerName)}</span>
                         </div>
-                        <div style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <i class="fas fa-phone" style="color: #e67e22; width: 25px;"></i>
+                            <strong style="margin-left: 8px;">الجوال:</strong>
+                            <span dir="ltr">${escapeHtml(mergedOrder.phone)}</span>
+                        </div>
+                        ${mergedOrder.email ? `
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <i class="fas fa-envelope" style="color: #e67e22; width: 25px;"></i>
+                            <strong style="margin-left: 8px;">البريد:</strong>
+                            <span>${escapeHtml(mergedOrder.email)}</span>
+                        </div>
+                        ` : ''}
+                        ${mergedOrder.address ? `
+                        <div style="display: flex; align-items: flex-start; margin-bottom: 8px;">
+                            <i class="fas fa-location-dot" style="color: #e67e22; width: 25px; margin-top: 3px;"></i>
+                            <strong style="margin-left: 8px;">العنوان:</strong>
+                            <span style="flex: 1;">${escapeHtml(mergedOrder.address)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- المبلغ -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #eee;">
+                        <span style="color: #7f8c8d;"><i class="fas fa-box"></i> عدد المنتجات: ${order.items?.length || 0}</span>
+                        <span style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
                             ${formatCurrency(total)}
-                        </div>
+                        </span>
                     </div>
                 </div>
             `;
-        });
+        }
         
-        ordersHtml += `<div style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; text-align: center;">
-                        <h3 style="margin: 0;">💰 إجمالي المبيعات</h3>
-                        <div style="font-size: 1.8rem; font-weight: bold;">${formatCurrency(totalSales)}</div>
-                        <div>عدد الطلبات: ${querySnapshot.size}</div>
-                    </div></div>`;
+        // إضافة إجمالي المبيعات في الأعلى
+        ordersHtml = `
+            <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; text-align: center;">
+                <h3 style="margin: 0;">💰 إجمالي المبيعات</h3>
+                <div style="font-size: 1.8rem; font-weight: bold;">${formatCurrency(totalSales)}</div>
+                <div>عدد الطلبات: ${querySnapshot.size}</div>
+            </div>
+        ` + ordersHtml;
         
+        ordersHtml += '</div>';
         container.innerHTML = ordersHtml;
-        console.log('✅ تم عرض الطلبات بنجاح');
+        console.log('✅ تم عرض الطلبات بنجاح مع بيانات العملاء الكاملة');
 
     } catch (error) {
         console.error("خطأ في جلب الطلبات:", error);
@@ -103,10 +212,42 @@ export async function initOrdersDashboard(container) {
             <div style="padding: 40px; text-align: center; color: #e74c3c;">
                 <i class="fas fa-exclamation-triangle fa-3x" style="margin-bottom: 15px;"></i>
                 <p>حدث خطأ في تحميل الطلبات: ${error.message}</p>
-                <button onclick="if(window.switchModule) window.switchModule('orders')" style="margin-top: 15px; padding: 8px 20px; background: #e67e22; color: white; border: none; border-radius: 8px; cursor: pointer;">إعادة المحاولة</button>
+                <button onclick="if(window.switchModule) window.switchModule('orders')" 
+                        style="margin-top: 15px; padding: 8px 20px; background: #e67e22; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-sync-alt"></i> إعادة المحاولة
+                </button>
             </div>
         `;
     }
+}
+
+// ===================== الدوال الرئيسية =====================
+
+export async function initOrdersDashboard(container) {
+    console.log('✅ [initOrdersDashboard] تم استدعاء الدالة بنجاح');
+    
+    if (!container) {
+        console.error('❌ container غير موجود');
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="padding: 20px; font-family: 'Tajawal', sans-serif;">
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">
+                <i class="fas fa-receipt" style="color: #e67e22;"></i> 
+                نظام الطلبات والفواتير
+            </h2>
+            <div id="orders-content" style="margin-top: 20px;">
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin fa-2x" style="color: #e67e22;"></i>
+                    <p style="margin-top: 15px;">جاري تحميل الطلبات...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const ordersContainer = document.getElementById('orders-content');
+    await displayOrders(ordersContainer);
 }
 
 // دالة إضافية للتوافق مع main.js
@@ -115,5 +256,4 @@ export async function initOrders(container) {
     return initOrdersDashboard(container);
 }
 
-// تصدير افتراضي كضمان إضافي
 export default { initOrdersDashboard, initOrders };
