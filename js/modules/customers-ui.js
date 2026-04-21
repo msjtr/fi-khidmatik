@@ -1,14 +1,14 @@
 /**
  * js/modules/customers-ui.js
- * موديول العملاء المتطور - مع إحصائيات، طباعة، تصدير، وتنسيق الأرقام
+ * نسخة مستقرة مع جميع الميزات
  */
 
 import { db } from '../core/firebase.js';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-console.log('✅ customers-ui.js (المتطور) تم تحميله');
+console.log('✅ customers-ui.js تم تحميله');
 
-// ===================== دوال مساعدة =====================
+// ===================== دوال مساعدة بسيطة =====================
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/[&<>]/g, function(m) {
@@ -19,16 +19,15 @@ function escapeHtml(str) {
     });
 }
 
-function showNotification(message, type) {
+function showNotification(msg, type) {
     var toast = document.createElement('div');
-    var bgColor = (type === 'success') ? '#2ecc71' : '#e74c3c';
-    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:' + bgColor + ';color:white;padding:12px 24px;border-radius:8px;z-index:10001;font-family:Tajawal;direction:rtl';
-    toast.innerHTML = '<i class="fas ' + ((type === 'success') ? 'fa-check-circle' : 'fa-exclamation-triangle') + '"></i> ' + message;
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:' + (type === 'success' ? '#2ecc71' : '#e74c3c') + ';color:white;padding:12px 24px;border-radius:8px;z-index:10001';
+    toast.innerHTML = msg;
     document.body.appendChild(toast);
     setTimeout(function() { toast.remove(); }, 3000);
 }
 
-// تنسيق رقم الجوال: استخراج مفتاح الدولة والرقم بدون الصفر الأول
+// تنسيق رقم الجوال
 function formatPhone(phone) {
     if (!phone) return { code: '', number: '' };
     var raw = String(phone).replace(/\s/g, '');
@@ -43,78 +42,62 @@ function formatPhone(phone) {
     return { code: '', number: raw };
 }
 
-// التحقق من اكتمال بيانات العميل (حسب الحقول الأساسية)
-function isCustomerComplete(customer) {
-    var required = ['name', 'phone', 'email', 'city', 'district', 'street', 'buildingNo', 'poBox'];
-    for (var i = 0; i < required.length; i++) {
-        var field = required[i];
-        if (!customer[field] || customer[field].trim() === '') return false;
-    }
-    return true;
-}
-
-// ===================== جلب العملاء من Firebase =====================
+// ===================== جلب العملاء =====================
 async function getCustomers() {
-    try {
-        var q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
-        var snap = await getDocs(q);
-        var customers = [];
-        snap.forEach(function(doc) {
-            customers.push({ id: doc.id, ...doc.data() });
-        });
-        return customers;
-    } catch(e) {
-        console.error(e);
-        return [];
-    }
+    var q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
+    var snap = await getDocs(q);
+    var customers = [];
+    snap.forEach(function(doc) {
+        customers.push({ id: doc.id, ...doc.data() });
+    });
+    return customers;
 }
 
 // ===================== عرض الإحصائيات =====================
 async function renderStats(customers) {
     var total = customers.length;
-    var completed = 0;
-    for (var i = 0; i < customers.length; i++) {
-        if (isCustomerComplete(customers[i])) completed++;
-    }
+    var completed = customers.filter(function(c) {
+        return c.name && c.phone && c.email && c.city;
+    }).length;
     var incomplete = total - completed;
     var percent = total ? ((completed / total) * 100).toFixed(1) : 0;
     
     var statsDiv = document.getElementById('customers-stats');
-    if (!statsDiv) return;
-    
-    statsDiv.innerHTML = `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:15px;margin-bottom:25px;">
-            <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:15px;border-radius:12px;color:white;text-align:center">
-                <div style="font-size:2rem;">${total}</div>
-                <div>إجمالي العملاء</div>
+    if (statsDiv) {
+        statsDiv.innerHTML = `
+            <div style="display:flex;flex-wrap:wrap;gap:15px;margin-bottom:20px;">
+                <div style="background:#667eea;padding:15px;border-radius:12px;color:white;text-align:center;flex:1;min-width:120px;">
+                    <div style="font-size:1.8rem;">${total}</div>
+                    <div>إجمالي العملاء</div>
+                </div>
+                <div style="background:#27ae60;padding:15px;border-radius:12px;color:white;text-align:center;flex:1;min-width:120px;">
+                    <div style="font-size:1.8rem;">${completed}</div>
+                    <div>مكتملي البيانات</div>
+                </div>
+                <div style="background:#e67e22;padding:15px;border-radius:12px;color:white;text-align:center;flex:1;min-width:120px;">
+                    <div style="font-size:1.8rem;">${incomplete}</div>
+                    <div>غير مكتملي البيانات</div>
+                </div>
+                <div style="background:#3498db;padding:15px;border-radius:12px;color:white;text-align:center;flex:1;min-width:120px;">
+                    <div style="font-size:1.8rem;">${percent}%</div>
+                    <div>نسبة الإكمال</div>
+                </div>
             </div>
-            <div style="background:linear-gradient(135deg,#27ae60 0%,#2ecc71 100%);padding:15px;border-radius:12px;color:white;text-align:center">
-                <div style="font-size:2rem;">${completed}</div>
-                <div>مكتملي البيانات</div>
-            </div>
-            <div style="background:linear-gradient(135deg,#e67e22 0%,#f39c12 100%);padding:15px;border-radius:12px;color:white;text-align:center">
-                <div style="font-size:2rem;">${incomplete}</div>
-                <div>غير مكتملي البيانات</div>
-            </div>
-            <div style="background:linear-gradient(135deg,#3498db 0%,#9b59b6 100%);padding:15px;border-radius:12px;color:white;text-align:center">
-                <div style="font-size:2rem;">${percent}%</div>
-                <div>نسبة الإكمال</div>
-            </div>
-        </div>
-    `;
+        `;
+    }
 }
 
-// ===================== عرض جدول العملاء =====================
+// ===================== عرض الجدول =====================
 async function renderTable() {
     var tbody = document.getElementById('customers-table-body');
     if (!tbody) return;
     
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">جاري التحميل...<\/td><\/tr>';
+    tbody.innerHTML = '<td><td colspan="9">جاري التحميل...<\/td><\/tr>';
     var customers = await getCustomers();
     await renderStats(customers);
     
     if (customers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">لا يوجد عملاء<\/td><\/tr>';
+        tbody.innerHTML = '<tr><td colspan="9">لا يوجد عملاء<\/td><\/tr>';
         return;
     }
     
@@ -122,30 +105,24 @@ async function renderTable() {
     for (var i = 0; i < customers.length; i++) {
         var c = customers[i];
         var phoneObj = formatPhone(c.phone);
-        var isComplete = isCustomerComplete(c);
-        var rowBg = isComplete ? '' : 'style="background:#fff9e6;"';
-        var statusIcon = isComplete ? '✅' : '⚠️';
-        
-        html += '<tr style="border-bottom:1px solid #f1f5f9;" ' + rowBg + '>';
-        html += '<td style="padding:12px;">' + (i+1) + '<\/td>';
-        html += '<td style="padding:12px;font-weight:bold;">' + escapeHtml(c.name) + '<\/td>';
-        html += '<td style="padding:12px;direction:ltr;"><span style="color:#7f8c8d;">' + phoneObj.code + '</span> ' + phoneObj.number + '<\/td>';
-        html += '<td style="padding:12px;">' + (c.email || '-') + '<\/td>';
-        html += '<td style="padding:12px;">' + (c.city || '-') + '<\/td>';
-        html += '<td style="padding:12px;">' + (c.district || '-') + '<\/td>';
-        html += '<td style="padding:12px;">' + (c.street || '-') + '<\/td>';
-        html += '<td style="padding:12px;">' + (c.buildingNo || '-') + '<\/td>';
-        html += '<td style="padding:12px;text-align:center;">';
-        html += '<button class="edit-customer" data-id="' + c.id + '" style="color:#f39c12;background:none;border:none;cursor:pointer;margin-left:8px;" title="تعديل"><i class="fas fa-edit"><\/i><\/button>';
-        html += '<button class="delete-customer" data-id="' + c.id + '" style="color:#e74c3c;background:none;border:none;cursor:pointer;margin-left:8px;" title="حذف"><i class="fas fa-trash-alt"><\/i><\/button>';
-        html += '<button class="print-customer" data-id="' + c.id + '" style="color:#3498db;background:none;border:none;cursor:pointer;" title="طباعة"><i class="fas fa-print"><\/i><\/button>';
-        html += '<span style="margin-right:8px;" title="' + (isComplete ? 'مكتمل' : 'غير مكتمل') + '">' + statusIcon + '<\/span>';
-        html += '<\/td>';
-        html += '<\/tr>';
+        html += '<tr>';
+        html += '<td style="padding:10px;">' + (i+1) + '<\/td>';
+        html += '<td style="padding:10px;">' + escapeHtml(c.name) + '<\/td>';
+        html += '<td style="padding:10px;direction:ltr;">' + phoneObj.code + ' ' + phoneObj.number + '<\/td>';
+        html += '<td style="padding:10px;">' + (c.email || '-') + '<\/td>';
+        html += '<td style="padding:10px;">' + (c.city || '-') + '<\/td>';
+        html += '<td style="padding:10px;">' + (c.district || '-') + '<\/td>';
+        html += '<td style="padding:10px;">' + (c.street || '-') + '<\/td>';
+        html += '<td style="padding:10px;">' + (c.buildingNo || '-') + '<\/td>';
+        html += '<td style="padding:10px;text-align:center;">';
+        html += '<button class="edit-customer" data-id="' + c.id + '" style="color:#f39c12;background:none;border:none;cursor:pointer;margin-left:8px;"><i class="fas fa-edit"><\/i><\/button>';
+        html += '<button class="delete-customer" data-id="' + c.id + '" style="color:#e74c3c;background:none;border:none;cursor:pointer;margin-left:8px;"><i class="fas fa-trash-alt"><\/i><\/button>';
+        html += '<button class="print-customer" data-id="' + c.id + '" style="color:#3498db;background:none;border:none;cursor:pointer;"><i class="fas fa-print"><\/i><\/button>';
+        html += '<\/td><\/tr>';
     }
     tbody.innerHTML = html;
     
-    // ربط أحداث التعديل والحذف والطباعة
+    // ربط الأحداث
     document.querySelectorAll('.edit-customer').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var id = btn.getAttribute('data-id');
@@ -156,9 +133,9 @@ async function renderTable() {
     
     document.querySelectorAll('.delete-customer').forEach(function(btn) {
         btn.addEventListener('click', async function() {
-            if (confirm('⚠️ هل أنت متأكد من حذف هذا العميل؟')) {
+            if (confirm('هل تريد حذف هذا العميل؟')) {
                 await deleteDoc(doc(db, "customers", btn.getAttribute('data-id')));
-                showNotification('تم حذف العميل بنجاح', 'success');
+                showNotification('تم الحذف');
                 await renderTable();
             }
         });
@@ -168,126 +145,91 @@ async function renderTable() {
         btn.addEventListener('click', function() {
             var id = btn.getAttribute('data-id');
             var customer = customers.find(function(c) { return c.id === id; });
-            if (customer) printCustomerCard(customer);
+            if (customer) printCard(customer);
         });
     });
 }
 
-// ===================== طباعة بطاقة عميل =====================
-function printCustomerCard(customer) {
+// ===================== طباعة =====================
+function printCard(customer) {
     var phoneObj = formatPhone(customer.phone);
-    var win = window.open('', '_blank', 'width=650,height=600');
+    var win = window.open('', '_blank');
     win.document.write(`
-        <!DOCTYPE html>
-        <html dir="rtl">
-        <head><meta charset="UTF-8"><title>بيانات العميل</title>
+        <html dir="rtl"><head><meta charset="UTF-8"><title>بيانات العميل</title>
         <style>
-            body{font-family:'Tajawal',Arial;padding:20px;margin:0}
-            .card{max-width:600px;margin:auto;border:1px solid #ddd;border-radius:16px;padding:25px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-            h3{color:#e67e22;border-bottom:2px solid #e67e22;padding-bottom:8px;margin-top:0}
-            .info{margin:12px 0;display:flex;flex-wrap:wrap}
-            .label{font-weight:bold;width:130px;color:#2c3e50}
-            .value{flex:1;color:#34495e}
-            .header{text-align:center;margin-bottom:20px}
-            .footer{text-align:center;margin-top:25px;font-size:12px;color:#95a5a6;border-top:1px solid #eee;padding-top:15px}
+            body{font-family:Tajawal;padding:20px}
+            .card{border:1px solid #ddd;border-radius:12px;padding:20px;max-width:500px;margin:auto}
+            h3{color:#e67e22}
+            .info{margin:10px 0}
+            .label{font-weight:bold;width:120px;display:inline-block}
         </style>
         </head>
         <body>
         <div class="card">
-            <div class="header">
-                <h2 style="color:#e67e22;">تيرا جيتواي</h2>
-                <p>بطاقة بيانات العميل</p>
-            </div>
-            <div class="info"><span class="label">الاسم الكامل:</span><span class="value">${escapeHtml(customer.name)}</span></div>
-            <div class="info"><span class="label">رقم الجوال:</span><span class="value">${phoneObj.code} ${phoneObj.number}</span></div>
-            <div class="info"><span class="label">البريد الإلكتروني:</span><span class="value">${customer.email || '-'}</span></div>
-            <div class="info"><span class="label">الدولة:</span><span class="value">${customer.country || '-'}</span></div>
-            <div class="info"><span class="label">المدينة:</span><span class="value">${customer.city || '-'}</span></div>
-            <div class="info"><span class="label">الحي:</span><span class="value">${customer.district || '-'}</span></div>
-            <div class="info"><span class="label">الشارع:</span><span class="value">${customer.street || '-'}</span></div>
-            <div class="info"><span class="label">رقم المبنى:</span><span class="value">${customer.buildingNo || '-'}</span></div>
-            <div class="info"><span class="label">الرقم الإضافي:</span><span class="value">${customer.additionalNo || '-'}</span></div>
-            <div class="info"><span class="label">الرمز البريدي:</span><span class="value">${customer.poBox || '-'}</span></div>
-            <div class="footer">
-                تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}
-            </div>
+            <h3>بيانات العميل</h3>
+            <div class="info"><span class="label">الاسم:</span> ${escapeHtml(customer.name)}</div>
+            <div class="info"><span class="label">الجوال:</span> ${phoneObj.code} ${phoneObj.number}</div>
+            <div class="info"><span class="label">البريد:</span> ${customer.email || '-'}</div>
+            <div class="info"><span class="label">المدينة:</span> ${customer.city || '-'}</div>
+            <div class="info"><span class="label">الحي:</span> ${customer.district || '-'}</div>
+            <div class="info"><span class="label">الشارع:</span> ${customer.street || '-'}</div>
+            <div class="info"><span class="label">رقم المبنى:</span> ${customer.buildingNo || '-'}</div>
+            <div class="info"><span class="label">الرمز البريدي:</span> ${customer.poBox || '-'}</div>
         </div>
-        <script>window.onload=function(){window.print();};<\/script>
+        <script>window.print();<\/script>
         </body>
         </html>
     `);
     win.document.close();
 }
 
-// ===================== تصدير العملاء إلى CSV =====================
-async function exportToCSV() {
+// ===================== تصدير CSV =====================
+async function exportCSV() {
     var customers = await getCustomers();
-    if (customers.length === 0) {
-        showNotification('لا يوجد عملاء للتصدير', 'error');
-        return;
-    }
-    var headers = ['الاسم', 'الجوال', 'البريد', 'الدولة', 'المدينة', 'الحي', 'الشارع', 'رقم المبنى', 'الرقم الإضافي', 'الرمز البريدي'];
+    if (!customers.length) return;
+    var headers = ['الاسم', 'الجوال', 'البريد', 'المدينة', 'الحي', 'الشارع', 'رقم المبنى', 'الرمز البريدي'];
     var rows = [headers];
-    for (var i = 0; i < customers.length; i++) {
-        var c = customers[i];
-        rows.push([
-            c.name || '',
-            c.phone || '',
-            c.email || '',
-            c.country || '',
-            c.city || '',
-            c.district || '',
-            c.street || '',
-            c.buildingNo || '',
-            c.additionalNo || '',
-            c.poBox || ''
-        ]);
+    for (var c of customers) {
+        rows.push([c.name, c.phone, c.email, c.city, c.district, c.street, c.buildingNo, c.poBox]);
     }
-    var csv = rows.map(function(row) {
-        return row.map(function(cell) { return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(',');
-    }).join('\n');
-    var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    var csv = rows.map(row => row.map(cell => '"' + (cell || '') + '"').join(',')).join('\n');
+    var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv' });
     var link = document.createElement('a');
-    var url = URL.createObjectURL(blob);
-    link.href = url;
+    link.href = URL.createObjectURL(blob);
     link.download = 'customers.csv';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    showNotification('تم تصدير العملاء بنجاح', 'success');
+    URL.revokeObjectURL(link.href);
+    showNotification('تم التصدير');
 }
 
-// ===================== نموذج إضافة/تعديل عميل =====================
-function showModal(mode, customerData) {
+// ===================== نموذج الإضافة والتعديل =====================
+function showModal(mode, customer) {
     var modal = document.getElementById('customer-modal');
-    if (!modal) return;
     var title = document.getElementById('modal-title');
-    
+    var form = document.getElementById('customer-form');
     if (mode === 'add') {
-        title.innerText = '➕ إضافة عميل جديد';
-        document.getElementById('customer-form').reset();
+        title.innerText = 'إضافة عميل جديد';
+        form.reset();
         document.getElementById('edit-id').value = '';
-    } else if (mode === 'edit' && customerData) {
-        title.innerText = '✏️ تعديل بيانات العميل';
-        document.getElementById('edit-id').value = customerData.id;
-        document.getElementById('c-name').value = customerData.name || '';
-        document.getElementById('c-phone').value = customerData.phone || '';
-        document.getElementById('c-email').value = customerData.email || '';
-        document.getElementById('c-country').value = customerData.country || 'السعودية';
-        document.getElementById('c-city').value = customerData.city || '';
-        document.getElementById('c-district').value = customerData.district || '';
-        document.getElementById('c-street').value = customerData.street || '';
-        document.getElementById('c-building').value = customerData.buildingNo || '';
-        document.getElementById('c-additional').value = customerData.additionalNo || '';
-        document.getElementById('c-pobox').value = customerData.poBox || '';
+    } else {
+        title.innerText = 'تعديل بيانات العميل';
+        document.getElementById('edit-id').value = customer.id;
+        document.getElementById('c-name').value = customer.name || '';
+        document.getElementById('c-phone').value = customer.phone || '';
+        document.getElementById('c-email').value = customer.email || '';
+        document.getElementById('c-city').value = customer.city || '';
+        document.getElementById('c-district').value = customer.district || '';
+        document.getElementById('c-street').value = customer.street || '';
+        document.getElementById('c-building').value = customer.buildingNo || '';
+        document.getElementById('c-additional').value = customer.additionalNo || '';
+        document.getElementById('c-pobox').value = customer.poBox || '';
+        document.getElementById('c-country').value = customer.country || 'السعودية';
     }
     modal.style.display = 'flex';
 }
 
 function closeModal() {
-    var modal = document.getElementById('customer-modal');
-    if (modal) modal.style.display = 'none';
+    document.getElementById('customer-modal').style.display = 'none';
 }
 
 async function saveCustomer(e) {
@@ -297,29 +239,28 @@ async function saveCustomer(e) {
         name: document.getElementById('c-name').value,
         phone: document.getElementById('c-phone').value,
         email: document.getElementById('c-email').value,
-        country: document.getElementById('c-country').value,
         city: document.getElementById('c-city').value,
         district: document.getElementById('c-district').value,
         street: document.getElementById('c-street').value,
         buildingNo: document.getElementById('c-building').value,
         additionalNo: document.getElementById('c-additional').value,
         poBox: document.getElementById('c-pobox').value,
+        country: document.getElementById('c-country').value,
         updatedAt: serverTimestamp()
     };
     try {
         if (id) {
             await updateDoc(doc(db, "customers", id), data);
-            showNotification('تم تحديث العميل بنجاح', 'success');
+            showNotification('تم التحديث');
         } else {
             data.createdAt = serverTimestamp();
             await addDoc(collection(db, "customers"), data);
-            showNotification('تم إضافة العميل بنجاح', 'success');
+            showNotification('تمت الإضافة');
         }
         closeModal();
         await renderTable();
     } catch(err) {
-        console.error(err);
-        showNotification('حدث خطأ أثناء الحفظ', 'error');
+        showNotification('خطأ', 'error');
     }
 }
 
@@ -328,81 +269,65 @@ export async function initCustomers(container) {
     if (!container) return;
     
     container.innerHTML = `
-        <div style="padding:25px;font-family:'Tajawal',sans-serif;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
-                <h2 style="color:#2c3e50;margin:0;"><i class="fas fa-users" style="color:#e67e22;"></i> إدارة العملاء</h2>
+        <div style="padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:15px">
+                <h2><i class="fas fa-users"></i> إدارة العملاء</h2>
                 <div>
-                    <button id="export-csv-btn" style="background:#27ae60;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;margin-left:10px;"><i class="fas fa-file-excel"></i> تصدير CSV</button>
-                    <button id="add-customer-btn" style="background:#e67e22;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;"><i class="fas fa-user-plus"></i> إضافة عميل</button>
+                    <button id="export-csv" style="background:#27ae60;color:white;border:none;padding:8px 16px;border-radius:8px;margin-left:10px;cursor:pointer"><i class="fas fa-file-excel"></i> تصدير CSV</button>
+                    <button id="add-customer" style="background:#e67e22;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer"><i class="fas fa-plus"></i> إضافة عميل</button>
                 </div>
             </div>
             <div id="customers-stats"></div>
-            <div style="margin-bottom:15px;">
-                <input type="text" id="search-customers" placeholder="🔍 بحث باسم العميل أو رقم الجوال..." style="width:100%;max-width:350px;padding:10px;border:1px solid #ddd;border-radius:8px;">
-            </div>
-            <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden;">
-                    <thead style="background:#f8f9fa;">
-                        <tr>
-                            <th style="padding:12px;">#</th>
-                            <th style="padding:12px;">الاسم</th>
-                            <th style="padding:12px;">الجوال</th>
-                            <th style="padding:12px;">البريد</th>
-                            <th style="padding:12px;">المدينة</th>
-                            <th style="padding:12px;">الحي</th>
-                            <th style="padding:12px;">الشارع</th>
-                            <th style="padding:12px;">رقم المبنى</th>
-                            <th style="padding:12px;">الإجراءات</th>
-                        </tr>
+            <input type="text" id="search-input" placeholder="بحث..." style="width:100%;max-width:300px;padding:8px;margin-bottom:15px;border:1px solid #ddd;border-radius:8px">
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;background:white">
+                    <thead style="background:#f8f9fa">
+                        <tr><th>#</th><th>الاسم</th><th>الجوال</th><th>البريد</th><th>المدينة</th><th>الحي</th><th>الشارع</th><th>رقم المبنى</th><th>الإجراءات</th></tr>
                     </thead>
-                    <tbody id="customers-table-body"><tr><td colspan="9" style="text-align:center;">جاري التحميل...<\/td><\/tr><\/tbody>
+                    <tbody id="customers-table-body"><tr><td colspan="9">جاري التحميل...<\/td><\/tr><\/tbody>
                 </table>
             </div>
         </div>
-        <div id="customer-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center;">
-            <div style="background:white;width:90%;max-width:700px;padding:25px;border-radius:16px;max-height:90vh;overflow-y:auto;">
-                <h3 id="modal-title" style="margin-bottom:20px;">إضافة عميل جديد</h3>
+        <div id="customer-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000">
+            <div style="background:white;width:90%;max-width:600px;padding:20px;border-radius:12px">
+                <h3 id="modal-title">إضافة عميل</h3>
                 <form id="customer-form">
                     <input type="hidden" id="edit-id">
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;">
-                        <div><label>الاسم الكامل *</label><input type="text" id="c-name" required style="width:100%;padding:8px;"></div>
-                        <div><label>رقم الجوال *</label><input type="tel" id="c-phone" required style="width:100%;padding:8px;"></div>
-                        <div><label>البريد الإلكتروني</label><input type="email" id="c-email" style="width:100%;padding:8px;"></div>
-                        <div><label>الدولة</label><input type="text" id="c-country" value="السعودية" style="width:100%;padding:8px;"></div>
-                        <div><label>المدينة</label><input type="text" id="c-city" style="width:100%;padding:8px;"></div>
-                        <div><label>الحي</label><input type="text" id="c-district" style="width:100%;padding:8px;"></div>
-                        <div><label>الشارع</label><input type="text" id="c-street" style="width:100%;padding:8px;"></div>
-                        <div><label>رقم المبنى</label><input type="text" id="c-building" style="width:100%;padding:8px;"></div>
-                        <div><label>الرقم الإضافي</label><input type="text" id="c-additional" style="width:100%;padding:8px;"></div>
-                        <div><label>الرمز البريدي</label><input type="text" id="c-pobox" style="width:100%;padding:8px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div><label>الاسم *</label><input type="text" id="c-name" required style="width:100%"></div>
+                        <div><label>الجوال *</label><input type="text" id="c-phone" required style="width:100%"></div>
+                        <div><label>البريد</label><input type="email" id="c-email" style="width:100%"></div>
+                        <div><label>المدينة</label><input type="text" id="c-city" style="width:100%"></div>
+                        <div><label>الحي</label><input type="text" id="c-district" style="width:100%"></div>
+                        <div><label>الشارع</label><input type="text" id="c-street" style="width:100%"></div>
+                        <div><label>رقم المبنى</label><input type="text" id="c-building" style="width:100%"></div>
+                        <div><label>الرقم الإضافي</label><input type="text" id="c-additional" style="width:100%"></div>
+                        <div><label>الرمز البريدي</label><input type="text" id="c-pobox" style="width:100%"></div>
+                        <div><label>الدولة</label><input type="text" id="c-country" value="السعودية" style="width:100%"></div>
                     </div>
-                    <div style="display:flex;gap:15px;margin-top:25px;">
-                        <button type="submit" style="flex:2;background:#27ae60;color:white;padding:10px;border:none;border-radius:8px;">حفظ</button>
-                        <button type="button" id="close-modal-btn" style="flex:1;background:#95a5a6;color:white;padding:10px;border:none;border-radius:8px;">إلغاء</button>
+                    <div style="margin-top:20px;display:flex;gap:10px">
+                        <button type="submit" style="background:#27ae60;color:white;padding:8px;border:none;border-radius:8px;cursor:pointer">حفظ</button>
+                        <button type="button" id="close-modal" style="background:#95a5a6;color:white;padding:8px;border:none;border-radius:8px;cursor:pointer">إلغاء</button>
                     </div>
                 </form>
             </div>
         </div>
     `;
     
-    document.getElementById('add-customer-btn').onclick = function() { showModal('add'); };
-    document.getElementById('close-modal-btn').onclick = closeModal;
+    document.getElementById('add-customer').onclick = () => showModal('add');
+    document.getElementById('close-modal').onclick = closeModal;
     document.getElementById('customer-form').onsubmit = saveCustomer;
-    document.getElementById('export-csv-btn').onclick = exportToCSV;
+    document.getElementById('export-csv').onclick = exportCSV;
     
     await renderTable();
     
-    // البحث
-    document.getElementById('search-customers').addEventListener('input', function(e) {
+    document.getElementById('search-input').addEventListener('input', function(e) {
         var term = e.target.value.toLowerCase();
         var rows = document.querySelectorAll('#customers-table-body tr');
-        for (var i = 0; i < rows.length; i++) {
-            var row = rows[i];
-            if (row.cells.length < 2) continue;
-            var name = (row.cells[1]?.innerText || '').toLowerCase();
-            var phone = (row.cells[2]?.innerText || '').toLowerCase();
-            row.style.display = (name.includes(term) || phone.includes(term)) ? '' : 'none';
-        }
+        rows.forEach(function(row) {
+            var text = row.innerText.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
+        });
     });
 }
 
