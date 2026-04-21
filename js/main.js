@@ -29,24 +29,36 @@ try {
     console.warn('⚠️ موديول الطلبات:', e.message);
 }
 
-// تحميل موديول العملاء - مع تصحيح إضافي
+// تحميل موديول العملاء - نسخة مبسطة ومضمونة
 try {
+    // استخدام مسار نسبي
     const customersModule = await import('./modules/customers-ui.js');
-    console.log('📦 customersModule:', customersModule);
-    console.log('🔑 المفاتيح الموجودة:', Object.keys(customersModule));
     
-    initCustomers = customersModule.initCustomers;
-    
-    if (typeof initCustomers === 'function') {
-        console.log('✅ موديول العملاء تم تحميله بنجاح، initCustomers هي دالة');
-    } else {
-        console.error('❌ initCustomers ليست دالة! نوعها:', typeof initCustomers);
-        // محاولة بديلة: استخدام default
+    if (customersModule && typeof customersModule.initCustomers === 'function') {
+        initCustomers = customersModule.initCustomers;
+        console.log('✅ موديول العملاء تم تحميله بنجاح');
+    } else if (customersModule && typeof customersModule.default === 'function') {
         initCustomers = customersModule.default;
-        console.log('🔄 محاولة استخدام default، نوعها:', typeof initCustomers);
+        console.log('✅ موديول العملاء تم تحميله (من default)');
+    } else {
+        console.warn('⚠️ موديول العملاء: لا توجد دالة initCustomers');
+        initCustomers = null;
     }
 } catch (e) {
     console.error('❌ فشل تحميل العملاء:', e.message);
+    console.log('🔄 محاولة تحميل بمسار مطلق...');
+    try {
+        const customersModule = await import('/fi-khidmatik/js/modules/customers-ui.js');
+        if (customersModule && typeof customersModule.initCustomers === 'function') {
+            initCustomers = customersModule.initCustomers;
+            console.log('✅ موديول العملاء تم تحميله (مسار مطلق)');
+        } else {
+            initCustomers = null;
+        }
+    } catch (e2) {
+        console.error('❌ فشل التحميل مرة أخرى:', e2.message);
+        initCustomers = null;
+    }
 }
 
 // تحميل موديول الإعدادات
