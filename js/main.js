@@ -1,33 +1,91 @@
-import { db } from '../core/firebase.js';
-import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+cat > fi-khidmatik/js/main.js << 'EOF'
+console.log('main.js ready');
 
-console.log('✅ customers-core.js تم تحميله');
+let initProducts, initOrders, initCustomers, initSettings, initDashboard;
 
-export async function initCustomers(container) {
-    console.log('initCustomers بدأت');
+try {
+    const m = await import('./modules/products-ui.js');
+    initProducts = m.initProducts;
+} catch(e) { console.error('Products:', e.message); }
+
+try {
+    const m = await import('./modules/orders-dashboard.js');
+    initOrders = m.initOrdersDashboard || m.initOrders;
+} catch(e) { console.error('Orders:', e.message); }
+
+try {
+    const m = await import('./modules/customers-core.js');
+    initCustomers = m.initCustomers;
+} catch(e) { console.error('Customers:', e.message); }
+
+try {
+    const m = await import('./modules/settings.js');
+    initSettings = m.initSettings;
+} catch(e) { console.error('Settings:', e.message); }
+
+try {
+    const m = await import('./modules/dashboard.js');
+    initDashboard = m.initDashboard;
+} catch(e) { console.error('Dashboard:', e.message); }
+
+function showPlaceholder(c, t, i) {
+    c.innerHTML = '<div style="padding:60px;text-align:center"><i class="fas ' + i + ' fa-4x"></i><h2>' + t + '</h2><p>جاري التطوير</p></div>';
+}
+
+async function switchModule(name) {
+    const loader = document.getElementById('loader');
+    const container = document.getElementById('module-container');
     if (!container) return;
-    container.innerHTML = '<div style="padding:20px"><h2>العملاء</h2><div id="core-list">جاري التحميل...</div></div>';
+    if (loader) loader.style.display = 'block';
+    container.innerHTML = '';
+    if (window.setActiveNavItem) window.setActiveNavItem(name);
+    if (window.location.hash !== '#' + name) window.location.hash = name;
     try {
-        const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(q);
-        const div = document.getElementById('core-list');
-        if (snap.empty) {
-            div.innerHTML = '<p>لا يوجد عملاء</p>';
-            return;
+        if (name === 'dashboard') {
+            if (initDashboard) await initDashboard(container);
+            else showPlaceholder(container, 'الرئيسية', 'fa-chart-line');
+        } else if (name === 'products') {
+            if (initProducts) await initProducts(container);
+            else showPlaceholder(container, 'المنتجات', 'fa-box');
+        } else if (name === 'orders') {
+            if (initOrders) await initOrders(container);
+            else showPlaceholder(container, 'الطلبات', 'fa-receipt');
+        } else if (name === 'customers') {
+            if (initCustomers) await initCustomers(container);
+            else showPlaceholder(container, 'العملاء', 'fa-users');
+        } else if (name === 'settings') {
+            if (initSettings) await initSettings(container);
+            else showPlaceholder(container, 'الإعدادات', 'fa-cog');
         }
-        let html = '<table border="1" style="border-collapse:collapse;width:100%">';
-        html += '<tr><th>#</th><th>الاسم</th><th>الجوال</th><th>البريد</th></tr>';
-        let i = 1;
-        snap.forEach(doc => {
-            const data = doc.data();
-            html += `<tr><td>${i}<\/td><td>${data.name || '-'}<\/td><td>${data.phone || '-'}<\/td><td>${data.email || '-'}<\/td><\/tr>`;
-            i++;
-        });
-        html += '</table>';
-        div.innerHTML = html;
-    } catch(e) {
-        document.getElementById('core-list').innerHTML = '<p style="color:red">خطأ: ' + e.message + '</p>';
+    } catch(err) {
+        container.innerHTML = '<div style="padding:20px;color:red">خطأ: ' + err.message + '</div>';
+    } finally {
+        if (loader) loader.style.display = 'none';
     }
 }
 
-export default { initCustomers };
+window.switchModule = switchModule;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const items = document.querySelectorAll('#admin-menu .nav-item');
+    items.forEach(function(item) {
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        newItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            const mod = this.getAttribute('data-module');
+            if (mod) switchModule(mod);
+        });
+    });
+    let def = window.location.hash.slice(1);
+    if (!def || !['dashboard','products','orders','customers','settings'].includes(def)) def = 'dashboard';
+    setTimeout(function() { switchModule(def); }, 100);
+});
+
+window.setActiveNavItem = function(module) {
+    document.querySelectorAll('#admin-menu .nav-item').forEach(function(item) {
+        if (item.getAttribute('data-module') === module) item.classList.add('active');
+        else item.classList.remove('active');
+    });
+};
+EOF
