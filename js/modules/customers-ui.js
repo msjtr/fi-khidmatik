@@ -1,6 +1,6 @@
 /**
  * js/modules/customers-ui.js
- * موديول العملاء - النسخة النهائية
+ * نسخة مبسطة ومضمونة لجلب بيانات العملاء من Firebase
  */
 
 import { db } from '../core/firebase.js';
@@ -8,6 +8,7 @@ import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/fir
 
 console.log('✅ customers-ui.js تم تحميله');
 
+// الدالة الرئيسية
 export async function initCustomers(container) {
     console.log('🚀 initCustomers تم استدعاؤها');
     
@@ -16,68 +17,72 @@ export async function initCustomers(container) {
         return;
     }
     
-    // عرض مؤشر تحميل
+    // عرض واجهة التحميل
     container.innerHTML = `
         <div style="padding: 25px; font-family: 'Tajawal', sans-serif;">
             <h2 style="color: #2c3e50;">
                 <i class="fas fa-users" style="color: #e67e22;"></i> 
                 إدارة العملاء
             </h2>
-            <div id="customers-list" style="margin-top: 20px; text-align: center;">
-                <i class="fas fa-spinner fa-spin fa-2x" style="color: #e67e22;"></i>
-                <p style="margin-top: 10px;">جاري تحميل العملاء...</p>
+            <div id="customers-list" style="margin-top: 20px;">
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>جاري تحميل العملاء...</p>
+                </div>
             </div>
         </div>
     `;
     
     try {
+        // جلب العملاء من Firebase
         const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
+        const querySnapshot = await getDocs(q);
+        
         const customers = [];
-        snapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
             customers.push({ id: doc.id, ...doc.data() });
         });
         
         const listDiv = document.getElementById('customers-list');
-        if (!customers.length) {
+        
+        if (customers.length === 0) {
             listDiv.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #7f8c8d;">
-                    <i class="fas fa-users fa-3x" style="margin-bottom: 15px; display: block;"></i>
-                    <p>لا يوجد عملاء مسجلين حالياً</p>
-                    <p style="font-size: 12px;">✅ تم الاتصال بـ Firebase بنجاح</p>
+                    <i class="fas fa-users fa-3x"></i>
+                    <p>لا يوجد عملاء مسجلين</p>
                 </div>
             `;
             return;
         }
         
+        // عرض العملاء في جدول
         let html = `
-            <div style="margin-bottom: 15px;">
-                <p style="color: #27ae60; background: #d4edda; padding: 10px; border-radius: 8px;">
-                    ✅ تم جلب ${customers.length} عميل من Firebase
-                </p>
-            </div>
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
-                    <thead style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+                    <thead style="background: #f8f9fa;">
                         <tr>
                             <th style="padding: 12px; text-align: right;">#</th>
                             <th style="padding: 12px; text-align: right;">الاسم</th>
                             <th style="padding: 12px; text-align: right;">الجوال</th>
-                            <th style="padding: 12px; text-align: right;">البريد الإلكتروني</th>
+                            <th style="padding: 12px; text-align: right;">البريد</th>
                             <th style="padding: 12px; text-align: right;">المدينة</th>
+                            <th style="padding: 12px; text-align: right;">الحي</th>
+                            <th style="padding: 12px; text-align: right;">الشارع</th>
                         </tr>
                     </thead>
                     <tbody>
         `;
         
-        customers.forEach((customer, index) => {
+        customers.forEach((c, index) => {
             html += `
                 <tr style="border-bottom: 1px solid #f1f5f9;">
                     <td style="padding: 12px;">${index + 1}</td>
-                    <td style="padding: 12px; font-weight: bold;">${escapeHtml(customer.name)}</td>
-                    <td style="padding: 12px; direction: ltr;">${escapeHtml(customer.phone)}</td>
-                    <td style="padding: 12px;">${escapeHtml(customer.email) || '-'}</td>
-                    <td style="padding: 12px;">${escapeHtml(customer.city) || '-'}</td>
+                    <td style="padding: 12px; font-weight: bold;">${escapeHtml(c.name)}</td>
+                    <td style="padding: 12px; direction: ltr;">${escapeHtml(c.phone)}</td>
+                    <td style="padding: 12px;">${escapeHtml(c.email) || '-'}</td>
+                    <td style="padding: 12px;">${escapeHtml(c.city) || '-'}</td>
+                    <td style="padding: 12px;">${escapeHtml(c.district) || '-'}</td>
+                    <td style="padding: 12px;">${escapeHtml(c.street) || '-'}</td>
                 </tr>
             `;
         });
@@ -86,22 +91,29 @@ export async function initCustomers(container) {
                     </tbody>
                 </table>
             </div>
+            <div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 8px;">
+                ✅ تم جلب ${customers.length} عميل من Firebase
+            </div>
         `;
         
         listDiv.innerHTML = html;
+        console.log('✅ تم عرض العملاء بنجاح');
         
     } catch (error) {
         console.error('❌ خطأ في جلب العملاء:', error);
-        document.getElementById('customers-list').innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #e74c3c;">
-                <i class="fas fa-exclamation-triangle fa-3x"></i>
-                <p>حدث خطأ في تحميل العملاء</p>
-                <p style="font-size: 12px;">${error.message}</p>
-            </div>
-        `;
+        const listDiv = document.getElementById('customers-list');
+        if (listDiv) {
+            listDiv.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                    <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    <p>خطأ في تحميل العملاء: ${error.message}</p>
+                </div>
+            `;
+        }
     }
 }
 
+// دالة مساعدة لمنع XSS
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/[&<>]/g, function(m) {
