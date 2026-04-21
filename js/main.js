@@ -29,14 +29,24 @@ try {
     console.warn('⚠️ موديول الطلبات:', e.message);
 }
 
-// تحميل موديول العملاء
+// تحميل موديول العملاء - مع تصحيح إضافي
 try {
     const customersModule = await import('./modules/customers-ui.js');
-    initCustomers = customersModule.initCustomers || customersModule.default;
-    console.log('✅ موديول العملاء تم تحميله');
-    console.log('🔍 typeof initCustomers:', typeof initCustomers);
+    console.log('📦 customersModule:', customersModule);
+    console.log('🔑 المفاتيح الموجودة:', Object.keys(customersModule));
+    
+    initCustomers = customersModule.initCustomers;
+    
+    if (typeof initCustomers === 'function') {
+        console.log('✅ موديول العملاء تم تحميله بنجاح، initCustomers هي دالة');
+    } else {
+        console.error('❌ initCustomers ليست دالة! نوعها:', typeof initCustomers);
+        // محاولة بديلة: استخدام default
+        initCustomers = customersModule.default;
+        console.log('🔄 محاولة استخدام default، نوعها:', typeof initCustomers);
+    }
 } catch (e) {
-    console.warn('⚠️ موديول العملاء:', e.message);
+    console.error('❌ فشل تحميل العملاء:', e.message);
 }
 
 // تحميل موديول الإعدادات
