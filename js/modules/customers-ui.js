@@ -1,7 +1,4 @@
-/**
- * js/modules/customers-ui.js
- * نسخة بسيطة ونظيفة - خالية من الأخطاء
- */
+// customers-ui.js - أبسط نسخة ممكنة
 
 import { db } from '../core/firebase.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -16,40 +13,27 @@ export async function initCustomers(container) {
         return;
     }
     
-    container.innerHTML = '<div style="padding:20px"><h2>العملاء</h2><div id="customersData">جاري التحميل...</div></div>';
+    container.innerHTML = '<div style="padding:20px"><h2>العملاء</h2><div id="custList">جاري التحميل...</div></div>';
     
     try {
         const snapshot = await getDocs(collection(db, "customers"));
-        const customers = [];
-        snapshot.forEach(function(doc) {
-            customers.push(doc.data());
-        });
+        const listDiv = document.getElementById('custList');
         
-        var div = document.getElementById('customersData');
-        
-        if (customers.length === 0) {
-            div.innerHTML = '<p>لا يوجد عملاء</p>';
+        if (snapshot.empty) {
+            listDiv.innerHTML = '<p>لا يوجد عملاء</p>';
             return;
         }
         
-        var html = '<table border="1" style="border-collapse:collapse;width:100%">';
-        html += '<tr><th>#</th><th>الاسم</th><th>الجوال</th><th>المدينة</th></tr>';
-        
-        for (var i = 0; i < customers.length; i++) {
-            var c = customers[i];
-            html += '<tr>';
-            html += '<td>' + (i + 1) + '</td>';
-            html += '<td>' + (c.name || '') + '</td>';
-            html += '<td>' + (c.phone || '') + '</td>';
-            html += '<td>' + (c.city || '') + '</td>';
-            html += '</tr>';
-        }
-        
-        html += '</table>';
-        div.innerHTML = html;
+        let html = '<ul>';
+        snapshot.forEach(function(doc) {
+            var data = doc.data();
+            html += '<li><strong>' + data.name + '</strong> - ' + data.phone + ' - ' + (data.city || '') + '</li>';
+        });
+        html += '</ul>';
+        listDiv.innerHTML = html;
         
     } catch (error) {
         console.error('خطأ:', error);
-        document.getElementById('customersData').innerHTML = '<p style="color:red">خطأ في التحميل</p>';
+        document.getElementById('custList').innerHTML = '<p style="color:red">خطأ: ' + error.message + '</p>';
     }
 }
