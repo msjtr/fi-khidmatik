@@ -1,69 +1,72 @@
 /**
  * js/core/config.js
- * إعدادات النظام العامة والتكوينات مدمجة مع قاعدة البيانات
+ * إعدادات النظام العامة والتكوينات - نسخة الإصلاح
  */
 
-// استيراد متغيرات Firebase من الملف المخصص لها
+// 1. استيراد كائنات Firebase أولاً
 import { db, auth, app } from './firebase.js';
 
-// ===================== إعدادات التطبيق =====================
+// 2. تعريف الإعدادات كـ constants
 export const APP_CONFIG = {
     name: 'Tera Gateway',
     version: '2.0.0',
     company: 'Tera Gateway',
-    defaultLanguage: 'ar',
-    direction: 'rtl',
-    theme: 'light', 
-    sidebarState: 'expanded',
-    debounceDelay: 300,
-    cacheTimeout: 3600000, 
-    debug: true,
-    demoMode: false 
+    debug: true
 };
 
-// ===================== إعدادات الضريبة =====================
 export const TAX_CONFIG = {
     rate: 15,
     enabled: true,
-    includeInPrice: false,
-    taxName: 'ضريبة القيمة المضافة',
-    taxNumber: '3101223456'
+    taxName: 'ضريبة القيمة المضافة'
 };
 
-// ===================== إعدادات العملة =====================
-export const CURRENCY_CONFIG = {
-    code: 'SAR',
-    symbol: 'ر.س',
-    symbolPosition: 'after',
-    decimalDigits: 2,
-    decimalSeparator: '.',
-    thousandsSeparator: ','
+export const FIREBASE_CONFIG = {
+    collections: {
+        products: 'products',
+        orders: 'orders',
+        customers: 'customers'
+    }
 };
 
-// (بقية الإعدادات المذكورة في ملفك تبقى كما هي بدون تغيير...)
-// DATE_CONFIG, INVENTORY_CONFIG, PRINT_CONFIG, AUTH_CONFIG, API_CONFIG, 
-// NOTIFICATION_CONFIG, TABLE_CONFIG, FIREBASE_CONFIG, EXTERNAL_API_CONFIG,
-// INSTALLMENT_CONFIG, BACKUP_CONFIG
+// --- يمكنك إضافة بقية الـ CONFIGS هنا (CURRENCY, DATE, إلخ) ---
 
-// ... (الإبقاء على الدوال الأصلية: getAllConfig, updateConfig, saveConfigToLocalStorage, loadConfigFromLocalStorage, resetConfig)
+// 3. تعريف الدوال **قبل** استدعائها
+export function getAllConfig() {
+    return {
+        app: APP_CONFIG,
+        tax: TAX_CONFIG,
+        firebase: FIREBASE_CONFIG
+        // أضف البقية هنا إذا احتجت
+    };
+}
 
-/**
- * التصدير النهائي
- * قمنا بإضافة db و auth و app لضمان عمل الملفات التي تستدعي config.js
- */
-export { db, auth, app }; 
+export function saveConfigToLocalStorage() {
+    const allConfig = getAllConfig();
+    localStorage.setItem('tera_gateway_config', JSON.stringify(allConfig));
+}
+
+export function loadConfigFromLocalStorage() {
+    const saved = localStorage.getItem('tera_gateway_config');
+    if (saved) {
+        try {
+            const config = JSON.parse(saved);
+            if (config.app) Object.assign(APP_CONFIG, config.app);
+            console.log('✅ تم تحميل الإعدادات المحفوظة');
+        } catch (e) {
+            console.warn('⚠️ فشل تحميل الإعدادات:', e);
+        }
+    }
+}
+
+// 4. الآن استدعاء الدالة بعد تعريفها
+loadConfigFromLocalStorage();
+
+// 5. التصدير النهائي
+export { db, auth, app };
 
 export default {
-    db,
-    auth,
-    app,
+    db, auth, app,
     APP_CONFIG,
-    TAX_CONFIG,
-    CURRENCY_CONFIG,
-    // (أضف بقية الكائنات هنا...)
     getAllConfig,
-    updateConfig,
-    saveConfigToLocalStorage,
-    loadConfigFromLocalStorage,
-    resetConfig
+    loadConfigFromLocalStorage
 };
