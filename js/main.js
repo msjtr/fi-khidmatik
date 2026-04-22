@@ -2,41 +2,47 @@ console.log('main.js ready');
 
 let initProducts, initOrders, initCustomers, initSettings, initDashboard;
 
+// تحميل المنتجات
 try {
     const m = await import('./modules/products-ui.js');
     initProducts = m.initProducts;
     console.log('✅ Products loaded');
 } catch(e) { console.error('Products error:', e.message); }
 
+// تحميل الطلبات
 try {
     const m = await import('./modules/orders-dashboard.js');
     initOrders = m.initOrdersDashboard || m.initOrders;
     console.log('✅ Orders loaded');
 } catch(e) { console.error('Orders error:', e.message); }
 
-// تأكد من أن هذا هو المسار الصحيح (customers-ui.js وليس core)
+// تحميل العملاء (ملف واحد متكامل بكل الميزات)
 try {
     const m = await import('./modules/customers-ui.js');
     initCustomers = m.initCustomers;
     console.log('✅ Customers loaded');
 } catch(e) { console.error('Customers error:', e.message); }
 
+// تحميل الإعدادات
 try {
     const m = await import('./modules/settings.js');
     initSettings = m.initSettings;
     console.log('✅ Settings loaded');
 } catch(e) { console.error('Settings error:', e.message); }
 
+// تحميل الرئيسية
 try {
     const m = await import('./modules/dashboard.js');
     initDashboard = m.initDashboard;
     console.log('✅ Dashboard loaded');
 } catch(e) { console.error('Dashboard error:', e.message); }
 
+// دالة عرض placeholder في حال فشل تحميل الموديول
 function showPlaceholder(c, t, i) {
     c.innerHTML = '<div style="padding:60px;text-align:center"><i class="fas ' + i + ' fa-4x"></i><h2>' + t + '</h2><p>جاري التطوير</p></div>';
 }
 
+// دالة تبديل الموديولات
 async function switchModule(name) {
     const loader = document.getElementById('loader');
     const container = document.getElementById('module-container');
@@ -74,6 +80,7 @@ async function switchModule(name) {
 
 window.switchModule = switchModule;
 
+// ربط أحداث القائمة الجانبية
 document.addEventListener('DOMContentLoaded', function() {
     const items = document.querySelectorAll('#admin-menu .nav-item');
     items.forEach(function(item) {
@@ -90,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() { switchModule(def); }, 100);
 });
 
+// تحديد العنصر النشط في القائمة
 window.setActiveNavItem = function(module) {
     document.querySelectorAll('#admin-menu .nav-item').forEach(function(item) {
         if (item.getAttribute('data-module') === module) item.classList.add('active');
