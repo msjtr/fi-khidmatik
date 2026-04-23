@@ -11,7 +11,157 @@
     
     <link rel="stylesheet" href="/fi-khidmatik/css/admin.css">
     <link rel="stylesheet" href="/fi-khidmatik/css/table.css">
-    <link rel="stylesheet" href="/fi-khidmatik/css/orders.css">
+    <link rel="stylesheet" href="/fi-khidmatik/css/orders.css"><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tera Gateway | لوحة التحكم المتكاملة</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/table.css">
+
+    <style>
+        :root { --primary: #e67e22; --dark: #2c3e50; --bg: #f8fafc; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); height: 100vh; overflow: hidden; }
+        
+        .app-shell { display: flex; flex-direction: column; height: 100vh; }
+        
+        /* الهيدر */
+        .app-header {
+            background: white; padding: 0 25px; display: flex; justify-content: space-between;
+            align-items: center; height: 70px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 1001;
+        }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        .app-brand { font-weight: 800; font-size: 1.4rem; color: var(--dark); display: flex; align-items: center; gap: 10px; }
+        .app-brand img { width: 40px; }
+
+        /* الجسم الرئيسي */
+        .app-body { display: flex; flex: 1; overflow: hidden; }
+        
+        /* القائمة الجانبية */
+        .app-sidebar {
+            width: 260px; background: white; border-left: 1px solid #edf2f7;
+            transition: all 0.3s ease; z-index: 1000;
+        }
+        .app-sidebar.is-closed { width: 0; transform: translateX(100%); }
+
+        .nav-item {
+            padding: 15px 25px; display: flex; align-items: center; gap: 12px;
+            color: #64748b; text-decoration: none; font-weight: 600; transition: 0.2s;
+            border-right: 4px solid transparent; cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active { background: #fff5eb; color: var(--primary); border-right-color: var(--primary); }
+
+        /* منطقة المحتوى */
+        .app-content { flex: 1; overflow-y: auto; padding: 25px; position: relative; }
+        
+        #loader {
+            position: absolute; inset: 0; background: rgba(255,255,255,0.8);
+            display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000;
+        }
+
+        @media (max-width: 768px) {
+            .app-sidebar { position: fixed; height: 100%; right: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <header class="app-header">
+        <div class="header-right">
+            <button id="sidebar-toggle" style="background:none; border:none; font-size:1.5rem; color:var(--primary); cursor:pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="app-brand">
+                <img src="images/logo.svg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/5968/5968322.png'" alt="Logo">
+                <span>Tera Gateway</span>
+            </div>
+        </div>
+        <div id="current-datetime" style="font-size: 0.85rem; color: #666;"></div>
+    </header>
+
+    <div class="app-body">
+        <aside id="main-sidebar" class="app-sidebar">
+            <nav class="side-nav">
+                <div style="padding: 20px; font-size: 0.75rem; color: #999; font-weight: 800;">القائمة الرئيسية</div>
+                <div id="admin-menu">
+                    <a href="#dashboard" class="nav-item active" data-module="dashboard"><i class="fas fa-chart-line"></i> <span>الرئيسية</span></a>
+                    <a href="#products" class="nav-item" data-module="products"><i class="fas fa-box"></i> <span>المنتجات</span></a>
+                    <a href="#orders" class="nav-item" data-module="orders"><i class="fas fa-receipt"></i> <span>الطلبات</span></a>
+                    <a href="#customers" class="nav-item" data-module="customers"><i class="fas fa-users"></i> <span>العملاء</span></a>
+                    <a href="#settings" class="nav-item" data-module="settings"><i class="fas fa-cog"></i> <span>الإعدادات</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="app-content">
+            <div id="loader">
+                <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary);"></i>
+                <p style="margin-top:10px; font-weight:bold;">جاري مزامنة البيانات...</p>
+            </div>
+            <div id="module-container">
+                </div>
+        </main>
+    </div>
+</div>
+
+<script type="module">
+    import { initCustomers } from './js/modules/customers-core.js';
+    // استيراد الموديولات الأخرى هنا...
+
+    // وظيفة التنقل بين الموديولات
+    async function router() {
+        const hash = window.location.hash.replace('#', '') || 'dashboard';
+        const container = document.getElementById('module-container');
+        const loader = document.getElementById('loader');
+
+        // تحديث الحالة النشطة في القائمة
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.module === hash);
+        });
+
+        loader.style.display = 'flex';
+        container.innerHTML = ''; // تنظيف المحتوى القديم
+
+        try {
+            if (hash === 'customers') {
+                await initCustomers(container);
+            } else {
+                container.innerHTML = `<h1 style="text-align:center; padding-top:50px;">موديول ${hash} قيد التطوير</h1>`;
+            }
+        } catch (error) {
+            container.innerHTML = `<div style="color:red">فشل تحميل الموديول: ${error.message}</div>`;
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    // الاستماع لتغيير الرابط (Hash Change)
+    window.addEventListener('hashchange', router);
+    window.addEventListener('load', router);
+
+    // تحديث الوقت
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('current-datetime').innerText = now.toLocaleDateString('ar-SA', {
+            weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+        });
+    }, 1000);
+
+    // شريط القائمة
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+        document.getElementById('main-sidebar').classList.toggle('is-closed');
+    });
+</script>
+
+</body>
+</html>
     <link rel="stylesheet" href="/fi-khidmatik/css/invoice.css">
 
     <style>
