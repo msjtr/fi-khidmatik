@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>بطاقة بيانات العميل - منصة في خدمتك</title>
-    <link rel="stylesheet" href="customers-print.css">
+    <link rel="stylesheet" href="fi-khidmatik/css/customers-print.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,7 +21,7 @@
                 <td class="header-right">
                     <div class="logo-container">
                         <span class="logo-text">منصة في خدمتك<br>من الأتقان بلس</span>
-                        <img src="fi-khidmatik/images/logo.svg" alt="Logo" onerror="this.src='https://via.placeholder.com/60'">
+                        <img src="fi-khidmatik/images/logo.svg" alt="Logo">
                     </div>
                 </td>
                 <td class="header-center">
@@ -50,73 +50,25 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="col-ar">اسم العميل</td>
-                    <td id="name" class="col-data"></td>
-                    <td class="col-en">Customer Name</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">الدولة</td>
-                    <td id="country" class="col-data">المملكة العربية السعودية / KSA</td>
-                    <td class="col-en">Country</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">رقم الجوال</td>
-                    <td id="phone" class="col-data" dir="ltr"></td>
-                    <td class="col-en">Mobile Number</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">البريد الإلكتروني</td>
-                    <td id="email" class="col-data"></td>
-                    <td class="col-en">Email Address</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">المدينة</td>
-                    <td id="city" class="col-data"></td>
-                    <td class="col-en">City</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">الحي</td>
-                    <td id="district" class="col-data"></td>
-                    <td class="col-en">District</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">الشارع</td>
-                    <td id="street" class="col-data"></td>
-                    <td class="col-en">Street</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">رقم المبنى</td>
-                    <td id="building" class="col-data"></td>
-                    <td class="col-en">Building Number</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">الرمز البريدي</td>
-                    <td id="postal" class="col-data"></td>
-                    <td class="col-en">Postal Code</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">صندوق البريد</td>
-                    <td id="pobox" class="col-data"></td>
-                    <td class="col-en">P.O Box</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">تصنيف العميل</td>
-                    <td id="tag" class="col-data"></td>
-                    <td class="col-en">Customer Category</td>
-                </tr>
-                <tr>
-                    <td class="col-ar">ملاحظات</td>
-                    <td id="notes" class="col-data"></td>
-                    <td class="col-en">Notes</td>
-                </tr>
+                <tr><td class="col-ar">اسم العميل</td><td id="name" class="col-data"></td><td class="col-en">Customer Name</td></tr>
+                <tr><td class="col-ar">الدولة</td><td id="country" class="col-data">المملكة العربية السعودية / KSA</td><td class="col-en">Country</td></tr>
+                <tr><td class="col-ar">رقم الجوال</td><td id="phone" class="col-data" dir="ltr"></td><td class="col-en">Mobile Number</td></tr>
+                <tr><td class="col-ar">البريد الإلكتروني</td><td id="email" class="col-data"></td><td class="col-en">Email Address</td></tr>
+                <tr><td class="col-ar">المدينة</td><td id="city" class="col-data"></td><td class="col-en">City</td></tr>
+                <tr><td class="col-ar">الحي</td><td id="district" class="col-data"></td><td class="col-en">District</td></tr>
+                <tr><td class="col-ar">الشارع</td><td id="street" class="col-data"></td><td class="col-en">Street</td></tr>
+                <tr><td class="col-ar">رقم المبنى</td><td id="building" class="col-data"></td><td class="col-en">Building Number</td></tr>
+                <tr><td class="col-ar">الرمز البريدي</td><td id="postal" class="col-data"></td><td class="col-en">Postal Code</td></tr>
+                <tr><td class="col-ar">صندوق البريد</td><td id="pobox" class="col-data"></td><td class="col-en">P.O Box</td></tr>
+                <tr><td class="col-ar">تصنيف العميل</td><td id="tag" class="col-data"></td><td class="col-en">Category</td></tr>
+                <tr><td class="col-ar">ملاحظات</td><td id="notes" class="col-data"></td><td class="col-en">Notes</td></tr>
             </tbody>
         </table>
 
         <div class="verification-box">
             <div id="qrcode"></div>
             <p class="verification-text">كود التحقق من الوثيقة</p>
-            <p class="verification-desc">(كود التحقق هو عبارة عن رابط تحميل البيانات من المنصة)</p>
+            <p class="verification-desc">(رابط تحميل البيانات من المنصة)</p>
         </div>
 
         <div class="main-footer">
@@ -145,39 +97,16 @@
                 const data = docSnap.data();
                 const now = new Date();
 
-                // دمج البيانات (عربي وتحته انجليزي)
                 document.getElementById('name').innerHTML = `${data.name || '-'} <br><small>${data.name_en || ''}</small>`;
                 document.getElementById('city').innerHTML = `${data.city || '-'} <br><small>${data.city_en || ''}</small>`;
                 document.getElementById('district').innerHTML = `${data.district || '-'} <br><small>${data.district_en || ''}</small>`;
-                document.getElementById('street').innerHTML = `${data.street || '-'} <br><small>${data.street_en || ''}</small>`;
-                
-                // إضافة مفتاح الدولة
                 document.getElementById('phone').innerText = `${data.countryCode || '+966'} ${data.phone || ''}`;
                 document.getElementById('email').innerText = data.email || '-';
+                document.getElementById('street').innerText = data.street || '-';
                 document.getElementById('building').innerText = data.buildingNo || '-';
                 document.getElementById('postal').innerText = data.postalCode || '-';
                 document.getElementById('pobox').innerText = data.poBox || '-';
                 document.getElementById('tag').innerText = data.tag || 'normal';
                 document.getElementById('notes').innerText = data.notes || '-';
 
-                // التوقيت ورقم المعاملة
-                document.getElementById('current-date').innerText = now.toLocaleDateString('ar-SA');
-                document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'});
-                const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-                document.getElementById('trans-id').innerText = `KF-${ym}-${customerId.substring(0,5).toUpperCase()}`;
-
-                new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 85, height: 85 });
-            }
-        }
-
-        window.saveAsPDF = function() {
-            const element = document.getElementById('printable-area');
-            html2pdf().from(element).set({
-                margin: 0, filename: 'Customer-Data-Card.pdf',
-                html2canvas: { scale: 3 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
-        }
-    </script>
-</body>
-</html>
+                document.getElementById('
