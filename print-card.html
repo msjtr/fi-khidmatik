@@ -8,108 +8,71 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
         
-        :root { --tera-orange: #e67e22; --tera-dark: #2c3e50; --bg-gray: #f8fafc; }
-
-        body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #e2e8f0; color: #333; }
-
-        /* أدوات التحكم العلوية - لا تظهر عند الطباعة */
-        .no-print-tools { 
-            position: fixed; top: 0; left: 0; right: 0; 
-            background: rgba(255, 255, 255, 0.9); 
-            padding: 15px; display: flex; justify-content: center; gap: 15px; 
-            z-index: 1000; backdrop-filter: blur(10px); border-bottom: 1px solid #cbd5e1;
-        }
-
-        .btn { 
-            padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; 
-            font-weight: bold; font-family: 'Cairo'; display: flex; align-items: center; gap: 8px; transition: 0.3s;
-        }
-        .btn-print { background: var(--tera-orange); color: white; }
-        .btn-pdf { background: #ef4444; color: white; }
-        .btn-back { background: #64748b; color: white; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        /* حاوية الورقة A4 */
-        .print-container { 
-            width: 210mm; min-height: 297mm; padding: 15mm; margin: 80px auto 20px; 
-            background: white; position: relative; box-sizing: border-box; 
-        }
-
-        /* الهيدر الاحترافي */
-        .header-wrapper { border: 2px solid var(--tera-dark); margin-bottom: 30px; }
-        .header-table { width: 100%; border-collapse: collapse; }
-        .header-table td { border: 1px solid var(--tera-dark); padding: 15px; text-align: center; }
+        body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #f1f5f9; color: #334155; }
+        .print-container { width: 210mm; min-height: 297mm; padding: 15mm; margin: 20px auto; background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); position: relative; }
         
-        .logo-section img { height: 70px; margin-bottom: 5px; }
-        .title-section h2 { margin: 0; color: var(--tera-orange); font-size: 1.5rem; font-weight: 800; }
-        .info-header { font-size: 0.85rem; line-height: 1.8; text-align: right !important; }
+        /* الهيدر */
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #1e293b; }
+        .header-table td { border: 1px solid #1e293b; padding: 12px; text-align: center; vertical-align: middle; }
+        .logo-section img { height: 75px; width: auto; max-width: 180px; }
+        .title-section h2 { margin: 0; font-size: 1.4rem; color: #e67e22; font-weight: 700; }
+        .info-header { font-size: 0.85rem; line-height: 1.8; text-align: right; }
 
-        .meta-bar { background: #f1f5f9; padding: 10px; border: 2px solid var(--tera-dark); border-top: none; font-weight: bold; display: flex; justify-content: space-between; }
-
-        /* جدول البيانات */
-        .details-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .details-table th, .details-table td { border: 1px solid #cbd5e1; padding: 14px; text-align: right; }
-        .details-table th { background: #f8fafc; width: 25%; color: var(--tera-dark); font-weight: 700; }
-        .details-table td { font-weight: 600; color: #1e293b; }
-
-        /* الباركود */
-        .qr-section { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        #qrcode img { margin: 0 auto; border: 10px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        /* جسم البطاقة */
+        .details-table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        .details-table th, .details-table td { border: 1px solid #e2e8f0; padding: 15px; text-align: right; }
+        .details-table th { background: #f8fafc; width: 30%; color: #475569; font-weight: 700; }
+        .details-table td { font-weight: 400; color: #0f172a; }
+        
+        .qr-section { text-align: center; margin-top: 40px; }
+        #qrcode { display: inline-block; padding: 10px; border: 1px solid #f1f5f9; background: #fff; }
 
         /* التذييل */
-        .footer { 
-            position: absolute; bottom: 15mm; left: 15mm; right: 15mm; 
-            border-top: 3px solid var(--tera-orange); padding-top: 20px; text-align: center; 
-        }
-        .footer-info { display: flex; justify-content: space-between; margin-top: 15px; font-size: 0.8rem; font-weight: bold; color: var(--tera-dark); }
-        .footer-info span { display: flex; align-items: center; gap: 5px; }
+        .footer { position: absolute; bottom: 15mm; left: 15mm; right: 15mm; border-top: 2px solid #e67e22; padding-top: 15px; text-align: center; }
+        .footer-info { display: flex; justify-content: space-around; margin-top: 10px; font-size: 0.85rem; font-weight: 600; }
+
+        .no-print-tools { position: fixed; top: 20px; left: 20px; display: flex; gap: 10px; z-index: 9999; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; display: flex; align-items: center; gap: 8px; }
+        .btn-print { background: #e67e22; color: white; }
+        .btn-pdf { background: #ef4444; color: white; }
 
         @media print {
             body { background: white; }
-            .no-print-tools { display: none; }
-            .print-container { margin: 0; padding: 10mm; box-shadow: none; width: 100%; }
+            .print-container { margin: 0; box-shadow: none; width: 100%; padding: 10mm; }
+            .no-print { display: none; }
         }
     </style>
 </head>
 <body>
 
     <div class="no-print-tools no-print">
-        <button class="btn btn-print" onclick="window.print()">
-            <i class="fas fa-print"></i> طباعة فورية
-        </button>
-        <button class="btn btn-pdf" onclick="downloadAsPDF()">
-            <i class="fas fa-file-pdf"></i> تحميل ملف PDF
-        </button>
-        <button class="btn btn-back" onclick="window.close()">
-            <i class="fas fa-times"></i> إغلاق الصفحة
-        </button>
+        <button class="btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
+        <button class="btn btn-pdf" onclick="generatePDF()"><i class="fas fa-file-pdf"></i> حفظ PDF</button>
     </div>
 
-    <div class="print-container" id="printable-area">
-        <div class="header-wrapper">
-            <table class="header-table">
-                <tr>
-                    <td style="width: 35%;" class="info-header">
-                        رقم شهادة العمل الحر: <br><strong>FL-765735204</strong><br>
-                        الرقم الضريبي: <br><strong>312495447600003</strong>
-                    </td>
-                    <td style="width: 30%;" class="title-section">
-                        <h2>بطاقة بيانات عميل</h2>
-                        <small>CUSTOMER DATA CARD</small>
-                    </td>
-                    <td style="width: 35%;" class="logo-section">
-                        <img src="logo.png" alt="Tera Logo" onerror="this.src='https://via.placeholder.com/150x70?text=Tera+Gateway'"><br>
-                        <strong>Tera Gateway</strong>
-                    </td>
-                </tr>
-            </table>
-            <div class="meta-bar">
-                <span>رقم المعاملة: <span id="trans-id">---</span></span>
-                <span>تاريخ الإصدار: <span id="current-date">---</span></span>
-            </div>
-        </div>
+    <div class="print-container" id="content-to-export">
+        <table class="header-table">
+            <tr>
+                <td style="width: 35%;" class="info-header">
+                    رقم شهادة العمل الحر: FL-765735204<br>
+                    الرقم الضريبي: 312495447600003
+                </td>
+                <td style="width: 30%;" class="title-section">
+                    <h2>بطاقة بيانات العميل</h2>
+                    <small>Customer Data Card</small>
+                </td>
+                <td style="width: 35%;" class="logo-section">
+                    <img src="fi-khidmatik/images/logo.svg" alt="Tera Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<strong>Tera Gateway</strong>';">
+                </td>
+            </tr>
+            <tr style="background: #f1f5f9;">
+                <td colspan="3" style="font-weight: bold; padding: 8px;">
+                    رقم المعاملة: <span id="trans-id">---</span> | التاريخ: <span id="current-date"></span>
+                </td>
+            </tr>
+        </table>
 
         <table class="details-table">
             <tr><th><i class="fas fa-user"></i> اسم العميل</th><td id="name">جاري التحميل...</td></tr>
@@ -119,23 +82,20 @@
             <tr><th><i class="fas fa-home"></i> العنوان الوطني</th><td id="national-address"></td></tr>
             <tr><th><i class="fas fa-mailbox"></i> الرمز البريدي / ص.ب</th><td id="postal"></td></tr>
             <tr><th><i class="fas fa-tag"></i> تصنيف العميل</th><td id="tag"></td></tr>
-            <tr>
-                <th><i class="fas fa-sticky-note"></i> ملاحظات إضافية</th>
-                <td id="notes" style="height: 80px; vertical-align: top;"></td>
-            </tr>
+            <tr><th><i class="fas fa-sticky-note"></i> ملاحظات</th><td id="notes" style="height: 80px; vertical-align: top;"></td></tr>
         </table>
 
         <div class="qr-section">
             <div id="qrcode"></div>
-            <p style="font-weight: bold; color: var(--tera-dark); font-size: 0.9rem;">كود التحقق الذكي للعميل</p>
+            <p style="font-size: 0.8rem; margin-top: 10px; font-weight: bold;">كود التحقق الرقمي</p>
         </div>
 
         <div class="footer">
-            <p style="font-weight: 800; color: var(--tera-orange); margin-bottom: 5px;">Tera Gateway - حلول الاتصالات والدفع الآجل</p>
+            <p>هذه المعلومات صادرة من منصة Tera Gateway لخدمات الاتصالات</p>
             <div class="footer-info">
                 <span><i class="fas fa-phone"></i> 966534051317</span>
                 <span><i class="fab fa-whatsapp"></i> 966545312021</span>
-                <span><i class="fas fa-globe"></i> tera-gateway.com</span>
+                <span><i class="fas fa-globe"></i> www.tera-gateway.com</span>
             </div>
         </div>
     </div>
@@ -149,49 +109,46 @@
 
         if (customerId) {
             const docRef = doc(db, "customers", customerId);
-            const docSnap = await getDoc(docRef);
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    document.getElementById('name').innerText = data.name || '-';
+                    document.getElementById('phone').innerText = (data.countryCode || '') + (data.phone || '');
+                    document.getElementById('email').innerText = data.email || '-';
+                    document.getElementById('location').innerText = `${data.city || '-'} - ${data.district || '-'}`;
+                    document.getElementById('national-address').innerText = `مبنى: ${data.buildingNo || '-'} | شارع: ${data.street || '-'}`;
+                    document.getElementById('postal').innerText = `رمز: ${data.postalCode || '-'} | ص.ب: ${data.poBox || '-'}`;
+                    document.getElementById('tag').innerText = data.tag || 'عادي';
+                    document.getElementById('notes').innerText = data.notes || 'لا يوجد ملاحظات.';
+                    document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
+                    document.getElementById('trans-id').innerText = `TG-${new Date().getFullYear()}-${customerId.substring(0,5).toUpperCase()}`;
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                
-                // تعبئة البيانات
-                document.getElementById('name').innerText = data.name || '-';
-                document.getElementById('phone').innerText = (data.countryCode || '') + (data.phone || '');
-                document.getElementById('email').innerText = data.email || '-';
-                document.getElementById('location').innerText = `${data.city || '-'} - ${data.district || '-'}`;
-                document.getElementById('national-address').innerText = `رقم المبنى: ${data.buildingNo || '-'} | الشارع: ${data.street || '-'}`;
-                document.getElementById('postal').innerText = `الرمز البريدي: ${data.postalCode || '-'} | ص.ب: ${data.poBox || '-'}`;
-                document.getElementById('tag').innerText = data.tag || 'عادي';
-                document.getElementById('notes').innerText = data.notes || 'لا توجد ملاحظات.';
-                document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
-                
-                const shortId = customerId.substring(0,6).toUpperCase();
-                document.getElementById('trans-id').innerText = `TG-${new Date().getFullYear()}-${shortId}`;
-
-                // توليد الباركود الحقيقي (يحتوي على رابط النظام أو بيانات العميل)
-                new QRCode(document.getElementById("qrcode"), {
-                    text: `https://tera-gateway.com/verify?id=${customerId}`,
-                    width: 120,
-                    height: 120,
-                    colorDark : "#2c3e50",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
+                    // توليد الباركود
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: `https://tera-gateway.com/verify?id=${customerId}`,
+                        width: 110,
+                        height: 110
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching document:", error);
             }
         }
 
-        // دالة تحميل PDF الاحترافية
-        window.downloadAsPDF = function() {
-            const element = document.getElementById('printable-area');
+        // دالة حفظ PDF
+        window.generatePDF = function() {
+            const element = document.getElementById('content-to-export');
             const opt = {
-                margin:       0,
-                filename:     `Tera_Card_${document.getElementById('name').innerText}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: 0,
+                filename: `Tera-Customer-${customerId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().set(opt).from(element).save();
-        };
+        }
     </script>
 </body>
 </html>
