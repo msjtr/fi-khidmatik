@@ -5,227 +5,200 @@ import {
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-console.log('✅ customers-core.js: تم تفعيل نظام تيرا المطور');
-
-// قائمة الدول المعتمدة
-const countries = [
-    { name: "المملكة العربية السعودية", code: "966", flag: "🇸🇦" },
-    { name: "الإمارات", code: "971", flag: "🇦🇪" },
-    { name: "الكويت", code: "965", flag: "🇰🇼" },
-    { name: "مصر", code: "20", flag: "🇪🇬" }
-];
+console.log('✅ تم تحديث نظام العملاء: معالجة الأخطاء وتفعيل الحقول الجديدة');
 
 export async function initCustomers(container) {
     if (!container) return;
     
     container.innerHTML = `
         <div style="padding: 20px; font-family: 'Tajawal', sans-serif; direction: rtl;">
-            <div id="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;">
-                <div class="stat-card" style="background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-right:4px solid #e67e22;">
+            <div id="stats-dashboard" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                <div style="background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-top:4px solid #3498db;">
                     <small style="color:#7f8c8d;">إجمالي العملاء</small>
-                    <div id="stat-total" style="font-size:22px; font-weight:bold; color:#2c3e50;">0</div>
+                    <div id="count-total" style="font-size:20px; font-weight:bold;">0</div>
                 </div>
-                <div class="stat-card" style="background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-right:4px solid #27ae60;">
-                    <small style="color:#7f8c8d;">مكتمل البيانات</small>
-                    <div id="stat-complete" style="font-size:22px; font-weight:bold; color:#27ae60;">0</div>
+                <div style="background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-top:4px solid #27ae60;">
+                    <small style="color:#7f8c8d;">بيانات مكتملة</small>
+                    <div id="count-complete" style="font-size:20px; font-weight:bold;">0</div>
                 </div>
-                <div class="stat-card" style="background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-right:4px solid #e74c3c;">
-                    <small style="color:#7f8c8d;">عملاء محتالون</small>
-                    <div id="stat-fraud" style="font-size:22px; font-weight:bold; color:#e74c3c;">0</div>
+                <div style="background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-top:4px solid #f1c40f;">
+                    <small style="color:#7f8c8d;">عملاء مميزون</small>
+                    <div id="count-vip" style="font-size:20px; font-weight:bold;">0</div>
+                </div>
+                <div style="background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border-top:4px solid #e74c3c;">
+                    <small style="color:#7f8c8d;">محتالون/تنبيه</small>
+                    <div id="count-fraud" style="font-size:20px; font-weight:bold;">0</div>
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                <h2 style="color: #2c3e50; margin: 0;"><i class="fas fa-users"></i> قاعدة بيانات العملاء</h2>
-                <button id="btn-add-customer" style="background: #27ae60; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; transition:0.3s;">
-                    <i class="fas fa-user-plus"></i> إضافة عميل جديد
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin:0; color:#2c3e50;"><i class="fas fa-address-book"></i> إدارة سجل العملاء</h2>
+                <button id="btn-new-cust" style="background:#27ae60; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    <i class="fas fa-plus-circle"></i> إضافة عميل جديد
                 </button>
             </div>
 
-            <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <div style="flex: 2; position: relative;">
-                    <i class="fas fa-search" style="position: absolute; right: 15px; top: 12px; color: #95a5a6;"></i>
-                    <input type="text" id="customer-search" placeholder="بحث بالاسم، الجوال، المدينة..." 
-                           style="width: 100%; padding: 10px 40px 10px 15px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
-                </div>
-                <select id="class-filter" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: #f8fafc;">
-                    <option value="">جميع التصنيفات</option>
-                    <option value="مميز">عميل مميز</option>
-                    <option value="محتال">عميل محتال</option>
+            <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <input type="text" id="cust-search" placeholder="بحث بالاسم، الجوال، أو الحي..." style="flex:3; padding:10px; border:1px solid #ddd; border-radius:8px;">
+                <select id="filter-class" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="">كل التصنيفات</option>
+                    <option value="مميز">مميز</option>
+                    <option value="محتال">محتال</option>
                     <option value="غير جدي">غير جدي</option>
-                    <option value="غير متعاون">غير متعاون</option>
                 </select>
             </div>
 
-            <div id="customers-table-container">
-                <div style="text-align: center; padding: 40px;">
-                    <i class="fas fa-sync fa-spin fa-2x" style="color: #e67e22;"></i>
-                    <p>جاري تحميل البيانات الحية...</p>
-                </div>
-            </div>
+            <div id="table-wrapper"></div>
         </div>
     `;
 
-    document.getElementById('btn-add-customer').onclick = () => showCustomerModal();
-    document.getElementById('customer-search').oninput = filterCustomers;
-    document.getElementById('class-filter').onchange = filterCustomers;
+    document.getElementById('btn-new-cust').onclick = () => openCustomerModal();
+    document.getElementById('cust-search').oninput = applyFilters;
+    document.getElementById('filter-class').onchange = applyFilters;
 
-    listenToCustomers();
+    startLiveUpdate();
 }
 
-// استماع حي للبيانات (Real-time)
-function listenToCustomers() {
+function startLiveUpdate() {
     const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
-        const customers = [];
-        snapshot.forEach(doc => customers.push({ id: doc.id, ...doc.data() }));
-        renderTable(customers);
-        updateStats(customers);
+        const data = [];
+        snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+        renderCustomerTable(data);
+        runAnalytics(data);
     });
 }
 
-function updateStats(customers) {
-    document.getElementById('stat-total').innerText = customers.length;
-    document.getElementById('stat-complete').innerText = customers.filter(c => c.postalCode && c.buildingNo).length;
-    document.getElementById('stat-fraud').innerText = customers.filter(c => c.classification === 'محتال').length;
+function runAnalytics(customers) {
+    document.getElementById('count-total').innerText = customers.length;
+    document.getElementById('count-complete').innerText = customers.filter(c => c.buildingNo && c.postalCode).length;
+    document.getElementById('count-vip').innerText = customers.filter(c => c.classification === 'مميز').length;
+    document.getElementById('count-fraud').innerText = customers.filter(c => c.classification === 'محتال').length;
 }
 
-function renderTable(customers) {
-    const container = document.getElementById('customers-table-container');
-    if (customers.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:50px; color:#95a5a6;"><p>لا يوجد عملاء حالياً</p></div>`;
-        return;
-    }
-
+function renderCustomerTable(customers) {
+    const wrapper = document.getElementById('table-wrapper');
     let html = `
-        <div style="overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-            <table style="width: 100%; border-collapse: collapse; min-width: 1000px;">
-                <thead style="background: #f8fafc; color: #64748b; border-bottom: 2px solid #edf2f7;">
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden;">
+                <thead style="background:#f8fafc; border-bottom:2px solid #edf2f7;">
                     <tr>
-                        <th style="padding: 15px; text-align: right;">العميل</th>
-                        <th style="padding: 15px; text-align: center;">الاتصال</th>
-                        <th style="padding: 15px; text-align: center;">العنوان الوطني</th>
-                        <th style="padding: 15px; text-align: center;">التصنيف</th>
-                        <th style="padding: 15px; text-align: center;">العمليات</th>
+                        <th style="padding:15px; text-align:right;">العميل</th>
+                        <th style="padding:15px; text-align:center;">الاتصال</th>
+                        <th style="padding:15px; text-align:center;">العنوان الوطني</th>
+                        <th style="padding:15px; text-align:center;">الحالة</th>
+                        <th style="padding:15px; text-align:center;">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
     `;
 
     customers.forEach(c => {
-        const classStyle = c.classification === 'محتال' ? 'background:#fee2e2; color:#b91c1c;' : 
-                          c.classification === 'مميز' ? 'background:#dcfce7; color:#15803d;' : 'background:#f1f5f9; color:#475569;';
-        
+        // حل مشكلة undefined عبر وضع قيم افتراضية
+        const phoneDisplay = `${c.countryCode || '+966'}${c.phone || ''}`;
+        const addressDisplay = `${c.city || 'حائل'} - ${c.district || 'غير محدد'}`;
+        const badgeColor = c.classification === 'محتال' ? '#e74c3c' : (c.classification === 'مميز' ? '#27ae60' : '#95a5a6');
+
         html += `
-            <tr class="customer-row" data-search="${(c.name||'')}${(c.phone||'')}${(c.city||'')}" data-class="${c.classification || ''}" style="border-bottom: 1px solid #edf2f7;">
-                <td style="padding: 15px;">
+            <tr class="cust-row" data-search="${c.name} ${c.phone} ${c.city}" data-class="${c.classification}" style="border-bottom:1px solid #eee;">
+                <td style="padding:15px;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:40px; height:40px; background:#e67e22; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">
-                            ${(c.name || 'C').charAt(0)}
+                        <div style="width:35px; height:35px; background:#e67e22; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">
+                            ${(c.name || 'ع').charAt(0)}
                         </div>
                         <div>
-                            <div style="font-weight:bold; color:#2d3748;">${c.name || 'بدون اسم'}</div>
-                            <small style="color:#a0aec0;">ID: ${c.id.slice(-5)}</small>
+                            <div style="font-weight:bold;">${c.name || 'اسم غير معروف'}</div>
+                            <small style="color:#999;">ID: ${c.id.slice(-5)}</small>
                         </div>
                     </div>
                 </td>
-                <td style="padding: 15px; text-align: center; direction: ltr;">
-                    <div>+${c.phone || ''}</div>
-                    <small style="color:#718096;">${c.email || ''}</small>
+                <td style="padding:15px; text-align:center; direction:ltr;">${phoneDisplay}</td>
+                <td style="padding:15px; text-align:center;">
+                    <div>${addressDisplay}</div>
+                    <small style="color:#7f8c8d;">مبنى: ${c.buildingNo || '-'} | رمز: ${c.postalCode || '-'}</small>
                 </td>
-                <td style="padding: 15px; text-align: center;">
-                    <div style="font-size:0.85rem;">${c.city || 'حائل'} - ${c.district || ''}</div>
-                    <div style="font-size:0.75rem; color:#94a3b8;">مبنى: ${c.buildingNo || '-'} | رمز: ${c.postalCode || '-'}</div>
-                </td>
-                <td style="padding: 15px; text-align: center;">
-                    <span style="padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold; ${classStyle}">
-                        ${c.classification || 'غير مصنف'}
+                <td style="padding:15px; text-align:center;">
+                    <span style="background:${badgeColor}; color:white; padding:3px 10px; border-radius:15px; font-size:12px;">
+                        ${c.classification || 'عميل عادي'}
                     </span>
                 </td>
-                <td style="padding: 15px; text-align: center;">
-                    <div style="display: flex; gap: 5px; justify-content: center;">
-                        <button onclick="showCustomerModal('${c.id}')" title="تعديل" style="background:#3498db; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteCustomerRecord('${c.id}')" title="حذف" style="background:#e74c3c; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;"><i class="fas fa-trash"></i></button>
-                    </div>
+                <td style="padding:15px; text-align:center;">
+                    <button onclick="openCustomerModal('${c.id}')" style="color:#3498db; border:none; background:none; cursor:pointer; margin:0 5px;"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteCust('${c.id}')" style="color:#e74c3c; border:none; background:none; cursor:pointer; margin:0 5px;"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `;
     });
 
     html += `</tbody></table></div>`;
-    container.innerHTML = html;
+    wrapper.innerHTML = html;
 }
 
-function filterCustomers() {
-    const search = document.getElementById('customer-search').value.toLowerCase();
-    const cat = document.getElementById('class-filter').value;
-    document.querySelectorAll('.customer-row').forEach(row => {
-        const matchesSearch = row.dataset.search.toLowerCase().includes(search);
-        const matchesClass = !cat || row.dataset.class === cat;
-        row.style.display = (matchesSearch && matchesClass) ? "" : "none";
+function applyFilters() {
+    const s = document.getElementById('cust-search').value.toLowerCase();
+    const f = document.getElementById('filter-class').value;
+    document.querySelectorAll('.cust-row').forEach(row => {
+        const matchS = row.dataset.search.toLowerCase().includes(s);
+        const matchF = !f || row.dataset.class === f;
+        row.style.display = (matchS && matchF) ? "" : "none";
     });
 }
 
-// نافذة الإضافة والتعديل الشاملة
-window.showCustomerModal = async (id = null) => {
-    let data = { name:'', phone:'', city:'حائل', district:'', street:'', buildingNo:'', additionalNo:'', poBox:'', postalCode:'', email:'', classification:'', notes:'' };
+// نافذة الإضافة والتعديل التي تدمج حقول مستند Word 
+window.openCustomerModal = async (id = null) => {
+    let d = { name:'', phone:'', countryCode:'966', city:'حائل', district:'', buildingNo:'', postalCode:'', classification:'', notes:'' };
     if(id) {
-        const docSnap = await getDoc(doc(db, "customers", id));
-        if(docSnap.exists()) data = docSnap.data();
+        const s = await getDoc(doc(db, "customers", id));
+        if(s.exists()) d = s.data();
     }
 
-    const modal = document.createElement('div');
-    modal.id = "tera-modal";
-    modal.style = "position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; font-family:'Tajawal';";
-    modal.innerHTML = `
-        <div style="background:white; width:100%; max-width:700px; border-radius:15px; overflow:hidden; animation: slideUp 0.3s ease-out;">
-            <div style="background:#2c3e50; color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0;">${id ? 'تعديل بيانات العميل' : 'إضافة عميل جديد'}</h3>
-                <button onclick="document.getElementById('tera-modal').remove()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
+    const m = document.createElement('div');
+    m.style = "position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;";
+    m.innerHTML = `
+        <div style="background:white; width:100%; max-width:600px; border-radius:15px; overflow:hidden; font-family:'Tajawal';">
+            <div style="background:#2c3e50; color:white; padding:15px; display:flex; justify-content:space-between;">
+                <h3 style="margin:0;">${id ? 'تحديث بيانات العميل' : 'إضافة عميل جديد'}</h3>
+                <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">&times;</button>
             </div>
-            <form id="customer-form" style="padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                <div class="field"><label>اسم العميل</label><input type="text" name="name" value="${data.name}" required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;"></div>
-                <div class="field"><label>رقم الجوال</label><input type="tel" name="phone" value="${data.phone}" placeholder="9665..." required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; direction:ltr;"></div>
-                <div class="field"><label>المدينة</label><input type="text" name="city" value="${data.city}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;"></div>
-                <div class="field"><label>الحي</label><input type="text" name="district" value="${data.district}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;"></div>
-                <div class="field"><label>رقم المبنى</label><input type="text" name="buildingNo" value="${data.buildingNo}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;"></div>
-                <div class="field"><label>الرمز البريدي</label><input type="text" name="postalCode" value="${data.postalCode}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;"></div>
-                <div class="field"><label>التصنيف</label>
-                    <select name="classification" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;">
-                        <option value="">اختر..</option>
-                        <option value="مميز" ${data.classification==='مميز'?'selected':''}>مميز</option>
-                        <option value="محتال" ${data.classification==='محتال'?'selected':''}>محتال</option>
-                        <option value="غير جدي" ${data.classification==='غير جدي'?'selected':''}>غير جدي</option>
+            <form id="cust-form" style="padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                <div style="grid-column: span 2;"><label>الاسم الكامل</label><input name="name" value="${d.name}" required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></div>
+                <div><label>كود الدولة</label><input name="countryCode" value="${d.countryCode}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px; direction:ltr;"></div>
+                <div><label>رقم الجوال</label><input name="phone" value="${d.phone}" required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px; direction:ltr;"></div>
+                <div><label>المدينة</label><input name="city" value="${d.city}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></div>
+                <div><label>الحي</label><input name="district" value="${d.district}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></div>
+                <div><label>رقم المبنى</label><input name="buildingNo" value="${d.buildingNo}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></div>
+                <div><label>الرمز البريدي</label><input name="postalCode" value="${d.postalCode}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;"></div>
+                <div style="grid-column: span 2;"><label>التصنيف</label>
+                    <select name="classification" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+                        <option value="">عميل عادي</option>
+                        <option value="مميز" ${d.classification==='مميز'?'selected':''}>عميل مميز</option>
+                        <option value="محتال" ${d.classification==='محتال'?'selected':''}>عميل محتال (تنبيه)</option>
+                        <option value="غير جدي" ${d.classification==='غير جدي'?'selected':''}>غير جدي</option>
                     </select>
                 </div>
-                <div class="field" style="grid-column: span 2;">
-                    <label>ملاحظات (محرر نصي)</label>
-                    <textarea name="notes" style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:6px;">${data.notes}</textarea>
-                </div>
-                <div style="grid-column: span 2; text-align:left; margin-top:10px;">
-                    <button type="submit" style="background:#27ae60; color:white; border:none; padding:10px 30px; border-radius:6px; cursor:pointer;">حفظ البيانات</button>
-                </div>
+                <div style="grid-column: span 2;"><label>ملاحظات العميل</label><textarea name="notes" style="width:100%; height:60px; padding:8px; border:1px solid #ddd; border-radius:5px;">${d.notes}</textarea></div>
+                <button type="submit" style="grid-column: span 2; background:#27ae60; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">حفظ التغييرات</button>
             </form>
         </div>
     `;
-    document.body.appendChild(modal);
+    document.body.appendChild(m);
 
-    document.getElementById('customer-form').onsubmit = async (e) => {
+    document.getElementById('cust-form').onsubmit = async (e) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const updateData = Object.fromEntries(formData.entries());
-        updateData.updatedAt = serverTimestamp();
+        const fd = new FormData(e.target);
+        const vals = Object.fromEntries(fd.entries());
+        vals.updatedAt = serverTimestamp();
 
         try {
-            if(id) await updateDoc(doc(db, "customers", id), updateData);
-            else { updateData.createdAt = serverTimestamp(); await addDoc(collection(db, "customers"), updateData); }
-            modal.remove();
-        } catch (err) { alert('خطأ في الحفظ'); }
+            if(id) await updateDoc(doc(db, "customers", id), vals);
+            else { vals.createdAt = serverTimestamp(); await addDoc(collection(db, "customers"), vals); }
+            m.remove();
+        } catch(err) { alert("خطأ في الاتصال بقاعدة البيانات"); }
     };
-}
+};
 
-window.deleteCustomerRecord = async (id) => {
-    if(confirm('سيتم حذف العميل وكافة سجلاته، هل أنت متأكد؟')) {
+window.deleteCust = async (id) => {
+    if(confirm('هل أنت متأكد من حذف هذا العميل نهائياً؟')) {
         await deleteDoc(doc(db, "customers", id));
     }
-}
+};
