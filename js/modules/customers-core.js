@@ -1,15 +1,26 @@
 /**
  * js/modules/customers-core.js
- * موديول إدارة العملاء الاحترافي - Tera Gateway
- * التحديث: ربط نظام الطباعة ثنائي اللغة المستقل وتحسين جودة البيانات
+ * موديول إدارة العملاء - Tera Gateway
  */
 
 import { db } from '../core/config.js';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const LIBS = {
     xlsx: "https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"
 };
+
+// دالة لجلب بيانات عميل واحد (يستخدمها ملف الطباعة)
+export async function getCustomerById(id) {
+    try {
+        const docRef = doc(db, "customers", id);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? docSnap.data() : null;
+    } catch (e) {
+        console.error("Error fetching customer:", e);
+        return null;
+    }
+}
 
 export async function initCustomers(container) {
     await loadExternalLibs();
@@ -20,29 +31,27 @@ export async function initCustomers(container) {
             <div class="stat-card"><h3>إجمالي العملاء</h3><p id="stat-total">0</p></div>
             <div class="stat-card success"><h3>بيانات مكتملة</h3><p id="stat-complete">0</p></div>
             <div class="stat-card warning"><h3>بيانات ناقصة</h3><p id="stat-incomplete">0</p></div>
-            <div class="stat-card danger"><h3>ملاحظات هامة</h3><p id="stat-flagged">0</p></div>
+            <div class="stat-card danger"><h3>ملاحظات</h3><p id="stat-flagged">0</p></div>
         </div>
 
         <div class="toolbar">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="customer-search" placeholder="بحث بالاسم، الجوال، أو المدينة...">
+                <input type="text" id="customer-search" placeholder="بحث بالاسم، الجوال...">
             </div>
             <div class="action-buttons">
-                <button onclick="exportToExcel()" class="btn-alt"><i class="fas fa-file-excel"></i> تصدير Excel</button>
-                <button onclick="document.getElementById('import-excel').click()" class="btn-alt"><i class="fas fa-upload"></i> استيراد</button>
-                <input type="file" id="import-excel" hidden accept=".xlsx, .xls">
-                <button id="add-customer-btn" class="btn-primary-tera"><i class="fas fa-plus"></i> إضافة عميل جديد</button>
+                <button onclick="exportToExcel()" class="btn-alt"><i class="fas fa-file-excel"></i> تصدير</button>
+                <button id="add-customer-btn" class="btn-primary-tera"><i class="fas fa-plus"></i> إضافة عميل</button>
             </div>
         </div>
         
         <div class="table-container">
-            <table class="tera-table" id="customers-table-main">
+            <table class="tera-table">
                 <thead>
                     <tr>
                         <th>العميل</th>
                         <th>الاتصال</th>
-                        <th>العنوان والترجمة</th>
+                        <th>العنوان</th>
                         <th>التصنيف</th>
                         <th>الإجراءات</th>
                     </tr>
@@ -52,10 +61,7 @@ export async function initCustomers(container) {
         </div>
     `;
 
-    document.getElementById('add-customer-btn').onclick = () => window.openCustomerModal(); // يفترض وجود مودال الإضافة في ملف الـ HTML الرئيسي
     document.getElementById('customer-search').oninput = (e) => filterTable(e.target.value);
-    document.getElementById('import-excel').onchange = (e) => importFromExcel(e);
-    
     loadCustomers();
 }
 
@@ -66,7 +72,7 @@ async function loadCustomers() {
     const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
     
-    let stats = { total: 0, complete: 0, incomplete: 0, flagged: 0 };
+    let stats = { total: 0, complete: 0, incomplete: 0 };
     listBody.innerHTML = '';
 
     querySnapshot.forEach((docSnap) => {
@@ -74,8 +80,8 @@ async function loadCustomers() {
         const id = docSnap.id;
         stats.total++;
         
-        const hasFullAddress = data.city && data.buildingNo && data.postalCode;
-        if (hasFullAddress) stats.complete++; else stats.incomplete++;
+        const isComplete = data.city && data.district && data.phone;
+        if (isComplete) stats.complete++; else stats.incomplete++;
 
         listBody.innerHTML += `
             <tr class="customer-row">
@@ -84,28 +90,17 @@ async function loadCustomers() {
                         <div class="avatar-text">${(data.name || 'C').charAt(0)}</div>
                         <div class="info">
                             <span class="name">${data.name || 'بدون اسم'}</span>
-                            <small>${data.email || 'لا يوجد بريد'}</small>
+                            <small>${data.email || '-'}</small>
                         </div>
                     </div>
                 </td>
                 <td dir="ltr"><b>${data.countryCode || '+966'}</b> ${data.phone}</td>
-                <td>
-                    <div class="address-details">
-                        <b>${data.city || 'غير محدد'}</b> - ${data.district || '-'}<br>
-                        <small style="color: #64748b;">Building: ${data.buildingNo || '-'} | Zip: ${data.postalCode || '-'}</small>
-                    </div>
-                </td>
+                <td>${data.city || '-'} - ${data.district || '-'}</td>
                 <td><span class="status-badge ${data.tag === 'مميز' ? 'vip' : ''}">${data.tag || 'عادي'}</span></td>
                 <td>
                     <div class="actions">
-                        <button onclick="previewPrint('${id}')" class="act-btn print" title="فتح بطاقة الطباعة والترجمة">
+                        <button onclick="previewPrint('${id}')" class="act-btn print" title="طباعة وترجمة">
                             <i class="fas fa-print"></i>
-                        </button>
-                        <button onclick="editCustomer('${id}')" class="act-btn edit" title="تعديل">
-                            <i class="fas fa-pen"></i>
-                        </button>
-                        <button onclick="deleteCustomer('${id}')" class="act-btn del" title="حذف">
-                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -118,71 +113,19 @@ async function loadCustomers() {
     document.getElementById('stat-incomplete').innerText = stats.incomplete;
 }
 
-/**
- * دالة الطباعة: تفتح الملف المستقل الذي أنشأناه سابقاً
- */
 window.previewPrint = (id) => {
-    // فتح صفحة الطباعة في نافذة جديدة بملف الرابط المخصص
-    window.open(`print-card.html?id=${id}`, '_blank', 'width=1100,height=900,scrollbars=yes');
+    window.open(`print-card.html?id=${id}`, '_blank', 'width=1100,height=900');
 };
-
-// --- وظائف استيراد وتصدير البيانات ---
 
 window.exportToExcel = async () => {
+    if (typeof XLSX === 'undefined') return alert("جاري تحميل المكتبة...");
     const querySnapshot = await getDocs(collection(db, "customers"));
-    const data = querySnapshot.docs.map(doc => {
-        const d = doc.data();
-        return {
-            "الاسم": d.name,
-            "الجوال": d.phone,
-            "المدينة": d.city,
-            "الحي": d.district,
-            "رقم المبنى": d.buildingNo,
-            "الرمز البريدي": d.postalCode,
-            "التصنيف": d.tag || "عادي"
-        };
-    });
-
+    const data = querySnapshot.docs.map(doc => doc.data());
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "قائمة العملاء");
-    XLSX.writeFile(wb, "Tera_System_Customers.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "العملاء");
+    XLSX.writeFile(wb, "Tera_Customers.xlsx");
 };
-
-async function importFromExcel(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-        const bstr = evt.target.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws);
-
-        const batch = writeBatch(db);
-        data.forEach(row => {
-            const newDocRef = doc(collection(db, "customers"));
-            batch.set(newDocRef, {
-                name: row["الاسم"] || "",
-                phone: row["الجوال"] || "",
-                city: row["المدينة"] || "",
-                district: row["الحي"] || "",
-                buildingNo: row["رقم المبنى"] || "",
-                postalCode: row["الرمز البريدي"] || "",
-                tag: row["التصنيف"] || "عادي",
-                createdAt: new Date()
-            });
-        });
-        
-        await batch.commit();
-        alert(`تم استيراد ${data.length} عميل بنجاح!`);
-        loadCustomers();
-    };
-    reader.readAsBinaryString(file);
-}
-
-// --- الخدمات المساعدة ---
 
 async function loadExternalLibs() {
     for (let lib in LIBS) {
@@ -196,9 +139,8 @@ async function loadExternalLibs() {
 
 function filterTable(value) {
     const rows = document.querySelectorAll('.customer-row');
-    const searchVal = value.toLowerCase();
     rows.forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(searchVal) ? '' : 'none';
+        row.style.display = row.innerText.toLowerCase().includes(value.toLowerCase()) ? '' : 'none';
     });
 }
 
@@ -208,13 +150,11 @@ function injectStyles() {
     s.id = 'tera-cust-styles';
     s.innerHTML = `
         .user-cell { display: flex; align-items: center; gap: 12px; }
-        .avatar-text { width: 38px; height: 38px; background: #3b82f6; color: white; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: bold; }
-        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; background: #f1f5f9; font-weight: 700; }
-        .status-badge.vip { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .act-btn { border: none; padding: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; background: #f8fafc; color: #64748b; }
-        .act-btn.print:hover { background: #1e293b; color: white; }
-        .act-btn.edit:hover { background: #3b82f6; color: white; }
-        .act-btn.del:hover { background: #ef4444; color: white; }
+        .avatar-text { width: 35px; height: 35px; background: #1e293b; color: white; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; background: #f1f5f9; font-weight: bold; }
+        .status-badge.vip { background: #fef3c7; color: #92400e; }
+        .act-btn { border: none; padding: 7px; border-radius: 5px; cursor: pointer; background: #f8fafc; }
+        .act-btn.print:hover { background: #1e293b; color: #fff; }
     `;
     document.head.appendChild(s);
 }
