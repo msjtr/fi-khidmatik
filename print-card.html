@@ -9,67 +9,97 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        /* تم دمج الـ CSS هنا لحل مشكلة 404 */
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
 
         @page { size: A4; margin: 10mm 15mm; }
         
-        body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #f4f7f6; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         
-        .print-container { width: 210mm; min-height: 297mm; padding: 10mm; margin: 0 auto; box-sizing: border-box; position: relative; }
+        /* حاوية التصفية (تظهر في المتصفح فقط) */
+        .selection-panel {
+            width: 210mm; margin: 20px auto; background: #fff; padding: 20px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #1e293b;
+        }
+        .selection-panel h3 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .checkbox-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 15px 0; }
+        .checkbox-group label { cursor: pointer; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+
+        /* حاوية الطباعة */
+        .print-container { width: 210mm; min-height: 297mm; padding: 12mm; margin: 0 auto; background: #fff; box-sizing: border-box; border: 2px solid #000; position: relative; }
         
-        /* الهيدر المصلح حسب الصورة: الشعار يمين */
+        /* الهيدر المحدث: الشعار يمين والترجمة تحته */
         .header-table { width: 100%; border-collapse: collapse; border: 2px solid #000; }
         .header-table td { border: 1.5px solid #000; padding: 10px; vertical-align: middle; }
         
         .header-right { width: 35%; text-align: right; }
-        .logo-container { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
-        /* تأكد من وضع الشعار في هذا المسار */
-        .logo-container img { height: 55px; } 
-        .logo-text { font-weight: 900; font-size: 0.85rem; line-height: 1.3; }
+        .logo-box { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .logo-box img { height: 55px; margin-bottom: 5px; }
+        .logo-text-main { font-weight: 900; font-size: 0.9rem; display: block; }
+        .logo-text-sub { font-weight: 700; font-size: 0.7rem; color: #555; display: block; }
 
         .header-center { width: 30%; text-align: center; }
         .header-center h2 { margin: 0; font-size: 1.2rem; font-weight: 900; }
+        .header-center p { margin: 0; font-size: 0.8rem; font-weight: 700; color: #666; }
+
         .header-left { width: 35%; text-align: left; font-size: 0.75rem; font-weight: 800; line-height: 1.6; }
 
-        .meta-info-bar { width: 100%; border: 2px solid #000; border-top: none; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.85rem; background: #f9f9f9; box-sizing: border-box; }
+        .meta-bar { width: 100%; border: 2px solid #000; border-top: none; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.8rem; background: #f9f9f9; }
 
-        .customer-table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; }
-        .customer-table td { border: 1.5px solid #000; padding: 12px 8px; text-align: center; font-weight: 700; font-size: 1rem; page-break-inside: avoid; break-inside: avoid; word-wrap: break-word; }
+        /* الجدول */
+        .customer-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .customer-table th { background: #000; color: #fff; padding: 10px; font-size: 0.85rem; }
+        .customer-table td { border: 1.5px solid #000; padding: 12px 8px; text-align: center; font-weight: 700; font-size: 1rem; }
         
-        .col-ar { width: 22%; background: #f2f2f2; font-weight: 900; text-align: right !important; }
-        .col-en { width: 22%; background: #f2f2f2; font-size: 0.8rem; text-align: left !important; }
-        .col-data { width: 56%; }
-        .col-data small { display: block; color: #555; font-size: 0.85rem; margin-top: 4px; font-weight: 600; }
+        .col-ar { width: 25%; background: #f2f2f2; font-weight: 900; text-align: right !important; }
+        .col-en { width: 25%; background: #f2f2f2; font-size: 0.8rem; text-align: left !important; }
+        .val-en { display: block; color: #666; font-size: 0.8rem; margin-top: 4px; font-weight: 600; text-transform: capitalize; }
 
-        .verification-box { margin-top: 30px; text-align: center; }
+        .verification-box { margin-top: 30px; text-align: center; page-break-inside: avoid; }
         #qrcode { display: inline-block; padding: 5px; border: 1px solid #000; background: #fff; }
 
-        .main-footer { border-top: 2px solid #000; margin-top: 40px; padding-top: 15px; text-align: center; }
-        .contact-details { display: flex; justify-content: center; gap: 20px; font-size: 0.8rem; font-weight: 700; }
+        /* التذييل المترجم */
+        .main-footer { border-top: 2px solid #000; margin-top: 40px; padding-top: 15px; text-align: center; page-break-inside: avoid; }
+        .footer-statement { font-weight: 800; font-size: 0.9rem; margin-bottom: 10px; }
+        .footer-statement small { display: block; color: #555; font-size: 0.75rem; margin-top: 4px; }
 
-        .print-actions { position: fixed; top: 20px; left: 20px; display: flex; gap: 10px; z-index: 1000; }
-        .btn-action { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: 800; color: #fff; font-family: 'Cairo'; }
-        .btn-print { background: #333; }
-        .btn-pdf { background: #a00; }
+        /* أزرار العمليات بالأسفل */
+        .footer-actions { display: flex; justify-content: center; gap: 15px; padding: 40px 0; }
+        .btn-action { padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; color: #fff; font-family: 'Cairo'; transition: 0.3s; }
+        .btn-print { background: #1e293b; }
+        .btn-pdf { background: #be123c; }
 
-        @media print { .print-actions { display: none !important; } .print-container { border: 2px solid #000 !important; } }
+        @media print { 
+            body { background: #fff; }
+            .no-print, .selection-panel, .footer-actions { display: none !important; } 
+            .print-container { border: 2px solid #000 !important; margin: 0; width: 100%; } 
+        }
     </style>
 </head>
 <body>
 
-    <div class="print-actions">
-        <button class="btn-action btn-print" onclick="window.print()">طباعة الوثيقة</button>
-        <button class="btn-action btn-pdf" onclick="saveAsPDF()">حفظ PDF</button>
+    <div class="selection-panel no-print">
+        <h3><i class="fas fa-filter"></i> اختر المعلومات المراد طباعتها</h3>
+        <div class="checkbox-group">
+            <label><input type="checkbox" checked onchange="toggleAll(this)"> <b>تحديد الكل</b></label>
+            <label><input type="checkbox" class="field-check" value="name" checked> اسم العميل</label>
+            <label><input type="checkbox" class="field-check" value="phone" checked> رقم الجوال</label>
+            <label><input type="checkbox" class="field-check" value="email" checked> البريد الإلكتروني</label>
+            <label><input type="checkbox" class="field-check" value="city" checked> المدينة</label>
+            <label><input type="checkbox" class="field-check" value="district" checked> الحي</label>
+            <label><input type="checkbox" class="field-check" value="tag" checked> التصنيف</label>
+        </div>
+        <button class="btn-action btn-print" style="width: 100%; background: #3b82f6;" onclick="refreshPreview()">تحديث المعاينة</button>
     </div>
 
     <div class="print-container" id="printable-area">
         <table class="header-table">
             <tr>
                 <td class="header-right">
-                    <div class="logo-container">
-                        <span class="logo-text">منصة في خدمتك<br>من الأتقان بلس</span>
-                        <img src="fi-khidmatik/images/logo.svg" alt="Logo">
+                    <div class="logo-box">
+                        <img src="fi-khidmatik/images/logo.svg" alt="Logo" onerror="this.src='https://via.placeholder.com/60'">
+                        <span class="logo-text-main">منصة في خدمتك</span>
+                        <span class="logo-text-sub">من الأتقان بلس</span>
+                        <span class="logo-text-sub" style="font-size: 0.6rem; opacity: 0.8;">Fi-Khidmatik from Al-Etqan Plus</span>
                     </div>
                 </td>
                 <td class="header-center">
@@ -83,7 +113,7 @@
             </tr>
         </table>
 
-        <div class="meta-info-bar">
+        <div class="meta-bar">
             <span>رقم المعاملة: <span id="trans-id"></span></span>
             <span>التاريخ: <span id="current-date"></span></span>
             <span>الوقت: <span id="current-time"></span></span>
@@ -91,93 +121,104 @@
 
         <table class="customer-table">
             <thead>
-                <tr style="background: #000; color: #fff;">
-                    <th style="padding: 10px;">الحقل بالعربي</th>
-                    <th>البيانات / Data</th>
+                <tr>
+                    <th>الحقل بالعربي</th>
+                    <th>البيانات المترجمة / Data</th>
                     <th>English Field</th>
                 </tr>
             </thead>
-            <tbody id="data-body">
-                </tbody>
+            <tbody id="data-body"></tbody>
         </table>
 
         <div class="verification-box">
             <div id="qrcode"></div>
-            <p style="font-weight: 800; margin-bottom: 5px;">كود التحقق من الوثيقة</p>
-            <small>(كود التحقق هو عبارة عن رابط تحميل البيانات من المنصة)</small>
+            <p class="qr-text" style="font-weight: 800; margin: 10px 0 5px;">كود التحقق من الوثيقة | Verification Code</p>
+            <small>(رابط موثق لتحميل البيانات من المنصة)</small>
         </div>
 
         <div class="main-footer">
-            <p style="font-weight: 800; margin-bottom: 10px;">هذه المعلومات صادرة من منصة في خدمتك من الأتقان بلس</p>
-            <div class="contact-details">
-                <span>www.khidmatik.com <i class="fas fa-globe"></i></span>
-                <span>info@fi-khidmatik.com <i class="fas fa-envelope"></i></span>
-                <span>966545312021 <i class="fab fa-whatsapp"></i></span>
-                <span>966534051317 <i class="fas fa-phone"></i></span>
-            </div>
+            <p class="footer-statement">
+                هذه المعلومات صادرة من منصة في خدمتك من الأتقان بلس
+                <small>This information is issued by Fi-Khidmatik platform from Al-Etqan Plus</small>
+            </p>
         </div>
+    </div>
+
+    <div class="footer-actions no-print">
+        <button class="btn-action btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة الوثيقة</button>
+        <button class="btn-action btn-pdf" onclick="saveAsPDF()"><i class="fas fa-file-pdf"></i> حفظ كـ PDF</button>
     </div>
 
     <script type="module">
         import { db } from './js/core/config.js';
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // قاموس الترجمة التلقائية للقيم
         const dictionary = {
-            "الرياض": "Riyadh", "حائل": "Hail", "النهضة": "Al-Nahda", "النفرة": "Al-Nafra",
-            "عادي": "Normal", "مميز": "VIP", "المملكة العربية السعودية": "Saudi Arabia",
-            "سعد المشاط": "Saad Al-Mashat"
+            "الرياض": "Riyadh", "حائل": "Hail", "النهضة": "Al-Nahda", "المملكة العربية السعودية": "Saudi Arabia",
+            "عادي": "Normal", "مميز": "VIP", "تاجر": "Merchant"
         };
 
-        function translate(text) {
+        let currentCustomerData = null;
+
+        function translateVal(text) {
             if (!text || text === '-') return '';
-            return dictionary[text] || text; 
+            return dictionary[text] || text;
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const customerId = urlParams.get('id');
+        async function loadData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (!id) return;
 
-        if (customerId) {
-            const docRef = doc(db, "customers", customerId);
-            const docSnap = await getDoc(docRef);
-
+            const docSnap = await getDoc(doc(db, "customers", id));
             if (docSnap.exists()) {
-                const data = docSnap.data();
-                const now = new Date();
+                currentCustomerData = docSnap.data();
+                refreshPreview();
                 
-                // مصفوفة الحقول لضمان الترتيب والترجمة
-                const fields = [
-                    { ar: "اسم العميل", en: "Customer Name", val: data.name },
-                    { ar: "الدولة", en: "Country", val: "المملكة العربية السعودية" },
-                    { ar: "رقم الجوال", en: "Mobile Number", val: `${data.countryCode || '+966'} ${data.phone || ''}` },
-                    { ar: "البريد الإلكتروني", en: "Email Address", val: data.email },
-                    { ar: "المدينة", en: "City", val: data.city },
-                    { ar: "الحي", en: "District", val: data.district },
-                    { ar: "الشارع", en: "Street", val: data.street },
-                    { ar: "رقم المبنى", en: "Building No.", val: data.buildingNo },
-                    { ar: "الرمز البريدي", en: "Postal Code", val: data.postalCode },
-                    { ar: "تصنيف العميل", en: "Category", val: data.tag },
-                    { ar: "ملاحظات", en: "Notes", val: data.notes }
-                ];
-
-                const tbody = document.getElementById('data-body');
-                fields.forEach(f => {
-                    const tr = document.createElement('tr');
-                    const translatedVal = translate(f.val);
-                    tr.innerHTML = `
-                        <td class="col-ar">${f.ar}</td>
-                        <td class="col-data">${f.val || '-'} <br> <small>${translatedVal !== f.val ? translatedVal : ''}</small></td>
-                        <td class="col-en">${f.en}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                document.getElementById('current-date').innerText = now.toLocaleDateString('ar-SA');
-                document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'});
-                document.getElementById('trans-id').innerText = `KF-${now.getFullYear()}-${customerId.substring(0,5).toUpperCase()}`;
-
+                const now = new Date();
+                document.getElementById('current-date').innerText = `${now.toLocaleDateString('ar-SA')} | ${now.toLocaleDateString('en-US')}`;
+                document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA');
+                document.getElementById('trans-id').innerText = `KF-${now.getFullYear()}-${id.substring(0,5).toUpperCase()}`;
+                
                 new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 85, height: 85 });
             }
+        }
+
+        window.refreshPreview = function() {
+            if (!currentCustomerData) return;
+            const selected = Array.from(document.querySelectorAll('.field-check:checked')).map(cb => cb.value);
+            
+            const allFields = [
+                { id: 'name', ar: "اسم العميل", en: "Customer Name", val: currentCustomerData.name },
+                { id: 'country', ar: "الدولة", en: "Country", val: "المملكة العربية السعودية" },
+                { id: 'phone', ar: "رقم الجوال", en: "Mobile Number", val: `${currentCustomerData.countryCode || '+966'} ${currentCustomerData.phone || ''}` },
+                { id: 'email', ar: "البريد الإلكتروني", en: "Email Address", val: currentCustomerData.email },
+                { id: 'city', ar: "المدينة", en: "City", val: currentCustomerData.city },
+                { id: 'district', ar: "الحي", en: "District", val: currentCustomerData.district },
+                { id: 'tag', ar: "تصنيف العميل", en: "Category", val: currentCustomerData.tag }
+            ];
+
+            const tbody = document.getElementById('data-body');
+            tbody.innerHTML = '';
+
+            allFields.filter(f => selected.includes(f.id) || f.id === 'country').forEach(f => {
+                const tr = document.createElement('tr');
+                const trans = translateVal(f.val);
+                tr.innerHTML = `
+                    <td class="col-ar">${f.ar}</td>
+                    <td class="col-data">
+                        ${f.val || '-'} 
+                        <span class="val-en">${trans !== f.val ? trans : ''}</span>
+                    </td>
+                    <td class="col-en">${f.en}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.toggleAll = (master) => {
+            document.querySelectorAll('.field-check').forEach(cb => cb.checked = master.checked);
+            refreshPreview();
         }
 
         window.saveAsPDF = function() {
@@ -188,6 +229,8 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).save();
         }
+
+        window.onload = loadData;
     </script>
 </body>
 </html>
