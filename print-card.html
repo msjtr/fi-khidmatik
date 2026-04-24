@@ -5,102 +5,146 @@
     <title>بطاقة بيانات العميل - منصة في خدمتك</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
         
         body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #fff; color: #000; }
-        .print-container { width: 210mm; padding: 10mm; margin: 0 auto; box-sizing: border-box; }
+        .print-container { width: 210mm; min-height: 297mm; padding: 10mm; margin: 0 auto; box-sizing: border-box; position: relative; }
         
-        /* الهيدر المطلوب */
+        /* أزرار التحكم (تختفي عند الطباعة) */
+        .no-print-zone { position: fixed; top: 20px; left: 20px; display: flex; gap: 10px; z-index: 9999; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; color: #fff; }
+        .btn-print { background: #34495e; }
+        .btn-pdf { background: #c0392b; }
+
+        /* الهيدر مطابق للصورة */
         .header-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
-        .header-table td { border: 1px solid #000; padding: 8px; vertical-align: middle; }
-        
-        /* يمين: الشعار والعبارة */
-        .right-side { width: 35%; text-align: right; }
-        .logo-area { display: flex; align-items: center; gap: 8px; }
-        .logo-area img { height: 50px; }
-        .logo-area span { font-size: 0.8rem; font-weight: 800; line-height: 1.2; }
-
-        /* منتصف: العنوان */
-        .center-side { width: 30%; text-align: center; }
-        .center-side h2 { margin: 0; font-size: 1.1rem; font-weight: 800; }
-        .center-side p { margin: 0; font-size: 0.8rem; font-weight: 700; }
-
-        /* يسار: الأرقام الرسمية */
-        .left-side { width: 35%; text-align: left; font-size: 0.75rem; font-weight: 700; }
+        .header-table td { border: 1.5px solid #000; padding: 8px; vertical-align: middle; }
+        .logo-section { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+        .logo-section img { height: 45px; }
 
         /* شريط المعاملة */
-        .meta-bar { width: 100%; border: 1.5px solid #000; border-top: none; padding: 5px 10px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.8rem; background: #f9f9f9; }
+        .meta-bar { width: 100%; border: 1.5px solid #000; border-top: none; padding: 6px 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.85rem; box-sizing: border-box; }
 
-        /* جدول البيانات: عربي - بيانات - إنجليزي */
+        /* الجدول (عربي - بيانات - إنجليزي) */
         .details-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .details-table td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 0.9rem; }
-        .label-ar { width: 20%; background: #eeeeee; font-weight: 800; text-align: right; }
-        .data-cell { width: 60%; font-weight: 700; background: #fff; }
-        .label-en { width: 20%; background: #eeeeee; font-weight: 600; text-align: left; font-size: 0.75rem; }
+        .details-table td { border: 1.5px solid #000; padding: 10px; text-align: center; font-size: 0.95rem; font-weight: 700; }
+        .label-ar { width: 20%; background: #f2f2f2; font-weight: 800; text-align: right; }
+        .label-en { width: 20%; background: #f2f2f2; font-weight: 600; text-align: left; font-size: 0.8rem; }
+        .data-cell { width: 60%; }
 
-        /* التذييل */
-        .footer { border-top: 1.5px solid #000; margin-top: 30px; padding-top: 10px; text-align: center; }
-        .footer-text { font-weight: 800; font-size: 0.85rem; margin-bottom: 5px; }
-        .contact-grid { display: flex; justify-content: center; gap: 10px; font-size: 0.7rem; font-weight: 700; flex-wrap: wrap; }
-        
-        .qr-section { margin-top: 20px; text-align: center; }
-        #qrcode { display: inline-block; padding: 5px; border: 1px solid #000; }
+        /* التذييل والباركود */
+        .verification { margin-top: 25px; text-align: center; }
+        .footer { border-top: 1.5px solid #000; margin-top: 40px; padding-top: 15px; text-align: center; }
+        .footer-info { display: flex; justify-content: center; gap: 20px; font-size: 0.75rem; font-weight: 800; }
 
-        @media print { .no-print { display: none; } }
+        @media print { .no-print-zone { display: none; } }
     </style>
 </head>
 <body>
 
-    <div class="print-container">
+    <div class="no-print-zone">
+        <button class="btn btn-print" onclick="window.print()">طباعة الوثيقة</button>
+        <button class="btn btn-pdf" onclick="saveAsPDF()">حفظ PDF</button>
+    </div>
+
+    <div class="print-container" id="capture">
         <table class="header-table">
             <tr>
-                <td class="right-side">
-                    <div class="logo-area">
-                        <img src="fi-khidmatik/images/logo.svg" alt="Logo">
-                        <span>منصة في خدمتك<br>من الأتقان بلس</span>
-                    </div>
-                </td>
-                <td class="center-side">
-                    <h2>بطاقة بيانات العميل</h2>
-                    <p>Customer Data Card</p>
-                </td>
-                <td class="left-side">
+                <td style="width: 35%; text-align: left; font-size: 0.75rem;">
                     رقم شهادة العمل الحر: FL-765735204<br>
                     الرقم الضريبي: 312495447600003
+                </td>
+                <td style="width: 30%; text-align: center;">
+                    <h2 style="margin:0; font-size: 1.1rem;">بطاقة بيانات العميل</h2>
+                    <small style="font-weight:700">Customer Data Card</small>
+                </td>
+                <td style="width: 35%;" class="logo-section">
+                    <span style="font-weight: 800; font-size: 0.8rem;">منصة في خدمتك<br>من الأتقان بلس</span>
+                    <img src="fi-khidmatik/images/logo.svg" alt="Logo">
                 </td>
             </tr>
         </table>
 
         <div class="meta-bar">
-            <span>رقم المعاملة: <span id="trans-id">KF-2026-04-0000</span></span>
+            <span>رقم المعاملة: <span id="trans-id"></span></span>
             <span>التاريخ: <span id="current-date"></span></span>
             <span>الوقت: <span id="current-time"></span></span>
         </div>
 
         <table class="details-table">
-            <tr><td class="label-ar">اسم العميل</td><td id="name" class="data-cell">-</td><td class="label-en">Customer Name</td></tr>
-            <tr><td class="label-ar">رقم الجوال</td><td id="phone" class="data-cell" dir="ltr">-</td><td class="label-en">Mobile Number</td></tr>
-            <tr><td class="label-ar">البريد الإلكتروني</td><td id="email" class="data-cell">-</td><td class="label-en">Email Address</td></tr>
-            <tr><td class="label-ar">المدينة</td><td id="city" class="data-cell">-</td><td class="label-en">City</td></tr>
-            <tr><td class="label-ar">الحي</td><td id="district" class="data-cell">-</td><td class="label-en">District</td></tr>
-            <tr><td class="label-ar">الشارع</td><td id="street" class="data-cell">-</td><td class="label-en">Street Name</td></tr>
-            <tr><td class="label-ar">رقم المبنى</td><td id="building" class="data-cell">-</td><td class="label-en">Building No.</td></tr>
-            <tr><td class="label-ar">الرمز البريدي</td><td id="postal" class="data-cell">-</td><td class="label-en">Postal Code</td></tr>
-            <tr><td class="label-ar">صندوق البريد</td><td id="pobox" class="data-cell">-</td><td class="label-en">P.O. Box</td></tr>
-            <tr><td class="label-ar">تصنيف العميل</td><td id="tag" class="data-cell">-</td><td class="label-en">Customer Category</td></tr>
-            <tr><td class="label-ar">ملاحظات إضافية</td><td id="notes" class="data-cell">-</td><td class="label-en">Additional Remarks</td></tr>
+            <tr>
+                <td class="label-ar">اسم العميل</td>
+                <td id="name" class="data-cell"></td>
+                <td class="label-en">Customer Name</td>
+            </tr>
+            <tr>
+                <td class="label-ar">الدولة</td>
+                <td id="country" class="data-cell">المملكة العربية السعودية</td>
+                <td class="label-en">Country</td>
+            </tr>
+            <tr>
+                <td class="label-ar">رقم الجوال</td>
+                <td id="phone" class="data-cell" dir="ltr"></td>
+                <td class="label-en">Mobile Number</td>
+            </tr>
+            <tr>
+                <td class="label-ar">البريد الإلكتروني</td>
+                <td id="email" class="data-cell"></td>
+                <td class="label-en">Email Address</td>
+            </tr>
+            <tr>
+                <td class="label-ar">المدينة</td>
+                <td id="city" class="data-cell"></td>
+                <td class="label-en">City</td>
+            </tr>
+            <tr>
+                <td class="label-ar">الحي</td>
+                <td id="district" class="data-cell"></td>
+                <td class="label-en">District</td>
+            </tr>
+            <tr>
+                <td class="label-ar">الشارع</td>
+                <td id="street" class="data-cell"></td>
+                <td class="label-en">Street</td>
+            </tr>
+            <tr>
+                <td class="label-ar">رقم المبنى</td>
+                <td id="building" class="data-cell"></td>
+                <td class="label-en">Building Number</td>
+            </tr>
+            <tr>
+                <td class="label-ar">الرمز البريدي</td>
+                <td id="postal" class="data-cell"></td>
+                <td class="label-en">Postal Code</td>
+            </tr>
+            <tr>
+                <td class="label-ar">صندوق البريد</td>
+                <td id="pobox" class="data-cell"></td>
+                <td class="label-en">P.O Box</td>
+            </tr>
+            <tr>
+                <td class="label-ar">تصنيف العميل</td>
+                <td id="tag" class="data-cell"></td>
+                <td class="label-en">Customer Category</td>
+            </tr>
+            <tr>
+                <td class="label-ar">ملاحظات</td>
+                <td id="notes" class="data-cell" style="height: 40px;"></td>
+                <td class="label-en">Notes</td>
+            </tr>
         </table>
 
-        <div class="qr-section">
+        <div class="verification">
             <div id="qrcode"></div>
-            <p style="font-weight: 800; font-size: 0.8rem; margin-top: 5px;">كود التحقق من الوثيقة</p>
-            <p style="font-size: 0.65rem;">(كود التحقق هو عبارة عن رابط تحميل البيانات من المنصة)</p>
+            <p style="font-weight: 800; font-size: 0.8rem; margin: 5px 0;">كود التحقق من الوثيقة</p>
+            <small>(كود التحقق هو عبارة عن رابط تحميل البيانات من المنصة)</small>
         </div>
 
         <div class="footer">
-            <div class="footer-text">هذه المعلومات صادرة من منصة في خدمتك من الأتقان بلس</div>
-            <div class="contact-grid">
+            <p style="font-weight: 800; margin-bottom: 8px;">هذه المعلومات صادرة من منصة في خدمتك من الأتقان بلس</p>
+            <div class="footer-info">
                 <span><i class="fas fa-phone"></i> 966534051317</span>
                 <span><i class="fab fa-whatsapp"></i> 966545312021</span>
                 <span><i class="fas fa-envelope"></i> info@fi-khidmatik.com</span>
@@ -116,6 +160,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         const customerId = urlParams.get('id');
 
+        // دالة ترجمة للبيانات
+        const translate = (val) => {
+            const dict = { "الرياض": "Riyadh", "حائل": "Hail", "النهضة": "Al-Nahda", "النفرة": "Al-Nafra" };
+            return dict[val] ? `${val} / ${dict[val]}` : val;
+        };
+
         if (customerId) {
             const docRef = doc(db, "customers", customerId);
             const docSnap = await getDoc(docRef);
@@ -123,35 +173,43 @@
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 const now = new Date();
-                
-                // تعبئة البيانات المفصلة
-                document.getElementById('name').innerText = data.name || '-';
-                document.getElementById('phone').innerText = data.phone || '-';
+
+                // ١- الترجمة المباشرة داخل الخلية
+                document.getElementById('name').innerHTML = `${data.name || '-'} <br><small>${data.name_en || ''}</small>`;
+                document.getElementById('city').innerText = translate(data.city || '-');
+                document.getElementById('district').innerText = translate(data.district || '-');
+
+                // ٤- مفتاح الدولة + الرقم
+                const code = data.countryCode || "+966";
+                document.getElementById('phone').innerText = `${code} ${data.phone || ''}`;
+
                 document.getElementById('email').innerText = data.email || '-';
-                document.getElementById('city').innerText = data.city || '-';
-                document.getElementById('district').innerText = data.district || '-';
                 document.getElementById('street').innerText = data.street || '-';
                 document.getElementById('building').innerText = data.buildingNo || '-';
                 document.getElementById('postal').innerText = data.postalCode || '-';
                 document.getElementById('pobox').innerText = data.poBox || '-';
-                document.getElementById('tag').innerText = data.tag || 'عادي';
-                document.getElementById('notes').innerText = data.notes || 'لا يوجد ملاحظات.';
-                
-                // الوقت والتاريخ
-                document.getElementById('current-date').innerText = now.toLocaleDateString('ar-SA');
-                document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA', {hour: '2-digit', minute:'2-digit'});
-                
-                // رقم المعاملة التلقائي (KF-السنة-الشهر-كود)
-                const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                document.getElementById('trans-id').innerText = `KF-${yearMonth}-${customerId.substring(0,5).toUpperCase()}`;
+                document.getElementById('tag').innerText = data.tag || 'Normal';
+                document.getElementById('notes').innerText = data.notes || '-';
 
-                // كود التحقق هو رابط الصفحة الحالية
-                new QRCode(document.getElementById("qrcode"), {
-                    text: window.location.href, 
-                    width: 90,
-                    height: 90
-                });
+                // بيانات المعاملة
+                document.getElementById('current-date').innerText = now.toLocaleDateString('ar-SA');
+                document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'});
+                const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                document.getElementById('trans-id').innerText = `KF-${ym}-${customerId.substring(0,5).toUpperCase()}`;
+
+                // الباركود (رابط الصفحة)
+                new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 90, height: 90 });
             }
+        }
+
+        // ٢- دالة تصدير PDF
+        window.saveAsPDF = function() {
+            const element = document.getElementById('capture');
+            html2pdf().from(element).set({
+                margin: 5, filename: 'Customer_Card.pdf',
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).save();
         }
     </script>
 </body>
