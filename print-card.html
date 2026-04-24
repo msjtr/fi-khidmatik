@@ -2,8 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بطاقة بيانات العميل - منصة في خدمتك</title>
-    <link rel="stylesheet" href="/fi-khidmatik/css/customers-print.css">
+    <link rel="stylesheet" href="customers-print.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,7 +22,7 @@
                 <td class="header-right">
                     <div class="logo-container">
                         <span class="logo-text">منصة في خدمتك<br>من الأتقان بلس</span>
-                        <img src="/fi-khidmatik/images/logo.svg" alt="Logo">
+                        <img src="fi-khidmatik/images/logo.svg" alt="Logo" onerror="this.src='https://via.placeholder.com/60'">
                     </div>
                 </td>
                 <td class="header-center">
@@ -44,31 +45,19 @@
         <table class="customer-data-table">
             <thead>
                 <tr>
-                    <th>اسم الحقل بالعربي</th>
-                    <th>البيانات / Data</th>
+                    <th>الحقل بالعربي</th>
+                    <th>البيانات (عربي / EN)</th>
                     <th>Field in English</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr><td class="col-ar">اسم العميل</td><td id="name" class="col-data"></td><td class="col-en">Customer Name</td></tr>
-                <tr><td class="col-ar">الدولة</td><td id="country" class="col-data">المملكة العربية السعودية / KSA</td><td class="col-en">Country</td></tr>
-                <tr><td class="col-ar">رقم الجوال</td><td id="phone" class="col-data" dir="ltr"></td><td class="col-en">Mobile Number</td></tr>
-                <tr><td class="col-ar">البريد الإلكتروني</td><td id="email" class="col-data"></td><td class="col-en">Email Address</td></tr>
-                <tr><td class="col-ar">المدينة</td><td id="city" class="col-data"></td><td class="col-en">City</td></tr>
-                <tr><td class="col-ar">الحي</td><td id="district" class="col-data"></td><td class="col-en">District</td></tr>
-                <tr><td class="col-ar">الشارع</td><td id="street" class="col-data"></td><td class="col-en">Street</td></tr>
-                <tr><td class="col-ar">رقم المبنى</td><td id="building" class="col-data"></td><td class="col-en">Building Number</td></tr>
-                <tr><td class="col-ar">الرمز البريدي</td><td id="postal" class="col-data"></td><td class="col-en">Postal Code</td></tr>
-                <tr><td class="col-ar">صندوق البريد</td><td id="pobox" class="col-data"></td><td class="col-en">P.O Box</td></tr>
-                <tr><td class="col-ar">تصنيف العميل</td><td id="tag" class="col-data"></td><td class="col-en">Category</td></tr>
-                <tr><td class="col-ar">ملاحظات</td><td id="notes" class="col-data"></td><td class="col-en">Notes</td></tr>
-            </tbody>
+            <tbody id="data-body">
+                </tbody>
         </table>
 
         <div class="verification-box">
             <div id="qrcode"></div>
             <p class="verification-text">كود التحقق من الوثيقة</p>
-            <p class="verification-desc">(رابط تحميل البيانات من المنصة)</p>
+            <p class="verification-desc">(كود التحقق هو عبارة عن رابط تحميل البيانات من المنصة)</p>
         </div>
 
         <div class="main-footer">
@@ -86,6 +75,20 @@
         import { db } from './js/core/config.js';
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // محرك ترجمة آلي بسيط للقيم الشائعة
+        const dictionary = {
+            "الرياض": "Riyadh", "حائل": "Hail", "النهضة": "Al-Nahda", "النفرة": "Al-Nafra",
+            "سلطان": "Sultan", "محمد": "Mohammad", "وعله": "Waalah", "القصيم": "Qassim",
+            "عادي": "Normal", "مميز": "VIP", "سعد المشاط": "Saad Al-Mashat"
+        };
+
+        function autoTranslate(text) {
+            if (!text || text === '-') return '-';
+            // إذا كان النص يحتوي على إنجليزي أصلاً نرجعه كما هو
+            if (/[a-zA-Z]/.test(text)) return text;
+            return dictionary[text] || text; 
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const customerId = urlParams.get('id');
 
@@ -96,22 +99,36 @@
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 const now = new Date();
+                
+                const fields = [
+                    { ar: "اسم العميل", en: "Customer Name", val: data.name },
+                    { ar: "الدولة", en: "Country", val: "المملكة العربية السعودية" },
+                    { ar: "رقم الجوال", en: "Mobile Number", val: `${data.countryCode || '+966'} ${data.phone || ''}` },
+                    { ar: "البريد الإلكتروني", en: "Email Address", val: data.email },
+                    { ar: "المدينة", en: "City", val: data.city },
+                    { ar: "الحي", en: "District", val: data.district },
+                    { ar: "الشارع", en: "Street", val: data.street },
+                    { ar: "رقم المبنى", en: "Building No.", val: data.buildingNo },
+                    { ar: "الرمز البريدي", en: "Postal Code", val: data.postalCode },
+                    { ar: "صندوق البريد", en: "P.O Box", val: data.poBox || '-' },
+                    { ar: "تصنيف العميل", en: "Category", val: data.tag },
+                    { ar: "ملاحظات", en: "Notes", val: data.notes }
+                ];
 
-                document.getElementById('name').innerHTML = `${data.name || '-'} <br><small>${data.name_en || ''}</small>`;
-                document.getElementById('city').innerHTML = `${data.city || '-'} <br><small>${data.city_en || ''}</small>`;
-                document.getElementById('district').innerHTML = `${data.district || '-'} <br><small>${data.district_en || ''}</small>`;
-                document.getElementById('phone').innerText = `${data.countryCode || '+966'} ${data.phone || ''}`;
-                document.getElementById('email').innerText = data.email || '-';
-                document.getElementById('street').innerText = data.street || '-';
-                document.getElementById('building').innerText = data.buildingNo || '-';
-                document.getElementById('postal').innerText = data.postalCode || '-';
-                document.getElementById('pobox').innerText = data.poBox || '-';
-                document.getElementById('tag').innerText = data.tag || 'normal';
-                document.getElementById('notes').innerText = data.notes || '-';
+                const tbody = document.getElementById('data-body');
+                fields.forEach(f => {
+                    const tr = document.createElement('tr');
+                    const translated = autoTranslate(f.val);
+                    tr.innerHTML = `
+                        <td class="col-ar">${f.ar}</td>
+                        <td class="col-data">${f.val || '-'} <br> <small>${translated !== f.val ? translated : ''}</small></td>
+                        <td class="col-en">${f.en}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
 
                 document.getElementById('current-date').innerText = now.toLocaleDateString('ar-SA');
                 document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'});
-                
                 const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
                 document.getElementById('trans-id').innerText = `KF-${ym}-${customerId.substring(0,5).toUpperCase()}`;
 
@@ -122,9 +139,8 @@
         window.saveAsPDF = function() {
             const element = document.getElementById('printable-area');
             html2pdf().from(element).set({
-                margin: 0, 
-                filename: 'Customer-Card.pdf',
-                html2canvas: { scale: 3 },
+                margin: 0, filename: 'Customer-Card.pdf',
+                html2canvas: { scale: 3, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).save();
         }
