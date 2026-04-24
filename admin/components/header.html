@@ -1,27 +1,71 @@
-<!-- شريط الرأس -->
 <header class="app-header">
     <div class="header-right">
-        <button id="sidebar-toggle" class="sidebar-trigger">
-            <i class="fas fa-bars"></i>
+        <button id="sidebar-toggle" class="sidebar-trigger" aria-label="Toggle Sidebar">
+            <i class="fas fa-bars-staggered"></i>
         </button>
+        
         <div class="app-brand">
-            <img src="/fi-khidmatik/images/logo.svg" alt="Tera Gateway" style="width: 40px; height: 40px;">
-            <span>Tera Gateway</span>
+            <img src="/fi-khidmatik/images/logo.svg" 
+                 alt="Tera Gateway" 
+                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/5968/5968322.png'"
+                 style="width: 42px; height: 42px; object-fit: contain;">
+            <span style="letter-spacing: -0.5px;">Tera Gateway</span>
         </div>
     </div>
+
     <div id="header-datetime" class="header-clock"></div>
 </header>
 
+<style>
+    /* تحسينات إضافية للهيدر لضمان المظهر العصري */
+    .app-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        height: 70px;
+        position: sticky;
+        top: 0;
+        z-index: 1010;
+    }
+
+    .header-clock {
+        font-family: 'Tajawal', sans-serif;
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 600;
+        background: #f8fafc;
+        padding: 8px 15px;
+        border-radius: 50px;
+        border: 1px solid #edf2f7;
+    }
+</style>
+
 <script>
+    /**
+     * تحديث وقت الهيدر بتنسيق بريطاني أنيق (en-GB)
+     * التنسيق: Saturday, 25 April 2026, 02:41 am
+     */
     function updateHeaderTime() {
         const el = document.getElementById('header-datetime');
         if (el) {
-            el.innerText = new Date().toLocaleDateString('en-GB', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit', hour12: true
-            });
+            const now = new Date();
+            el.innerText = now.toLocaleDateString('en-GB', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            }).replace('at', '|'); // لمسة جمالية لفصل الوقت عن التاريخ
         }
     }
+
+    // التنفيذ الفوري ثم التكرار كل دقيقة (للحفاظ على موارد المتصفح)
     updateHeaderTime();
-    setInterval(updateHeaderTime, 1000);
+    setInterval(updateHeaderTime, 60000); 
 </script>
