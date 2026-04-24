@@ -1,0 +1,218 @@
+/* Tera Gateway - Customers Management Styles
+    Theme: Modern Professional (Glassmorphism & Clean UI)
+*/
+
+:root {
+    --primary-tera: #1e293b;
+    --accent-blue: #3b82f6;
+    --success-green: #10b981;
+    --warning-orange: #f59e0b;
+    --danger-red: #ef4444;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --border-color: rgba(226, 232, 240, 0.8);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Container & Layout */
+.customers-container {
+    padding: 20px;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Stats Cards - Neumorphism Style */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    padding: 25px;
+    border-radius: 16px;
+    text-align: center;
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card h3 {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 10px;
+}
+
+.stat-card p {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--primary-tera);
+    margin: 0;
+}
+
+/* Toolbar & Search */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    min-width: 300px;
+}
+
+.search-box i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 45px 12px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-box input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Modern Table Design */
+.table-container {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.tera-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+}
+
+.tera-table th {
+    background: #f8fafc;
+    padding: 15px 20px;
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 700;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.tera-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.customer-row:hover {
+    background-color: #fcfdfe;
+}
+
+/* Customer Cell Info */
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-text {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-tera), var(--accent-blue));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.info .name {
+    display: block;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.info small {
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.status-badge.vip {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.normal {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Action Buttons */
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.act-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.act-btn.print:hover { background: var(--primary-tera); color: #fff; }
+.act-btn.edit:hover { background: var(--accent-blue); color: #fff; }
+.act-btn.del:hover { background: var(--danger-red); color: #fff; }
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .search-box { min-width: 100%; }
+}
