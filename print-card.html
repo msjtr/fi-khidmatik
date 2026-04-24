@@ -2,256 +2,114 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بطاقة بيانات العميل - منصة في خدمتك</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>بطاقة بيانات العميل المترجمة</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-
-        @page { size: A4; margin: 10mm 15mm; }
-        
-        body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #f4f7f6; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        
-        .selection-panel {
-            width: 210mm; margin: 20px auto; background: #fff; padding: 20px;
-            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #1e293b;
-        }
-        .selection-panel h3 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .checkbox-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 15px 0; }
-        .checkbox-group label { cursor: pointer; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
-
-        .print-container { width: 210mm; min-height: 297mm; padding: 12mm; margin: 0 auto; background: #fff; box-sizing: border-box; border: 2px solid #000; position: relative; }
-        
-        .header-table { width: 100%; border-collapse: collapse; border: 2px solid #000; }
-        .header-table td { border: 1.5px solid #000; padding: 10px; vertical-align: middle; }
-        
-        .header-right { width: 35%; text-align: right; }
-        .logo-box { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-        /* معالجة مسار الشعار مع وضع نص بديل في حال الخطأ */
-        .logo-box img { height: 55px; margin-bottom: 5px; max-width: 150px; }
-        .logo-fallback { font-weight: 900; font-size: 1.1rem; color: #000; display: none; }
-        
-        .logo-text-main { font-weight: 900; font-size: 0.9rem; display: block; }
-        .logo-text-sub { font-weight: 700; font-size: 0.7rem; color: #555; display: block; }
-
-        .header-center { width: 30%; text-align: center; }
-        .header-center h2 { margin: 0; font-size: 1.2rem; font-weight: 900; }
-        .header-center p { margin: 0; font-size: 0.8rem; font-weight: 700; color: #666; }
-
-        .header-left { width: 35%; text-align: left; font-size: 0.75rem; font-weight: 800; line-height: 1.6; }
-
-        .meta-bar { width: 100%; border: 2px solid #000; border-top: none; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.8rem; background: #f9f9f9; }
-
-        .customer-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .customer-table th { background: #000; color: #fff; padding: 10px; font-size: 0.85rem; }
-        .customer-table td { border: 1.5px solid #000; padding: 12px 8px; text-align: center; font-weight: 700; font-size: 1rem; }
-        
-        .col-ar { width: 25%; background: #f2f2f2; font-weight: 900; text-align: right !important; }
-        .col-en { width: 25%; background: #f2f2f2; font-size: 0.8rem; text-align: left !important; }
-        .val-en { display: block; color: #666; font-size: 0.8rem; margin-top: 4px; font-weight: 600; text-transform: capitalize; }
-
-        .verification-box { margin-top: 30px; text-align: center; page-break-inside: avoid; }
-        #qrcode { display: inline-block; padding: 5px; border: 1px solid #000; background: #fff; }
-
-        .main-footer { border-top: 2px solid #000; margin-top: 40px; padding-top: 15px; text-align: center; page-break-inside: avoid; }
-        .footer-statement { font-weight: 800; font-size: 0.9rem; margin-bottom: 10px; }
-        .footer-statement small { display: block; color: #555; font-size: 0.75rem; margin-top: 4px; }
-
-        .footer-actions { display: flex; justify-content: center; gap: 15px; padding: 40px 0; }
-        .btn-action { padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; color: #fff; font-family: 'Cairo'; transition: 0.3s; }
-        .btn-print { background: #1e293b; }
-        .btn-pdf { background: #be123c; }
-
-        @media print { 
-            body { background: #fff; }
-            .no-print, .selection-panel, .footer-actions { display: none !important; } 
-            .print-container { border: 2px solid #000 !important; margin: 0; width: 100%; } 
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .print-container { width: 210mm; min-height: 297mm; padding: 15mm; margin: 0 auto; background: #fff; border: 2px solid #000; box-sizing: border-box; }
+        .header-table { width: 100%; border: 2px solid #000; border-collapse: collapse; margin-bottom: 20px; }
+        .header-table td { border: 1px solid #000; padding: 10px; vertical-align: middle; }
+        .logo-box img { height: 50px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table td { border: 1px solid #000; padding: 12px; text-align: center; }
+        .bg-gray { background: #f2f2f2; font-weight: 900; }
+        .val-en { display: block; font-size: 0.8rem; color: #666; font-weight: 600; text-transform: capitalize; }
+        .no-print { text-align: center; margin-bottom: 20px; }
+        @media print { .no-print { display: none; } .print-container { border: 2px solid #000; } }
     </style>
 </head>
 <body>
 
-    <div class="selection-panel no-print">
-        <h3><i class="fas fa-filter"></i> إعدادات الطباعة والترجمة</h3>
-        <div class="checkbox-group">
-            <label><input type="checkbox" checked onchange="toggleAll(this)"> <b>تحديد الكل</b></label>
-            <label><input type="checkbox" class="field-check" value="name" checked> اسم العميل</label>
-            <label><input type="checkbox" class="field-check" value="phone" checked> رقم الجوال</label>
-            <label><input type="checkbox" class="field-check" value="email" checked> البريد الإلكتروني</label>
-            <label><input type="checkbox" class="field-check" value="city" checked> المدينة</label>
-            <label><input type="checkbox" class="field-check" value="district" checked> الحي</label>
-            <label><input type="checkbox" class="field-check" value="tag" checked> التصنيف</label>
-        </div>
-        <button class="btn-action btn-print" style="width: 100%; background: #3b82f6;" onclick="refreshPreview()">تحديث المعاينة المترجمة</button>
+    <div class="no-print">
+        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">طباعة الوثيقة</button>
+        <button onclick="savePDF()" style="padding:10px 20px; cursor:pointer;">حفظ PDF</button>
     </div>
 
-    <div class="print-container" id="printable-area">
+    <div class="print-container" id="content">
         <table class="header-table">
             <tr>
-                <td class="header-right">
+                <td width="35%" align="right">
                     <div class="logo-box">
-                        <img src="/fi-khidmatik/images/logo.svg" alt="Logo" id="main-logo" onerror="handleLogoError(this)">
-                        <span id="logo-text-fallback" class="logo-fallback">منصة في خدمتك</span>
-                        <span class="logo-text-main">منصة في خدمتك</span>
-                        <span class="logo-text-sub">من الأتقان بلس</span>
-                        <span class="logo-text-sub" style="font-size: 0.6rem; opacity: 0.8;">Fi-Khidmatik from Al-Etqan Plus</span>
+                        <img src="/fi-khidmatik/images/logo.svg" onerror="this.style.display='none'; document.getElementById('fallback').style.display='block';">
+                        <b id="fallback" style="display:none;">منصة في خدمتك</b>
+                        <div style="font-size: 0.7rem; font-weight: 700;">منصة في خدمتك - الأتقان بلس</div>
                     </div>
                 </td>
-                <td class="header-center">
-                    <h2>بطاقة بيانات العميل</h2>
-                    <p>Customer Data Card</p>
+                <td width="30%" align="center">
+                    <h2 style="margin:0;">بطاقة بيانات العميل</h2>
+                    <small>Customer Data Card</small>
                 </td>
-                <td class="header-left">
-                    رقم شهادة العمل الحر: FL-765735204<br>
-                    الرقم الضريبي: 312495447600003
+                <td width="35%" align="left" style="font-size:0.7rem; font-weight:700;">
+                    رقم المعاملة: <span id="trans-id"></span><br>
+                    التاريخ: <span id="current-date"></span>
                 </td>
             </tr>
         </table>
 
-        <div class="meta-bar">
-            <span>رقم المعاملة: <span id="trans-id"></span></span>
-            <span>التاريخ: <span id="current-date"></span></span>
-            <span>الوقت: <span id="current-time"></span></span>
-        </div>
-
-        <table class="customer-table">
+        <table class="data-table">
             <thead>
-                <tr>
-                    <th>الحقل بالعربي</th>
-                    <th>البيانات المترجمة / Data</th>
-                    <th>English Field</th>
+                <tr class="bg-gray">
+                    <td>الحقل بالعربي</td>
+                    <td>البيانات المترجمة / Data</td>
+                    <td>English Field</td>
                 </tr>
             </thead>
             <tbody id="data-body"></tbody>
         </table>
 
-        <div class="verification-box">
-            <div id="qrcode"></div>
-            <p class="qr-text" style="font-weight: 800; margin: 10px 0 5px;">كود التحقق من الوثيقة | Verification Code</p>
-            <small>(رابط موثق لتحميل البيانات من المنصة)</small>
+        <div style="text-align:center; margin-top:30px;">
+            <div id="qrcode" style="display:inline-block; border:1px solid #000; padding:5px;"></div>
+            <p style="font-weight:900; margin:5px 0;">كود التحقق | Verification Code</p>
         </div>
-
-        <div class="main-footer">
-            <p class="footer-statement">
-                هذه المعلومات صادرة من منصة في خدمتك من الأتقان بلس
-                <small>This information is issued by Fi-Khidmatik platform from Al-Etqan Plus</small>
-            </p>
-        </div>
-    </div>
-
-    <div class="footer-actions no-print">
-        <button class="btn-action btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة الوثيقة</button>
-        <button class="btn-action btn-pdf" onclick="saveAsPDF()"><i class="fas fa-file-pdf"></i> حفظ كـ PDF</button>
     </div>
 
     <script type="module">
-        import { db } from './js/core/config.js';
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getCustomerById } from './js/modules/customers-core.js';
 
-        // 1. القاموس الأساسي
-        const dictionary = {
-            "الرياض": "Riyadh", "حائل": "Hail", "النهضة": "Al-Nahda", "المملكة العربية السعودية": "Saudi Arabia",
-            "عادي": "Normal", "مميز": "VIP", "تاجر": "Merchant"
+        const dictionary = { "الرياض": "Riyadh", "حائل": "Hail", "عادي": "Normal", "مميز": "VIP" };
+        
+        const transliterate = (t) => {
+            const map = { 'أ':'A','ب':'B','ت':'T','ج':'J','ح':'H','د':'D','ر':'R','س':'S','ش':'Sh','ع':'A','ف':'F','ق':'Q','ك':'K','ل':'L','م':'M','ن':'N','ه':'H','و':'W','ي':'Y' };
+            return t.split('').map(c => map[c] || c).join('');
         };
 
-        // 2. محرك الترجمة الصوتية للأسماء والأحياء الجديدة (لضمان ترجمة 100%)
-        const transliterate = (text) => {
-            if (!text) return '';
-            const map = {
-                'أ': 'A', 'إ': 'I', 'ب': 'B', 'ت': 'T', 'ث': 'Th', 'ج': 'J', 'ح': 'H', 'خ': 'Kh', 'د': 'D', 'ذ': 'Dh',
-                'ر': 'R', 'ز': 'Z', 'س': 'S', 'ش': 'Sh', 'ص': 'S', 'ض': 'D', 'ط': 'T', 'ظ': 'Z', 'ع': 'A', 'غ': 'Gh',
-                'ف': 'F', 'ق': 'Q', 'ك': 'K', 'ل': 'L', 'م': 'M', 'ن': 'N', 'ه': 'H', 'و': 'W', 'ي': 'Y', 'ء': 'A',
-                'ة': 'a', 'ى': 'a', ' ': ' ', 'لا': 'La'
-            };
-            return text.split('').map(char => map[char] || char).join('');
-        };
+        async function init() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            const data = await getCustomerById(id);
+            if (!data) return;
 
-        window.handleLogoError = function(img) {
-            img.style.display = 'none';
-            document.getElementById('logo-text-fallback').style.display = 'block';
-        };
-
-        let currentCustomerData = null;
-
-        function translateVal(text) {
-            if (!text || text === '-') return '';
-            if (/[a-zA-Z]/.test(text)) return text; // إذا كان إنجليزي اتركه
-            return dictionary[text] || transliterate(text);
-        }
-
-        async function loadData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-            if (!id) return;
-
-            try {
-                const docSnap = await getDoc(doc(db, "customers", id));
-                if (docSnap.exists()) {
-                    currentCustomerData = docSnap.data();
-                    refreshPreview();
-                    
-                    const now = new Date();
-                    document.getElementById('current-date').innerText = `${now.toLocaleDateString('ar-SA')} | ${now.toLocaleDateString('en-US')}`;
-                    document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA');
-                    document.getElementById('trans-id').innerText = `KF-${now.getFullYear()}-${id.substring(0,5).toUpperCase()}`;
-                    
-                    new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 85, height: 85 });
-                }
-            } catch (err) {
-                console.error("Error loading customer data:", err);
-            }
-        }
-
-        window.refreshPreview = function() {
-            if (!currentCustomerData) return;
-            const selected = Array.from(document.querySelectorAll('.field-check:checked')).map(cb => cb.value);
-            
-            const allFields = [
-                { id: 'name', ar: "اسم العميل", en: "Customer Name", val: currentCustomerData.name },
-                { id: 'country', ar: "الدولة", en: "Country", val: "المملكة العربية السعودية" },
-                { id: 'phone', ar: "رقم الجوال", en: "Mobile Number", val: `${currentCustomerData.countryCode || '+966'} ${currentCustomerData.phone || ''}` },
-                { id: 'email', ar: "البريد الإلكتروني", en: "Email Address", val: currentCustomerData.email },
-                { id: 'city', ar: "المدينة", en: "City", val: currentCustomerData.city },
-                { id: 'district', ar: "الحي", en: "District", val: currentCustomerData.district },
-                { id: 'tag', ar: "تصنيف العميل", en: "Category", val: currentCustomerData.tag }
+            const fields = [
+                { ar: "اسم العميل", en: "Name", val: data.name },
+                { ar: "رقم الجوال", en: "Mobile", val: data.phone },
+                { ar: "المدينة", en: "City", val: data.city },
+                { ar: "الحي", en: "District", val: data.district },
+                { ar: "التصنيف", en: "Category", val: data.tag }
             ];
 
             const tbody = document.getElementById('data-body');
-            tbody.innerHTML = '';
-
-            allFields.filter(f => selected.includes(f.id) || f.id === 'country').forEach(f => {
-                const tr = document.createElement('tr');
-                const trans = translateVal(f.val);
-                tr.innerHTML = `
-                    <td class="col-ar">${f.ar}</td>
-                    <td class="col-data">
-                        ${f.val || '-'} 
-                        <span class="val-en">${trans !== f.val ? trans : ''}</span>
-                    </td>
-                    <td class="col-en">${f.en}</td>
-                `;
-                tbody.appendChild(tr);
+            fields.forEach(f => {
+                const trans = dictionary[f.val] || transliterate(f.val || '');
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="bg-gray">${f.ar}</td>
+                        <td><b>${f.val || '-'}</b> <span class="val-en">${trans}</span></td>
+                        <td class="bg-gray">${f.en}</td>
+                    </tr>`;
             });
+
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
+            document.getElementById('trans-id').innerText = `TR-${id.substring(0,5).toUpperCase()}`;
+            new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 80, height: 80 });
         }
 
-        window.toggleAll = (master) => {
-            document.querySelectorAll('.field-check').forEach(cb => cb.checked = master.checked);
-            refreshPreview();
-        }
+        window.savePDF = () => {
+            const element = document.getElementById('content');
+            html2pdf().from(element).set({ margin: 0, filename: 'Customer-Card.pdf', html2canvas: { scale: 3 }, jsPDF: { format: 'a4' } }).save();
+        };
 
-        window.saveAsPDF = function() {
-            const element = document.getElementById('printable-area');
-            html2pdf().from(element).set({
-                margin: 0, filename: 'Customer-Card.pdf',
-                html2canvas: { scale: 3, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
-        }
-
-        window.onload = loadData;
+        init();
     </script>
 </body>
 </html>
