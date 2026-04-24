@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>بطاقة بيانات العميل - Tera Gateway</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        
+        body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .print-container { width: 210mm; min-height: 297mm; padding: 10mm; margin: 10mm auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; }
+        
+        /* الهيدر الاحترافي */
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #333; }
+        .header-table td { border: 1px solid #333; padding: 10px; text-align: center; vertical-align: middle; }
+        .logo-section img { height: 60px; }
+        
+        .title-section h2 { margin: 0; font-size: 1.2rem; color: #e67e22; }
+        .info-header { font-size: 0.8rem; line-height: 1.6; }
+
+        /* جسم البطاقة */
+        .details-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .details-table th, .details-table td { border: 1px solid #ddd; padding: 12px; text-align: right; }
+        .details-table th { background: #f8fafc; width: 30%; color: #475569; }
+        
+        .qr-placeholder { text-align: center; margin-top: 30px; }
+        .qr-code { width: 120px; height: 120px; border: 1px solid #eee; }
+
+        /* التذييل */
+        .footer { position: absolute; bottom: 20mm; left: 10mm; right: 10mm; border-top: 2px solid #e67e22; padding-top: 15px; text-align: center; font-size: 0.85rem; }
+        .footer-info { display: flex; justify-content: space-around; margin-top: 10px; }
+
+        @media print {
+            body { background: white; }
+            .print-container { margin: 0; box-shadow: none; width: 100%; }
+            .no-print { display: none; }
+        }
+
+        .no-print-tools { position: fixed; top: 20px; left: 20px; display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-print { background: #e67e22; color: white; }
+        .btn-back { background: #64748b; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="no-print-tools no-print">
+        <button class="btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة الوثيقة</button>
+        <button class="btn btn-back" onclick="window.close()"><i class="fas fa-times"></i> إغلاق</button>
+    </div>
+
+    <div class="print-container" id="printable-content">
+        <table class="header-table">
+            <tr>
+                <td style="width: 35%;" class="info-header">
+                    رقم شهادة العمل الحر: FL-765735204<br>
+                    الرقم الضريبي: 312495447600003
+                </td>
+                <td style="width: 30%;" class="title-section">
+                    <h2>بطاقة بيانات العميل</h2>
+                    <small>Customer Data Card</small>
+                </td>
+                <td style="width: 35%;" class="logo-section">
+                    <img src="logo.png" alt="Tera Logo"><br>
+                    <strong>Tera Gateway</strong>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="background: #f1f5f9; font-weight: bold;">
+                    رقم المعاملة: <span id="trans-id">KF-2026-0001</span> | التاريخ: <span id="current-date"></span>
+                </td>
+            </tr>
+        </table>
+
+        <table class="details-table">
+            <tr><th>اسم العميل</th><td id="name"></td></tr>
+            <tr><th>رقم الجوال</th><td id="phone" dir="ltr"></td></tr>
+            <tr><th>البريد الإلكتروني</th><td id="email"></td></tr>
+            <tr><th>المدينة / الحي</th><td id="location"></td></tr>
+            <tr><th>العنوان الوطني</th><td id="national-address"></td></tr>
+            <tr><th>الرمز البريدي / ص.ب</th><td id="postal"></td></tr>
+            <tr><th>تصنيف العميل</th><td id="tag"></td></tr>
+            <tr><th>ملاحظات إضافية</th><td id="notes" style="height: 100px; vertical-align: top;"></td></tr>
+        </table>
+
+        <div class="qr-placeholder">
+            <div id="qrcode"></div>
+            <p style="font-size: 0.8rem; margin-top: 10px;">كود التحقق من الوثيقة</p>
+        </div>
+
+        <div class="footer">
+            <p>هذه المعلومات صادرة من منصة Tera Gateway لخدمات الاتصالات</p>
+            <div class="footer-info">
+                <span><i class="fas fa-phone"></i> 966534051317</span>
+                <span><i class="fab fa-whatsapp"></i> 966545312021</span>
+                <span><i class="fas fa-envelope"></i> info@tera-gateway.com</span>
+                <span><i class="fas fa-globe"></i> www.tera-gateway.com</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from './js/core/config.js';
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 1. الحصول على ID العميل من الرابط
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerId = urlParams.get('id');
+
+        if (customerId) {
+            const docRef = doc(db, "customers", customerId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                
+                // 2. تعبئة البيانات في الصفحة
+                document.getElementById('name').innerText = data.name || '-';
+                document.getElementById('phone').innerText = (data.countryCode || '') + (data.phone || '');
+                document.getElementById('email').innerText = data.email || '-';
+                document.getElementById('location').innerText = `${data.city || '-'} - ${data.district || '-'}`;
+                document.getElementById('national-address').innerText = `مبنى: ${data.buildingNo || '-'} | شارع: ${data.street || '-'}`;
+                document.getElementById('postal').innerText = `رمز بريدي: ${data.postalCode || '-'} | ص.ب: ${data.poBox || '-'}`;
+                document.getElementById('tag').innerText = data.tag || 'عادي';
+                document.getElementById('notes').innerText = data.notes || 'لا يوجد ملاحظات مسجلة.';
+                document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
+                document.getElementById('trans-id').innerText = `KF-${new Date().getFullYear()}-${customerId.substring(0,5).toUpperCase()}`;
+            }
+        }
+    </script>
+</body>
+</html>
