@@ -1,12 +1,11 @@
 /**
  * js/modules/customers-core.js
  * نظام إدارة العملاء المتكامل - Tera Gateway
- * الإصدار المطور: إدارة دولية، حقول ذكية، وملاحظات متقدمة
  */
 
 import { db } from '../core/config.js';
 
-// قائمة الدول (أمثلة ويمكن التوسع فيها)
+// 1. قائمة الدول العالمية
 const countryData = [
     { name: "المملكة العربية السعودية", code: "+966", flag: "🇸🇦", phoneLen: 9 },
     { name: "الإمارات العربية المتحدة", code: "+971", flag: "🇦🇪", phoneLen: 9 },
@@ -19,8 +18,39 @@ const countryData = [
 ];
 
 /**
+ * دالة التشغيل الأساسية (المفقودة التي سببت الخطأ)
+ */
+export async function initCustomers(container) {
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="customers-dashboard">
+            <div class="table-toolbar">
+                <div class="toolbar-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="customer-search" placeholder="ابحث باسم العميل أو رقم الجوال...">
+                    </div>
+                </div>
+                <div class="toolbar-left">
+                    <button class="btn-add" id="add-new-cust-btn">
+                        <i class="fas fa-user-plus"></i> إضافة عميل جديد
+                    </button>
+                </div>
+            </div>
+            <div id="customers-list-container">
+                <p style="text-align:center; padding:20px; color:#666;">جاري جلب قائمة العملاء...</p>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('add-new-cust-btn').addEventListener('click', () => openCustomerModal());
+    
+    // ملاحظة: هنا يجب استدعاء دالة جلب البيانات من Firebase وعرضها في الجدول
+}
+
+/**
  * دالة فتح نافذة العميل (للإضافة أو التعديل)
- * @param {Object|null} customer - بيانات العميل في حال التعديل
  */
 export function openCustomerModal(customer = null) {
     const isEdit = !!customer;
@@ -31,7 +61,7 @@ export function openCustomerModal(customer = null) {
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="fas ${isEdit ? 'fa-user-edit' : 'fa-user-plus'}"></i> ${isEdit ? 'تعديل بيانات العميل' : 'إضافة عميل جديد'}</h2>
-                <button onclick="document.getElementById('customer-modal').remove()" class="close-btn">&times;</button>
+                <button type="button" onclick="document.getElementById('customer-modal').remove()" class="close-btn">&times;</button>
             </div>
             
             <form id="customer-form" class="customer-form">
@@ -41,18 +71,18 @@ export function openCustomerModal(customer = null) {
                     <h3><i class="fas fa-id-card"></i> البيانات الأساسية والاتصال</h3>
                     <div class="input-group full">
                         <label>الاسم الكامل للعميل</label>
-                        <input type="text" id="cust-name" value="${customer?.name || ''}" placeholder="أدخل الاسم الثلاثي أو الرباعي" required>
+                        <input type="text" id="cust-name" value="${customer?.name || ''}" placeholder="أدخل الاسم الكامل" required>
                     </div>
                     
                     <div class="row">
                         <div class="input-group">
                             <label>دولة الجوال</label>
-                            <select id="cust-country-select" onchange="updatePhonePlaceholder()">
-                                ${countryData.map(c => `<option value="${c.code}" data-len="${c.phoneLen}" ${selectedCountry.code === c.code ? 'selected' : ''}>${c.flag} ${c.name} (${c.code})</option>`).join('')}
+                            <select id="cust-country-select">
+                                ${countryData.map(c => `<option value="${c.code}" ${selectedCountry.code === c.code ? 'selected' : ''}>${c.flag} ${c.name} (${c.code})</option>`).join('')}
                             </select>
                         </div>
                         <div class="input-group flex-2">
-                            <label>رقم الجوال (بدون الصفر الأول)</label>
+                            <label>رقم الجوال (بدون الصفر)</label>
                             <div class="phone-wrapper">
                                 <span id="prefix-display">${selectedCountry.code}</span>
                                 <input type="tel" id="cust-phone" value="${isEdit ? customer.phone.replace(selectedCountry.code.replace('+', ''), '') : ''}" placeholder="5xxxxxxxx" required>
@@ -65,12 +95,12 @@ export function openCustomerModal(customer = null) {
                             <label>الهاتف الثابت (اختياري)</label>
                             <div class="phone-wrapper">
                                 <span id="landline-prefix">${selectedCountry.code}</span>
-                                <input type="tel" id="cust-landline" value="${customer?.landline || ''}" placeholder="رقم الهاتف الثابت">
+                                <input type="tel" id="cust-landline" value="${customer?.landline || ''}" placeholder="رقم ثابت">
                             </div>
                         </div>
                         <div class="input-group">
                             <label>البريد الإلكتروني</label>
-                            <input type="email" id="cust-email" value="${customer?.email || ''}" placeholder="example@mail.com">
+                            <input type="email" id="cust-email" value="${customer?.email || ''}" placeholder="mail@example.com">
                         </div>
                     </div>
                 </div>
@@ -78,99 +108,48 @@ export function openCustomerModal(customer = null) {
                 <div class="form-section">
                     <h3><i class="fas fa-map-marked-alt"></i> تفاصيل العنوان الوطني</h3>
                     <div class="row">
-                        <div class="input-group">
-                            <label>المدينة</label>
-                            <input type="text" id="cust-city" value="${customer?.city || 'حائل'}" required>
-                        </div>
-                        <div class="input-group">
-                            <label>الحي</label>
-                            <input type="text" id="cust-district" value="${customer?.district || ''}" placeholder="مثال: النقرة">
-                        </div>
+                        <div class="input-group"><label>المدينة</label><input type="text" id="cust-city" value="${customer?.city || 'حائل'}" required></div>
+                        <div class="input-group"><label>الحي</label><input type="text" id="cust-district" value="${customer?.district || ''}"></div>
                     </div>
-                    
                     <div class="row">
-                        <div class="input-group">
-                            <label>اسم الشارع</label>
-                            <input type="text" id="cust-street" value="${customer?.street || ''}">
-                        </div>
-                        <div class="input-group">
-                            <label>رقم المبنى</label>
-                            <input type="text" id="cust-building" value="${customer?.buildingNo || ''}" maxlength="5">
-                        </div>
+                        <div class="input-group"><label>اسم الشارع</label><input type="text" id="cust-street" value="${customer?.street || ''}"></div>
+                        <div class="input-group"><label>رقم المبنى</label><input type="text" id="cust-building" value="${customer?.buildingNo || ''}" maxlength="5"></div>
                     </div>
-
                     <div class="row">
-                        <div class="input-group">
-                            <label>الرقم الإضافي</label>
-                            <input type="text" id="cust-additional" value="${customer?.additionalNo || ''}" maxlength="4">
-                        </div>
-                        <div class="input-group">
-                            <label>صندوق البريد (اختياري)</label>
-                            <input type="text" id="cust-pobox" oninput="document.getElementById('cust-zip').value = this.value" value="${customer?.poBox || ''}">
-                        </div>
-                        <div class="input-group">
-                            <label>الرمز البريدي</label>
-                            <input type="text" id="cust-zip" value="${customer?.postalCode || customer?.poBox || ''}" placeholder="يُسحب من الصندوق">
-                        </div>
+                        <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="cust-additional" value="${customer?.additionalNo || ''}" maxlength="4"></div>
+                        <div class="input-group"><label>صندوق البريد</label><input type="text" id="cust-pobox" value="${customer?.poBox || ''}"></div>
+                        <div class="input-group"><label>الرمز البريدي</label><input type="text" id="cust-zip" value="${customer?.postalCode || ''}"></div>
                     </div>
                 </div>
 
                 <div class="form-section">
                     <h3><i class="fas fa-edit"></i> ملاحظات إدارية</h3>
                     <div class="input-group full">
-                        <label>وصف حالة العميل أو أي ملاحظات أخرى</label>
-                        <textarea id="cust-notes" rows="3" placeholder="سجل هنا أي ملاحظات تهم الموظفين الآخرين...">${customer?.notes || ''}</textarea>
+                        <label>وصف حالة العميل</label>
+                        <textarea id="cust-notes" rows="3">${customer?.notes || ''}</textarea>
                     </div>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" onclick="document.getElementById('customer-modal').remove()" class="btn-cancel">إلغاء</button>
-                    <button type="submit" class="btn-save">${isEdit ? 'تحديث البيانات' : 'حفظ العميل الجديد'}</button>
+                    <button type="submit" class="btn-save">${isEdit ? 'تحديث' : 'حفظ'}</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <style>
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 15px; backdrop-filter: blur(4px); }
-        .modal-content { background: #fff; width: 100%; max-width: 750px; border-radius: 12px; max-height: 95vh; overflow-y: auto; direction: rtl; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .modal-header { padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
-        .modal-header h2 { font-size: 1.2rem; color: #334155; margin: 0; }
-        .close-btn { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #94a3b8; }
-        
-        .customer-form { padding: 10px 25px 25px; }
-        .form-section { margin-top: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
-        .form-section:last-of-type { border-bottom: none; }
-        .form-section h3 { font-size: 0.95rem; color: #e67e22; margin-bottom: 15px; border-right: 3px solid #e67e22; padding-right: 10px; }
-        
-        .row { display: flex; gap: 15px; margin-bottom: 12px; }
-        .input-group { display: flex; flex-direction: column; flex: 1; }
-        .input-group.full { width: 100%; }
-        .input-group label { font-size: 0.8rem; font-weight: bold; color: #64748b; margin-bottom: 6px; }
-        
-        input, select, textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; outline: none; transition: border 0.2s; }
-        input:focus { border-color: #e67e22; }
-
-        .phone-wrapper { display: flex; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; direction: ltr; }
-        .phone-wrapper span { padding: 0 12px; color: #64748b; font-weight: bold; font-size: 0.85rem; border-right: 1px solid #cbd5e1; background: #f1f5f9; }
-        .phone-wrapper input { border: none; flex: 1; background: transparent; padding-left: 10px; }
-        
-        .flex-2 { flex: 2; }
-        .modal-footer { display: flex; justify-content: flex-start; gap: 10px; padding: 20px 25px; background: #f8fafc; border-radius: 0 0 12px 12px; }
-        .btn-save { background: #16a34a; color: white; border: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-cancel { background: #e2e8f0; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; color: #475569; }
-        
-        @media (max-width: 600px) { .row { flex-direction: column; } }
-    </style>
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    // دالة تحديث المفاتيح عند تغيير الدولة
-    window.updatePhonePlaceholder = function() {
-        const select = document.getElementById('cust-country-select');
-        const code = select.value;
-        document.getElementById('prefix-display').innerText = code;
-        document.getElementById('landline-prefix').innerText = code;
-    };
+    // ربط أحداث التغيير داخل الـ Modal
+    const select = document.getElementById('cust-country-select');
+    select.addEventListener('change', (e) => {
+        document.getElementById('prefix-display').innerText = e.target.value;
+        document.getElementById('landline-prefix').innerText = e.target.value;
+    });
+
+    const poBox = document.getElementById('cust-pobox');
+    poBox.addEventListener('input', (e) => {
+        document.getElementById('cust-zip').value = e.target.value;
+    });
 }
