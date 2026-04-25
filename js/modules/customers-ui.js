@@ -1,7 +1,6 @@
 /**
  * customers-ui.js - Tera Gateway
- * الإصدار النهائي المصلح: ترتيب شامل + إحصائيات + محرك بحث وتعديل فعال
- * تم إضافة فحص وقائي للعناصر لمنع أخطاء الـ null (setting 'innerText')
+ * الإصدار الاحترافي المصلح: معالجة البيانات القديمة + إصلاح التعديل والإضافة
  */
 
 import * as Core from './customers-core.js';
@@ -17,62 +16,50 @@ export async function initCustomersUI(container) {
     container.innerHTML = `
         <div class="cust-ui-wrapper" style="font-family: 'Tajawal', sans-serif; direction: rtl;">
             <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                <div class="stat-item" style="background:#fff; padding:15px; border-radius:10px; border-right:5px solid #2563eb; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <small style="color:#64748b;">إجمالي العملاء</small>
-                    <div id="stat-total" style="font-size:1.5rem; font-weight:800;">0</div>
+                <div class="stat-item" style="background:#fff; padding:15px; border-radius:12px; border-right:5px solid #2563eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <small style="color:#64748b; display:block; margin-bottom:5px;">إجمالي العملاء</small>
+                    <div id="stat-total" style="font-size:1.6rem; font-weight:800; color:#1e293b;">0</div>
                 </div>
-                <div class="stat-item" style="background:#fff; padding:15px; border-radius:10px; border-right:5px solid #059669; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <small style="color:#64748b;">بيانات مكتملة</small>
-                    <div id="stat-complete" style="font-size:1.5rem; font-weight:800; color:#059669;">0</div>
+                <div class="stat-item" style="background:#fff; padding:15px; border-radius:12px; border-right:5px solid #059669; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <small style="color:#64748b; display:block; margin-bottom:5px;">نشط حالياً</small>
+                    <div id="stat-active" style="font-size:1.6rem; font-weight:800; color:#059669;">0</div>
                 </div>
-                <div class="stat-item" style="background:#fff; padding:15px; border-radius:10px; border-right:5px solid #dc2626; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <small style="color:#64748b;">بيانات غير مكتملة</small>
-                    <div id="stat-incomplete" style="font-size:1.5rem; font-weight:800; color:#dc2626;">0</div>
-                </div>
-                <div class="stat-item" style="background:#fff; padding:15px; border-radius:10px; border-right:5px solid #e67e22; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <small style="color:#64748b;">تصنيف العملاء</small>
-                    <div id="stat-types" style="font-size:0.9rem; font-weight:700; color:#e67e22; margin-top:5px;">نشط: 0 | تميز: 0</div>
+                <div class="stat-item" style="background:#fff; padding:15px; border-radius:12px; border-right:5px solid #eab308; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <small style="color:#64748b; display:block; margin-bottom:5px;">عملاء تميز/VIP</small>
+                    <div id="stat-vips" style="font-size:1.6rem; font-weight:800; color:#eab308;">0</div>
                 </div>
             </div>
 
-            <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background:#f8fafc; padding:15px; border-radius:10px;">
+            <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background:#fff; padding:15px; border-radius:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <div class="search-box" style="position: relative; flex: 1; max-width: 400px;">
                     <i class="fas fa-search" style="position: absolute; right: 12px; top: 12px; color: #94a3b8;"></i>
-                    <input type="text" id="cust-filter" placeholder="بحث بالاسم، الجوال، المدينة..." 
-                           style="width: 100%; padding: 10px 40px 10px 10px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; font-family: inherit;">
+                    <input type="text" id="cust-filter" placeholder="ابحث بالاسم، الجوال، أو المدينة..." 
+                           style="width: 100%; padding: 12px 40px 12px 12px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none; font-family: inherit; font-size: 0.95rem;">
                 </div>
-                <button onclick="showAddCustomerModal()" style="background:#2563eb; color:white; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:bold; transition: 0.3s; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-user-plus"></i> إضافة عميل جديد
+                <button onclick="showAddCustomerModal()" style="background:#2563eb; color:white; border:none; padding:12px 25px; border-radius:10px; cursor:pointer; font-weight:bold; display: flex; align-items: center; gap: 10px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">
+                    <i class="fas fa-plus-circle"></i> إضافة عميل جديد
                 </button>
             </div>
 
-            <div class="table-responsive" style="overflow-x: auto; background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-                <table style="width:100%; border-collapse: collapse; min-width:1600px; text-align: right;">
-                    <thead style="background:#f8fafc; color:#475569; border-bottom: 2px solid #edf2f7;">
-                        <tr>
-                            <th style="padding:15px;">#</th>
-                            <th>اسم العميل</th>
-                            <th>رقم الجوال</th>
-                            <th>المفتاح</th>
-                            <th>البريد الإلكتروني</th>
-                            <th>الدولة</th>
-                            <th>المدينة</th>
-                            <th>الحي</th>
-                            <th>الشارع</th>
-                            <th>المبنى</th>
-                            <th>الإضافي</th>
-                            <th>الرمز</th>
-                            <th>ص.ب</th>
-                            <th>تاريخ الإضافة</th>
-                            <th>حالة العميل</th>
-                            <th>تصنيف العميل</th>
-                            <th style="text-align:center;">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customers-list-render">
-                        <tr><td colspan="17" style="text-align:center; padding:50px; color:#64748b;"><i class="fas fa-spinner fa-spin"></i> جاري مزامنة بيانات تيرا...</td></tr>
-                    </tbody>
-                </table>
+            <div class="table-container" style="background:#fff; border-radius:15px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05); overflow:hidden;">
+                <div style="overflow-x: auto;">
+                    <table style="width:100%; border-collapse: collapse; min-width:1200px; text-align: right;">
+                        <thead style="background:#f8fafc; color:#64748b; text-transform: uppercase; font-size: 0.85rem;">
+                            <tr>
+                                <th style="padding:18px 15px;">الاسم</th>
+                                <th>رقم الجوال</th>
+                                <th>المدينة / الحي</th>
+                                <th>التصنيف</th>
+                                <th>الحالة</th>
+                                <th>تاريخ التسجيل</th>
+                                <th style="text-align:center;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-list-render">
+                            <tr><td colspan="7" style="text-align:center; padding:50px;"><i class="fas fa-sync fa-spin"></i> جاري جلب عملاء تيرا...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     `;
@@ -82,7 +69,27 @@ export async function initCustomersUI(container) {
 }
 
 /**
- * تحميل البيانات وحساب الإحصائيات الدقيقة
+ * دالة قراءة البيانات بذكاء (لحل مشكلة العملاء القدامى)
+ */
+function getCustData(data, field) {
+    const maps = {
+        'phone': ['Phone', 'phone', 'mobile', 'رقم_الجوال'],
+        'email': ['Email', 'email', 'البريد'],
+        'name': ['name', 'Name', 'الاسم'],
+        'status': ['status', 'customerType', 'التصنيف'],
+        'cStatus': ['customerStatus', 'activeStatus', 'الحالة']
+    };
+    
+    if (!maps[field]) return data[field] || '-';
+    
+    for (let key of maps[field]) {
+        if (data[key] !== undefined && data[key] !== null) return data[key];
+    }
+    return '-';
+}
+
+/**
+ * تحميل البيانات وحساب الإحصائيات
  */
 async function loadAndRender() {
     const list = document.getElementById('customers-list-render');
@@ -92,12 +99,10 @@ async function loadAndRender() {
         const snapshot = await Core.fetchAllCustomers();
         list.innerHTML = '';
         
-        let stats = { total: 0, complete: 0, incomplete: 0, active: 0, vips: 0 };
-        let counter = 1;
+        let stats = { total: 0, vips: 0, active: 0 };
 
         if (!snapshot || snapshot.empty) {
-            list.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:40px; color:#94a3b8;">لا يوجد عملاء مسجلين حالياً في النظام.</td></tr>';
-            updateStatsDisplay(stats);
+            list.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">لا يوجد بيانات حالياً.</td></tr>';
             return;
         }
 
@@ -105,63 +110,52 @@ async function loadAndRender() {
             const d = docSnap.data();
             const id = docSnap.id;
 
-            stats.total++;
-            const isComplete = (d.name && d.Phone && d.city && d.district && d.buildingNo);
-            if (isComplete) stats.complete++; else stats.incomplete++;
-            if (d.status === 'مميز' || d.status === 'تميز') stats.vips++; else stats.active++;
+            // استخراج البيانات باستخدام محرك التوافق
+            const name = getCustData(d, 'name');
+            const phone = getCustData(d, 'phone');
+            const city = d.city || 'غير محدد';
+            const district = d.district || '';
+            const status = getCustData(d, 'status');
+            const cStatus = getCustData(d, 'cStatus');
+            const createdAt = d.CreatedAt?.toDate ? d.CreatedAt.toDate().toLocaleDateString('ar-SA') : 'قديم';
 
-            const dateStr = d.CreatedAt?.toDate ? d.CreatedAt.toDate().toLocaleDateString('ar-SA') : '-';
+            // تحديث الإحصائيات
+            stats.total++;
+            if (status === 'vip' || status === 'مميز' || status === 'تميز') stats.vips++;
+            if (cStatus === 'نشط' || !cStatus) stats.active++;
 
             list.innerHTML += `
-                <tr class="cust-row" style="border-bottom:1px solid #f1f5f9; transition: 0.2s;" onmouseover="this.style.background='#fcfcfc'" onmouseout="this.style.background='transparent'">
-                    <td style="padding:12px; color:#94a3b8;">${counter++}</td>
-                    <td style="font-weight:bold; color:#1e293b;">${d.name || '-'}</td>
-                    <td dir="ltr">${d.Phone || '-'}</td>
-                    <td dir="ltr" style="color:#64748b;">${d.countryCode || '+966'}</td>
-                    <td><small style="color:#2563eb;">${d.Email || '-'}</small></td>
-                    <td>${d.country || 'السعودية'}</td>
-                    <td>${d.city || '-'}</td>
-                    <td>${d.district || '-'}</td>
-                    <td>${d.street || '-'}</td>
-                    <td>${d.buildingNo || '-'}</td>
-                    <td>${d.additionalNo || '-'}</td>
-                    <td>${d.postalCode || '-'}</td>
-                    <td>${d.poBox || '-'}</td>
-                    <td style="font-size:0.85rem; color:#64748b;">${dateStr}</td>
-                    <td><span style="padding:4px 10px; border-radius:20px; font-size:0.75rem; background:#f0fdf4; color:#166534;">${d.customerStatus || 'نشط'}</span></td>
-                    <td><b style="color:#2563eb;">${d.status || 'عادي'}</b></td>
-                    <td style="text-align:center;">
-                        <div style="display:flex; gap:10px; justify-content:center;">
-                            <button onclick="handlePrint('${id}')" style="color:#64748b; background:none; border:none; cursor:pointer;" title="طباعة العقد"><i class="fas fa-print"></i></button>
-                            <button onclick="handleEdit('${id}')" style="color:#2563eb; background:none; border:none; cursor:pointer;" title="تعديل"><i class="fas fa-edit"></i></button>
-                            <button onclick="handleDelete('${id}')" style="color:#dc2626; background:none; border:none; cursor:pointer;" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                <tr class="cust-row" style="border-bottom:1px solid #f1f5f9; transition: 0.2s;">
+                    <td style="padding:15px; font-weight:700; color:#1e293b;">${name}</td>
+                    <td dir="ltr" style="color:#2563eb; font-weight:600;">${phone}</td>
+                    <td>${city} ${district ? '- ' + district : ''}</td>
+                    <td><span style="background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:700;">${status}</span></td>
+                    <td><span style="color:${cStatus === 'متأخر' ? '#dc2626' : '#059669'};">● ${cStatus || 'نشط'}</span></td>
+                    <td style="color:#94a3b8; font-size:0.85rem;">${createdAt}</td>
+                    <td>
+                        <div style="display:flex; gap:8px; justify-content:center;">
+                            <button onclick="handleEdit('${id}')" style="background:#f1f5f9; border:none; width:35px; height:35px; border-radius:8px; color:#2563eb; cursor:pointer;" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="handleDelete('${id}')" style="background:#fff1f2; border:none; width:35px; height:35px; border-radius:8px; color:#dc2626; cursor:pointer;" title="حذف"><i class="fas fa-trash"></i></button>
+                            <button onclick="handlePrint('${id}')" style="background:#f8fafc; border:none; width:35px; height:35px; border-radius:8px; color:#64748b; cursor:pointer;"><i class="fas fa-print"></i></button>
                         </div>
                     </td>
                 </tr>`;
         });
 
-        updateStatsDisplay(stats);
+        // تحديث أرقام الإحصائيات في الواجهة
+        if (document.getElementById('stat-total')) document.getElementById('stat-total').innerText = stats.total;
+        if (document.getElementById('stat-active')) document.getElementById('stat-active').innerText = stats.active;
+        if (document.getElementById('stat-vips')) document.getElementById('stat-vips').innerText = stats.vips;
 
     } catch (error) {
-        console.error("Render Error:", error);
-        list.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#dc2626; padding:20px;">خطأ في جلب البيانات. يرجى مراجعة الصلاحيات.</td></tr>';
+        console.error("Fetch Error:", error);
+        list.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#dc2626; padding:20px;">فشل الاتصال بقاعدة بيانات تيرا.</td></tr>';
     }
 }
 
-function updateStatsDisplay(s) {
-    const totalEl = document.getElementById('stat-total');
-    if (totalEl) totalEl.innerText = s.total;
-    
-    const completeEl = document.getElementById('stat-complete');
-    if (completeEl) completeEl.innerText = s.complete;
-
-    const incompleteEl = document.getElementById('stat-incomplete');
-    if (incompleteEl) incompleteEl.innerText = s.incomplete;
-
-    const typesEl = document.getElementById('stat-types');
-    if (typesEl) typesEl.innerText = `نشط: ${s.active} | تميز: ${s.vips}`;
-}
-
+/**
+ * محرك البحث السريع
+ */
 function setupSearch() {
     const input = document.getElementById('cust-filter');
     if (!input) return;
@@ -173,95 +167,98 @@ function setupSearch() {
     });
 }
 
-// --- العمليات العالمية ---
+// --- العمليات العالمية (أزرار التفاعل) ---
 
 window.showAddCustomerModal = () => {
     editingId = null;
     const form = document.getElementById('customer-form');
     if (form) form.reset();
     
-    const title = document.getElementById('modal-title');
     const modal = document.getElementById('customer-modal');
+    const title = document.getElementById('modal-title');
     
-    if (title) title.innerText = "إضافة عميل جديد (Tera)";
+    if (title) title.innerText = "إضافة عميل جديد لتيرا";
     if (modal) modal.style.display = 'flex';
 };
 
 window.handleEdit = async (id) => {
     editingId = id;
-    const d = await Core.fetchCustomerById(id);
-    if (!d) return;
+    try {
+        const d = await Core.fetchCustomerById(id);
+        if (!d) return;
 
-    // تعبئة النموذج مع فحص وجود العناصر أولاً
-    const fields = {
-        'cust-name': d.name,
-        'cust-phone': d.Phone,
-        'cust-email': d.Email,
-        'cust-city': d.city,
-        'cust-district': d.district,
-        'cust-street': d.street,
-        'cust-building': d.buildingNo,
-        'cust-additional': d.additionalNo,
-        'cust-postal': d.postalCode,
-        'cust-pobox': d.poBox,
-        'cust-status-active': d.customerStatus,
-        'cust-category': d.status
+        // تعبئة النموذج مع مراعاة المسميات القديمة والجديدة
+        const setVal = (fieldId, val) => {
+            const el = document.getElementById(fieldId);
+            if (el) el.value = val || '';
+        };
+
+        setVal('cust-name', getCustData(d, 'name'));
+        setVal('cust-phone', getCustData(d, 'phone'));
+        setVal('cust-email', getCustData(d, 'email'));
+        setVal('cust-city', d.city);
+        setVal('cust-district', d.district);
+        setVal('cust-street', d.street);
+        setVal('cust-building', d.buildingNo);
+        setVal('cust-additional', d.additionalNo);
+        setVal('cust-postal', d.postalCode);
+        setVal('cust-pobox', d.poBox);
+        setVal('cust-status-active', getCustData(d, 'cStatus'));
+        setVal('cust-category', getCustData(d, 'status'));
+
+        const modal = document.getElementById('customer-modal');
+        const title = document.getElementById('modal-title');
+        if (title) title.innerText = "تعديل بيانات العميل";
+        if (modal) modal.style.display = 'flex';
+    } catch (err) {
+        alert("خطأ في جلب بيانات التعديل.");
+    }
+};
+
+window.saveCustomerData = async () => {
+    const getVal = (id) => document.getElementById(id)?.value || '';
+
+    const payload = {
+        name: getVal('cust-name'),
+        Phone: getVal('cust-phone'),
+        Email: getVal('cust-email'),
+        city: getVal('cust-city'),
+        district: getVal('cust-district'),
+        street: getVal('cust-street'),
+        buildingNo: getVal('cust-building'),
+        additionalNo: getVal('cust-additional'),
+        postalCode: getVal('cust-postal'),
+        poBox: getVal('cust-pobox'),
+        customerStatus: getVal('cust-status-active'),
+        status: getVal('cust-category'),
+        updatedAt: new Date()
     };
 
-    for (const [id, value] of Object.entries(fields)) {
-        const el = document.getElementById(id);
-        if (el) el.value = value || '';
+    try {
+        if (editingId) {
+            await Core.updateCustomer(editingId, payload);
+        } else {
+            payload.CreatedAt = new Date();
+            await Core.addCustomer(payload);
+        }
+        
+        window.closeCustomerModal();
+        await loadAndRender(); // تحديث القائمة فوراً
+    } catch (err) {
+        console.error("Save Error:", err);
+        alert("فشل الحفظ. تأكد من صلاحيات قاعدة البيانات.");
     }
-
-    const title = document.getElementById('modal-title');
-    const modal = document.getElementById('customer-modal');
-    if (title) title.innerText = "تعديل بيانات العميل";
-    if (modal) modal.style.display = 'flex';
 };
 
 window.handleDelete = async (id) => {
-    if (confirm('تنبيه من تيرا: هل تريد حذف العميل نهائياً؟')) {
+    if (confirm('هل أنت متأكد من حذف هذا العميل نهائياً من نظام تيرا؟')) {
         const success = await Core.removeCustomer(id);
         if (success) await loadAndRender();
     }
 };
 
-window.saveCustomerData = async () => {
-    // جلب القيم مع حماية ضد الـ null
-    const getValue = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
-
-    const data = {
-        name: getValue('cust-name'),
-        Phone: getValue('cust-phone'),
-        Email: getValue('cust-email'),
-        city: getValue('cust-city'),
-        district: getValue('cust-district'),
-        street: getValue('cust-street'),
-        buildingNo: getValue('cust-building'),
-        additionalNo: getValue('cust-additional'),
-        postalCode: getValue('cust-postal'),
-        poBox: getValue('cust-pobox'),
-        customerStatus: getValue('cust-status-active'),
-        status: getValue('cust-category'),
-        country: 'السعودية',
-        countryCode: '+966'
-    };
-
-    try {
-        if (editingId) {
-            await Core.updateCustomer(editingId, data);
-        } else {
-            await Core.addCustomer(data);
-        }
-        window.closeCustomerModal();
-        await loadAndRender();
-    } catch (err) {
-        alert("فشل الحفظ: يرجى التأكد من اتصال الإنترنت.");
-    }
-};
-
 window.handlePrint = (id) => {
-    window.open(`print-customer.html?id=${id}`, '_blank');
+    window.open(`admin/modules/print-customer.html?id=${id}`, '_blank');
 };
 
 window.closeCustomerModal = () => {
