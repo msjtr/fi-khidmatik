@@ -1,73 +1,92 @@
 /**
- * js/main.js
- * المحرك الرئيسي - نظام تيرا جيتواي (Tera Gateway)
+ * main.js - Tera Gateway 
+ * نظام إدارة المسارات والتبديل بين الأقسام
  */
 
-import { initProducts } from './modules/products-ui.js';
+// استيراد الموديولات (تأكد من صحة المسارات)
 import { initCustomers } from './modules/customers-core.js';
-import { initDashboard } from './dashboard-core.js'; 
-import { waitForFirebase } from './core/firebase.js';
+// import { initProducts } from './modules/products-ui.js'; // إذا كان جاهزاً
 
+// 1. خريطة المسارات (مطابقة لأسماء الملفات الفعلية في GitHub)
+const routes = {
+    'dashboard': 'admin/modules/orders-dashboard.html',
+    'customers': 'admin/modules/customers.html',
+    'orders': 'admin/modules/order-form.html',
+    'inventory': 'admin/modules/inventory.html',
+    'invoice': 'admin/modules/invoice.html',
+    'payments': 'admin/modules/payments.html',
+    'settings': 'admin/modules/settings.html',
+    'general': 'admin/modules/general.html',
+    'backup': 'admin/modules/backup.html'
+};
+
+// 2. دالة تبديل الأقسام
 async function switchModule(moduleName) {
-    const container = document.getElementById('module-container');
-    if (!container) return;
+    const mainContent = document.getElementById('main-content');
+    const path = routes[moduleName];
 
-    // 1. رسالة انتظار أثناء التحميل
-    container.innerHTML = `
-        <div style="padding:100px; text-align:center;">
-            <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#1e293b;"></i>
-            <p style="margin-top:15px; font-family:'Tajawal', sans-serif; font-weight:bold;">جاري تحميل ${moduleName}...</p>
-        </div>`;
+    if (!path) {
+        console.error(`الموديول ${moduleName} غير معرف في خريطة المسارات.`);
+        return;
+    }
 
     try {
-        // 2. التأكد من اتصال Firebase
-        await waitForFirebase();
-
-        // 3. جلب ملف الـ HTML الخاص بالقسم
-        const response = await fetch(`admin/modules/${moduleName}.html`);
-        if (!response.ok) throw new Error(`تعذر العثور على الملف: admin/modules/${moduleName}.html`);
-        const html = await response.text();
+        // تحميل محتوى HTML
+        const response = await fetch(path);
         
-        // 4. حقن الـ HTML في الحاوية
-        container.innerHTML = html;
-
-        // 5. انتظار بسيط جداً لضمان استقرار العناصر في المتصفح قبل تشغيل البرمجة
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // 6. تشغيل ملف الـ JS الخاص بكل موديول
-        switch (moduleName) {
-            case 'products':
-                await initProducts(container);
-                break;
-            case 'customers':
-                await initCustomers(container);
-                break;
-            case 'dashboard':
-                await initDashboard(container);
-                break;
-            default:
-                console.log(`القسم ${moduleName} تم تحميله بنجاح.`);
+        if (!response.ok) {
+            throw new Error(`تعذر العثور على الملف: ${path} (Status: ${response.status})`);
         }
-    } catch (err) {
-        console.error("❌ خطأ في النظام:", err);
-        container.innerHTML = `
-            <div style="color:#ef4444; padding:40px; border:2px dashed #fca5a5; margin:20px; border-radius:12px; background:#fef2f2; text-align:center;">
-                <i class="fas fa-exclamation-triangle fa-3x"></i>
-                <h3 style="margin-top:10px;">عطل في تحميل القسم</h3>
-                <p>${err.message}</p>
-                <button onclick="location.reload()" style="margin-top:15px; padding:10px 20px; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer;">إعادة تحميل النظام</button>
-            </div>`;
+
+        const html = await response.text();
+        mainContent.innerHTML = html;
+
+        // 3. تشغيل الـ Logic الخاص بكل قسم بعد تحميل الـ HTML
+        initializeModuleLogic(moduleName);
+
+        // تحديث الرابط في المتصفح (اختياري)
+        window.location.hash = moduleName;
+        
+        console.log(`✅ القسم ${moduleName} تم تحميله بنجاح من: ${path}`);
+
+    } catch (error) {
+        console.error("❌ خطأ في تحميل القسم:", error);
+        mainContent.innerHTML = `
+            <div style="padding: 20px; color: #ef4444; text-align: center;">
+                <h3>حدث خطأ أثناء تحميل القسم</h3>
+                <p>${error.message}</p>
+                <button onclick="location.reload()" style="padding: 8px 16px; cursor: pointer;">إعادة تحميل الصفحة</button>
+            </div>
+        `;
     }
 }
 
-// جعل الدالة متاحة للنافذة العامة
-window.switchModule = switchModule;
+// 4. دالة تشغيل منطق الموديولات
+function initializeModuleLogic(moduleName) {
+    switch (moduleName) {
+        case 'customers':
+            const container = document.getElementById('customers-container') || document.getElementById('main-content');
+            initCustomers(container);
+            break;
+        
+        case 'dashboard':
+            // هنا تضع دالة تشغيل لوحة التحكم إذا وجدت
+            console.log("تشغيل لوحة تحكم الطلبات...");
+            break;
 
-// نظام التوجيه بناءً على الـ Hash (#)
-const handleRoute = () => {
-    const hash = window.location.hash.replace('#', '') || 'dashboard';
-    switchModule(hash);
-};
+        // أضف حالات (cases) لبقية الأقسام هنا
+    }
+}
 
-window.addEventListener('DOMContentLoaded', handleRoute);
+// 5. التعامل مع التنقل (Routing)
+function handleRoute() {
+    const moduleName = window.location.hash.replace('#', '') || 'dashboard';
+    switchModule(moduleName);
+}
+
+// تشغيل النظام عند تحميل الصفحة
+window.addEventListener('load', handleRoute);
 window.addEventListener('hashchange', handleRoute);
+
+// جعل الدالة متاحة عالمياً إذا كنت تستخدمها في onclick داخل الـ Sidebar
+window.switchModule = switchModule;
