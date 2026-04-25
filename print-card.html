@@ -1,115 +1,26 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>بطاقة بيانات العميل المترجمة</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .print-container { width: 210mm; min-height: 297mm; padding: 15mm; margin: 0 auto; background: #fff; border: 2px solid #000; box-sizing: border-box; }
-        .header-table { width: 100%; border: 2px solid #000; border-collapse: collapse; margin-bottom: 20px; }
-        .header-table td { border: 1px solid #000; padding: 10px; vertical-align: middle; }
-        .logo-box img { height: 50px; }
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table td { border: 1px solid #000; padding: 12px; text-align: center; }
-        .bg-gray { background: #f2f2f2; font-weight: 900; }
-        .val-en { display: block; font-size: 0.8rem; color: #666; font-weight: 600; text-transform: capitalize; }
-        .no-print { text-align: center; margin-bottom: 20px; }
-        @media print { .no-print { display: none; } .print-container { border: 2px solid #000; } }
-    </style>
+    <link rel="stylesheet" href="css/customers-print.css">
 </head>
 <body>
-
-    <div class="no-print">
-        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">طباعة الوثيقة</button>
-        <button onclick="savePDF()" style="padding:10px 20px; cursor:pointer;">حفظ PDF</button>
-    </div>
-
-    <div class="print-container" id="content">
-        <table class="header-table">
-            <tr>
-                <td width="35%" align="right">
-                    <div class="logo-box">
-                        <img src="/fi-khidmatik/images/logo.svg" onerror="this.style.display='none'; document.getElementById('fallback').style.display='block';">
-                        <b id="fallback" style="display:none;">منصة في خدمتك</b>
-                        <div style="font-size: 0.7rem; font-weight: 700;">منصة في خدمتك - الأتقان بلس</div>
-                    </div>
-                </td>
-                <td width="30%" align="center">
-                    <h2 style="margin:0;">بطاقة بيانات العميل</h2>
-                    <small>Customer Data Card</small>
-                </td>
-                <td width="35%" align="left" style="font-size:0.7rem; font-weight:700;">
-                    رقم المعاملة: <span id="trans-id"></span><br>
-                    التاريخ: <span id="current-date"></span>
-                </td>
-            </tr>
-        </table>
-
-        <table class="data-table">
-            <thead>
-                <tr class="bg-gray">
-                    <td>الحقل بالعربي</td>
-                    <td>البيانات المترجمة / Data</td>
-                    <td>English Field</td>
-                </tr>
-            </thead>
-            <tbody id="data-body"></tbody>
-        </table>
-
-        <div style="text-align:center; margin-top:30px;">
-            <div id="qrcode" style="display:inline-block; border:1px solid #000; padding:5px;"></div>
-            <p style="font-weight:900; margin:5px 0;">كود التحقق | Verification Code</p>
+    <div class="print-card">
+        <div class="print-header">
+            <h3>بطاقة بيانات عميل</h3>
+            <div id="p-date"></div>
+        </div>
+        <div class="data-row"><span class="data-label">اسم العميل:</span> <span id="p-name"></span></div>
+        <div class="data-row"><span class="data-label">رقم الجوال:</span> <span id="p-phone"></span></div>
+        <div class="data-row"><span class="data-label">البريد الإلكتروني:</span> <span id="p-email"></span></div>
+        <div class="data-row"><span class="data-label">العنوان الوطني:</span> <span id="p-address"></span></div>
+        <div class="notes-area">
+            <strong>ملاحظات:</strong>
+            <div id="p-notes"></div>
         </div>
     </div>
-
     <script type="module">
-        import { getCustomerById } from './js/modules/customers-core.js';
-
-        const dictionary = { "الرياض": "Riyadh", "حائل": "Hail", "عادي": "Normal", "مميز": "VIP" };
-        
-        const transliterate = (t) => {
-            const map = { 'أ':'A','ب':'B','ت':'T','ج':'J','ح':'H','د':'D','ر':'R','س':'S','ش':'Sh','ع':'A','ف':'F','ق':'Q','ك':'K','ل':'L','م':'M','ن':'N','ه':'H','و':'W','ي':'Y' };
-            return t.split('').map(c => map[c] || c).join('');
-        };
-
-        async function init() {
-            const id = new URLSearchParams(window.location.search).get('id');
-            const data = await getCustomerById(id);
-            if (!data) return;
-
-            const fields = [
-                { ar: "اسم العميل", en: "Name", val: data.name },
-                { ar: "رقم الجوال", en: "Mobile", val: data.phone },
-                { ar: "المدينة", en: "City", val: data.city },
-                { ar: "الحي", en: "District", val: data.district },
-                { ar: "التصنيف", en: "Category", val: data.tag }
-            ];
-
-            const tbody = document.getElementById('data-body');
-            fields.forEach(f => {
-                const trans = dictionary[f.val] || transliterate(f.val || '');
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="bg-gray">${f.ar}</td>
-                        <td><b>${f.val || '-'}</b> <span class="val-en">${trans}</span></td>
-                        <td class="bg-gray">${f.en}</td>
-                    </tr>`;
-            });
-
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
-            document.getElementById('trans-id').innerText = `TR-${id.substring(0,5).toUpperCase()}`;
-            new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 80, height: 80 });
-        }
-
-        window.savePDF = () => {
-            const element = document.getElementById('content');
-            html2pdf().from(element).set({ margin: 0, filename: 'Customer-Card.pdf', html2canvas: { scale: 3 }, jsPDF: { format: 'a4' } }).save();
-        };
-
-        init();
+        import { initPrint } from './js/customer-print-logic.js';
+        initPrint();
     </script>
 </body>
 </html>
