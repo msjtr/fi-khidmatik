@@ -1,6 +1,6 @@
 /**
  * js/core/firebase.js
- * نسخة محدثة تدعم نظام Cache الجديد (Firebase 10+)
+ * الملف المركزي لتهيئة Firebase ونظام الكاش المتطور لمنصة تيرا
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -11,6 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// إعدادات مشروع منصة تيرا
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -20,22 +21,36 @@ const firebaseConfig = {
     appId: "1:186209858482:web:186ca610780799ef562aab"
 };
 
-// 1. تهيئة التطبيق
-export const app = initializeApp(firebaseConfig);
+// 1. تهيئة التطبيق الأساسي
+const app = initializeApp(firebaseConfig);
 
-// 2. تهيئة Firestore بالطريقة الحديثة (تختفي رسالة التحذير هنا)
-export const db = initializeFirestore(app, {
+/**
+ * 2. تهيئة Firestore بنظام الكاش المتعدد (Persistent Multi-Tab)
+ * يضمن سرعة تحميل البيانات في حائل والمناطق ذات الإنترنت المتغير
+ */
+const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager() // يدعم فتح الموقع في أكثر من علامة تبويب
+        tabManager: persistentMultipleTabManager()
     })
 });
 
-// 3. تهيئة المصادقة
-export const auth = getAuth(app);
+// 3. تهيئة نظام المصادقة
+const auth = getAuth(app);
 
-export const isInitialized = true;
+// 4. ثوابت النظام
+export const APP_CONFIG = {
+    name: "Tera Gateway",
+    region: "Hail",
+    version: "2.0.0"
+};
 
-// أداة انتظار الجاهزية للموديولات الأخرى
+/**
+ * 5. التصدير الموحد والمباشر
+ * لضمان عدم حدوث خطأ SyntaxError: Unexpected token '{'
+ */
+export { app, db, auth };
+
+// أداة انتظار الجاهزية
 export const waitForFirebase = () => Promise.resolve(true);
 
-export default { app, db, auth, waitForFirebase };
+export default { app, db, auth, APP_CONFIG };
