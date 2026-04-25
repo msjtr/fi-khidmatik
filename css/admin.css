@@ -1,15 +1,33 @@
+/* --- الإعدادات العامة والتصفير --- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Tajawal', sans-serif;
-    background: #f5f7fb;
-    overflow: hidden;
+:root {
+    --primary: #e67e22;
+    --primary-light: #fef5e8;
+    --dark: #1e293b;
+    --text-main: #2c3e50;
+    --text-muted: #64748b;
+    --bg-body: #f5f7fb;
+    --bg-content: #f8fafc;
+    --white: #ffffff;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
+    --transition: all 0.3s ease;
 }
 
+body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg-body);
+    color: var(--text-main);
+    overflow: hidden;
+    line-height: 1.6;
+}
+
+/* --- الهيكل الرئيسي (App Shell) --- */
 .app-shell {
     display: flex;
     flex-direction: column;
@@ -17,62 +35,41 @@ body {
 }
 
 .app-header {
-    background: white;
-    padding: 15px 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    background: var(--white);
+    padding: 0 25px;
+    height: 70px;
+    box-shadow: var(--shadow-sm);
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
-    z-index: 100;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.sidebar-trigger {
-    background: none;
-    border: none;
-    font-size: 1.3rem;
-    cursor: pointer;
-    color: #e67e22;
-    padding: 8px;
-    transition: all 0.3s;
-}
-
-.sidebar-trigger:hover {
-    background: #fef5e8;
-    border-radius: 8px;
+    z-index: 1001;
 }
 
 .app-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-.app-brand img {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    gap: 12px;
 }
 
 .app-brand span {
     font-weight: 800;
-    font-size: 1.2rem;
-    color: #2c3e50;
+    font-size: 1.4rem;
+    color: var(--dark);
+}
+
+.app-brand span b {
+    color: var(--primary);
 }
 
 .header-clock {
-    font-size: 0.85rem;
-    color: #7f8c8d;
-    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
+/* --- الجسم والقائمة الجانبية --- */
 .app-body {
     display: flex;
     flex: 1;
@@ -81,21 +78,25 @@ body {
 
 .app-sidebar {
     width: 260px;
-    background: white;
-    border-left: 1px solid #e9ecef;
-    transition: transform 0.3s ease;
-    overflow-y: auto;
+    background: var(--white);
+    border-left: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    transition: var(--transition);
 }
 
 .side-nav {
-    flex: 1;
+    padding-top: 15px;
+    overflow-y: auto;
 }
 
-.side-nav ul {
-    list-style: none;
-    padding: 20px 0;
+.nav-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    padding: 15px 25px 8px;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.5px;
 }
 
 .nav-item {
@@ -103,171 +104,156 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+    border-radius: 0 50px 50px 0;
+    margin-left: 15px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    color: #4a5568;
-    font-weight: 500;
-}
-
-.nav-item:hover {
-    background: #fef5e8;
-    color: #e67e22;
-}
-
-.nav-item.active {
-    background: #fef5e8;
-    color: #e67e22;
-    border-right: 3px solid #e67e22;
 }
 
 .nav-item i {
     width: 20px;
+    text-align: center;
     font-size: 1.1rem;
 }
 
+.nav-item:hover, .nav-item.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-right: 4px solid var(--primary);
+}
+
+/* --- منطقة المحتوى --- */
 .app-content {
     flex: 1;
     overflow-y: auto;
-    position: relative;
-    background: #f8fafc;
+    padding: 25px;
+    background: var(--bg-content);
 }
 
-/* تنسيق البطاقات */
+/* --- عناصر الواجهة الموحدة (UI Components) --- */
+
+/* البطاقات */
 .card {
-    background: white;
-    border-radius: 12px;
+    background: var(--white);
+    border-radius: 15px;
     padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-sm);
     margin-bottom: 20px;
 }
 
-.card-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #f1f5f9;
-}
-
-/* أزرار */
-.btn-primary {
-    background: #e67e22;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.btn-primary:hover {
-    background: #d35400;
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: #95a5a6;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.btn-secondary:hover {
-    background: #7f8c8d;
-}
-
-/* نماذج الإدخال */
+/* النماذج والمدخلات */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 .form-label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 600;
-    color: #475569;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--dark);
 }
 
-.form-input,
-.form-select,
-.form-textarea {
+.tera-input, .form-input, .form-select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-family: 'Tajawal', sans-serif;
-    transition: all 0.3s;
+    padding: 12px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: var(--transition);
 }
 
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
+.tera-input:focus, .form-input:focus {
+    border-color: var(--primary);
     outline: none;
-    border-color: #e67e22;
-    box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
+    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
 }
 
-/* شبكات */
-.grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+/* الأزرار */
+.btn-primary-tera, .btn-primary {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
 }
 
-.grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+.btn-primary-tera:hover {
+    background: #d35400;
+    transform: translateY(-2px);
 }
 
-/* تحسينات للشاشات الصغيرة */
+/* الجداول */
+.tera-table-modern {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+}
+
+.tera-table-modern th {
+    background: #f8fafc;
+    padding: 15px;
+    text-align: right;
+    color: var(--text-muted);
+    font-weight: 800;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.tera-table-modern td {
+    padding: 15px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* المودال (Modal) */
+.tera-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.tera-modal-content {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* --- الشبكات (Grid System) --- */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+
+/* --- شريط التمرير المخصص --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+/* --- التجاوب مع الشاشات الصغيرة --- */
 @media (max-width: 768px) {
     .app-sidebar {
         position: fixed;
-        top: 60px;
-        bottom: 0;
-        right: 0;
-        z-index: 99;
-        transform: translateX(0);
-        width: 260px;
+        right: -260px;
+        height: 100%;
+        z-index: 2000;
     }
-    
-    .app-sidebar.is-closed {
-        transform: translateX(-100%);
-    }
-    
-    .app-content {
-        width: 100%;
-    }
-    
-    .grid-2,
-    .grid-3 {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* شريط التمرير المخصص */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #e67e22;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #d35400;
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
 }
