@@ -1,16 +1,22 @@
+/**
+ * customers-ui.js
+ * إدارة واجهة المستخدم والعمليات التفاعلية للعملاء
+ */
+
 import * as Core from './customers-core.js';
 
-let editingId = null;
+let editingId = null; // لتتبع حالة التعديل
 
 export async function initCustomersUI(container) {
     if (!container) return;
 
+    // حقن الهيكل الرئيسي
     container.innerHTML = `
         <div class="cust-ui-wrapper">
             <div class="stats-grid">
                 <div class="stat-item"><span>إجمالي العملاء</span><strong id="stat-total">0</strong></div>
                 <div class="stat-item success"><span>عناوين مكتملة</span><strong id="stat-complete">0</strong></div>
-                <div class="stat-item danger"><span>عملاء بملاحظات</span><strong id="stat-notes">0</strong></div>
+                <div class="stat-item danger"><span>بملاحظات</span><strong id="stat-notes">0</strong></div>
             </div>
 
             <div class="action-bar">
@@ -35,7 +41,7 @@ export async function initCustomersUI(container) {
                         </tr>
                     </thead>
                     <tbody id="customers-list-render">
-                        <tr><td colspan="5" style="text-align:center; padding:30px;">جاري مزامنة بيانات تيرا...</td></tr>
+                        <tr><td colspan="5" style="text-align:center; padding:30px;">جاري المزامنة...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -44,6 +50,7 @@ export async function initCustomersUI(container) {
     
     await loadAndRender();
 
+    // تفعيل البحث
     document.getElementById('cust-filter').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         document.querySelectorAll('.cust-row').forEach(r => {
@@ -82,24 +89,23 @@ async function loadAndRender() {
                         </div>
                     </td>
                     <td style="text-align:center;">
-                        <span class="status-tag ${getStatusClass(d.status)}">${d.status || 'عادي'}</span>
+                        <span class="status-tag ${(d.status === 'محتال' ? 'danger' : d.status === 'مميز' ? 'success' : 'default')}">
+                            ${d.status || 'عادي'}
+                        </span>
                     </td>
                     <td>
                         <div class="row-actions">
-                            <button onclick="handlePrint('${id}')"><i class="fas fa-print"></i></button>
-                            <button onclick="handleEdit('${id}')"><i class="fas fa-pen"></i></button>
-                            <button onclick="handleDelete('${id}')" class="text-danger"><i class="fas fa-trash"></i></button>
+                            <button onclick="handlePrint('${id}')" title="طباعة"><i class="fas fa-print"></i></button>
+                            <button onclick="handleEdit('${id}')" title="تعديل"><i class="fas fa-pen"></i></button>
+                            <button onclick="handleDelete('${id}')" class="text-danger" title="حذف"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>`;
         });
         updateStatsDisplay(stats);
-    } catch (e) { list.innerHTML = '<tr><td colspan="5">خطأ في جلب البيانات</td></tr>'; }
-}
-
-function getStatusClass(s) {
-    const map = { 'محتال': 'danger', 'مميز': 'success', 'غير جدي': 'warning' };
-    return map[s] || 'default';
+    } catch (e) { 
+        list.innerHTML = '<tr><td colspan="5">فشل الاتصال بقاعدة البيانات</td></tr>'; 
+    }
 }
 
 function updateStatsDisplay(s) {
@@ -108,7 +114,7 @@ function updateStatsDisplay(s) {
     if (document.getElementById('stat-notes')) document.getElementById('stat-notes').innerText = s.notes;
 }
 
-// --- العمليات (Window Scope) ---
+// --- العمليات العالمية ---
 
 window.showAddCustomerModal = () => {
     editingId = null;
@@ -122,7 +128,7 @@ window.handleEdit = async (id) => {
     const d = await Core.fetchCustomerById(id);
     if (!d) return;
 
-    // تعبئة الحقول مع مراعاة حالة الأحرف في الـ data
+    // تعبئة البيانات في الفورم (مطابقة للحقول التي أرسلتها)
     document.getElementById('cust-name').value = d.name || '';
     document.getElementById('cust-email').value = d.Email || '';
     document.getElementById('cust-city').value = d.city || '';
@@ -135,7 +141,6 @@ window.handleEdit = async (id) => {
     document.getElementById('cust-notes').value = d.notes || '';
     document.getElementById('cust-tag').value = d.status || 'عادي';
 
-    // التعامل مع رقم الجوال (مفتاح الدولة + الرقم)
     if (d.Phone && d.Phone.includes(' ')) {
         const parts = d.Phone.split(' ');
         document.getElementById('cust-country-code').value = parts[0];
@@ -153,11 +158,10 @@ window.handleCustomerSubmit = async (event) => {
     const formData = new FormData(event.target);
     const formProps = Object.fromEntries(formData.entries());
 
-    // تجهيز البيانات للحفظ (مطابقة لأسماء حقول Firestore)
     const finalData = {
         name: formProps.name,
-        Email: formProps.Email, // بحرف كبير كما في جدولك
-        Phone: `${formProps.countryCode} ${formProps.Phone}`, // دمج الكود مع الرقم
+        Email: formProps.Email,
+        Phone: `${formProps.countryCode} ${formProps.Phone}`,
         country: formProps.country,
         city: formProps.city,
         district: formProps.district,
@@ -171,18 +175,32 @@ window.handleCustomerSubmit = async (event) => {
     };
 
     try {
+        const btn = event.target.querySelector('.btn-save');
+        btn.disabled = true;
+        btn.innerText = "جاري الحفظ...";
+
         if (editingId) {
             await Core.updateCustomer(editingId, finalData);
         } else {
             await Core.addCustomer(finalData);
         }
-        document.getElementById('customer-modal').style.display = 'none';
+
+        window.closeCustomerModal();
         await loadAndRender();
-    } catch (e) { alert("فشل الحفظ: " + e.message); }
+    } catch (e) {
+        alert("فشل الحفظ: " + e.message);
+    } finally {
+        const btn = event.target.querySelector('.btn-save');
+        btn.disabled = false;
+        btn.innerText = "حفظ البيانات";
+    }
 };
 
 window.handleDelete = async (id) => {
-    if (confirm('حذف العميل؟')) { await Core.removeCustomer(id); await loadAndRender(); }
+    if (confirm('⚠️ هل أنت متأكد من حذف هذا العميل نهائياً من نظام تيرا؟')) {
+        const success = await Core.removeCustomer(id);
+        if (success) await loadAndRender();
+    }
 };
 
 window.handlePrint = (id) => window.open(`print-card.html?id=${id}`, '_blank');
