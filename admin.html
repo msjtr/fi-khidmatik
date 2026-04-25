@@ -7,7 +7,7 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/fi-khidmatik/css/admin.css">
+    <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 
@@ -21,15 +21,15 @@
         <aside class="app-sidebar">
             <nav class="side-nav">
                 <div class="nav-label">الرئيسية</div>
-                <a class="nav-item" data-module="dashboard"><i class="fas fa-chart-line"></i> الإحصائيات</a>
+                <a class="nav-item" data-module="dashboard" style="cursor:pointer;"><i class="fas fa-chart-line"></i> الإحصائيات</a>
                 
                 <div class="nav-label">إدارة العمليات</div>
-                <a class="nav-item active" data-module="customers"><i class="fas fa-users"></i> قاعدة العملاء</a>
-                <a class="nav-item" data-module="orders"><i class="fas fa-file-signature"></i> طلبات الأقساط</a>
+                <a class="nav-item active" data-module="customers" style="cursor:pointer;"><i class="fas fa-users"></i> قاعدة العملاء</a>
+                <a class="nav-item" data-module="orders" style="cursor:pointer;"><i class="fas fa-file-signature"></i> طلبات الأقساط</a>
                 
                 <div class="nav-label">النظام</div>
-                <a class="nav-item" data-module="reports"><i class="fas fa-print"></i> التقارير</a>
-                <a class="nav-item" data-module="settings"><i class="fas fa-sliders"></i> الإعدادات</a>
+                <a class="nav-item" data-module="reports" style="cursor:pointer;"><i class="fas fa-print"></i> التقارير</a>
+                <a class="nav-item" data-module="settings" style="cursor:pointer;"><i class="fas fa-sliders"></i> الإعدادات</a>
             </nav>
         </aside>
 
@@ -40,16 +40,21 @@
 </div>
 
 <script type="module">
-    import { initCustomers } from '/fi-khidmatik/js/modules/customers-core.js';
-    import { initDashboard } from '/fi-khidmatik/js/modules/dashboard-core.js'; // قسم الإحصاء الجديد
+    // تصحيح المسارات: إزالة السلاش الأول ليعمل على GitHub Pages
+    // وتعديل مسار dashboard-core ليطابق مكانه الفعلي في /js/
+    import { initCustomers } from './js/modules/customers-core.js';
+    import { initDashboard } from './js/dashboard-core.js'; 
     
     const container = document.getElementById('module-container');
 
     async function loadModule(name) {
-        container.innerHTML = '<div style="text-align:center; padding:100px;"><i class="fas fa-circle-notch fa-spin fa-3x" style="color:var(--primary)"></i></div>';
+        container.innerHTML = '<div style="text-align:center; padding:100px;"><i class="fas fa-circle-notch fa-spin fa-3x" style="color:#1e293b"></i></div>';
         
         try {
-            const response = await fetch(`/fi-khidmatik/admin/modules/${name}.html`);
+            // المسار النسبي للموديولات
+            const response = await fetch(`admin/modules/${name}.html`);
+            if (!response.ok) throw new Error('Not Found');
+            
             const html = await response.text();
             container.innerHTML = html;
 
@@ -58,7 +63,8 @@
             if (name === 'dashboard') await initDashboard(container);
             
         } catch (error) {
-            container.innerHTML = `<div style="text-align:center; padding:100px;"><h2>قسم ${name} قيد التجهيز</h2></div>`;
+            console.error("Module load error:", error);
+            container.innerHTML = `<div style="text-align:center; padding:100px;"><h2>قسم ${name} قيد التجهيز أو غير موجود</h2><p>تأكد من رفع ملفات admin/modules/</p></div>`;
         }
     }
 
@@ -71,16 +77,24 @@
     });
 
     // تحميل صفحة العملاء كبداية
-    document.addEventListener('DOMContentLoaded', () => loadModule('customers'));
+    document.addEventListener('DOMContentLoaded', () => {
+        loadModule('customers');
+    });
 </script>
 
 <script>
-    setInterval(() => {
+    // تحديث الوقت والتاريخ
+    function updateClock() {
         const now = new Date();
-        document.getElementById('current-datetime').innerText = now.toLocaleDateString('ar-SA', {
-            weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
-        });
-    }, 1000);
+        const element = document.getElementById('current-datetime');
+        if (element) {
+            element.innerText = now.toLocaleDateString('ar-SA', {
+                weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+            });
+        }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 </script>
 </body>
 </html>
