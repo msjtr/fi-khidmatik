@@ -1,6 +1,4 @@
-/**
- * customers-core.js - Tera Gateway
- */
+// 1. يجب أن تكون الاستيرادات في السطور الأولى دائماً
 import { db } from '../core/config.js'; 
 import { 
     collection, 
@@ -15,33 +13,31 @@ import {
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// مرجع المجموعة
+// 2. تعريف المرجع (تأكد أن db معرفة بشكل صحيح في config.js)
 const customersRef = collection(db, "customers");
 
-// جلب الكل
+// 3. الدوال المصدرة
 export async function fetchAllCustomers() {
     try {
         const q = query(customersRef, orderBy("CreatedAt", "desc"));
-        const snapshot = await getDocs(q);
-        return snapshot;
+        return await getDocs(q);
     } catch (error) {
-        console.warn("⚠️ مشكلة في الترتيب، يتم الجلب الخام...");
+        console.warn("⚠️ تم التحويل للجلب الخام (Raw Fetch)");
         return await getDocs(customersRef);
     }
 }
 
-// جلب عميل واحد
 export async function fetchCustomerById(id) {
     try {
         const docRef = doc(db, "customers", id);
         const docSnap = await getDoc(docRef);
         return docSnap.exists() ? docSnap.data() : null;
     } catch (e) {
+        console.error("Error fetching doc:", e);
         return null;
     }
 }
 
-// إضافة
 export async function addCustomer(data) {
     return await addDoc(customersRef, {
         ...data,
@@ -49,7 +45,6 @@ export async function addCustomer(data) {
     });
 }
 
-// تحديث
 export async function updateCustomer(id, data) {
     const docRef = doc(db, "customers", id);
     return await updateDoc(docRef, {
@@ -58,7 +53,6 @@ export async function updateCustomer(id, data) {
     });
 }
 
-// حذف
 export async function removeCustomer(id) {
     const docRef = doc(db, "customers", id);
     return await deleteDoc(docRef);
