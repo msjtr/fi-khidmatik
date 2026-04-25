@@ -1,14 +1,16 @@
 /**
  * main.js - Tera Gateway 
- * نسخة مصححة لمعالجة خطأ innerHTML
+ * نظام توجيه محمي ضد أخطاء الـ DOM والمسارات المفقودة
  */
 
 import { initCustomers } from './modules/customers-core.js';
 
+// 1. خريطة المسارات المحدثة (أضفت لك المنتجات بناءً على رسالة الخطأ)
 const routes = {
     'dashboard': 'admin/modules/orders-dashboard.html',
     'customers': 'admin/modules/customers.html',
     'orders': 'admin/modules/order-form.html',
+    'products': 'admin/modules/products.html', // أضفنا المنتجات هنا
     'inventory': 'admin/modules/inventory.html',
     'invoice': 'admin/modules/invoice.html',
     'payments': 'admin/modules/payments.html',
@@ -17,55 +19,72 @@ const routes = {
     'backup': 'admin/modules/backup.html'
 };
 
+// 2. دالة التبديل مع معالجة الأخطاء
 async function switchModule(moduleName) {
+    // التأكد من أن العنصر موجود قبل البدء بأي عملية
     const mainContent = document.getElementById('main-content');
     
-    // حل مشكلة الـ null: التحقق من وجود العنصر أولاً
     if (!mainContent) {
-        console.error("❌ خطأ: لم يتم العثور على عنصر 'main-content' في صفحة index.html");
-        return;
+        console.warn(`⏳ جاري انتظار تحميل واجهة النظام الرئيسية...`);
+        return; 
     }
 
     const path = routes[moduleName];
-    if (!path) return;
+    if (!path) {
+        console.error(`⚠️ الموديول ${moduleName} غير معرف في خريطة المسارات.`);
+        mainContent.innerHTML = `<div style="padding:20px; color:#64748b;">هذا القسم (${moduleName}) قيد التطوير حالياً.</div>`;
+        return;
+    }
 
     try {
         const response = await fetch(path);
-        if (!response.ok) throw new Error(`404: ${path}`);
+        if (!response.ok) throw new Error(`Status: ${response.status}`);
 
         const html = await response.text();
         
-        // الآن التعديل آمن
-        mainContent.innerHTML = html;
+        // تغيير المحتوى فقط إذا كان العنصر لا يزال موجوداً
+        if (mainContent) {
+            mainContent.innerHTML = html;
+            initializeModuleLogic(moduleName);
+            window.location.hash = moduleName;
+        }
 
-        initializeModuleLogic(moduleName);
-        window.location.hash = moduleName;
-        
     } catch (error) {
-        console.error("❌ خطأ في تحميل القسم:", error);
-        mainContent.innerHTML = `<div style="color:red; padding:20px;">تعذر تحميل القسم: ${moduleName}</div>`;
+        console.error(`❌ فشل تحميل ${moduleName}:`, error);
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div style="padding:40px; text-align:center; color:#ef4444;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:2rem;"></i>
+                    <p>تعذر تحميل صفحة ${moduleName}</p>
+                    <small>${error.message}</small>
+                </div>`;
+        }
     }
 }
 
+// 3. تشغيل المنطق البرمجي لكل صفحة
 function initializeModuleLogic(moduleName) {
-    // نستخدم setTimeout لضمان أن العناصر التي تم حقنها بـ innerHTML أصبحت جاهزة في الـ DOM
+    // ننتظر أجزاء من الثانية لضمان استقرار العناصر في الصفحة
     setTimeout(() => {
         if (moduleName === 'customers') {
             const container = document.getElementById('customers-container') || document.getElementById('main-content');
             if (container) initCustomers(container);
         }
-    }, 50);
+    }, 100);
 }
 
+// 4. دالة معالجة التوجيه
 function handleRoute() {
     const moduleName = window.location.hash.replace('#', '') || 'dashboard';
     switchModule(moduleName);
 }
 
-// تأكد من تشغيل الكود بعد تحميل الـ DOM بالكامل
-document.addEventListener('DOMContentLoaded', () => {
+// 5. التشغيل الآمن (الانتظار حتى يصبح الـ DOM جاهزاً)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleRoute);
+} else {
     handleRoute();
-    window.addEventListener('hashchange', handleRoute);
-});
+}
 
+window.addEventListener('hashchange', handleRoute);
 window.switchModule = switchModule;
