@@ -7,6 +7,7 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -24,7 +25,7 @@
                 <a href="#dashboard" class="nav-item"><i class="fas fa-chart-line"></i> الإحصائيات</a>
                 
                 <div class="nav-label">إدارة العمليات</div>
-                <a href="#customers" class="nav-item active"><i class="fas fa-users"></i> قاعدة العملاء</a>
+                <a href="#customers" class="nav-item"><i class="fas fa-users"></i> قاعدة العملاء</a>
                 <a href="#orders" class="nav-item"><i class="fas fa-file-signature"></i> طلبات الأقساط</a>
                 <a href="#products" class="nav-item"><i class="fas fa-box-open"></i> المنتجات</a>
                 
@@ -35,7 +36,12 @@
         </aside>
 
         <main class="app-content">
-            <div id="module-container"></div>
+            <div id="module-container">
+                <div style="text-align:center; padding:50px; color:#64748b;">
+                    <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+                    <p style="margin-top:10px;">جاري تحميل لوحة التحكم...</p>
+                </div>
+            </div>
         </main>
     </div>
 </div>
@@ -43,27 +49,44 @@
 <script type="module" src="js/main.js"></script>
 
 <script>
-    // تحديث الوقت والتاريخ (يبقى كما هو)
+    /**
+     * تحديث الساعة والتاريخ بشكل مستمر
+     */
     function updateClock() {
         const now = new Date();
         const element = document.getElementById('current-datetime');
         if (element) {
             element.innerText = now.toLocaleDateString('ar-SA', {
-                weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
             });
         }
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // كود بسيط لتبديل كلاس active بين الأزرار عند الضغط
-    window.addEventListener('hashchange', () => {
+    /**
+     * إدارة حالة القائمة الجانبية (Active Class)
+     */
+    function setActiveNavLink() {
         const hash = window.location.hash || '#dashboard';
-        document.querySelectorAll('.nav-item').forEach(item => {
+        const navItems = document.querySelectorAll('.nav-item');
+        
+        navItems.forEach(item => {
             item.classList.remove('active');
-            if(item.getAttribute('href') === hash) item.classList.add('active');
+            if(item.getAttribute('href') === hash) {
+                item.classList.add('active');
+            }
         });
-    });
+    }
+
+    // التنفيذ عند تغيير الرابط أو تحميل الصفحة
+    window.addEventListener('hashchange', setActiveNavLink);
+    window.addEventListener('DOMContentLoaded', setActiveNavLink);
 </script>
 </body>
 </html>
