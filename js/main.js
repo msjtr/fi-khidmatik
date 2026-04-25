@@ -1,66 +1,50 @@
 /**
  * main.js - Tera Gateway 
- * نسخة مطابقة لملف index.html (استخدام module-container)
+ * الموزع الرئيسي للنظام
  */
 
-import { initCustomers } from './modules/customers-core.js';
+// استيراد الموديول المحدث بالاسم الصحيح
+import { initCustomersUI } from './modules/customers-ui.js';
 
-// خريطة المسارات المعتمدة
 const routes = {
     'dashboard': 'admin/modules/orders-dashboard.html',
     'customers': 'admin/modules/customers.html',
     'orders': 'admin/modules/order-form.html',
     'products': 'admin/modules/products.html',
-    'inventory': 'admin/modules/inventory.html',
-    'invoice': 'admin/modules/invoice.html',
-    'payments': 'admin/modules/payments.html',
     'settings': 'admin/modules/settings.html',
-    'general': 'admin/modules/general.html',
-    'backup': 'admin/modules/backup.html'
+    'reports': 'admin/modules/reports.html'
 };
 
 async function switchModule(moduleName) {
-    // التعديل هنا: نستخدم id مطابق لملف الـ HTML الخاص بك
     const container = document.getElementById('module-container');
     
     if (!container) {
-        console.warn(`⏳ جاري انتظار تحميل الحاوية module-container...`);
-        setTimeout(() => switchModule(moduleName), 200); 
+        setTimeout(() => switchModule(moduleName), 100);
         return;
     }
 
     const path = routes[moduleName];
-    if (!path) {
-        console.error(`⚠️ الموديول ${moduleName} غير معرف.`);
-        return;
-    }
+    if (!path) return;
 
     try {
         const response = await fetch(path);
-        if (!response.ok) throw new Error(`فشل التحميل: ${path}`);
-
+        if (!response.ok) throw new Error(`404: ${path}`);
         const html = await response.text();
         
-        // حقن المحتوى
         container.innerHTML = html;
 
-        // تشغيل المنطق البرمجي
-        initializeModuleLogic(moduleName);
+        // تشغيل المنطق البرمجي بناءً على اسم الموديول
+        if (moduleName === 'customers') {
+            // ننتظر قليلاً لضمان حقن الـ HTML في المتصفح
+            setTimeout(() => {
+                const uiRoot = document.getElementById('customers-ui-root') || container;
+                initCustomersUI(uiRoot);
+            }, 50);
+        }
 
     } catch (error) {
-        console.error(`❌ خطأ:`, error);
-        container.innerHTML = `<div style="padding:20px; color:red;">تعذر تحميل القسم: ${moduleName}</div>`;
+        console.error("❌ خطأ في التنقل:", error);
     }
-}
-
-function initializeModuleLogic(moduleName) {
-    setTimeout(() => {
-        if (moduleName === 'customers') {
-            // نمرر الحاوية الصحيحة لموديول العملاء
-            const container = document.getElementById('module-container');
-            if (container) initCustomers(container);
-        }
-    }, 100);
 }
 
 function handleRoute() {
@@ -68,7 +52,6 @@ function handleRoute() {
     switchModule(moduleName);
 }
 
-// التشغيل
 window.addEventListener('load', handleRoute);
 window.addEventListener('hashchange', handleRoute);
 
