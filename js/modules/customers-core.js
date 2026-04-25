@@ -1,7 +1,7 @@
 /**
- * fi-khidmatik/js/modules/customers-core.js
- * المحرك الرئيسي لإدارة بيانات العملاء - منصة Tera Gateway
- * متوافق مع الحقول: (name, phone, email, district, createdAt)
+ * customers-core.js - Tera Gateway
+ * المحرك الرئيسي لإدارة بيانات العملاء - متوافق مع هيكلية الحقول الشاملة
+ * المسميات المعتمدة: (name, Phone, Email, country, city, district, street, buildingNo, additionalNo, postalCode, poBox, CreatedAt)
  */
 
 import { db } from '../core/firebase.js'; 
@@ -18,29 +18,28 @@ import {
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// المرجع الرئيسي لمجموعة العملاء في قاعدة البيانات
+// المرجع الرئيسي لمجموعة العملاء في قاعدة بيانات تيرا
 const customersRef = collection(db, "customers");
 
 /**
- * جلب جميع العملاء مرتبين حسب تاريخ الإنشاء
- * تم ضبط الحقل ليكون 'createdAt' ليتطابق مع بياناتك الفعلية
+ * جلب جميع العملاء مرتبين حسب تاريخ الإضافة (CreatedAt)
  */
 export const fetchAllCustomers = async function() {
     try {
-        console.log("🔄 جاري محاولة جلب بيانات العملاء من تيرا...");
+        console.log("🔄 جاري محاولة جلب بيانات العملاء من Tera Gateway...");
         
-        // محاولة جلب مرتبة (تتطلب وجود حقل createdAt في المستندات)
-        const q = query(customersRef, orderBy("createdAt", "desc"));
+        // محاولة جلب مرتبة بالأحدث أولاً بناءً على مسمى الحقل في قاعدتك
+        const q = query(customersRef, orderBy("CreatedAt", "desc"));
         const snapshot = await getDocs(q);
         
-        console.log(`✅ تم جلب ${snapshot.size} عميل بنجاح (مرتب).`);
+        console.log(`✅ تم جلب ${snapshot.size} عميل بنجاح (مرتب بالأحدث).`);
         return snapshot;
     } catch (error) {
-        console.warn("⚠️ فشل الجلب المرتب (ربما بسبب نقص الفهرس أو اختلاف المسمى):", error.message);
+        console.warn("⚠️ فشل الجلب المرتب (قد يحتاج لإنشاء Index في Firebase):", error.message);
         
-        // جلب خام بدون ترتيب لضمان استمرار عمل النظام في كل الظروف
+        // جلب خام لضمان عدم توقف النظام في حال عدم وجود فهرس
         const rawSnapshot = await getDocs(customersRef);
-        console.log(`✅ تم جلب ${rawSnapshot.size} عميل (جلب خام).`);
+        console.log(`✅ تم جلب ${rawSnapshot.size} عميل (جلب خام بدون ترتيب).`);
         return rawSnapshot;
     }
 };
@@ -61,34 +60,35 @@ export const fetchCustomerById = async function(id) {
 };
 
 /**
- * إضافة عميل جديد مع طابع زمني تلقائي
+ * إضافة عميل جديد لمنصة تيرا مع الحقول الشاملة
  */
 export const addCustomer = async function(customerData) {
     try {
+        // نضمن استخدام serverTimestamp لضمان دقة التوقيت
         return await addDoc(customersRef, {
             ...customerData,
-            createdAt: serverTimestamp(), // استخدام الحرف الصغير ليتوافق مع بياناتك
+            CreatedAt: serverTimestamp(),
             system_origin: "Tera Gateway",
-            region: "Hail"
+            region: "Hail" // توثيق المنطقة لبيانات تيرا في حائل
         });
     } catch (error) {
-        console.error("❌ فشل إضافة العميل:", error);
+        console.error("❌ فشل إضافة العميل لقاعدة البيانات:", error);
         throw error;
     }
 };
 
 /**
- * تحديث بيانات عميل موجود
+ * تحديث بيانات عميل موجود (يشمل كافة حقول العنوان والاتصال)
  */
 export const updateCustomer = async function(id, updatedData) {
     try {
         const docRef = doc(db, "customers", id);
         return await updateDoc(docRef, {
             ...updatedData,
-            updatedAt: serverTimestamp() // التوافق مع حقل updatedAt الموجود لديك
+            LastUpdate: serverTimestamp() // إضافة حقل لتتبع آخر تحديث
         });
     } catch (error) {
-        console.error("❌ فشل تحديث البيانات:", error);
+        console.error("❌ فشل تحديث بيانات العميل:", error);
         throw error;
     }
 };
@@ -100,6 +100,7 @@ export const removeCustomer = async function(id) {
     try {
         const docRef = doc(db, "customers", id);
         await deleteDoc(docRef);
+        console.log(`🗑️ تم حذف العميل ذو المعرف ${id} بنجاح.`);
         return true;
     } catch (error) {
         console.error("❌ فشل عملية الحذف:", error);
@@ -107,6 +108,7 @@ export const removeCustomer = async function(id) {
     }
 };
 
+// التصدير الافتراضي لدعم طرق الاستيراد المختلفة
 export default { 
     fetchAllCustomers, 
     fetchCustomerById, 
