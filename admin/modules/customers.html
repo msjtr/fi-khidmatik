@@ -23,7 +23,7 @@
             <button class="close-btn" onclick="closeCustomerModal()">&times;</button>
         </div>
         
-        <form id="customer-form" onsubmit="handleCustomerSubmit(event)">
+        <form id="customer-form">
             <div class="modal-body">
                 <div class="form-section">
                     <h4><i class="fas fa-address-card"></i> المعلومات الأساسية</h4>
@@ -33,22 +33,22 @@
                             <input type="text" id="cust-name" name="name" required placeholder="أدخل الاسم الرباعي">
                         </div>
                         <div class="form-group">
-                            <label>البريد الإلكتروني (Email)</label>
+                            <label>البريد الإلكتروني</label>
                             <input type="email" id="cust-email" name="Email" placeholder="example@mail.com">
                         </div>
                         <div class="form-group phone-group">
                             <label>رقم الجوال</label>
                             <div class="phone-inputs">
                                 <select id="cust-country-code" name="countryCode">
-                                    <option value="966">🇸🇦 +966</option>
-                                    <option value="971">🇦🇪 +971</option>
-                                    <option value="965">🇰🇼 +965</option>
+                                    <option value="+966">🇸🇦 +966</option>
+                                    <option value="+971">🇦🇪 +971</option>
+                                    <option value="+965">🇰🇼 +965</option>
                                 </select>
                                 <input type="tel" id="cust-phone" name="Phone" required placeholder="5xxxxxxxx">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>تصنيف العميل (اختياري)</label>
+                            <label>تصنيف العميل</label>
                             <select id="cust-tag" name="status">
                                 <option value="عادي">عميل عادي</option>
                                 <option value="مميز">⭐ عميل مميز</option>
@@ -64,84 +64,128 @@
                     <h4><i class="fas fa-map-location-dot"></i> تفاصيل العنوان الوطني</h4>
                     <div class="form-grid quad">
                         <div class="form-group">
-                            <label>الدولة (country)</label>
+                            <label>الدولة</label>
                             <input type="text" id="cust-country" name="country" value="السعودية">
                         </div>
                         <div class="form-group">
-                            <label>المدينة (city)</label>
+                            <label>المدينة</label>
                             <input type="text" id="cust-city" name="city" required>
                         </div>
                         <div class="form-group">
-                            <label>الحي (district)</label>
+                            <label>الحي</label>
                             <input type="text" id="cust-district" name="district">
                         </div>
                         <div class="form-group">
-                            <label>الشارع (street)</label>
+                            <label>الشارع</label>
                             <input type="text" id="cust-street" name="street">
                         </div>
                     </div>
                     <div class="form-grid quad">
                         <div class="form-group">
-                            <label>رقم المبنى (buildingNo)</label>
+                            <label>رقم المبنى</label>
                             <input type="text" id="cust-building" name="buildingNo">
                         </div>
                         <div class="form-group">
-                            <label>الرقم الإضافي (additionalNo)</label>
+                            <label>الرقم الإضافي</label>
                             <input type="text" id="cust-additional" name="additionalNo">
                         </div>
                         <div class="form-group">
-                            <label>الرمز البريدي (postalCode)</label>
+                            <label>الرمز البريدي</label>
                             <input type="text" id="cust-postal" name="postalCode">
                         </div>
                         <div class="form-group">
-                            <label>صندوق البريد (poBox)</label>
+                            <label>صندوق البريد</label>
                             <input type="text" id="cust-pobox" name="poBox">
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section">
-                    <h4><i class="fas fa-pen-nib"></i> ملاحظات العميل</h4>
+                    <h4><i class="fas fa-pen-nib"></i> ملاحظات إضافية</h4>
                     <div class="form-group full-width">
-                        <textarea id="cust-notes" name="notes" placeholder="اكتب ملاحظاتك هنا... يدعم هذا المربع التفاصيل الفنية كاملة"></textarea>
+                        <textarea id="cust-notes" name="notes" placeholder="اكتب ملاحظاتك هنا..."></textarea>
                     </div>
                 </div>
             </div>
             
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="closeCustomerModal()">إلغاء</button>
-                <button type="submit" class="btn-save">حفظ بيانات العميل</button>
+                <button type="submit" class="btn-save">حفظ العميل</button>
             </div>
         </form>
     </div>
 </div>
 
+<script>
+    /**
+     * التحكم في إغلاق المودال
+     */
+    function closeCustomerModal() {
+        const modal = document.getElementById('customer-modal');
+        if (modal) modal.style.display = 'none';
+        document.getElementById('customer-form').reset();
+    }
+
+    /**
+     * ربط الحدث عند إرسال النموذج (Submit)
+     */
+    document.getElementById('customer-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // تجميع البيانات
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        
+        // دمج رقم الجوال مع المفتاح
+        data.Phone = `${data.countryCode} ${data.Phone}`;
+        
+        try {
+            // استدعاء دالة الإضافة من الموديول (Core)
+            // ملاحظة: يتم تعريفها في window عبر customers-ui.js
+            if (window.handleCustomerAdd) {
+                await window.handleCustomerAdd(data);
+                closeCustomerModal();
+            } else {
+                console.error("دالة الإضافة غير معرفة في window");
+            }
+        } catch (error) {
+            console.error("خطأ أثناء الحفظ:", error);
+        }
+    });
+</script>
+
 <style>
-    /* تنسيقات إضافية سريعة للملف */
-    .module-header-tera { margin-bottom: 25px; padding: 10px; border-bottom: 2px solid #f1f5f9; }
-    .header-title h2 { color: #1e293b; font-size: 1.5rem; margin-bottom: 5px; }
-    .header-title p { color: #64748b; font-size: 0.9rem; }
+    /* التنسيقات الخاصة بصفحة العملاء */
+    .module-header-tera { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; }
+    .header-title h2 { color: #0f172a; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+    .header-title p { color: #64748b; font-size: 0.85rem; margin-top: 4px; }
     
-    .form-section { margin-bottom: 20px; padding: 15px; background: #fafafa; border-radius: 8px; }
-    .form-section.highlight { background: #f0f7ff; border: 1px solid #e0e7ff; }
-    .form-section h4 { font-size: 0.95rem; color: #1e293b; margin-bottom: 15px; border-right: 3px solid #3b82f6; padding-right: 10px; }
+    .form-section { margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9; }
+    .form-section.highlight { background: #f0f7ff; border-color: #e0e7ff; }
+    .form-section h4 { font-size: 0.9rem; color: #334155; margin-bottom: 15px; border-right: 4px solid #3b82f6; padding-right: 10px; }
     
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .form-grid.quad { grid-template-columns: repeat(4, 1fr); }
     
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
-    .form-group label { font-size: 0.8rem; font-weight: bold; color: #475569; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.8rem; font-weight: 700; color: #475569; }
     .form-group input, .form-group select, .form-group textarea { 
-        padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-family: 'Tajawal', sans-serif;
+        padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; transition: 0.2s;
     }
+    .form-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
     
-    .phone-inputs { display: flex; gap: 5px; }
-    .phone-inputs select { width: 90px; }
-    .phone-inputs input { flex: 1; }
-    
+    .phone-inputs { display: flex; gap: 8px; }
+    .phone-inputs select { width: 100px; background: #fff; }
     .full-width { grid-column: span 2; }
-    #cust-notes { min-height: 100px; resize: vertical; }
     
-    .loading-state { text-align: center; padding: 50px; color: #94a3b8; }
-    .loading-state i { font-size: 2rem; margin-bottom: 10px; }
+    .tera-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-content { background: #fff; width: 90%; max-width: 850px; border-radius: 16px; overflow: hidden; animation: slideUp 0.3s ease; }
+    .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fcfcfc; }
+    .modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
+    .modal-footer { padding: 15px 25px; background: #f8fafc; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 12px; }
+    
+    .btn-save { background: #1e293b; color: #fff; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-cancel { background: #fff; border: 1px solid #e2e8f0; padding: 10px 25px; border-radius: 8px; cursor: pointer; }
+
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>
