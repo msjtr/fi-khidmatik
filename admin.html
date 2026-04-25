@@ -1,62 +1,158 @@
+# تنفيذ إنشاء ملف HTML متكامل بناءً على طلب المستخدم
+from weasyprint import HTML
+
+html_content = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tera Gateway | لوحة التحكم</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/fi-khidmatik/css/admin.css">
+    <link rel="stylesheet" href="/fi-khidmatik/css/customers.css">
+
+    <style>
+        :root { --primary: #e67e22; --dark: #1e293b; --bg: #f8fafc; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; overflow: hidden; }
+        .app-shell { display: flex; flex-direction: column; height: 100vh; }
+        .app-header { background: white; height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 1001; }
+        .app-body { display: flex; flex: 1; overflow: hidden; }
+        .app-sidebar { width: 260px; background: white; border-left: 1px solid #eee; display: flex; flex-direction: column; z-index: 1000; }
+        .app-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .nav-item { padding: 14px 22px; display: flex; align-items: center; gap: 12px; color: #64748b; text-decoration: none; font-weight: 600; transition: 0.3s; border-radius: 0 50px 50px 0; margin-left: 15px; cursor: pointer; }
+        .nav-item:hover, .nav-item.active { background: #fef5e8; color: var(--primary); border-right: 4px solid var(--primary); }
+        
+        /* Modal Style */
+        .tera-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .tera-modal-content { background: white; width: 95%; max-width: 600px; padding: 30px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+        
+        .input-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 700; color: var(--dark); }
+        .tera-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-family: inherit; transition: 0.3s; box-sizing: border-box; }
+        .tera-input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1); }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <header class="app-header">
+        <div class="app-brand" style="font-weight: 800; font-size: 1.3rem;"><strong>Tera Gateway</strong></div>
+        <div id="current-datetime" style="color: #64748b; font-weight: 600; font-size: 0.9rem;"></div>
+    </header>
+
+    <div class="app-body">
+        <aside class="app-sidebar">
+            <nav class="side-nav" style="padding-top: 20px;">
+                <a class="nav-item" data-module="dashboard"><i class="fas fa-chart-pie"></i> الإحصائيات</a>
+                <a class="nav-item active" data-module="customers"><i class="fas fa-users-gear"></i> العملاء</a>
+                <a class="nav-item" data-module="orders"><i class="fas fa-receipt"></i> الطلبات</a>
+                <a class="nav-item" data-module="settings"><i class="fas fa-gears"></i> الإعدادات</a>
+            </nav>
+        </aside>
+
+        <main class="app-content">
+            <div id="module-container"></div>
+        </main>
+    </div>
+</div>
+
 <div id="customer-modal" class="tera-modal-overlay">
     <div class="tera-modal-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 id="modal-title" style="margin:0; font-size: 1.3rem; color: var(--dark);">إضافة عميل</h2>
-            <button id="delete-btn" onclick="deleteCustomer()" style="display:none; background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:12px; cursor:pointer; font-weight:bold;">
-                <i class="fas fa-trash-can"></i> حذف
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 id="modal-title" style="margin:0;">إضافة عميل</h2>
+            <button id="delete-btn" onclick="deleteCustomer()" style="display:none; background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:bold;">
+                <i class="fas fa-trash-can"></i> حذف العميل
             </button>
         </div>
 
         <form id="customer-form">
             <input type="hidden" id="edit-customer-id">
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="input-group">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:700;">الاسم الكامل</label>
-                    <input type="text" id="cust-name" required style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="cust-name" class="tera-input" required>
                 </div>
                 <div class="input-group">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:700;">البريد الإلكتروني</label>
-                    <input type="email" id="cust-email" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="cust-email" class="tera-input">
                 </div>
                 <div class="input-group">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:700;">رقم الجوال</label>
-                    <input type="tel" id="cust-phone" required style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                    <label>رقم الجوال</label>
+                    <input type="tel" id="cust-phone" class="tera-input" required>
                 </div>
                 <div class="input-group">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:700;">رقم الهوية</label>
-                    <input type="text" id="cust-idNumber" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                    <label>رقم الهوية</label>
+                    <input type="text" id="cust-idNumber" class="tera-input">
                 </div>
                 <div class="input-group">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:700;">المدينة</label>
-                    <input type="text" id="cust-city" value="حائل" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                    <label>المدينة</label>
+                    <input type="text" id="cust-city" class="tera-input" value="حائل">
                 </div>
                 <div class="input-group">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:700;">الحي</label>
-                    <input type="text" id="cust-district" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+                    <label>الحي</label>
+                    <input type="text" id="cust-district" class="tera-input">
                 </div>
             </div>
 
-            <div id="join-date-box" style="margin-top:15px; padding:10px; background:#f8fafc; border-radius:10px; display:none;">
-                <span style="font-size:0.8rem; color:#64748b;"><i class="fas fa-calendar-alt"></i> تاريخ الانضمام: </span>
-                <span id="join-date-val" style="font-size:0.8rem; font-weight:bold; color:var(--dark);"></span>
+            <div id="join-date-box" style="margin-top:20px; padding:15px; background:#f8fafc; border-radius:14px; display:none; border: 1px dashed #e2e8f0;">
+                <span style="font-size:0.85rem; color:#64748b;"><i class="fas fa-calendar-check"></i> تاريخ الانضمام للنظام: </span>
+                <span id="join-date-val" style="font-weight:800; color:var(--dark);"></span>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
-                <button type="submit" class="btn-primary-tera" style="padding:12px 30px;">حفظ التغييرات</button>
-                <button type="button" onclick="closeCustomerModal()" style="padding:12px 20px; border:none; background:#f1f5f9; border-radius:12px; cursor:pointer;">إلغاء</button>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 30px;">
+                <button type="submit" class="btn-primary-tera" style="padding:14px 35px;">حفظ البيانات</button>
+                <button type="button" onclick="closeCustomerModal()" style="padding:14px 25px; border:none; background:#f1f5f9; border-radius:14px; cursor:pointer; font-weight:700;">إلغاء</button>
             </div>
         </form>
     </div>
 </div>
 
+<script type="module">
+    import { initCustomers } from '/fi-khidmatik/js/modules/customers-core.js';
+    
+    const container = document.getElementById('module-container');
+
+    async function loadModule(name) {
+        container.innerHTML = '<div style="text-align:center; padding:100px;"><i class="fas fa-circle-notch fa-spin fa-3x" style="color:var(--primary)"></i></div>';
+        if (name === 'customers') {
+            await initCustomers(container);
+        } else {
+            container.innerHTML = `<div style="text-align:center; padding:100px;"><h2>قسم ${name} تحت التطوير</h2></div>`;
+        }
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            loadModule(item.getAttribute('data-module'));
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => loadModule('customers'));
+</script>
+
 <script>
-    // الدوال العامة للتحكم بالنافذة والحذف
+    // الوقت الحي
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('current-datetime').innerText = now.toLocaleDateString('ar-SA', {
+            weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+        });
+    }, 1000);
+
+    // التحكم في المودال
     window.openCustomerModal = async (id = null) => {
-        document.getElementById('customer-form').reset();
-        document.getElementById('customer-modal').style.display = 'flex';
+        const modal = document.getElementById('customer-modal');
+        const form = document.getElementById('customer-form');
         const delBtn = document.getElementById('delete-btn');
         const joinBox = document.getElementById('join-date-box');
+
+        form.reset();
+        modal.style.display = 'flex';
 
         if (id) {
             document.getElementById('modal-title').innerText = "تعديل بيانات العميل";
@@ -72,11 +168,19 @@
     };
 
     window.closeCustomerModal = () => document.getElementById('customer-modal').style.display = 'none';
-    
+
     window.deleteCustomer = async () => {
         const id = document.getElementById('edit-customer-id').value;
-        if (confirm("هل أنت متأكد من حذف هذا العميل من نظام Tera؟")) {
+        if (confirm("هل أنت متأكد من حذف هذا العميل من منصة تيرا؟ لا يمكن التراجع عن هذا الإجراء.")) {
             if (window.handleDelete) await window.handleDelete(id);
         }
     };
 </script>
+
+</body>
+</html>
+"""
+
+# حفظ الملف
+with open("admin.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
