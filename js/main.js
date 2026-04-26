@@ -1,6 +1,6 @@
 /**
  * main.js - Tera Gateway 
- * تم تنظيف المسارات تماماً لتعمل على GitHub Pages
+ * تم إضافة Cache Buster لضمان تجاوز أخطاء الـ 404 القديمة
  */
 
 import { APP_CONFIG } from './core/firebase.js';
@@ -24,25 +24,28 @@ async function switchModule(moduleName) {
     try {
         container.innerHTML = `<div style="text-align:center; padding:100px; color:#2563eb;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>`;
 
-        const response = await fetch(path);
+        // إضافة تايق زمني لمنع المتصفح من استخدام النسخة القديمة
+        const response = await fetch(`${path}?v=${Date.now()}`);
         if (!response.ok) throw new Error(`404`);
         
         const html = await response.text();
         container.innerHTML = html;
 
         if (moduleName === 'customers') {
-            // السطر 31: الربط المباشر والآمن بملف الـ CSS في المجلد الصحيح
+            // السطر 31: الربط المباشر بملف التنسيق في المجلد الصحيح css/
             const styleId = 'module-customers-style';
             if (!document.getElementById(styleId)) {
                 const link = document.createElement('link');
                 link.id = styleId;
                 link.rel = 'stylesheet';
-                link.href = 'css/customers.css'; // تم التأكيد على المسار الصحيح هنا
+                link.href = `css/customers.css?v=${Date.now()}`; 
                 document.head.appendChild(link);
             }
 
-            // تحميل كود التشغيل فقط
-            const module = await import('./modules/customers-ui.js');
+            // تحميل الموديول مع كاسر التخزين المؤقت
+            const modulePath = `./modules/customers-ui.js?v=${Date.now()}`;
+            const module = await import(modulePath);
+            
             if (module && module.initCustomersUI) {
                 setTimeout(() => {
                     const contentDiv = document.getElementById('customers-module-content') || container;
