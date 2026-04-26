@@ -1,6 +1,6 @@
 /**
- * customers-ui.js - Tera Gateway
- * الإصدار المتوافق مع هيكلية العناوين الوطنية ومفاتيح الدول
+ * customers-ui.js - Tera Gateway 
+ * الإصدار المصلح: معالجة البيانات، ربط النوافذ، وتصحيح الأخطاء البرمجية
  */
 
 import * as Core from './customers-core.js';
@@ -10,33 +10,34 @@ let editingId = null;
 export async function initCustomersUI(container) {
     if (!container) return;
 
+    // بناء الهيكل الداخلي للموديول
     container.innerHTML = `
         <div class="cust-ui-wrapper">
             <div class="stats-grid">
                 <div class="stat-item"><span>إجمالي العملاء</span><strong id="stat-total">0</strong></div>
                 <div class="stat-item success"><span>عناوين مكتملة</span><strong id="stat-complete">0</strong></div>
-                <div class="stat-item"><span>بملاحظات</span><strong id="stat-notes">0</strong></div>
+                <div class="stat-item warning"><span>بملاحظات</span><strong id="stat-notes">0</strong></div>
             </div>
 
-            <div class="action-bar">
+            <div class="toolbar-card">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="cust-filter" placeholder="بحث بالاسم، الجوال، أو الرمز البريدي...">
+                    <input type="text" id="cust-filter" class="tera-input" placeholder="بحث بالاسم، الجوال، أو الرمز البريدي...">
                 </div>
-                <button class="btn-tera" onclick="showAddCustomerModal()">
+                <button class="btn btn-primary" onclick="openAddCustomer()">
                     <i class="fas fa-user-plus"></i> إضافة عميل جديد
                 </button>
             </div>
 
-            <div class="table-responsive">
+            <div class="table-container">
                 <table class="tera-table">
                     <thead>
                         <tr>
                             <th>العميل</th>
                             <th>الاتصال</th>
-                            <th>العنوان الوطني (الرمز: ${'postalCode'})</th>
+                            <th>العنوان الوطني</th>
                             <th>المبنى / الإضافي</th>
-                            <th>الإجراءات</th>
+                            <th class="sticky-actions">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="customers-list-render">
@@ -47,12 +48,21 @@ export async function initCustomersUI(container) {
         </div>
     `;
     
+    // تشغيل العمليات الأساسية
     await loadAndRender();
     setupSearch();
+    
+    // تصحيح: ربط دالة الحفظ بالنموذج الموجود في HTML الرئيسي
+    const form = document.getElementById('customer-form');
+    if (form) {
+        form.onsubmit = (e) => handleCustomerSubmit(e);
+    }
 }
 
 async function loadAndRender() {
     const list = document.getElementById('customers-list-render');
+    if (!list) return;
+
     const snapshot = await Core.fetchAllCustomers();
     list.innerHTML = '';
     
@@ -67,45 +77,53 @@ async function loadAndRender() {
         if (d.postalCode && d.buildingNo) stats.complete++;
 
         list.innerHTML += `
-            <tr class="cust-row">
+            <tr class="customer-row">
                 <td>
-                    <div class="avatar-cell">
-                        <div class="avatar-icon">${(d.name || '?').charAt(0)}</div>
-                        <div><b>${d.name || 'بدون اسم'}</b><br><small>${d.Email || '-'}</small></div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:35px; height:35px; background:#eff6ff; color:#2563eb; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold;">
+                            ${(d.name || '?').charAt(0)}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;">${d.name || 'بدون اسم'}</div>
+                            <small style="color:#64748b;">${d.type || 'فرد'}</small>
+                        </div>
                     </div>
                 </td>
-                <td dir="ltr" style="text-align:center;">${d.Phone || '-'}</td>
+                <td dir="ltr" style="text-align:right;">
+                    <div>${d.Phone || '-'}</div>
+                    <small style="color:#64748b;">${d.Email || '-'}</small>
+                </td>
                 <td>
-                    <div class="addr-details">
-                        <b>${d.city || '-'}</b> - ${d.district || '-'}<br>
-                        <span>${d.street || '-'}</span> | <small>الرمز: ${d.postalCode || '-'}</small>
+                    <div style="font-size:0.85rem;">
+                        <strong>${d.city || '-'}</strong> - ${d.district || '-'}<br>
+                        <span style="color:#64748b;">${d.street || '-'} | الرمز: ${d.postalCode || '-'}</span>
                     </div>
                 </td>
                 <td style="text-align:center;">
-                    مبنى: ${d.buildingNo || '-'}<br>إضافي: ${d.additionalNo || '-'}
-                </td>
-                <td>
-                    <div class="row-actions">
-                        <button onclick="handlePrint('${id}')"><i class="fas fa-print"></i></button>
-                        <button onclick="handleEdit('${id}')"><i class="fas fa-pen"></i></button>
-                        <button onclick="handleDelete('${id}')" class="text-danger"><i class="fas fa-trash"></i></button>
+                    <div style="font-size:0.85rem;">
+                        مبنى: ${d.buildingNo || '-'}<br>إضافي: ${d.additionalNo || '-'}
                     </div>
+                </td>
+                <td class="sticky-actions">
+                    <button class="btn-sm btn-print" onclick="handlePrint('${id}')" title="طباعة"><i class="fas fa-print"></i></button>
+                    <button class="btn-sm btn-edit" onclick="handleEdit('${id}')" title="تعديل"><i class="fas fa-pen"></i></button>
+                    <button class="btn-sm btn-delete" onclick="handleDelete('${id}')" title="حذف"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>`;
     });
     updateStats(stats);
 }
 
-// --- إدارة المودال (النموذج) ---
+// --- إدارة النوافذ (Modals) ---
 
-window.showAddCustomerModal = () => {
+window.openAddCustomer = () => {
     editingId = null;
-    document.getElementById('customer-form').reset();
-    // تصفير محرر النصوص إذا كنت تستخدم TinyMCE أو CKEditor
-    if (window.tinymce) tinymce.get('cust-notes').setContent('');
+    const form = document.getElementById('customer-form');
+    if (form) form.reset();
     
-    document.getElementById('modal-title').innerText = "إضافة عميل جديد لتيرا";
-    document.getElementById('customer-modal').style.display = 'flex';
+    if (window.quill) window.quill.setContents([]);
+    
+    if (window.openCustomerModal) window.openCustomerModal("إضافة عميل جديد لتيرا");
 };
 
 window.handleEdit = async (id) => {
@@ -113,7 +131,7 @@ window.handleEdit = async (id) => {
     const d = await Core.fetchCustomerById(id);
     if (!d) return;
 
-    // تعبئة الحقول بناءً على مسمياتك الدقيقة
+    // تعبئة الحقول (تأكد من تطابق IDs مع ملف customers.html)
     document.getElementById('cust-name').value = d.name || '';
     document.getElementById('cust-email').value = d.Email || '';
     document.getElementById('cust-country').value = d.country || 'السعودية';
@@ -122,93 +140,102 @@ window.handleEdit = async (id) => {
     document.getElementById('cust-street').value = d.street || '';
     document.getElementById('cust-building').value = d.buildingNo || '';
     document.getElementById('cust-additional').value = d.additionalNo || '';
-    document.getElementById('cust-postal').value = d.postalCode || '';
+    document.getElementById('cust-zip').value = d.postalCode || ''; // تم تغيير المعرف ليتطابق مع ملف HTML
     document.getElementById('cust-pobox').value = d.poBox || '';
+    document.getElementById('cust-status').value = d.status || 'نشط';
+    document.getElementById('cust-type').value = d.type || 'فرد';
     
-    // التعامل مع الملاحظات (محرر النصوص)
-    if (window.tinymce) {
-        tinymce.get('cust-notes').setContent(d.notes || '');
-    } else {
-        document.getElementById('cust-notes').value = d.notes || '';
-    }
-
-    // فصل مفتاح الدولة عن الرقم
+    // التعامل مع مفتاح الدولة والرقم
     if (d.Phone && d.Phone.includes(' ')) {
         const parts = d.Phone.split(' ');
-        document.getElementById('cust-country-code').value = parts[0];
+        document.getElementById('cust-key').value = parts[0];
         document.getElementById('cust-phone').value = parts[1];
     } else {
         document.getElementById('cust-phone').value = d.Phone || '';
     }
 
-    document.getElementById('modal-title').innerText = "تعديل بيانات العميل";
-    document.getElementById('customer-modal').style.display = 'flex';
+    if (window.quill) {
+        window.quill.root.innerHTML = d.notes || '';
+    }
+
+    if (window.openCustomerModal) window.openCustomerModal("تعديل بيانات العميل");
 };
 
-window.handleCustomerSubmit = async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const formProps = Object.fromEntries(fd.entries());
+// الدالة المسؤولة عن الحفظ (تُستدعى من الزر أو الفورم)
+window.saveCustomerData = async () => {
+    const name = document.getElementById('cust-name').value;
+    const phone = document.getElementById('cust-phone').value;
+    const key = document.getElementById('cust-key').value;
 
-    // دمج المفتاح مع الرقم
-    const fullPhone = `${formProps.countryCode} ${formProps.phoneNo}`;
-    
-    // جلب الملاحظات من محرر النصوص
-    const notesContent = window.tinymce ? tinymce.get('cust-notes').getContent() : formProps.notes;
+    if (!name || !phone) {
+        alert("يرجى إدخال الاسم ورقم الجوال على الأقل.");
+        return;
+    }
 
     const finalData = {
-        name: formProps.name,
-        Email: formProps.Email,
-        Phone: fullPhone,
-        country: formProps.country,
-        city: formProps.city,
-        district: formProps.district,
-        street: formProps.street,
-        buildingNo: formProps.buildingNo,
-        additionalNo: formProps.additionalNo,
-        postalCode: formProps.postalCode,
-        poBox: formProps.poBox,
-        notes: notesContent
+        name: name,
+        Email: document.getElementById('cust-email').value,
+        Phone: `${key} ${phone}`,
+        country: document.getElementById('cust-country').value,
+        city: document.getElementById('cust-city').value,
+        district: document.getElementById('cust-district').value,
+        street: document.getElementById('cust-street').value,
+        buildingNo: document.getElementById('cust-building').value,
+        additionalNo: document.getElementById('cust-additional').value,
+        postalCode: document.getElementById('cust-zip').value,
+        poBox: document.getElementById('cust-pobox').value,
+        status: document.getElementById('cust-status').value,
+        type: document.getElementById('cust-type').value,
+        notes: window.quill ? window.quill.root.innerHTML : "",
+        updatedAt: new Date()
     };
 
-    const btn = e.target.querySelector('.btn-save');
-    btn.disabled = true;
-
     try {
-        if (editingId) await Core.updateCustomer(editingId, finalData);
-        else await Core.addCustomer(finalData);
+        if (editingId) {
+            await Core.updateCustomer(editingId, finalData);
+        } else {
+            finalData.createdAt = new Date();
+            await Core.addCustomer(finalData);
+        }
 
-        window.closeCustomerModal();
+        if (window.closeCustomerModal) window.closeCustomerModal();
         await loadAndRender();
     } catch (err) {
         alert("فشل الحفظ: " + err.message);
-    } finally {
-        btn.disabled = false;
     }
 };
 
-// الدوال المساعدة
+// --- الدوال المساعدة ---
+
 function updateStats(s) {
-    document.getElementById('stat-total').innerText = s.total;
-    document.getElementById('stat-complete').innerText = s.complete;
-    document.getElementById('stat-notes').innerText = s.notes;
+    if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = s.total;
+    if(document.getElementById('stat-complete')) document.getElementById('stat-complete').innerText = s.complete;
+    if(document.getElementById('stat-notes')) document.getElementById('stat-notes').innerText = s.notes;
 }
 
 function setupSearch() {
-    document.getElementById('cust-filter').addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        document.querySelectorAll('.cust-row').forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+    const filterInput = document.getElementById('cust-filter');
+    if (filterInput) {
+        filterInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.customer-row').forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+            });
         });
-    });
+    }
 }
 
 window.handleDelete = async (id) => {
-    if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
-        await Core.removeCustomer(id);
-        await loadAndRender();
+    if (confirm('هل أنت متأكد من حذف هذا العميل نهائياً من تيرا؟')) {
+        try {
+            await Core.removeCustomer(id);
+            await loadAndRender();
+        } catch (err) {
+            alert("خطأ في الحذف: " + err.message);
+        }
     }
 };
 
-window.handlePrint = (id) => window.open(`customer-print.html?id=${id}`, '_blank');
-window.closeCustomerModal = () => document.getElementById('customer-modal').style.display = 'none';
+window.handlePrint = (id) => {
+    window.open(`admin/modules/customer-print.html?id=${id}`, '_blank');
+};
