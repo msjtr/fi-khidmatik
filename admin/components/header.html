@@ -5,7 +5,7 @@
         </button>
         
         <div class="app-brand">
-            <img src="./images/logo.png" 
+            <img src="images/logo.svg" 
                  alt="Tera Gateway" 
                  onerror="this.src='https://cdn-icons-png.flaticon.com/512/5968/5968322.png'"
                  class="header-logo">
@@ -15,7 +15,7 @@
 
     <div id="header-datetime" class="header-clock">
         <i class="fas fa-calendar-day" style="margin-left: 8px; opacity: 0.7;"></i>
-        <span id="time-display">-- : --</span>
+        <span id="time-display">جاري التحميل...</span>
     </div>
 </header>
 
@@ -64,7 +64,7 @@
     .sidebar-trigger:hover {
         background: var(--primary-tera);
         color: white;
-        transform: rotate(180deg);
+        transform: scale(1.05);
     }
 
     .app-brand {
@@ -77,7 +77,6 @@
         width: 35px;
         height: 35px;
         object-fit: contain;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
 
     .brand-text {
@@ -114,13 +113,12 @@
 
 <script>
     /**
-     * تحديث الساعة والتاريخ
+     * تحديث الساعة والتاريخ بأرقام إنجليزية وتنسيق عربي
      */
     function updateHeaderTime() {
         const timeEl = document.getElementById('time-display');
         if (timeEl) {
             const now = new Date();
-            // تنسيق التاريخ والوقت بناءً على لغة النظام مع أرقام إنجليزية
             const options = {
                 weekday: 'short',
                 day: 'numeric',
@@ -129,32 +127,28 @@
                 minute: '2-digit',
                 hour12: true
             };
+            // استخدم 'en-GB' لضمان بقاء الأرقام إنجليزية (123) كما تفضل في المراسلات
             const formatted = now.toLocaleDateString('en-GB', options);
             timeEl.innerText = formatted.replace(',', ' |');
         }
     }
 
-    // التنفيذ الأولي والمستمر
+    // تشغيل فوري للساعة
     updateHeaderTime();
-    if (window.teraInterval) clearInterval(window.teraInterval);
-    window.teraInterval = setInterval(updateHeaderTime, 60000);
+    
+    // منع تكرار الـ Interval
+    if (window.headerClockInterval) clearInterval(window.headerClockInterval);
+    window.headerClockInterval = setInterval(updateHeaderTime, 1000);
 
-    // تفعيل زر إغلاق/فتح السايدبار
-    document.getElementById('sidebar-toggle').addEventListener('click', () => {
-        // نستهدف المجلد الرئيسي المسمى sidebar-placeholder في admin.html
-        const sidebar = document.getElementById('sidebar-placeholder');
-        if (sidebar) {
-            sidebar.classList.toggle('collapsed');
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebar-state', isCollapsed ? 'collapsed' : 'expanded');
-        }
-    });
-
-    // استعادة حالة السايدبار عند التحميل
-    window.addEventListener('DOMContentLoaded', () => {
-        if (localStorage.getItem('sidebar-state') === 'collapsed') {
+    // تفعيل السايدبار
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    if (toggleBtn) {
+        toggleBtn.onclick = function() {
             const sidebar = document.getElementById('sidebar-placeholder');
-            if (sidebar) sidebar.classList.add('collapsed');
-        }
-    });
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+                localStorage.setItem('sidebar-state', sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+            }
+        };
+    }
 </script>
