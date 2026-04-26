@@ -95,3 +95,37 @@ function handleRoute() {
 window.addEventListener('load', handleRoute);
 window.addEventListener('hashchange', handleRoute);
 window.switchModule = switchModule;
+/**
+ * دالة ربط الأحداث العامة لجميع الأزرار في أي موديول يتم تحميله
+ */
+function bindGlobalEvents() {
+    // 1. أزرار الإغلاق (للمودالات أو النوافذ المنبثقة)
+    document.querySelectorAll('[data-bs-dismiss="modal"], .btn-close, .close-btn').forEach(btn => {
+        btn.onclick = () => {
+            const modal = btn.closest('.modal') || btn.closest('.glass-modal');
+            if (modal) modal.style.display = 'none';
+        };
+    });
+
+    // 2. أزرار الحفظ (التأكد من عدم تكرار الإرسال)
+    document.querySelectorAll('.btn-save, #saveChanges').forEach(btn => {
+        btn.onclick = (e) => {
+            console.log("Saving data...");
+            // هنا يتم استدعاء دالة الحفظ الخاصة بالموديول
+            if (typeof saveData === 'function') saveData(e);
+        };
+    });
+
+    // 3. أزرار التعديل
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.onclick = (e) => {
+            const id = btn.dataset.id;
+            console.log("Editing item:", id);
+            if (typeof editItem === 'function') editItem(id);
+        };
+    });
+}
+
+// تعديل دالة switchModule لاستدعاء الربط بعد التحميل
+// ابحث عن سطر container.innerHTML = html; وأضف بعده:
+// bindGlobalEvents();
