@@ -1,11 +1,11 @@
 /**
  * customers-core.js - Fi-Khidmatik Engine
- * المحرك الرئيسي لإدارة مجموعة 'customers' ونظام الاستيراد والسجلات
- * تم التعديل ليتوافق مع مسارات GitHub Pages ودعم الحقول الـ 17
+ * المحرك الرئيسي لإدارة مجموعة 'customers'
+ * المسار الصحيح: js/core/customers-core.js
  */
 
-// استخدام مسار نسبي صريح لضمان عمل الاستيراد في GitHub Pages
-import { db } from '../core/firebase.js'; 
+// استيراد قاعدة البيانات بمسار نسبي صحيح لبيئة GitHub Pages
+import { db } from './firebase.js'; 
 
 import { 
     collection, 
@@ -28,14 +28,14 @@ const customersRef = collection(db, "customers");
 export async function addCustomer(data) {
     try {
         const payload = {
-            // بيانات أساسية
+            // بيانات الاتصال الأساسية (1-4)
             name: data.name || '',
             phone: data.phone || '',
             countryCode: data.countryCode || '+966',
             email: data.email || '',
             
-            // العنوان الوطني
-            country: data.country || '',
+            // بيانات العنوان الوطني (5-12)
+            country: data.country || 'المملكة العربية السعودية',
             city: data.city || '',
             district: data.district || '',
             street: data.street || '',
@@ -44,19 +44,16 @@ export async function addCustomer(data) {
             postalCode: data.postalCode || '',
             poBox: data.poBox || '',
             
-            // بيانات إضافية
+            // بيانات الإدارة والتصنيف (13-14)
             notes: data.notes || '', // Rich Text من المحرر
             tag: data.tag || 'regular',
             
-            // الحقل 17: الصورة (مع حل بديل في حال فشل المسار المحلي)
-            image: data.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'C')}&background=random`,
-            
-            // طوابع زمنية تلقائية
+            // التوقيت الآلي (15-16)
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             
-            // توثيق النظام
-            system_origin: "Tera Gateway"
+            // الصورة (الحقل 17)
+            image: data.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'C')}&background=random`
         };
         
         return await addDoc(customersRef, payload);
@@ -70,13 +67,13 @@ export async function addCustomer(data) {
  * تحديث بيانات عميل موجود
  */
 export async function updateCustomer(id, data) {
-    if (!id) throw new Error("ID العميل مطلوب لإتمام عملية التحديث");
+    if (!id) throw new Error("ID العميل مفقود");
     
     try {
         const docRef = doc(db, "customers", id);
         return await updateDoc(docRef, {
             ...data,
-            updatedAt: serverTimestamp() // تحديث تلقائي عند كل تعديل
+            updatedAt: serverTimestamp() // تحديث تلقائي للوقت عند كل تعديل
         });
     } catch (error) {
         console.error("❌ فشل تحديث العميل:", error);
@@ -91,10 +88,7 @@ export async function fetchCustomerById(id) {
     if (!id) return null;
     try {
         const snap = await getDoc(doc(db, "customers", id));
-        if (snap.exists()) {
-            return { id: snap.id, ...snap.data() };
-        }
-        return null;
+        return snap.exists() ? { id: snap.id, ...snap.data() } : null;
     } catch (error) {
         console.error("❌ فشل جلب بيانات العميل:", error);
         return null;
@@ -102,20 +96,20 @@ export async function fetchCustomerById(id) {
 }
 
 /**
- * جلب جميع العملاء مرتبين بالأحدث
+ * جلب جميع العملاء مرتبين من الأحدث للأقدم
  */
 export async function fetchAllCustomers() {
     try {
         const q = query(customersRef, orderBy("createdAt", "desc"));
         return await getDocs(q);
     } catch (error) {
-        console.warn("⚠️ جاري الجلب بدون ترتيب (تأكد من إنشاء Index في Firestore):");
+        console.warn("⚠️ جاري الجلب بدون ترتيب (تأكد من إعداد الفهرس/Index):");
         return await getDocs(customersRef);
     }
 }
 
 /**
- * حذف عميل نهائياً
+ * حذف العميل نهائياً من قاعدة البيانات
  */
 export async function deleteCustomer(id) {
     try {
@@ -123,7 +117,7 @@ export async function deleteCustomer(id) {
         await deleteDoc(docRef);
         return true;
     } catch (error) {
-        console.error("❌ فشل حذف العميل:", error);
+        console.error("❌ فشل عملية الحذف:", error);
         return false;
     }
 }
