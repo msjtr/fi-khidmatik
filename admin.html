@@ -1,173 +1,81 @@
-<div id="customer-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-card shadow-lg">
-        <div class="modal-header">
-            <h3 id="modal-title"><i class="fas fa-user-plus"></i> إضافة عميل جديد</h3>
-            <button class="close-btn" onclick="closeCustomerModal()">&times;</button>
-        </div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | تيرا جيت واي</title>
+    
+    <link rel="icon" href="data:,">
 
-        <div class="modal-body">
-            <form id="customer-form">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="admin-container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <header id="header-container"></header>
+
+            <div id="content-area">
+                <div class="loading-spinner">جاري تحميل النظام...</div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modals-placeholder"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script type="module">
+        // استيراد الدوال الأساسية من الموديولات
+        import { initCustomersUI } from './js/modules/customers-ui.js';
+
+        async function initApp() {
+            try {
+                // أولاً: تحميل ملف المودالز المحدث الذي قمنا بتعديله
+                const modalRes = await fetch('components/modals.html');
+                document.getElementById('modals-placeholder').innerHTML = await modalRes.text();
+
+                // ثانياً: تشغيل واجهة العملاء وربطها بالجدول
+                const contentArea = document.getElementById('content-area');
+                await initCustomersUI(contentArea);
+
+                // ثالثاً: تفعيل محرر النصوص (Quill) بعد تحميل المودالز
+                window.quill = new Quill('#cust-notes-editor', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline'],
+                            [{ 'color': [] }],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link', 'clean']
+                        ]
+                    }
+                });
+
+                console.log("✅ تم تشغيل النظام بنجاح وربط جميع الأزرار.");
                 
-                <div class="form-section-header">البيانات الأساسية والهوية</div>
-                <div class="row-flex">
-                    <div class="photo-upload-zone">
-                        <div id="photo-preview" class="avatar-box">
-                            <i class="fas fa-user-tie fa-3x"></i>
-                        </div>
-                        <label class="upload-label">
-                            <i class="fas fa-camera"></i> رفع صورة
-                            <input type="file" id="cust-photo" hidden accept="image/*" onchange="previewCustomerPhoto(this)">
-                        </label>
-                    </div>
-                    
-                    <div class="grid-3-cols" style="flex-grow: 1;">
-                        <div class="input-group">
-                            <label>اسم العميل الكامل</label>
-                            <input type="text" id="cust-name" placeholder="أدخل الاسم الثلاثي" required>
-                        </div>
-                        <div class="input-group">
-                            <label>رقم الجوال</label>
-                            <input type="tel" id="cust-phone" dir="ltr" placeholder="5xxxxxxxx" required>
-                        </div>
-                        <div class="input-group">
-                            <label>البريد الإلكتروني</label>
-                            <input type="email" id="cust-email" placeholder="example@mail.com">
-                        </div>
-                    </div>
-                </div>
+            } catch (error) {
+                console.error("❌ فشل في تشغيل النظام:", error);
+            }
+        }
 
-                <div class="grid-4-cols">
-                    <div class="input-group">
-                        <label>مفتاح الدولة</label>
-                        <select id="cust-countryCode" class="select2-basic">
-                            <option value="+966" selected>السعودية +966</option>
-                            <option value="+971">الإمارات +971</option>
-                            <option value="+965">الكويت +965</option>
-                            <option value="+968">عمان +968</option>
-                            <option value="+973">البحرين +973</option>
-                            <option value="+962">الأردن +962</option>
-                            <option value="+20">مصر +20</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>اسم الدولة</label>
-                        <input type="text" id="cust-country" value="السعودية">
-                    </div>
-                    <div class="input-group">
-                        <label>حالة العميل</label>
-                        <select id="cust-status">
-                            <option value="نشط">نشط</option>
-                            <option value="معلق">معلق</option>
-                            <option value="موقوف">موقوف</option>
-                            <option value="مكتمل">مكتمل</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>تصنيف العميل</label>
-                        <select id="cust-category">
-                            <option value="فرد">فرد</option>
-                            <option value="شركة">شركة</option>
-                            <option value="مؤسسة">مؤسسة</option>
-                            <option value="VIP">عميل VIP</option>
-                            <option value="متعثر">عميل متعثر</option>
-                        </select>
-                    </div>
-                </div>
+        // بدء التشغيل
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
 
-                <div class="form-section-header">تفاصيل العنوان الوطني</div>
-                <div class="grid-4-cols">
-                    <div class="input-group"><label>المدينة</label><input type="text" id="cust-city"></div>
-                    <div class="input-group"><label>الحي</label><input type="text" id="cust-district"></div>
-                    <div class="input-group"><label>الشارع</label><input type="text" id="cust-street"></div>
-                    <div class="input-group"><label>رقم المبنى</label><input type="text" id="cust-buildingNo"></div>
-                    <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="cust-additionalNo"></div>
-                    <div class="input-group"><label>الرمز البريدي</label><input type="text" id="cust-postalCode"></div>
-                    <div class="input-group"><label>صندوق البريد</label><input type="text" id="cust-poBox"></div>
-                    <div class="input-group"><label>تاريخ الإضافة</label><input type="text" id="cust-createdAt" readonly class="readonly-input"></div>
-                </div>
-
-                <div class="form-section-header">الملاحظات والطلبات</div>
-                <div class="rich-text-wrapper">
-                    <div id="cust-notes-editor" style="height: 120px;"></div>
-                </div>
-            </form>
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" class="btn-cancel" onclick="closeCustomerModal()">إلغاء</button>
-            <button type="button" class="btn-save" onclick="saveCustomerData()">
-                <i class="fas fa-check"></i> حفظ البيانات
-            </button>
-        </div>
-    </div>
-</div>
-
-<div id="logs-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-card lg">
-        <div class="modal-header">
-            <h3><i class="fas fa-history"></i> سجل عمليات النظام</h3>
-            <button class="close-btn" onclick="document.getElementById('logs-modal').style.display='none'">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="logs-filter-bar">
-                <input type="text" placeholder="بحث في السجلات..." onkeyup="filterLogs(this.value)">
-            </div>
-            <div class="table-responsive">
-                <table class="logs-table">
-                    <thead>
-                        <tr>
-                            <th>العملية</th>
-                            <th>المستخدم</th>
-                            <th>العميل المرتبط</th>
-                            <th>التاريخ والوقت</th>
-                            <th>الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logs-render-area">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* تنسيقات المودال لضمان الاحترافية */
-    .modal-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
-        backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center;
-    }
-    .modal-card {
-        background: #fff; width: 90%; max-width: 900px; border-radius: 15px; 
-        max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;
-        animation: slideUp 0.3s ease-out;
-    }
-    .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fcfcfc; }
-    .modal-header h3 { margin: 0; color: #2563eb; }
-    .modal-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
-    .form-section-header { 
-        background: #f1f5f9; padding: 8px 15px; border-radius: 6px; 
-        margin: 20px 0 15px; font-weight: bold; color: #475569; border-right: 4px solid #2563eb;
-    }
-    .grid-4-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; }
-    .grid-3-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .row-flex { display: flex; gap: 20px; align-items: center; margin-bottom: 15px; }
-    .input-group { display: flex; flex-direction: column; gap: 5px; }
-    .input-group label { font-size: 0.85rem; font-weight: bold; color: #64748b; }
-    .input-group input, .input-group select { 
-        padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-family: inherit;
-    }
-    .input-group input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    
-    .avatar-box { width: 80px; height: 80px; border-radius: 12px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
-    .upload-label { font-size: 0.75rem; color: #2563eb; cursor: pointer; display: block; text-align: center; margin-top: 5px; font-weight: bold; }
-    
-    .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
-    .btn-save { background: #2563eb; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .btn-cancel { background: #f1f5f9; color: #475569; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; }
-
-    .readonly-input { background: #f8fafc; cursor: not-allowed; color: #94a3b8; }
-
-    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-</style>
+</body>
+</html>
