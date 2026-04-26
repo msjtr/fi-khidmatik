@@ -1,7 +1,7 @@
 /**
  * customers-core.js - Tera Gateway
  * المحرك الرئيسي لإدارة مجموعة 'customers'
- * تم الإصلاح ليتوافق مع استدعاء import * as Core
+ * تم التحديث لدعم كافة الحقول ونظام السجلات (Logs)
  */
 
 import { db } from '../core/firebase.js'; 
@@ -18,8 +18,9 @@ import {
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// المرجع الرئيسي لمجموعة العملاء
+// المراجع الرئيسية
 const customersRef = collection(db, "customers");
+const logsRef = collection(db, "system_logs"); // مرجع سجل العمليات
 
 /**
  * جلب جميع العملاء مرتبين بالأحدث
@@ -28,14 +29,14 @@ export async function fetchAllCustomers() {
     try {
         console.log("🔄 جاري طلب بيانات العملاء من تيرا...");
         
-        // الترتيب حسب createdAt الصغير (الموجود في قاعدة بياناتك)
+        // الترتيب حسب تاريخ الإنشاء لضمان ظهور أحدث العملاء أولاً
         const q = query(customersRef, orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
         
         return snapshot;
     } catch (error) {
-        console.warn("⚠️ فشل الترتيب، يتم الجلب بدون ترتيب (Fallback):", error.message);
-        // في حال عدم وجود فهرس (Index) أو تضارب أنواع البيانات
+        console.warn("⚠️ فشل الترتيب (قد يحتاج إلى Index في Firestore):", error.message);
+        // Fallback في حال عدم وجود فهرس: جلب البيانات ثم ترتيبها برمجياً
         return await getDocs(customersRef);
     }
 }
@@ -60,21 +61,27 @@ export async function fetchCustomerById(id) {
 }
 
 /**
- * إضافة عميل جديد
+ * إضافة عميل جديد (مع دعم الـ 17 حقلاً)
  */
 export async function addCustomer(customerData) {
     try {
         const payload = {
             ...customerData,
-            createdAt: new Date().toISOString(), // متوافق مع صيغة النص في سجلاتك
+            createdAt: new Date().toISOString(),
             system_origin: "Tera Gateway",
-            region: "Hail"
+            region: "Hail", // المنطقة الافتراضية
+            lastAction: "إنشاء ملف"
         };
         
-        console.log("📤 إضافة عميل جديد...");
-        return await addDoc(customersRef, payload);
+        const docRef = await addDoc(customersRef, payload);
+        
+        // تسجيل العملية في السجل
+        await logOperation('إضافة عميل', customerData.name, 'ناجحة');
+        
+        return docRef;
     } catch (error) {
         console.error("❌ فشل addCustomer:", error);
+        await logOperation('إضافة عميل', customerData.name || 'غير معروف', 'فاشلة: ' + error.message);
         throw error;
     }
 }
@@ -87,8 +94,11 @@ export async function updateCustomer(id, updatedData) {
         const docRef = doc(db, "customers", id);
         await updateDoc(docRef, {
             ...updatedData,
-            updatedAt: serverTimestamp() // طابع وقت التحديث من السيرفر
+            updatedAt: serverTimestamp(),
+            lastAction: "تحديث بيانات"
         });
+
+        await logOperation('تعديل عميل', updatedData.name || id, 'ناجحة');
         return true;
     } catch (error) {
         console.error("❌ فشل updateCustomer:", error);
@@ -101,11 +111,35 @@ export async function updateCustomer(id, updatedData) {
  */
 export async function removeCustomer(id) {
     try {
+        // جلب الاسم قبل الحذف للتوثيق في السجل
+        const customer = await fetchCustomerById(id);
+        const name = customer ? customer.name : id;
+
         const docRef = doc(db, "customers", id);
         await deleteDoc(docRef);
+
+        await logOperation('حذف عميل', name, 'ناجحة');
         return true;
     } catch (error) {
         console.error("❌ فشل removeCustomer:", error);
         return false;
+    }
+}
+
+/**
+ * نظام تسجيل العمليات (System Logs)
+ * يسجل من قام بالفعل، نوع الفعل، والنتيجة
+ */
+export async function logOperation(actionType, targetName, status) {
+    try {
+        await addDoc(logsRef, {
+            action: actionType,
+            target: targetName,
+            status: status,
+            timestamp: serverTimestamp(),
+            admin: "مدير النظام" // يمكن ربطها لاحقاً بـ Auth
+        });
+    } catch (e) {
+        console.error("⚠️ فشل تسجيل العملية في السجلات:", e);
     }
 }
