@@ -1,25 +1,102 @@
-<div class="form-grid">
-    <div class="input-group">
-        <label>اسم العميل الكامل</label>
-        <input type="text" id="cust-name" placeholder="أدخل الاسم">
-    </div>
-    
-    <div class="input-group">
-        <label>مفتاح الدولة</label>
-        <input type="text" id="cust-countryCode" placeholder="+966">
-    </div>
-
-    <div class="input-group full-width image-upload-section">
-        <label>صورة العميل</label>
-        <div class="upload-controls">
-            <img id="cust-image-preview" src="assets/default-avatar.png" width="80">
-            <input type="file" id="cust-image-input" onchange="previewImage(this)">
-            <input type="hidden" id="cust-image-url">
+<div id="customers-module-container" class="module-fade-in">
+    <div class="module-header">
+        <div class="header-title">
+            <h2><i class="fas fa-users"></i> قاعدة بيانات العملاء</h2>
+            <p>إدارة بيانات العملاء والاتصال والعناوين الوطنية</p>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-label">إجمالي العملاء</span>
+                <span id="total-customers-count" class="stat-value">...</span>
+            </div>
         </div>
     </div>
 
-    <div class="input-group full-width">
-        <label>الملاحظات الاحترافية</label>
-        <div id="editor-container"></div>
+    <div id="customers-ui-root">
+        <div class="loading-overlay">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p>جاري تحضير واجهة العملاء...</p>
+        </div>
     </div>
 </div>
+
+<style>
+    /* تنسيقات خاصة بموديول العملاء لضمان مظهر احترافي */
+    .module-fade-in {
+        animation: fadeIn 0.4s ease-out;
+        padding: 20px;
+    }
+
+    .module-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 20px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .header-title h2 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header-title p {
+        margin: 5px 0 0;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        background: #2563eb;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+
+    .stat-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    /* تنسيق مؤقت للتحميل */
+    .loading-overlay {
+        text-align: center;
+        padding: 50px;
+        color: #2563eb;
+    }
+
+    .loading-overlay i {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+
+    /* تحسينات الوسائط (Responsive) */
+    @media (max-width: 768px) {
+        .module-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 15px;
+        }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
