@@ -21,8 +21,18 @@ export async function initCustomersUI(container) {
                 </div>
                 
                 <div class="filter-group" style="display:flex; gap:10px;">
-                    <select id="filter-status" class="tera-input" style="width:150px;"><option value="">حالة العميل</option><option value="نشط">نشط</option><option value="معلق">معلق</option><option value="موقوف">موقوف</option></select>
-                    <select id="filter-type" class="tera-input" style="width:150px;"><option value="">التصنيف</option><option value="فرد">فرد</option><option value="شركة">شركة</option><option value="VIP">VIP</option></select>
+                    <select id="filter-status" class="tera-input" style="width:150px;">
+                        <option value="">حالة العميل</option>
+                        <option value="نشط">نشط</option>
+                        <option value="معلق">معلق</option>
+                        <option value="موقوف">موقوف</option>
+                    </select>
+                    <select id="filter-type" class="tera-input" style="width:150px;">
+                        <option value="">التصنيف</option>
+                        <option value="فرد">فرد</option>
+                        <option value="شركة">شركة</option>
+                        <option value="VIP">VIP</option>
+                    </select>
                     <button id="btn-add-customer" class="btn btn-primary"><i class="fas fa-user-plus"></i> إضافة عميل جديد</button>
                 </div>
             </div>
@@ -83,20 +93,24 @@ async function refreshCustomerTable() {
         let stats = { total: 0, active: 0, pending: 0, incomplete: 0 };
         let counter = 1;
 
+        // ملاحظة: Firestore snapshot يحتاج لاستخدام forEach الخاص به
         snapshot.forEach((docSnap) => {
             const d = docSnap.data();
             const id = docSnap.id;
 
-            // تطبيق الفلترة الحية (Client-side search)
-            const matchesSearch = d.name?.toLowerCase().includes(searchTerm) || d.phone?.includes(searchTerm) || d.city?.includes(searchTerm);
+            // تطبيق الفلترة الحية
+            const matchesSearch = !searchTerm || 
+                d.name?.toLowerCase().includes(searchTerm) || 
+                d.phone?.includes(searchTerm) || 
+                d.city?.toLowerCase().includes(searchTerm);
+            
             const matchesStatus = !statusFilter || d.status === statusFilter;
             const matchesType = !typeFilter || d.type === typeFilter;
 
             if (matchesSearch && matchesStatus && matchesType) {
-                // حساب الإحصائيات
                 stats.total++;
                 if (d.status === 'نشط') stats.active++;
-                if (!d.city || !d.email) stats.incomplete++;
+                if (!d.city || !d.district) stats.incomplete++;
 
                 rowsHtml += `
                     <tr class="customer-row">
@@ -128,7 +142,8 @@ async function refreshCustomerTable() {
         tbody.innerHTML = rowsHtml || '<tr><td colspan="17" style="text-align:center; padding:30px;">لا توجد نتائج تطابق البحث</td></tr>';
         updateStatsUI(stats);
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="17" style="color:red; text-align:center;">خطأ: ${err.message}</td></tr>`;
+        console.error("Error refreshing table:", err);
+        tbody.innerHTML = `<tr><td colspan="17" style="color:red; text-align:center;">خطأ في تحميل البيانات: ${err.message}</td></tr>`;
     }
 }
 
@@ -142,76 +157,78 @@ function openFormModal(data = null) {
         const form = document.getElementById('customer-form');
         if (form) {
             form.reset();
-            if (window.quill) window.quill.setContents([]); // تصفير محرر الملاحظات
+            // تصفير Quill إذا كان موجوداً
+            if (window.quill) window.quill.setContents([]);
             if (data) fillFormFields(data);
         }
     }
 }
 
 /**
- * وظيفة 2: التعديل (تعبئة الحقول الـ 17)
+ * وظيفة 2: التعديل
  */
 window.editCustomerAction = async (id) => {
     const data = await Core.fetchCustomerById(id);
-    if (data) openFormModal({ id, ...data });
+    if (data) openFormModal(data);
 };
 
 function fillFormFields(data) {
-    document.getElementById('cust-name').value = data.name || '';
-    document.getElementById('cust-phone').value = data.phone || '';
-    document.getElementById('cust-email').value = data.email || '';
-    document.getElementById('cust-city').value = data.city || '';
-    document.getElementById('cust-district').value = data.district || '';
-    document.getElementById('cust-street').value = data.street || '';
-    document.getElementById('cust-building').value = data.buildingNo || '';
-    document.getElementById('cust-additional').value = data.additionalNo || '';
-    document.getElementById('cust-zip').value = data.zipCode || '';
-    document.getElementById('cust-pobox').value = data.poBox || '';
-    document.getElementById('cust-status').value = data.status || 'نشط';
-    document.getElementById('cust-type').value = data.type || 'فرد';
-    
-    // التعامل مع Select2 للدولة ومفتاح الاتصال
-    if (data.country) {
-        $('#cust-country').val(data.country).trigger('change');
+    // التأكد من وجود العناصر قبل التعبئة لتجنب أخطاء JS
+    const fields = {
+        'cust-name': data.name,
+        'cust-phone': data.phone,
+        'cust-key': data.countryKey,
+        'cust-email': data.email,
+        'cust-country': data.country,
+        'cust-city': data.city,
+        'cust-district': data.district,
+        'cust-street': data.street,
+        'cust-building': data.buildingNo,
+        'cust-additional': data.additionalNo,
+        'cust-zip': data.zipCode,
+        'cust-pobox': data.poBox,
+        'cust-status': data.status,
+        'cust-type': data.type
+    };
+
+    for (let id in fields) {
+        const el = document.getElementById(id);
+        if (el) el.value = fields[id] || '';
     }
     
-    // تعبئة الملاحظات في محرر Quill
     if (data.notes && window.quill) {
         window.quill.root.innerHTML = data.notes;
     }
 }
 
 /**
- * وظيفة 3: الحفظ الحقيقي (Add/Update)
+ * وظيفة 3: الحفظ (تعديل أو إضافة)
  */
 window.saveCustomerData = async () => {
     const formData = gatherFormData();
-    if (!formData.name || !formData.phone) return alert("الاسم ورقم الجوال حقول إجبارية!");
+    if (!formData.name || !formData.phone) return alert("يرجى إدخال الاسم ورقم الجوال على الأقل.");
 
     try {
         if (editingId) {
             await Core.updateCustomer(editingId, formData);
-            await Core.logActivity(`تعديل بيانات العميل: ${formData.name}`);
         } else {
-            formData.createdAt = new Date().toISOString();
             await Core.addCustomer(formData);
-            await Core.logActivity(`إضافة عميل جديد: ${formData.name}`);
         }
-        window.closeCustomerModal();
+        
+        if (window.closeCustomerModal) window.closeCustomerModal();
         refreshCustomerTable();
     } catch (err) {
-        alert("فشل الحفظ: " + err.message);
+        alert("حدث خطأ أثناء الحفظ: " + err.message);
     }
 };
 
 /**
- * وظيفة 4: الحذف الفعلي
+ * وظيفة 4: الحذف
  */
 window.deleteCustomerAction = async (id, name) => {
-    if (confirm(`هل أنت متأكد من حذف العميل "${name}" نهائياً؟`)) {
+    if (confirm(`هل أنت متأكد من حذف العميل "${name}"؟`)) {
         try {
             await Core.deleteCustomer(id);
-            await Core.logActivity(`حذف العميل: ${name}`);
             refreshCustomerTable();
         } catch (err) {
             alert("فشل الحذف");
@@ -220,33 +237,35 @@ window.deleteCustomerAction = async (id, name) => {
 };
 
 /**
- * وظيفة 5: الطباعة الاحترافية
+ * وظيفة 5: الطباعة
  */
 window.printCustomerAction = async (id) => {
     const data = await Core.fetchCustomerById(id);
+    if (!data) return;
+    
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <html dir="rtl">
         <head>
-            <title>بطاقة عميل - ${data.name}</title>
+            <title>تقرير عميل - ${data.name}</title>
             <style>
-                body { font-family: 'Tajawal', sans-serif; padding: 40px; color: #333; }
-                .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; }
-                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
-                .info-item { border-bottom: 1px solid #eee; padding: 10px 0; }
-                .label { font-weight: bold; color: #666; }
+                body { font-family: 'Tajawal', sans-serif; padding: 40px; }
+                .report-header { border-bottom: 2px solid #2563eb; margin-bottom: 30px; text-align: center; }
+                .data-row { margin-bottom: 15px; font-size: 1.1rem; }
+                .label { font-weight: bold; color: #444; width: 150px; display: inline-block; }
             </style>
         </head>
         <body onload="window.print()">
-            <div class="header"><h1>ملف بيانات العميل</h1><p>تيرا جيت واي - Tera Gateway</p></div>
-            <div class="info-grid">
-                <div class="info-item"><span class="label">الاسم:</span> ${data.name}</div>
-                <div class="info-item"><span class="label">الجوال:</span> ${data.phone}</div>
-                <div class="info-item"><span class="label">المدينة:</span> ${data.city}</div>
-                <div class="info-item"><span class="label">العنوان:</span> ${data.district} - ${data.street}</div>
-                <div class="info-item"><span class="label">الحالة:</span> ${data.status}</div>
-                <div class="info-item"><span class="label">التصنيف:</span> ${data.type}</div>
+            <div class="report-header">
+                <h1>بطاقة بيانات عميل</h1>
+                <p>نظام تيرا جيت واي (Tera Gateway)</p>
             </div>
+            <div class="data-row"><span class="label">الاسم:</span> ${data.name}</div>
+            <div class="data-row"><span class="label">الجوال:</span> ${data.phone}</div>
+            <div class="data-row"><span class="label">البريد:</span> ${data.email || '-'}</div>
+            <div class="data-row"><span class="label">العنوان:</span> ${data.city} - ${data.district}</div>
+            <div class="data-row"><span class="label">الرمز البريدي:</span> ${data.zipCode || '-'}</div>
+            <div class="data-row"><span class="label">الحالة:</span> ${data.status}</div>
         </body>
         </html>
     `);
@@ -255,22 +274,21 @@ window.printCustomerAction = async (id) => {
 
 function gatherFormData() {
     return {
-        name: document.getElementById('cust-name').value,
-        phone: document.getElementById('cust-phone').value,
-        countryKey: document.getElementById('cust-key').value,
-        email: document.getElementById('cust-email').value,
-        country: document.getElementById('cust-country').value,
-        city: document.getElementById('cust-city').value,
-        district: document.getElementById('cust-district').value,
-        street: document.getElementById('cust-street').value,
-        buildingNo: document.getElementById('cust-building').value,
-        additionalNo: document.getElementById('cust-additional').value,
-        zipCode: document.getElementById('cust-zip').value,
-        poBox: document.getElementById('cust-pobox').value,
-        status: document.getElementById('cust-status').value,
-        type: document.getElementById('cust-type').value,
-        notes: window.quill ? window.quill.root.innerHTML : '',
-        updatedAt: new Date().toISOString()
+        name: document.getElementById('cust-name')?.value,
+        phone: document.getElementById('cust-phone')?.value,
+        countryKey: document.getElementById('cust-key')?.value,
+        email: document.getElementById('cust-email')?.value,
+        country: document.getElementById('cust-country')?.value,
+        city: document.getElementById('cust-city')?.value,
+        district: document.getElementById('cust-district')?.value,
+        street: document.getElementById('cust-street')?.value,
+        buildingNo: document.getElementById('cust-building')?.value,
+        additionalNo: document.getElementById('cust-additional')?.value,
+        zipCode: document.getElementById('cust-zip')?.value,
+        poBox: document.getElementById('cust-pobox')?.value,
+        status: document.getElementById('cust-status')?.value,
+        type: document.getElementById('cust-type')?.value,
+        notes: window.quill ? window.quill.root.innerHTML : ''
     };
 }
 
@@ -278,9 +296,9 @@ function updateStatsUI(s) {
     const container = document.getElementById('stats-container');
     if (container) {
         container.innerHTML = `
-            <div class="stat-card"><span>إجمالي المسجلين</span><strong>${s.total}</strong></div>
-            <div class="stat-card"><span>عملاء نشطين</span><strong>${s.active}</strong></div>
-            <div class="stat-card"><span>تحتاج استكمال</span><strong style="color:var(--danger)">${s.incomplete}</strong></div>
+            <div class="stat-card"><span>إجمالي العملاء</span><strong>${s.total}</strong></div>
+            <div class="stat-card"><span>النشطين</span><strong>${s.active}</strong></div>
+            <div class="stat-card"><span>بيانات غير مكتملة</span><strong style="color:#ef4444">${s.incomplete}</strong></div>
         `;
     }
 }
