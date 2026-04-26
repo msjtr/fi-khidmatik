@@ -35,7 +35,6 @@
             height: 100%;
             background: #fff;
             flex-shrink: 0;
-            transition: width 0.3s ease;
             border-left: 1px solid #e2e8f0;
         }
 
@@ -79,7 +78,7 @@
             <main id="main-content">
                 <div class="loader-box">
                     <i class="fas fa-circle-notch fa-spin fa-2x" style="color: #f97316;"></i>
-                    <p style="margin-top: 15px;">جاري تحميل لوحة التحكم...</p>
+                    <p style="margin-top: 15px; font-weight: bold;">جاري تحميل النظام...</p>
                 </div>
             </main>
         </div>
@@ -89,39 +88,56 @@
 
     <script>
         /**
-         * دالة موحدة لتحميل الملفات من مجلد components
-         * بناءً على صورتك: كل شيء داخل components/
+         * دالة تحميل الملفات مع المسار الصحيح بناءً على الصورة
+         * المسار: admin/components/
          */
         async function loadFile(targetId, fileName) {
-            const path = `components/${fileName}`;
+            // إضافة "admin/" قبل "components/" لأن المجلد متداخل حسب الصورة
+            const path = `admin/components/${fileName}`;
+            
             try {
+                console.log(`🔍 محاولة جلب: ${path}`);
                 const response = await fetch(path);
-                if (!response.ok) throw new Error(`Status: ${response.status}`);
+                
+                if (!response.ok) {
+                    // تجربة المسار البديل في حال كان ملف admin.html داخل مجلد admin أصلاً
+                    const fallbackPath = `components/${fileName}`;
+                    console.warn(`⚠️ المسار الأول فشل، تجربة المسار البديل: ${fallbackPath}`);
+                    const fallbackRes = await fetch(fallbackPath);
+                    if (!fallbackRes.ok) throw new Error('File not found in both paths');
+                    
+                    const html = await fallbackRes.text();
+                    document.getElementById(targetId).innerHTML = html;
+                    return;
+                }
+
                 const html = await response.text();
                 document.getElementById(targetId).innerHTML = html;
                 console.log(`✅ تم تحميل: ${path}`);
             } catch (error) {
-                console.error(`❌ فشل تحميل: ${path}`, error);
-                if (targetId === 'main-content') {
-                    document.getElementById(targetId).innerHTML = `<div style="text-align:center; padding:50px; color:red;">خطأ 404: لم يتم العثور على الملف components/${fileName}</div>`;
-                }
+                console.error(`❌ فشل تحميل: ${fileName}`, error);
+                document.getElementById(targetId).innerHTML = 
+                    `<div style="color:red; padding:20px; text-align:center;">
+                        خطأ 404: الملف ${fileName} غير موجود.<br>
+                        تأكد من وجوده داخل: <b>admin/components/</b>
+                    </div>`;
             }
         }
 
-        // تشغيل التحميل عند فتح الصفحة
+        // بدء التحميل عند جاهزية الصفحة
         window.addEventListener('DOMContentLoaded', async () => {
-            // 1. تحميل المكونات الأساسية
+            // تحميل الأجزاء الثابتة
             await Promise.all([
                 loadFile('sidebar-placeholder', 'sidebar.html'),
                 loadFile('header-placeholder', 'header.html'),
                 loadFile('modals-placeholder', 'modals.html')
             ]);
 
-            // 2. تحميل الصفحة الافتراضية (dashboard) من داخل مجلد components أيضاً
+            // تحميل الصفحة الرئيسية
             loadFile('main-content', 'dashboard.html');
         });
 
-        // دوال عالمية للتحكم بالواجهة (أضفتها لضمان عمل الأزرار)
+        // دوال المودال العالمية
         window.openCustomerModal = (title) => {
             const m = document.getElementById('customer-modal');
             if(m) { m.style.display = 'flex'; document.getElementById('modal-title').innerText = title; }
