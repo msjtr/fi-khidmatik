@@ -8,7 +8,7 @@
     
     <nav class="side-nav">
         <ul id="admin-menu">
-            <li class="nav-item active" data-module="dashboard">
+            <li class="nav-item active" data-module="dashboard" onclick="location.hash='#dashboard'">
                 <div class="nav-icon">
                     <i class="fas fa-chart-pie"></i>
                 </div>
@@ -16,7 +16,7 @@
                 <div class="active-indicator"></div>
             </li>
             
-            <li class="nav-item" data-module="products">
+            <li class="nav-item" data-module="products" onclick="location.hash='#products'">
                 <div class="nav-icon">
                     <i class="fas fa-tags"></i>
                 </div>
@@ -24,7 +24,7 @@
                 <div class="active-indicator"></div>
             </li>
             
-            <li class="nav-item" data-module="orders">
+            <li class="nav-item" data-module="orders" onclick="location.hash='#orders'">
                 <div class="nav-icon">
                     <i class="fas fa-file-invoice-dollar"></i>
                 </div>
@@ -32,7 +32,7 @@
                 <div class="active-indicator"></div>
             </li>
             
-            <li class="nav-item" data-module="customers">
+            <li class="nav-item" data-module="customers" onclick="location.hash='#customers'">
                 <div class="nav-icon">
                     <i class="fas fa-users-gear"></i>
                 </div>
@@ -42,7 +42,7 @@
             
             <div class="nav-divider"><span>الإدارة</span></div>
             
-            <li class="nav-item" data-module="settings">
+            <li class="nav-item" data-module="settings" onclick="location.hash='#settings'">
                 <div class="nav-icon">
                     <i class="fas fa-sliders-h"></i>
                 </div>
@@ -64,14 +64,14 @@
 </aside>
 
 <style>
-    /* Tera Sidebar - Premium Dark/Light UI */
+    /* Tera Sidebar - Premium Blue UI */
     :root {
         --sidebar-bg: #ffffff;
-        --sidebar-accent: #f97316; /* البرتقالي الرسمي لتيرا */
-        --sidebar-accent-hover: #ea580c;
+        --sidebar-accent: #2563eb; /* الأزرق الاحترافي لـ Tera Gateway */
+        --sidebar-accent-hover: #1d4ed8;
         --sidebar-text: #64748b;
         --sidebar-hover-bg: #f8fafc;
-        --sidebar-active-bg: #fff7ed;
+        --sidebar-active-bg: #eff6ff;
         --sidebar-border: #f1f5f9;
     }
 
@@ -85,80 +85,52 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: sticky;
         top: 0;
+        z-index: 1000;
     }
 
-    .sidebar-header {
-        padding: 30px 25px 20px;
-    }
+    .sidebar-header { padding: 30px 25px 20px; }
 
-    .brand-minimal {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+    .brand-minimal { display: flex; align-items: center; gap: 12px; }
 
     .logo-dot {
-        width: 10px;
-        height: 10px;
+        width: 10px; height: 10px;
         background: var(--sidebar-accent);
         border-radius: 3px;
-        box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+        box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
     }
 
     .menu-label {
-        font-size: 0.75rem;
-        font-weight: 900;
-        color: #94a3b8;
-        text-transform: uppercase;
+        font-size: 0.75rem; font-weight: 900;
+        color: #94a3b8; text-transform: uppercase;
         letter-spacing: 1.5px;
     }
 
-    .side-nav {
-        flex: 1;
-        padding: 10px 15px;
-        overflow-y: auto;
-    }
+    .side-nav { flex: 1; padding: 10px 15px; overflow-y: auto; }
 
-    #admin-menu {
-        list-style: none;
-        padding: 0;
-    }
+    #admin-menu { list-style: none; padding: 0; }
 
     .nav-item {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 16px;
-        margin-bottom: 8px;
-        border-radius: 14px;
-        color: var(--sidebar-text);
-        font-weight: 700;
-        font-size: 0.95rem;
-        cursor: pointer;
+        position: relative; display: flex; align-items: center;
+        gap: 14px; padding: 12px 16px; margin-bottom: 8px;
+        border-radius: 14px; color: var(--sidebar-text);
+        font-weight: 700; font-size: 0.95rem; cursor: pointer;
         transition: all 0.2s ease;
     }
 
     .nav-icon {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        background: #f1f5f9;
-        font-size: 1.1rem;
-        transition: 0.3s;
+        width: 38px; height: 38px; display: flex;
+        align-items: center; justify-content: center;
+        border-radius: 11px; background: #f1f5f9;
+        font-size: 1.1rem; transition: 0.3s;
     }
 
-    /* تفاعلات التحويم */
+    /* التفاعلات */
     .nav-item:hover {
         background: var(--sidebar-hover-bg);
         color: var(--sidebar-accent);
         transform: translateX(-5px);
     }
 
-    /* الحالة النشطة */
     .nav-item.active {
         background: var(--sidebar-active-bg);
         color: var(--sidebar-accent);
@@ -167,90 +139,39 @@
     .nav-item.active .nav-icon {
         background: var(--sidebar-accent);
         color: #ffffff;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
 
-    /* مؤشر النشاط الجانبي */
+    /* مؤشر النشاط */
     .active-indicator {
-        position: absolute;
-        right: -15px;
-        width: 4px;
-        height: 24px;
-        background: var(--sidebar-accent);
-        border-radius: 4px 0 0 4px;
-        opacity: 0;
-        transition: 0.3s;
+        position: absolute; right: -15px; width: 4px; height: 24px;
+        background: var(--sidebar-accent); border-radius: 4px 0 0 4px;
+        opacity: 0; transition: 0.3s;
     }
 
-    .nav-item.active .active-indicator {
-        opacity: 1;
-    }
+    .nav-item.active .active-indicator { opacity: 1; }
 
-    /* الفواصل المسمّاة */
-    .nav-divider {
-        margin: 30px 10px 20px;
-        height: 1px;
-        background: var(--sidebar-border);
-        position: relative;
-    }
-
+    .nav-divider { margin: 30px 10px 20px; height: 1px; background: var(--sidebar-border); position: relative; }
     .nav-divider span {
-        position: absolute;
-        top: -10px;
-        right: 15px;
-        background: var(--sidebar-bg);
-        padding: 0 10px;
-        font-size: 0.65rem;
-        color: #cbd5e1;
-        font-weight: 800;
-        text-transform: uppercase;
+        position: absolute; top: -10px; right: 15px;
+        background: var(--sidebar-bg); padding: 0 10px;
+        font-size: 0.65rem; color: #cbd5e1; font-weight: 800;
     }
 
-    /* الفوتر وحالة النظام */
-    .sidebar-footer {
-        padding: 20px 15px;
-        border-top: 1px solid var(--sidebar-border);
-    }
+    .sidebar-footer { padding: 20px 15px; border-top: 1px solid var(--sidebar-border); }
 
     .status-badge {
-        background: #f0fdf4;
-        padding: 12px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border: 1px solid #dcfce7;
+        background: #f0fdf4; padding: 12px; border-radius: 14px;
+        display: flex; align-items: center; gap: 12px; border: 1px solid #dcfce7;
     }
 
-    .status-text {
-        font-size: 0.8rem;
-        color: #166534;
-        font-weight: 800;
-    }
+    .status-text { font-size: 0.8rem; color: #166534; font-weight: 800; }
 
-    /* نبض الاتصال الأخضر */
-    .pulse-wrapper {
-        position: relative;
-        width: 10px;
-        height: 10px;
-    }
-
-    .status-dot {
-        width: 10px;
-        height: 10px;
-        background: #10b981;
-        border-radius: 50%;
-        z-index: 2;
-        position: relative;
-    }
-
+    .pulse-wrapper { position: relative; width: 10px; height: 10px; }
+    .status-dot { width: 10px; height: 10px; background: #10b981; border-radius: 50%; z-index: 2; position: relative; }
     .status-pulse {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: #10b981;
-        border-radius: 50%;
-        z-index: 1;
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: #10b981; border-radius: 50%; z-index: 1;
         animation: tera-pulse 2s infinite ease-in-out;
     }
 
@@ -259,35 +180,39 @@
         100% { transform: scale(2.8); opacity: 0; }
     }
 
-    /* تصغير القائمة (Responsive/Collapsed) */
-    .app-sidebar.collapsed {
-        width: 85px;
-    }
-    
+    /* الانهيار (Collapsed State) */
+    .app-sidebar.collapsed { width: 85px; }
     .app-sidebar.collapsed .nav-text, 
     .app-sidebar.collapsed .menu-label, 
     .app-sidebar.collapsed .nav-divider span,
-    .app-sidebar.collapsed .status-text {
-        display: none;
-    }
+    .app-sidebar.collapsed .status-text { display: none; }
+    .app-sidebar.collapsed .sidebar-header { padding: 30px 0; text-align: center; justify-content: center; }
+    .app-sidebar.collapsed .brand-minimal { justify-content: center; }
 </style>
 
 <script>
     /**
-     * التحكم في تنقل القائمة
+     * إدارة حالة القائمة النشطة بناءً على القسم الحالي
      */
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function() {
-            // إزالة النشاط من الجميع
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            // تفعيل العنصر المختار
-            this.classList.add('active');
-            
-            const module = this.getAttribute('data-module');
-            // استدعاء دالة تغيير المحتوى إذا كانت موجودة
-            if (typeof window.loadModule === 'function') {
-                window.loadModule(module);
+    function updateActiveNav() {
+        const currentHash = window.location.hash || '#dashboard';
+        const moduleName = currentHash.replace('#', '');
+        
+        document.querySelectorAll('.nav-item').forEach(item => {
+            if (item.getAttribute('data-module') === moduleName) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
             }
         });
-    });
+
+        // استدعاء محرك تحميل الصفحات (إذا كان موجوداً في admin.js)
+        if (typeof window.loadModule === 'function') {
+            window.loadModule(moduleName);
+        }
+    }
+
+    // التنفيذ عند تحميل الصفحة وتغيير الـ Hash
+    window.addEventListener('hashchange', updateActiveNav);
+    window.addEventListener('DOMContentLoaded', updateActiveNav);
 </script>
