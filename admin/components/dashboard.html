@@ -1,59 +1,119 @@
-<div class="dashboard-content" style="animation: fadeIn 0.6s ease-out;">
+<div class="dashboard-content" style="animation: fadeIn 0.6s ease-out; padding: 10px;">
+    
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="color: #1e293b; margin: 0;">نظرة عامة على النظام</h2>
-        <span style="background: #fef3c7; color: #d97706; padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: bold;">
-            منطقة حائل | مباشر
-        </span>
+        <div>
+            <h2 style="color: #1e293b; margin: 0; font-weight: 800; font-size: 1.5rem;">نظرة عامة على النظام</h2>
+            <p style="color: #64748b; margin: 5px 0 0; font-size: 0.9rem;">مرحباً بك مجدداً، إليك ملخص نشاطك اليوم.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+             <span style="background: #eff6ff; color: #2563eb; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: bold; border: 1px solid rgba(37, 99, 235, 0.1);">
+                <i class="fas fa-signal" style="margin-left: 5px;"></i> مباشر
+            </span>
+        </div>
     </div>
     
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px;">
         
-        <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-bottom: 4px solid #f97316;">
+        <div class="stat-card" style="border-bottom: 4px solid #2563eb;">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: #fff7ed; color: #f97316; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <div class="icon-box" style="background: #eff6ff; color: #2563eb;">
                     <i class="fas fa-users fa-lg"></i>
                 </div>
                 <div>
-                    <p style="color: #64748b; margin: 0; font-size: 14px;">إجمالي العملاء</p>
-                    <h3 style="margin: 5px 0 0; font-size: 24px; color: #1e293b;">0</h3>
+                    <p class="stat-label">إجمالي العملاء</p>
+                    <h3 class="stat-value">0</h3>
                 </div>
             </div>
         </div>
 
-        <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-bottom: 4px solid #8b5cf6;">
+        <div class="stat-card" style="border-bottom: 4px solid #8b5cf6;">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: #f5f3ff; color: #8b5cf6; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <div class="icon-box" style="background: #f5f3ff; color: #8b5cf6;">
                     <i class="fas fa-credit-card fa-lg"></i>
                 </div>
                 <div>
-                    <p style="color: #64748b; margin: 0; font-size: 14px;">أقساط مستحقة</p>
-                    <h3 style="margin: 5px 0 0; font-size: 24px; color: #1e293b;">0</h3>
+                    <p class="stat-label">أقساط مستحقة</p>
+                    <h3 class="stat-value">0</h3>
                 </div>
             </div>
         </div>
 
-        <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-bottom: 4px solid #10b981;">
+        <div class="stat-card" style="border-bottom: 4px solid #10b981;">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: #ecfdf5; color: #10b981; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <div class="icon-box" style="background: #ecfdf5; color: #10b981;">
                     <i class="fas fa-sim-card fa-lg"></i>
                 </div>
                 <div>
-                    <p style="color: #64748b; margin: 0; font-size: 14px;">رصيد Sawa</p>
-                    <h3 style="margin: 5px 0 0; font-size: 24px; color: #1e293b;">متوفر</h3>
+                    <p class="stat-label">رصيد Sawa</p>
+                    <h3 class="stat-value">متوفر</h3>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <div style="margin-top: 30px; background: white; padding: 40px; border-radius: 20px; text-align: center; border: 2px dashed #e2e8f0;">
-        <p style="color: #94a3b8;">مرحباً بك في نظام إدارة الأقساط. ابدأ بإضافة العملاء من القائمة الجانبية.</p>
+    <div class="welcome-section">
+        <div style="margin-bottom: 20px; opacity: 0.2;">
+            <i class="fas fa-chart-line fa-5x"></i>
+        </div>
+        <h3 style="color: #1e293b; margin-bottom: 10px;">ابدأ العمل الآن</h3>
+        <p style="color: #64748b; max-width: 400px; margin: 0 auto; line-height: 1.6;">
+            يمكنك إضافة عملاء جدد، إدارة الأقساط، أو مراجعة المخزون من خلال القائمة الجانبية. جميع بياناتك محمية ومشفرة.
+        </p>
+        <button onclick="location.hash='#customers'" style="margin-top: 25px; padding: 12px 25px; background: #2563eb; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            <i class="fas fa-user-plus" style="margin-left: 8px;"></i> الانتقال لقاعدة العملاء
+        </button>
     </div>
 </div>
 
 <style>
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 24px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .icon-box {
+        width: 55px;
+        height: 55px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-label {
+        color: #64748b;
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .stat-value {
+        margin: 5px 0 0;
+        font-size: 26px;
+        color: #1e293b;
+        font-weight: 800;
+    }
+
+    .welcome-section {
+        margin-top: 30px;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 60px 40px;
+        border-radius: 30px;
+        text-align: center;
+        border: 2px dashed #e2e8f0;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
