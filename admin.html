@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fi-Khidmatik | لوحة التحكم</title>
+    <title>Tera Gateway | لوحة التحكم</title>
     
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="admin/css/admin.css">
 
     <style>
         :root {
             --sidebar-width: 280px;
             --header-height: 70px;
-            --bg-color: #f8fafc;
         }
 
         body {
             margin: 0;
             font-family: 'Tajawal', sans-serif;
-            background-color: var(--bg-color);
+            background-color: #f8fafc;
             display: flex;
             height: 100vh;
             overflow: hidden;
@@ -56,7 +54,8 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        #main-content {
+        /* هذا هو الحاوي الذي يستخدمه ملف main.js الخاص بك */
+        #module-container {
             flex-grow: 1;
             padding: 25px;
             overflow-y: auto;
@@ -80,10 +79,10 @@
         <div class="content-area">
             <div id="header-placeholder"></div>
 
-            <main id="main-content">
+            <main id="module-container">
                 <div class="loader-box">
-                    <i class="fas fa-circle-notch fa-spin fa-2x" style="color: #f97316;"></i>
-                    <p style="margin-top: 15px; font-weight: bold;">جاري تحميل النظام والبيانات...</p>
+                    <i class="fas fa-spinner-third fa-spin fa-2x" style="color: #2563eb;"></i>
+                    <p style="margin-top: 15px;">جاري تشغيل نواة النظام...</p>
                 </div>
             </main>
         </div>
@@ -92,96 +91,33 @@
     <div id="modals-placeholder"></div>
 
     <script>
-        // 1. إعدادات Firebase (استبدل القيم ببيانات مشروعك الخاصة)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // تشغيل Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
         /**
-         * دالة جلب بيانات العملاء من Firestore
+         * دالة تحميل المكونات الثابتة (Header/Sidebar)
+         * يجب أن تظل هنا لأنها تسبق عمل main.js
          */
-        async function fetchCustomerData() {
-            const tableBody = document.getElementById('customers-table-body');
-            if (!tableBody) return; // الخروج إذا لم يكن الجدول موجوداً في الصفحة الحالية
-
-            try {
-                // استبدل 'customers' باسم المجموعة (Collection) لديك في Firestore
-                const snapshot = await db.collection('customers').get();
-                let html = '';
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    html += `
-                        <tr>
-                            <td>${data.name || '-'}</td>
-                            <td>${data.phone || '-'}</td>
-                            <td>${data.status || 'منتظم'}</td>
-                            <td>
-                                <button onclick="viewDetails('${doc.id}')" class="btn-action">عرض</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                tableBody.innerHTML = html;
-            } catch (error) {
-                console.error("خطأ في جلب البيانات:", error);
-                tableBody.innerHTML = '<tr><td colspan="4">تعذر تحميل البيانات من القاعدة</td></tr>';
-            }
-        }
-
-        /**
-         * دالة تحميل الملفات من مجلد admin/components
-         */
-        async function loadFile(targetId, fileName) {
+        async function loadStaticComponent(id, fileName) {
             const path = `admin/components/${fileName}`;
             try {
                 const response = await fetch(path);
-                if (!response.ok) throw new Error(`Status: ${response.status}`);
+                if (!response.ok) throw new Error('Not Found');
                 const html = await response.text();
-                document.getElementById(targetId).innerHTML = html;
-                console.log(`✅ Loaded: ${path}`);
-                
-                // إذا تم تحميل الداشبورد أو الجداول، نقوم بجلب البيانات فوراً
-                if (fileName === 'dashboard.html' || fileName === 'tables.html') {
-                    fetchCustomerData();
-                }
-            } catch (error) {
-                console.error(`❌ Error: ${path}`, error);
-                document.getElementById(targetId).innerHTML = `<div style="color:red; padding:10px;">خطأ 404: تعذر العثور على ${path}</div>`;
+                document.getElementById(id).innerHTML = html;
+            } catch (err) {
+                console.error(`❌ فشل تحميل المكون الثابت: ${path}`);
             }
         }
 
-        // بدء التشغيل عند فتح الصفحة
+        // تشغيل التحميلات الأولية
         window.addEventListener('DOMContentLoaded', async () => {
-            // تحميل القوائم الثابتة
             await Promise.all([
-                loadFile('sidebar-placeholder', 'sidebar.html'),
-                loadFile('header-placeholder', 'header.html'),
-                loadFile('modals-placeholder', 'modals.html')
+                loadStaticComponent('sidebar-placeholder', 'sidebar.html'),
+                loadStaticComponent('header-placeholder', 'header.html'),
+                loadStaticComponent('modals-placeholder', 'modals.html')
             ]);
-
-            // تحميل الصفحة الرئيسية (الداشبورد)
-            loadFile('main-content', 'dashboard.html');
         });
-
-        // دوال التحكم العالمية للمودال
-        window.openCustomerModal = (t) => {
-            const m = document.getElementById('customer-modal');
-            if(m) { m.style.display='flex'; document.getElementById('modal-title').innerText = t; }
-        };
-        window.closeCustomerModal = () => {
-            const m = document.getElementById('customer-modal');
-            if(m) m.style.display='none';
-        };
     </script>
+
+    <script type="module" src="admin/main.js"></script>
+
 </body>
 </html>
