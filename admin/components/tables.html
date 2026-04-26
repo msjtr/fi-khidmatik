@@ -10,7 +10,7 @@
         <ul id="admin-menu">
             <li class="nav-item active" data-module="dashboard">
                 <div class="nav-icon">
-                    <i class="fas fa-chart-pie-simple"></i>
+                    <i class="fas fa-chart-pie"></i>
                 </div>
                 <span class="nav-text">الرئيسية</span>
                 <div class="active-indicator"></div>
@@ -26,7 +26,7 @@
             
             <li class="nav-item" data-module="orders">
                 <div class="nav-icon">
-                    <i class="fas fa-layer-group"></i>
+                    <i class="fas fa-file-invoice-dollar"></i>
                 </div>
                 <span class="nav-text">طلبات التقسيط</span>
                 <div class="active-indicator"></div>
@@ -34,19 +34,19 @@
             
             <li class="nav-item" data-module="customers">
                 <div class="nav-icon">
-                    <i class="fas fa-user-gear"></i>
+                    <i class="fas fa-users-gear"></i>
                 </div>
                 <span class="nav-text">قاعدة العملاء</span>
                 <div class="active-indicator"></div>
             </li>
             
-            <div class="nav-divider"><span>المزيد</span></div>
+            <div class="nav-divider"><span>الإدارة</span></div>
             
             <li class="nav-item" data-module="settings">
                 <div class="nav-icon">
-                    <i class="fas fa-command"></i>
+                    <i class="fas fa-sliders-h"></i>
                 </div>
-                <span class="nav-text">الإعدادات</span>
+                <span class="nav-text">إعدادات النظام</span>
                 <div class="active-indicator"></div>
             </li>
         </ul>
@@ -64,14 +64,15 @@
 </aside>
 
 <style>
-    /* التنسيقات المتقدمة - Tera Sidebar */
+    /* Tera Sidebar - Premium Dark/Light UI */
     :root {
         --sidebar-bg: #ffffff;
-        --sidebar-accent: #e67e22;
+        --sidebar-accent: #f97316; /* البرتقالي الرسمي لتيرا */
+        --sidebar-accent-hover: #ea580c;
         --sidebar-text: #64748b;
-        --sidebar-hover: #f8fafc;
+        --sidebar-hover-bg: #f8fafc;
         --sidebar-active-bg: #fff7ed;
-        --sidebar-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
+        --sidebar-border: #f1f5f9;
     }
 
     .app-sidebar {
@@ -79,31 +80,34 @@
         flex-direction: column;
         background: var(--sidebar-bg);
         height: 100vh;
-        border-left: 1px solid #f1f5f9;
-        box-shadow: var(--sidebar-shadow);
+        width: 280px;
+        border-left: 1px solid var(--sidebar-border);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: sticky;
+        top: 0;
     }
 
     .sidebar-header {
-        padding: 30px 25px 15px;
+        padding: 30px 25px 20px;
     }
 
     .brand-minimal {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
 
     .logo-dot {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         background: var(--sidebar-accent);
-        border-radius: 2px;
+        border-radius: 3px;
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
     }
 
     .menu-label {
         font-size: 0.75rem;
-        font-weight: 800;
+        font-weight: 900;
         color: #94a3b8;
         text-transform: uppercase;
         letter-spacing: 1.5px;
@@ -125,35 +129,36 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        padding: 14px 16px;
-        margin-bottom: 6px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
         border-radius: 14px;
         color: var(--sidebar-text);
-        font-weight: 600;
-        font-size: 0.92rem;
+        font-weight: 700;
+        font-size: 0.95rem;
         cursor: pointer;
-        transition: 0.25s ease;
+        transition: all 0.2s ease;
     }
 
     .nav-icon {
-        width: 34px;
-        height: 34px;
+        width: 36px;
+        height: 36px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 10px;
-        background: #f8fafc;
+        background: #f1f5f9;
         font-size: 1.1rem;
         transition: 0.3s;
     }
 
-    /* تأثيرات التفاعل */
+    /* تفاعلات التحويم */
     .nav-item:hover {
-        background: var(--sidebar-hover);
-        color: #1e293b;
-        transform: translateX(-3px);
+        background: var(--sidebar-hover-bg);
+        color: var(--sidebar-accent);
+        transform: translateX(-5px);
     }
 
+    /* الحالة النشطة */
     .nav-item.active {
         background: var(--sidebar-active-bg);
         color: var(--sidebar-accent);
@@ -162,10 +167,10 @@
     .nav-item.active .nav-icon {
         background: var(--sidebar-accent);
         color: #ffffff;
-        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.25);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
     }
 
-    /* المؤشر الجانبي المتطور */
+    /* مؤشر النشاط الجانبي */
     .active-indicator {
         position: absolute;
         right: -15px;
@@ -181,11 +186,11 @@
         opacity: 1;
     }
 
-    /* الفاصل */
+    /* الفواصل المسمّاة */
     .nav-divider {
-        margin: 25px 10px 15px;
+        margin: 30px 10px 20px;
         height: 1px;
-        background: #f1f5f9;
+        background: var(--sidebar-border);
         position: relative;
     }
 
@@ -193,78 +198,96 @@
         position: absolute;
         top: -10px;
         right: 15px;
-        background: #fff;
+        background: var(--sidebar-bg);
         padding: 0 10px;
         font-size: 0.65rem;
         color: #cbd5e1;
-        font-weight: 700;
+        font-weight: 800;
+        text-transform: uppercase;
     }
 
     /* الفوتر وحالة النظام */
     .sidebar-footer {
         padding: 20px 15px;
-        border-top: 1px solid #f8fafc;
+        border-top: 1px solid var(--sidebar-border);
     }
 
     .status-badge {
         background: #f0fdf4;
-        padding: 10px 15px;
-        border-radius: 12px;
+        padding: 12px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        border: 1px solid #dcfce7;
     }
 
     .status-text {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         color: #166534;
-        font-weight: 700;
+        font-weight: 800;
     }
 
-    /* نبض الاتصال */
+    /* نبض الاتصال الأخضر */
     .pulse-wrapper {
         position: relative;
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
     }
 
     .status-dot {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         background: #10b981;
         border-radius: 50%;
-        position: relative;
         z-index: 2;
+        position: relative;
     }
 
     .status-pulse {
         position: absolute;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         background: #10b981;
         border-radius: 50%;
         z-index: 1;
-        animation: pulse-ring 1.5s infinite ease-in-out;
+        animation: tera-pulse 2s infinite ease-in-out;
     }
 
-    @keyframes pulse-ring {
-        0% { transform: scale(0.8); opacity: 0.8; }
-        100% { transform: scale(2.5); opacity: 0; }
+    @keyframes tera-pulse {
+        0% { transform: scale(0.9); opacity: 0.8; }
+        100% { transform: scale(2.8); opacity: 0; }
     }
 
-    /* الاستجابة لتصغير القائمة */
-    .is-closed .nav-text, 
-    .is-closed .menu-label, 
-    .is-closed .nav-divider span,
-    .is-closed .status-text {
-        display: none;
-    }
-
-    .is-closed {
+    /* تصغير القائمة (Responsive/Collapsed) */
+    .app-sidebar.collapsed {
         width: 85px;
     }
-
-    .is-closed .side-nav {
-        padding: 10px;
+    
+    .app-sidebar.collapsed .nav-text, 
+    .app-sidebar.collapsed .menu-label, 
+    .app-sidebar.collapsed .nav-divider span,
+    .app-sidebar.collapsed .status-text {
+        display: none;
     }
 </style>
+
+<script>
+    /**
+     * التحكم في تنقل القائمة
+     */
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            // إزالة النشاط من الجميع
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            // تفعيل العنصر المختار
+            this.classList.add('active');
+            
+            const module = this.getAttribute('data-module');
+            // استدعاء دالة تغيير المحتوى إذا كانت موجودة
+            if (typeof window.loadModule === 'function') {
+                window.loadModule(module);
+            }
+        });
+    });
+</script>
