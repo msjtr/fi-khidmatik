@@ -93,7 +93,7 @@
 
     <script>
         /**
-         * 1. دوال الأمان العالمية
+         * 1. دوال الأمان (تمنع توقف الأزرار)
          */
         window.closeCustomerModal = () => { const m = document.getElementById('customer-modal'); if(m) m.style.display='none'; };
         window.openCustomerModal = (t) => { 
@@ -103,32 +103,31 @@
         window.closeConfirmModal = () => { const m = document.getElementById('confirm-modal'); if(m) m.style.display='none'; };
 
         /**
-         * 2. دالة تحميل المكونات الذكية
-         * تم إضافة إجبار المسار النسبي ليعمل على GitHub Pages
+         * 2. دالة تحميل المكونات (تم تعديل المسار ليكون متوافقاً مع الصورة)
          */
         async function loadComponent(id, fileName) {
-            // استخدام المسار النسبي النقطة لضمان البحث داخل المجلد الحالي فقط
-            const path = `./components/${fileName}`;
+            // المسار المباشر للمجلد الظاهر في الصورة
+            const path = `components/${fileName}`;
             try {
                 const response = await fetch(path);
                 if (!response.ok) throw new Error(`Status: ${response.status}`);
                 const html = await response.text();
                 document.getElementById(id).innerHTML = html;
-                console.log(`✅ Loaded: ${path}`);
+                console.log(`✅ تم تحميل المكون بنجاح: ${path}`);
             } catch (error) {
-                console.error(`❌ Failed: ${path}`, error);
-                document.getElementById(id).innerHTML = `<div style="color:red; padding:20px;">خطأ في تحميل ${fileName}</div>`;
+                console.error(`❌ فشل تحميل المكون من المسار: ${path}`, error);
+                document.getElementById(id).innerHTML = `<div style="color:red; padding:20px; text-align:center;">خطأ في تحميل ${fileName} <br> تأكد من وجود الملف في مجلد components</div>`;
             }
         }
 
         /**
-         * 3. تبديل الموديولات
+         * 3. دالة تحميل الموديولات (تأكد من وجود مجلد modules بجانب مجلد components)
          */
         async function loadModule(moduleName) {
             const container = document.getElementById('module-container');
             container.innerHTML = '<div class="loader-box"><i class="fas fa-circle-notch fa-spin fa-2x" style="color:#f97316;"></i></div>';
             
-            const path = `./modules/${moduleName}.html`;
+            const path = `modules/${moduleName}.html`;
             try {
                 const response = await fetch(path);
                 if (!response.ok) throw new Error('Not Found');
@@ -136,22 +135,25 @@
                 container.innerHTML = html;
                 document.title = `Tera Gateway | ${moduleName.toUpperCase()}`;
             } catch (error) {
-                container.innerHTML = `<div style="text-align:center; padding:50px;">خطأ 404: الموديول ${moduleName} غير موجود في المسار ${path}</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:50px;">
+                    <i class="fas fa-file-exclamation fa-3x" style="color:#cbd5e1;"></i>
+                    <p style="margin-top:15px;">الموديول "${moduleName}" غير موجود في مجلد modules</p>
+                </div>`;
             }
         }
 
         /**
-         * 4. التشغيل الأساسي
+         * 4. تنفيذ التحميل عند فتح الصفحة
          */
         window.addEventListener('DOMContentLoaded', async () => {
-            // تحميل المكونات بالتوازي لسرعة أكبر
+            // تحميل المكونات الظاهرة في الصورة
             await Promise.all([
                 loadComponent('sidebar-placeholder', 'sidebar.html'),
                 loadComponent('header-placeholder', 'header.html'),
                 loadComponent('modals-placeholder', 'modals.html')
             ]);
 
-            // تحميل الموديول الرئيسي
+            // تحميل الموديول الافتراضي (تأكد من وجود ملف dashboard.html داخل مجلد modules)
             loadModule('dashboard');
             
             document.body.classList.remove('loading');
