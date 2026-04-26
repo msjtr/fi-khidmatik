@@ -15,7 +15,7 @@ export async function initCustomersUI(container) {
         <div class="main-wrapper" style="direction: rtl; font-family: 'Tajawal', sans-serif; padding: 20px;">
             
             <div id="stats-board" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px;">
-                </div>
+            </div>
 
             <div style="background:#fff; padding:20px; border-radius:20px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center; justify-content:space-between; box-shadow: var(--sidebar-shadow);">
                 <div style="display:flex; gap:10px;">
@@ -59,7 +59,7 @@ export async function initCustomersUI(container) {
                             </tr>
                         </thead>
                         <tbody id="render-area">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -75,9 +75,6 @@ export async function initCustomersUI(container) {
     await loadAndRender();
 }
 
-/**
- * جلب البيانات من Firestore ورندرتها في الجدول
- */
 async function loadAndRender() {
     const tbody = document.getElementById('render-area');
     if (!tbody) return;
@@ -92,7 +89,6 @@ async function loadAndRender() {
             const d = docSnap.data();
             const id = docSnap.id;
             
-            // تحديث الإحصائيات
             stats.total++;
             if (d.status === 'نشط') stats.active++;
             if (d.status === 'معلق') stats.pending++;
@@ -108,7 +104,7 @@ async function loadAndRender() {
                         </div>
                     </td>
                     <td dir="ltr" style="font-weight:600; color:#0f172a;">${d.phone || '-'}</td>
-                    <td style="font-family:monospace; color:#475569;">${d.nationalId || d.idNumber || '-'}</td>
+                    <td style="font-family:monospace; color:#475569;">${d.nationalId || '-'}</td>
                     <td>${d.city || '-'} - ${d.district || '-'}</td>
                     <td style="font-weight:bold;">${d.buildingNo || '-'}</td>
                     <td>${d.employer || '-'}</td>
@@ -119,77 +115,65 @@ async function loadAndRender() {
                     <td style="position:sticky; left:0; background:#fff; text-align:center; box-shadow:-5px 0 15px rgba(0,0,0,0.05); padding:10px 20px;">
                         <div style="display:flex; gap:10px; justify-content:center;">
                             <button onclick="window.handleEdit('${id}')" class="btn-icon edit" title="تعديل"><i class="fas fa-edit"></i></button>
-                            <button onclick="window.handlePrint('${id}')" class="btn-icon print" title="طباعة العقد"><i class="fas fa-file-invoice"></i></button>
                             <button onclick="window.handleDelete('${id}', '${d.name}')" class="btn-icon delete" title="حذف"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </td>
                 </tr>
             `;
         });
-
         updateStatsUI(stats);
-
     } catch (error) {
         console.error("خطأ أثناء عرض العملاء:", error);
     }
 }
 
-/**
- * إدارة المودال (إضافة/تعديل)
- */
+function getStatusClass(status) {
+    if (status === 'نشط') return 'active';
+    if (status === 'موقوف') return 'stopped';
+    return 'pending';
+}
+
+function updateStatsUI(s) {
+    const board = document.getElementById('stats-board');
+    if (!board) return;
+    board.innerHTML = `
+        <div class="stat-card"><h3>الكل</h3><p>${s.total}</p></div>
+        <div class="stat-card"><h3>نشط</h3><p>${s.active}</p></div>
+        <div class="stat-card"><h3>متعثر</h3><p style="color:red">${s.badDebt}</p></div>
+    `;
+}
+
+function handleSearch() {
+    const term = document.getElementById('global-search').value.toLowerCase();
+    const rows = document.querySelectorAll('.customer-row');
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(term) ? '' : 'none';
+    });
+}
+
 function showAddModal() {
     editingId = null;
     const form = document.getElementById('customer-form');
     if (form) form.reset();
-    window.openCustomerModal("إضافة عميل جديد لتيرا");
+    if (window.openCustomerModal) window.openCustomerModal("إضافة عميل جديد");
 }
 
 window.handleEdit = async (id) => {
     editingId = id;
     const data = await Core.fetchCustomerById(id);
     if (!data) return;
-
-    // خريطة ربط الحقول (Field Map) لـ 17 حقلاً
-    const fieldMap = {
-        'cust-name': data.name,
-        'cust-phone': data.phone,
-        'cust-national-id': data.nationalId,
-        'cust-email': data.email,
-        'cust-dob': data.dob,
-        'cust-gender': data.gender,
-        'cust-city': data.city,
-        'cust-district': data.district,
-        'cust-street': data.street,
-        'cust-building-no': data.buildingNo,
-        'cust-zip-code': data.zipCode,
-        'cust-additional-no': data.additionalNo,
-        'cust-unit-no': data.unitNo,
-        'cust-employer': data.employer,
-        'cust-salary': data.salary,
-        'cust-commitment': data.commitment,
-        'cust-notes': data.notes,
-        'cust-status': data.status
-    };
-
-    // تعبئة الفورم برمجياً
-    Object.keys(fieldMap).forEach(key => {
-        const el = document.getElementById(key);
-        if (el) el.value = fieldMap[key] || '';
+    
+    const fields = ['name', 'phone', 'nationalId', 'email', 'city', 'district', 'employer', 'salary', 'commitment', 'status'];
+    fields.forEach(f => {
+        const el = document.getElementById('cust-' + f);
+        if (el) el.value = data[f] || '';
     });
 
-    window.openCustomerModal("تعديل بيانات: " + data.name);
+    if (window.openCustomerModal) window.openCustomerModal("تعديل بيانات: " + data.name);
 };
 
-/**
- * الحفظ والحذف
- */
 window.saveCustomerData = async () => {
-    const form = document.getElementById('customer-form');
-    if (!form.checkValidity()) {
-        alert("يرجى ملء الحقول المطلوبة (الاسم والجوال)");
-        return;
-    }
-
     const formData = {
         name: document.getElementById('cust-name').value,
         phone: document.getElementById('cust-phone').value,
@@ -197,4 +181,29 @@ window.saveCustomerData = async () => {
         email: document.getElementById('cust-email').value,
         city: document.getElementById('cust-city').value,
         district: document.getElementById('cust-district').value,
-        salary: document.getElementById
+        salary: document.getElementById('cust-salary').value,
+        commitment: document.getElementById('cust-commitment').value,
+        status: document.getElementById('cust-status').value,
+        updatedAt: new Date().toISOString()
+    };
+
+    try {
+        if (editingId) {
+            await Core.updateCustomer(editingId, formData);
+        } else {
+            formData.createdAt = new Date().toISOString();
+            await Core.addCustomer(formData);
+        }
+        if (window.closeCustomerModal) window.closeCustomerModal();
+        loadAndRender();
+    } catch (err) {
+        alert("خطأ في الحفظ");
+    }
+};
+
+window.handleDelete = async (id, name) => {
+    if (confirm(`هل أنت متأكد من حذف العميل: ${name}؟`)) {
+        await Core.deleteCustomer(id);
+        loadAndRender();
+    }
+};
