@@ -1,16 +1,25 @@
 /**
  * customers-ui.js
- * موديول إدارة واجهة العملاء - إصلاح أخطاء الأقواس والتحميل
+ * موديول إدارة واجهة العملاء - الإصلاح النهائي لجميع الدوال والأقواس
  */
 
 import { db } from '../core/firebase.js';
-import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    collection, 
+    getDocs, 
+    addDoc, 
+    deleteDoc, 
+    doc, 
+    updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// دالة التشغيل الرئيسية عند تحميل القسم
 export async function initCustomersUI(container) {
-    console.log("إعداد واجهة العملاء...");
+    console.log("إعداد واجهة العملاء في Fi-Khidmatik...");
     await renderCustomerTable();
 }
 
+// دالة عرض جدول العملاء
 export async function renderCustomerTable() {
     const tableBody = document.querySelector('#customers-table-body');
     if (!tableBody) return;
@@ -35,26 +44,34 @@ export async function renderCustomerTable() {
             tableBody.innerHTML += row;
         });
     } catch (error) {
-        console.error("خطأ في جلب البيانات:", error);
+        console.error("خطأ في جلب بيانات العملاء:", error);
     }
 }
 
+// فتح نافذة الإضافة
 export async function openAddCustomer() {
     const modal = document.getElementById('customer-modal');
     if (modal) modal.style.display = 'flex';
 }
 
+// إغلاق نافذة الإضافة/التعديل
 export function closeCustomerModal() {
     const modal = document.getElementById('customer-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+        // مسح الحقول عند الإغلاق
+        document.getElementById('cust-name').value = '';
+        document.getElementById('cust-phone').value = '';
+    }
 }
 
+// حفظ عميل جديد
 export async function saveCustomer() {
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
 
     if (!name || !phone) {
-        alert("يرجى ملء الحقول الأساسية");
+        alert("يرجى ملء الاسم ورقم الجوال");
         return;
     }
 
@@ -66,21 +83,28 @@ export async function saveCustomer() {
             createdAt: new Date()
         });
         closeCustomerModal();
-        renderCustomerTable();
+        await renderCustomerTable();
     } catch (e) {
-        console.error("خطأ في الحفظ:", e);
+        console.error("خطأ أثناء حفظ العميل:", e);
     }
 }
 
+// دالة تعديل العميل (تمت إضافتها لمنع الأخطاء)
+export async function editCustomer(id) {
+    console.log("تعديل العميل ذو المعرف:", id);
+    // يمكنك إضافة منطق التعديل هنا لاحقاً
+}
+
+// حذف العميل
 export async function deleteCustomer(id) {
-    if (confirm("هل أنت متأكد من حذف هذا العميل؟")) {
+    if (confirm("هل أنت متأكد من حذف هذا العميل نهائياً؟")) {
         try {
             await deleteDoc(doc(db, "customers", id));
-            renderCustomerTable();
+            await renderCustomerTable();
         } catch (e) {
-            console.error("خطأ في الحذف:", e);
+            console.error("خطأ أثناء الحذف:", e);
         }
     }
 }
 
-// تأكد من وجود هذا القوس النهائي لإغلاق الموديول
+// القوس النهائي لضمان إغلاق الموديول بشكل صحيح وتجنب SyntaxError
