@@ -1,6 +1,6 @@
 /**
- * main.js - Fi-Khidmatik Unified Core
- * تم إصلاح تعطل الأزرار (إضافة، تعديل، حذف) ومسارات الـ CSS
+ * main.js - Fi-Khidmatik Core System
+ * تم إصلاح المسارات وجسر التواصل البرمجي
  */
 
 const routes = {
@@ -16,7 +16,6 @@ const routes = {
     'general':   'admin/modules/general.html'
 };
 
-// حاوية لتخزين الموديولات النشطة لتسهيل الوصول للأزرار
 let activeModuleInstance = null;
 
 async function switchModule(moduleName) {
@@ -27,21 +26,21 @@ async function switchModule(moduleName) {
     if (!path) return;
 
     try {
-        // تنظيف الحاوية لمنع التداخل بين الأقسام
-        container.innerHTML = `<div style="text-align:center; padding:100px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:#2563eb;"></i></div>`;
+        // تنظيف الحاوية لمنع تداخل البيانات
+        container.innerHTML = '<div style="text-align:center; padding:100px;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
 
         const response = await fetch(`${path}?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`404: ${path}`);
+        if (!response.ok) throw new Error('404');
         
         const html = await response.text();
         container.innerHTML = html;
 
-        // إعادة ضبط الموديول النشط
-        activeModuleInstance = null;
+        // تحديث حالة الروابط في القائمة الجانبية
+        updateSidebarUI(moduleName);
 
-        // تحميل ملفات التنسيق والسكربتات الخاصة بكل قسم
+        // تحميل الملفات المساعدة بناءً على القسم
         if (moduleName === 'customers') {
-            loadCustomersModule(container);
+            await loadCustomersModule(container);
         }
 
     } catch (error) {
@@ -50,7 +49,7 @@ async function switchModule(moduleName) {
 }
 
 async function loadCustomersModule(container) {
-    // إصلاح مسار CSS ليعمل من مجلد css/ الرئيسي
+    // 1. تصحيح مسار CSS (المسار الصحيح هو css/ وليس js/modules/)
     const styleId = 'module-customers-style';
     if (!document.getElementById(styleId)) {
         const link = document.createElement('link');
@@ -60,15 +59,17 @@ async function loadCustomersModule(container) {
         document.head.appendChild(link);
     }
 
+    // 2. تحميل الموديول البرمجي من js/modules/
     try {
-        // تحميل موديول الـ UI من المسار الصحيح js/modules/
-        const module = await import(`./modules/customers-ui.js?v=${Date.now()}`);
+        const modulePath = `./modules/customers-ui.js?v=${Date.now()}`;
+        const module = await import(modulePath);
+        
         if (module && module.initCustomersUI) {
             setTimeout(() => {
                 const target = document.getElementById('customers-module-container') || container;
                 activeModuleInstance = module.initCustomersUI(target);
                 
-                // ربط الأزرار العالمية (إذا كانت خارج الحاوية)
+                // ربط الأزرار الخارجية (مثل "إضافة عميل") بالموديول
                 setupCustomerBridge(module);
             }, 100);
         }
@@ -78,14 +79,19 @@ async function loadCustomersModule(container) {
 }
 
 /**
- * جسر تواصل لضمان عمل أزرار الإضافة والتعديل والحفظ
+ * جسر التواصل لضمان عمل أزرار onclick في HTML
  */
 function setupCustomerBridge(module) {
-    // جعل دوال الموديول متاحة لـ window لتعمل أزرار onclick
     window.saveCustomer = module.saveCustomer || null;
     window.closeCustomerModal = module.closeCustomerModal || null;
     window.openAddCustomer = module.openAddCustomer || null;
     window.deleteCustomer = module.deleteCustomer || null;
+}
+
+function updateSidebarUI(activeModule) {
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${activeModule}`);
+    });
 }
 
 function handleRoute() {
