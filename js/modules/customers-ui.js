@@ -1,6 +1,6 @@
 /**
  * customers-ui.js - Fi-Khidmatik Full Stack UI
- * إدارة شاملة لـ 17 حقل لمجموعة Customers
+ * إصدار "الظهور الكامل": عرض كافة العناصر الـ 17 بشكل منفصل
  */
 
 import * as Core from './customers-core.js';
@@ -17,7 +17,7 @@ export async function initCustomersUI(container) {
             <div class="toolbar-card">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="cust-filter" placeholder="بحث باسم العميل (1)...">
+                    <input type="text" id="cust-filter" placeholder="بحث باسم العميل...">
                 </div>
                 <button class="btn-action edit" onclick="openAddCustomer()">
                     <i class="fas fa-user-plus"></i> إضافة عميل جديد
@@ -28,10 +28,10 @@ export async function initCustomersUI(container) {
                 <table class="tera-table">
                     <thead>
                         <tr>
-                            <th>العميل (1+17)</th>
-                            <th>الاتصال (2+3)</th>
-                            <th>الموقع (6)</th>
-                            <th>التصنيف (14)</th>
+                            <th>العميل</th>
+                            <th>رقم الجوال</th>
+                            <th>المدينة</th>
+                            <th>التصنيف</th>
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
@@ -45,59 +45,69 @@ export async function initCustomersUI(container) {
         <div id="customer-modal" class="modal" style="display:none;">
             <div class="modal-content large">
                 <div class="modal-header">
-                    <h3 id="modal-title">تفاصيل العميل الشاملة</h3>
+                    <h3 id="modal-title">إدارة بيانات المجموعة: Customers</h3>
                     <button type="button" onclick="closeCustomerModal()">&times;</button>
                 </div>
                 <div class="modal-body">
                     <form id="customer-form" onsubmit="event.preventDefault(); saveCustomer();">
                         
-                        <div class="form-section shadow-sm">
-                            <div class="avatar-view">
-                                <img id="cust-image-preview" src="${FALLBACK_AVATAR}" class="main-avatar">
-                                <div class="time-info">
-                                    <small>إنشاء: <span id="info-createdAt">---</span></small>
-                                    <small>تحديث: <span id="info-updatedAt">---</span></small>
+                        <div class="form-card-section">
+                            <h4><i class="fas fa-id-badge"></i> الهوية والتواريخ</h4>
+                            <div class="form-grid">
+                                <div class="input-group full-width" style="text-align:center;">
+                                    <img id="cust-image-preview" src="${FALLBACK_AVATAR}" class="main-avatar-preview">
+                                    <input type="text" id="cust-image" placeholder="رابط صورة العميل (Field 17)" oninput="document.getElementById('cust-image-preview').src=this.value">
                                 </div>
-                            </div>
-                            <div class="input-group full-width">
-                                <label>رابط الصورة (17)</label>
-                                <input type="text" id="cust-image" placeholder="https://..." oninput="document.getElementById('cust-image-preview').src=this.value">
+                                <div class="input-group"><label>تاريخ الإنشاء (15)</label><input type="text" id="info-createdAt" readonly class="readonly-input"></div>
+                                <div class="input-group"><label>آخر تحديث (16)</label><input type="text" id="info-updatedAt" readonly class="readonly-input"></div>
                             </div>
                         </div>
 
-                        <div class="form-grid">
-                            <div class="input-group"><label>الاسم الكامل (1)</label><input type="text" id="cust-name" required></div>
-                            <div class="input-group"><label>رقم الجوال (2)</label><input type="text" id="cust-phone" required></div>
-                            <div class="input-group"><label>مفتاح الدولة (3)</label><input type="text" id="cust-countryCode" value="+966"></div>
-                            <div class="input-group"><label>البريد الإلكتروني (4)</label><input type="email" id="cust-email"></div>
-
-                            <div class="input-group"><label>الدولة (5)</label><input type="text" id="cust-country"></div>
-                            <div class="input-group"><label>المدينة (6)</label><input type="text" id="cust-city"></div>
-                            <div class="input-group"><label>الحي (7)</label><input type="text" id="cust-district"></div>
-                            <div class="input-group"><label>الشارع (8)</label><input type="text" id="cust-street"></div>
-                            <div class="input-group"><label>رقم المبنى (9)</label><input type="text" id="cust-buildingNo"></div>
-                            <div class="input-group"><label>الرقم الإضافي (10)</label><input type="text" id="cust-additionalNo"></div>
-                            <div class="input-group"><label>الرمز البريدي (11)</label><input type="text" id="cust-postalCode"></div>
-                            <div class="input-group"><label>صندوق البريد (12)</label><input type="text" id="cust-poBox"></div>
-
-                            <div class="input-group">
-                                <label>تصنيف العميل (14)</label>
-                                <select id="cust-tag">
-                                    <option value="regular">Regular</option>
-                                    <option value="vip">VIP</option>
-                                    <option value="company">Company</option>
-                                    <option value="individual">Individual</option>
-                                </select>
+                        <div class="form-card-section">
+                            <h4><i class="fas fa-phone"></i> بيانات الاتصال</h4>
+                            <div class="form-grid">
+                                <div class="input-group"><label>الاسم الكامل (1)</label><input type="text" id="cust-name" required placeholder="اسم العميل"></div>
+                                <div class="input-group"><label>مفتاح الدولة (3)</label><input type="text" id="cust-countryCode" value="+966"></div>
+                                <div class="input-group"><label>رقم الجوال (2)</label><input type="text" id="cust-phone" required placeholder="5xxxxxxx"></div>
+                                <div class="input-group"><label>البريد الإلكتروني (4)</label><input type="email" id="cust-email" placeholder="example@mail.com"></div>
                             </div>
+                        </div>
 
-                            <div class="input-group full-width">
-                                <label>الملاحظات (13)</label>
-                                <div id="editor-container" style="height: 120px; background: #fff;"></div>
+                        <div class="form-card-section">
+                            <h4><i class="fas fa-map-marker-alt"></i> العنوان الوطني والموقع</h4>
+                            <div class="form-grid">
+                                <div class="input-group"><label>الدولة (5)</label><input type="text" id="cust-country" value="المملكة العربية السعودية"></div>
+                                <div class="input-group"><label>المدينة (6)</label><input type="text" id="cust-city" placeholder="مثلاً: حائل"></div>
+                                <div class="input-group"><label>الحي (7)</label><input type="text" id="cust-district"></div>
+                                <div class="input-group"><label>اسم الشارع (8)</label><input type="text" id="cust-street"></div>
+                                <div class="input-group"><label>رقم المبنى (9)</label><input type="text" id="cust-buildingNo"></div>
+                                <div class="input-group"><label>الرقم الإضافي (10)</label><input type="text" id="cust-additionalNo"></div>
+                                <div class="input-group"><label>الرمز البريدي (11)</label><input type="text" id="cust-postalCode"></div>
+                                <div class="input-group"><label>صندوق البريد (12)</label><input type="text" id="cust-poBox"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-card-section">
+                            <h4><i class="fas fa-tags"></i> التصنيف والملاحظات</h4>
+                            <div class="form-grid">
+                                <div class="input-group full-width">
+                                    <label>تصنيف العميل (14)</label>
+                                    <select id="cust-tag">
+                                        <option value="regular">Regular (عادي)</option>
+                                        <option value="vip">VIP (مميز)</option>
+                                        <option value="company">Company (شركة)</option>
+                                        <option value="individual">Individual (فرد)</option>
+                                    </select>
+                                </div>
+                                <div class="input-group full-width">
+                                    <label>الملاحظات (13) - محرر نصوص</label>
+                                    <div id="editor-container" style="height: 150px; background: #fff; border: 1px solid #ddd; border-radius: 8px;"></div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="modal-footer">
-                            <button type="submit" class="btn-save">حفظ كافة البيانات</button>
+                            <button type="submit" class="btn-save-full">حفظ كافة بيانات العميل</button>
                         </div>
                     </form>
                 </div>
@@ -111,16 +121,19 @@ export async function initCustomersUI(container) {
 }
 
 /**
- * دالة تهيئة المحرر (Quill) للملاحظات (13)
+ * تهيئة Quill محرر النصوص للحقل (13)
  */
 function initQuillEditor() {
-    if (typeof Quill !== 'undefined') {
-        quill = new Quill('#editor-container', { theme: 'snow' });
+    if (typeof Quill !== 'undefined' && !quill) {
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['clean']] }
+        });
     }
 }
 
 /**
- * عرض الجدول مع دمج العناصر الأساسية
+ * عرض الجدول
  */
 export async function renderCustomerTable() {
     const tbody = document.getElementById('customers-table-body');
@@ -135,31 +148,29 @@ export async function renderCustomerTable() {
             tbody.innerHTML += `
                 <tr>
                     <td>
-                        <div class="table-user-cell">
-                            <img src="${d.image || FALLBACK_AVATAR}" class="avatar-sm">
-                            <span>${d.name || 'غير مسمى'}</span>
+                        <div class="user-info-cell">
+                            <img src="${d.image || FALLBACK_AVATAR}" class="avatar-table">
+                            <span>${d.name || '---'}</span>
                         </div>
                     </td>
                     <td dir="ltr">${d.countryCode || ''} ${d.phone || ''}</td>
                     <td>${d.city || '---'}</td>
                     <td><span class="badge-${d.tag || 'regular'}">${d.tag || 'regular'}</span></td>
                     <td>
-                        <div class="action-btns">
-                            <button class="btn-edit" onclick="editCustomer('${doc.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="btn-delete" onclick="deleteCustomer('${doc.id}')"><i class="fas fa-trash"></i></button>
-                        </div>
+                        <button class="btn-icon-action" onclick="editCustomer('${doc.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon-action delete" onclick="deleteCustomer('${doc.id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Error UI Render:", e); }
 }
 
 function setupBridge() {
     window.openAddCustomer = () => {
         editingId = null;
         document.getElementById('customer-form').reset();
-        document.getElementById('info-createdAt').innerText = "الآن";
-        document.getElementById('info-updatedAt').innerText = "الآن";
+        document.getElementById('info-createdAt').value = "يُحدد عند الحفظ";
+        document.getElementById('info-updatedAt').value = "يُحدد عند الحفظ";
         document.getElementById('cust-image-preview').src = FALLBACK_AVATAR;
         if(quill) quill.setContents([]);
         document.getElementById('customer-modal').style.display = 'flex';
@@ -172,7 +183,7 @@ function setupBridge() {
         const d = await Core.fetchCustomerById(id);
         if (!d) return;
 
-        // ملء الـ 17 عنصراً في الواجهة
+        // تعبئة كل حقل بشكل منفصل تماماً
         document.getElementById('cust-name').value = d.name || '';
         document.getElementById('cust-phone').value = d.phone || '';
         document.getElementById('cust-countryCode').value = d.countryCode || '+966';
@@ -189,9 +200,9 @@ function setupBridge() {
         document.getElementById('cust-image').value = d.image || '';
         document.getElementById('cust-image-preview').src = d.image || FALLBACK_AVATAR;
 
-        // عرض التواريخ (15, 16)
-        document.getElementById('info-createdAt').innerText = d.createdAt?.toDate().toLocaleString('ar-SA') || '---';
-        document.getElementById('info-updatedAt').innerText = d.updatedAt?.toDate().toLocaleString('ar-SA') || '---';
+        // التواريخ (15, 16)
+        document.getElementById('info-createdAt').value = d.createdAt?.toDate().toLocaleString('ar-SA') || '---';
+        document.getElementById('info-updatedAt').value = d.updatedAt?.toDate().toLocaleString('ar-SA') || '---';
 
         if (quill) quill.root.innerHTML = d.notes || '';
         document.getElementById('customer-modal').style.display = 'flex';
@@ -220,10 +231,13 @@ function setupBridge() {
             editingId ? await Core.updateCustomer(editingId, data) : await Core.addCustomer(data);
             window.closeCustomerModal();
             await renderCustomerTable();
-        } catch (e) { alert("خطأ: " + e.message); }
+        } catch (e) { alert("خطأ في الحفظ: " + e.message); }
     };
 
     window.deleteCustomer = async (id) => {
-        if(confirm("حذف العميل؟")) { await Core.deleteCustomer(id); await renderCustomerTable(); }
+        if(confirm("هل تود حذف هذا العميل؟")) { 
+            await Core.deleteCustomer(id); 
+            await renderCustomerTable(); 
+        }
     };
 }
