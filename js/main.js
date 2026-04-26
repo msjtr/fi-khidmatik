@@ -1,6 +1,6 @@
 /**
- * main.js - Fi-Khidmatik Core
- * نظام التوجيه الموحد مع تفعيل تلقائي للأزرار
+ * main.js - Fi-Khidmatik Unified Core
+ * تم إصلاح تعطل الأزرار (إضافة، تعديل، حذف) ومسارات الـ CSS
  */
 
 const routes = {
@@ -16,6 +16,9 @@ const routes = {
     'general':   'admin/modules/general.html'
 };
 
+// حاوية لتخزين الموديولات النشطة لتسهيل الوصول للأزرار
+let activeModuleInstance = null;
+
 async function switchModule(moduleName) {
     const container = document.getElementById('module-container');
     if (!container) return;
@@ -24,78 +27,30 @@ async function switchModule(moduleName) {
     if (!path) return;
 
     try {
-        // 1. تنظيف الحاوية وإظهار مؤشر التحميل
-        container.innerHTML = `
-            <div style="text-align:center; padding:100px;">
-                <i class="fas fa-spinner fa-spin fa-2x" style="color:#2563eb;"></i>
-            </div>`;
+        // تنظيف الحاوية لمنع التداخل بين الأقسام
+        container.innerHTML = `<div style="text-align:center; padding:100px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:#2563eb;"></i></div>`;
 
-        // 2. جلب المحتوى
         const response = await fetch(`${path}?v=${Date.now()}`);
         if (!response.ok) throw new Error(`404: ${path}`);
         
         const html = await response.text();
         container.innerHTML = html;
 
-        // --- الخطوة الأهم: ربط الأزرار فور حقن الـ HTML ---
-        bindGlobalEvents();
+        // إعادة ضبط الموديول النشط
+        activeModuleInstance = null;
 
-        // 3. معالجة موديول العملاء بشكل خاص (تحميل الـ JS الخاص به)
+        // تحميل ملفات التنسيق والسكربتات الخاصة بكل قسم
         if (moduleName === 'customers') {
-            handleCustomersLoading(container);
+            loadCustomersModule(container);
         }
-
-        // 4. تحديث واجهة القائمة الجانبية
-        updateSidebarUI(moduleName);
 
     } catch (error) {
         console.error("Navigation Error:", error);
-        container.innerHTML = `<div style="padding:20px; color:red;">خطأ في تحميل الصفحة: ${moduleName}</div>`;
     }
 }
 
-/**
- * دالة ربط الأحداث لجميع الأزرار (إغلاق، حفظ، تعديل)
- */
-function bindGlobalEvents() {
-    // أزرار الإغلاق (للمودالات)
-    document.querySelectorAll('[data-bs-dismiss="modal"], .btn-close, .close-btn').forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            const modal = btn.closest('.modal') || btn.closest('.glass-modal') || document.querySelector('.modal');
-            if (modal) modal.style.display = 'none';
-        };
-    });
-
-    // أزرار الفتح (للمودالات) - تبحث عن زر يحمل data-target
-    document.querySelectorAll('[data-action="open-modal"]').forEach(btn => {
-        btn.onclick = () => {
-            const modalId = btn.dataset.target;
-            const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'flex';
-        };
-    });
-
-    // أزرار الحفظ
-    document.querySelectorAll('.btn-save, #saveChanges').forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            console.log("Saving...");
-            if (window.saveData) window.saveData(e);
-        };
-    });
-
-    // أزرار التعديل
-    document.querySelectorAll('.btn-edit').forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            const id = btn.dataset.id || btn.closest('tr')?.dataset.id;
-            if (window.editItem) window.editItem(id);
-        };
-    });
-}
-
-async function handleCustomersLoading(container) {
+async function loadCustomersModule(container) {
+    // إصلاح مسار CSS ليعمل من مجلد css/ الرئيسي
     const styleId = 'module-customers-style';
     if (!document.getElementById(styleId)) {
         const link = document.createElement('link');
@@ -106,30 +61,31 @@ async function handleCustomersLoading(container) {
     }
 
     try {
-        const modulePath = `./modules/customers-ui.js?v=${Date.now()}`;
-        const module = await import(modulePath);
+        // تحميل موديول الـ UI من المسار الصحيح js/modules/
+        const module = await import(`./modules/customers-ui.js?v=${Date.now()}`);
         if (module && module.initCustomersUI) {
             setTimeout(() => {
-                const target = document.getElementById('customers-module-content') || container;
-                module.initCustomersUI(target);
-                // إعادة الربط بعد تحميل موديول الـ UI لضمان عمل أزرار الجدول
-                bindGlobalEvents(); 
+                const target = document.getElementById('customers-module-container') || container;
+                activeModuleInstance = module.initCustomersUI(target);
+                
+                // ربط الأزرار العالمية (إذا كانت خارج الحاوية)
+                setupCustomerBridge(module);
             }, 100);
         }
     } catch (err) {
-        console.warn("Customer JS module not loaded.");
+        console.error("Failed to load customer script:", err);
     }
 }
 
-function updateSidebarUI(activeHash) {
-    document.querySelectorAll('.sidebar-nav a').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === `#${activeHash}`) {
-            link.classList.add('active');
-        } else {
-            link.classList.remove('active');
-        }
-    });
+/**
+ * جسر تواصل لضمان عمل أزرار الإضافة والتعديل والحفظ
+ */
+function setupCustomerBridge(module) {
+    // جعل دوال الموديول متاحة لـ window لتعمل أزرار onclick
+    window.saveCustomer = module.saveCustomer || null;
+    window.closeCustomerModal = module.closeCustomerModal || null;
+    window.openAddCustomer = module.openAddCustomer || null;
+    window.deleteCustomer = module.deleteCustomer || null;
 }
 
 function handleRoute() {
@@ -137,7 +93,6 @@ function handleRoute() {
     switchModule(hash);
 }
 
-// الأحداث الرئيسية
 window.addEventListener('load', handleRoute);
 window.addEventListener('hashchange', handleRoute);
 window.switchModule = switchModule;
