@@ -1,9 +1,9 @@
 /**
- * main.js - Fi-Khidmatik Core
- * نظام التوجيه الموحد لجميع الأقسام
+ * Tera Gateway - Core Routing System (main.js)
+ * نظام التوجيه الذكي وإدارة الموديولات
  */
 
-// 1. تعريف جميع المسارات بناءً على بنية المجلدات لديك
+// 1. خريطة المسارات الموحدة
 const routes = {
     'dashboard': 'admin/modules/orders-dashboard.html',
     'customers': 'admin/modules/customers.html',
@@ -17,105 +17,153 @@ const routes = {
     'general':   'admin/modules/general.html'
 };
 
+/**
+ * التنقل بين الأقسام
+ */
 async function switchModule(moduleName) {
     const container = document.getElementById('module-container');
-    if (!container) {
-        console.error("خطأ: لم يتم العثور على حاوية 'module-container' في صفحة admin.html");
-        return;
-    }
+    if (!container) return;
 
     const path = routes[moduleName];
     if (!path) {
-        console.warn(`المسار ${moduleName} غير معرف في النظام.`);
+        console.error(`Tera Error: المسار [${moduleName}] غير معرف.`);
         return;
     }
 
     try {
-        // الـ Firewall: تنظيف الحاوية تماماً قبل البدء لمنع التداخل
-        container.innerHTML = `
-            <div style="display:flex; justify-content:center; align-items:center; height:300px; flex-direction:column; gap:15px;">
-                <i class="fas fa-spinner fa-spin fa-2x" style="color:#2563eb;"></i>
-                <span style="color:#64748b; font-family:'Tajawal';">جاري تحميل ${moduleName}...</span>
-            </div>`;
+        // حالة التحميل (Loading State)
+        showModuleLoader(container, moduleName);
 
-        // تحديث حالة الأزرار في القائمة الجانبية (Sidebar)
+        // تحديث واجهة السايدبار (Active Class)
         updateSidebarUI(moduleName);
 
-        // تحميل ملف الـ HTML المطلوب
+        // جلب محتوى الـ HTML
         const response = await fetch(`${path}?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`Status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP Status: ${response.status}`);
         
         const html = await response.text();
         
-        // حقن المحتوى في الحاوية
+        // حقن المحتوى مع تأثير تلاشي بسيط (Fade-in effect)
+        container.style.opacity = '0';
         container.innerHTML = html;
+        
+        setTimeout(() => {
+            container.style.transition = 'opacity 0.3s ease';
+            container.style.opacity = '1';
+        }, 50);
 
-        // تنفيذ الدوال الخاصة بكل موديول إذا وجدت
-        handleModuleInitialization(moduleName, container);
+        // تشغيل التهيئة البرمجية للموديول
+        await initializeModuleLogic(moduleName, container);
 
     } catch (error) {
-        console.error("خطأ في الانتقال:", error);
-        container.innerHTML = `
-            <div style="padding:40px; text-align:center; color:#ef4444; background:rgba(239,68,68,0.05); border-radius:12px; border:1px dashed #ef4444; margin:20px;">
-                <i class="fas fa-exclamation-circle fa-3x"></i>
-                <h3 style="margin-top:15px;">تعذر تحميل القسم</h3>
-                <p>الملف ${path} قد يكون غير موجود أو هناك مشكلة في الاتصال.</p>
-                <button onclick="location.reload()" style="padding:8px 20px; background:#2563eb; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:10px;">إعادة المحاولة</button>
-            </div>`;
+        renderErrorMessage(container, path);
     }
 }
 
-// دالة لتحديث واجهة القائمة الجانبية
+/**
+ * تهيئة المنطق البرمجي (JS/CSS) لكل موديول بشكل ديناميكي
+ */
+async function initializeModuleLogic(moduleName, container) {
+    // 1. تحميل ملف CSS الخاص بالموديول إذا وجد
+    loadModuleStyle(moduleName);
+
+    // 2. تشغيل الدوال البرمجية بناءً على اسم الموديول
+    switch (moduleName) {
+        case 'customers':
+            await initSpecificModule(moduleName, 'initCustomersUI');
+            break;
+        case 'products':
+            await initSpecificModule(moduleName, 'initProductsUI');
+            break;
+        case 'orders':
+            await initSpecificModule(moduleName, 'initOrdersUI');
+            break;
+        // يمكنك إضافة حالات أخرى هنا لاحقاً
+    }
+}
+
+/**
+ * دالة مساعدة لتحميل ملفات JS الخاصة بالموديولات (Dynamic Import)
+ */
+async function initSpecificModule(moduleName, initFunctionName) {
+    try {
+        const modulePath = `./modules/${moduleName}-ui.js?v=${Date.now()}`;
+        const module = await import(modulePath);
+        if (module && module[initFunctionName]) {
+            module[initFunctionName]();
+            console.log(`✨ Module Initialized: ${moduleName}`);
+        }
+    } catch (err) {
+        console.warn(`Tera Notice: لا يوجد ملف JS خاص للموديول [${moduleName}]، سيتم الاكتفاء بـ HTML.`);
+    }
+}
+
+/**
+ * تحميل التنسيقات (CSS) ديناميكياً لتجنب ثقل الصفحة الرئيسية
+ */
+function loadModuleStyle(moduleName) {
+    const styleId = `style-mod-${moduleName}`;
+    if (!document.getElementById(styleId)) {
+        const link = document.createElement('link');
+        link.id = styleId;
+        link.rel = 'stylesheet';
+        link.href = `css/modules/${moduleName}.css?v=${Date.now()}`;
+        // لا نعطل التحميل إذا فشل ملف الـ CSS
+        link.onerror = () => link.remove(); 
+        document.head.appendChild(link);
+    }
+}
+
+/**
+ * تحديث حالة القائمة الجانبية (Sidebar)
+ */
 function updateSidebarUI(activeModule) {
-    document.querySelectorAll('.sidebar-nav a').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === `#${activeModule}`) {
-            link.classList.add('active');
+    // نبحث عن العناصر التي تحمل سمة data-module
+    document.querySelectorAll('.nav-item').forEach(item => {
+        if (item.getAttribute('data-module') === activeModule) {
+            item.classList.add('active');
         } else {
-            link.classList.remove('active');
+            item.classList.remove('active');
         }
     });
 }
 
-// دالة لمعالجة تشغيل الـ JavaScript الخاص بكل صفحة بعد تحميلها
-async function handleModuleInitialization(moduleName, container) {
-    // حالة خاصة لقاعدة العملاء
-    if (moduleName === 'customers') {
-        try {
-            // تحميل التنسيق أولاً
-            if (!document.getElementById('module-customers-style')) {
-                const link = document.createElement('link');
-                link.id = 'module-customers-style';
-                link.rel = 'stylesheet';
-                link.href = `css/customers.css?v=${Date.now()}`;
-                document.head.appendChild(link);
-            }
-            
-            // تحميل وتشغيل ملف الـ UI
-            const module = await import(`./modules/customers-ui.js?v=${Date.now()}`);
-            if (module && module.initCustomersUI) {
-                setTimeout(() => {
-                    const target = document.getElementById('customers-module-container') || container;
-                    module.initCustomersUI(target);
-                }, 100);
-            }
-        } catch (err) {
-            console.error("تحذير: لم يتم العثور على موديول JS للعملاء، سيتم عرض الـ HTML فقط.");
-        }
-    }
-    
-    // يمكنك إضافة شروط مشابهة هنا لـ inventory أو payments إذا كان لها ملفات JS خاصة
+/**
+ * عرض رسالة خطأ احترافية
+ */
+function renderErrorMessage(container, path) {
+    container.innerHTML = `
+        <div class="error-card" style="padding:50px; text-align:center; background:#fff; border-radius:20px; border:1px solid #fee2e2; margin:20px;">
+            <div style="color:#ef4444; font-size: 3rem; margin-bottom: 20px;"><i class="fas fa-circle-exclamation"></i></div>
+            <h3 style="color:#1e293b; font-weight:800;">عذراً، فشل تحميل القسم</h3>
+            <p style="color:#64748b;">لم نتمكن من الوصول إلى ملف البرمجة في: <code style="background:#f1f5f9; padding:2px 5px;">${path}</code></p>
+            <button onclick="location.reload()" style="margin-top:20px; background:#2563eb; color:white; border:none; padding:12px 25px; border-radius:12px; font-weight:700; cursor:pointer;">تحديث الصفحة</button>
+        </div>`;
 }
 
-// مراقبة التغير في الرابط (Hash)
+/**
+ * عرض واجهة التحميل داخل الحاوية
+ */
+function showModuleLoader(container, name) {
+    container.innerHTML = `
+        <div class="module-loader" style="display:flex; justify-content:center; align-items:center; height:100%; min-height:400px; flex-direction:column; gap:20px;">
+            <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#2563eb;"></i>
+            <span style="color:#64748b; font-weight:700;">جاري فتح ${name}...</span>
+        </div>`;
+}
+
+/**
+ * نظام التوجيه (Routing) عبر الـ Hash
+ */
 function handleRoute() {
     const hash = window.location.hash.replace('#', '') || 'dashboard';
     switchModule(hash);
 }
 
-// بدء التشغيل
+// البدء عند جاهزية الصفحة
 window.addEventListener('load', handleRoute);
 window.addEventListener('hashchange', handleRoute);
 
-// جعل الدالة متاحة عالمياً للأزرار التي تستخدم onclick
+// جعل الدالة متاحة للأزرار التقليدية
 window.switchModule = switchModule;
+window.updateActiveNav = handleRoute; // للتوافق مع استدعاء admin.html
