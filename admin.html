@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="admin/css/admin.css">
+    <link rel="stylesheet" href="css/admin.css">
     
     <style>
         :root { --sidebar-width: 280px; --header-height: 70px; }
@@ -40,7 +40,7 @@
 
     <script>
         /**
-         * 1. وظائف المودال (لضمان عمل الأزرار فور التحميل)
+         * 1. وظائف المودال (لضمان استجابة الأزرار)
          */
         window.closeCustomerModal = () => { 
             const m = document.getElementById('customer-modal'); 
@@ -50,15 +50,15 @@
             const m = document.getElementById('customer-modal'); 
             if(m) { 
                 m.style.display='flex'; 
-                document.getElementById('modal-title').innerText = title; 
+                const titleEl = document.getElementById('modal-title');
+                if(titleEl) titleEl.innerText = title; 
             } 
         };
 
         /**
-         * 2. دالة التحميل (المسار الجديد: الدخول لمجلد admin أولاً)
+         * 2. دالة تحميل المكونات (المسار الذي نجح سابقاً admin/components/)
          */
         async function loadComponent(id, fileName) {
-            // التعديل الجوهري: إضافة مجلد admin للمسار
             const path = `admin/components/${fileName}`; 
             try {
                 const response = await fetch(path);
@@ -67,40 +67,46 @@
                 document.getElementById(id).innerHTML = html;
                 console.log(`✅ تم تحميل المكون: ${path}`);
             } catch (error) {
-                console.error(`❌ فشل في: ${path}`, error);
-                document.getElementById(id).innerHTML = `<div style="color:red; padding:20px;">خطأ: لم يتم العثور على المكون في ${path}</div>`;
-            }
-        }
-
-        async function loadModule(moduleName) {
-            const container = document.getElementById('module-container');
-            // الموديولات أيضاً داخل مجلد admin/modules
-            const path = `admin/modules/${moduleName}.html`;
-            try {
-                const response = await fetch(path);
-                if (!response.ok) throw new Error('Not Found');
-                const html = await response.text();
-                container.innerHTML = html;
-            } catch (error) {
-                container.innerHTML = `<div style="text-align:center; padding:50px; color:#64748b;">
-                    <i class="fas fa-search fa-2x"></i>
-                    <p>تعذر العثور على ${moduleName} في مسار الموديولات.</p>
-                </div>`;
+                console.error(`❌ فشل تحميل المكون: ${path}`, error);
             }
         }
 
         /**
-         * 3. التشغيل عند التحميل
+         * 3. دالة تحميل الموديولات (تجربة المسارات المتاحة)
+         */
+        async function loadModule(moduleName) {
+            const container = document.getElementById('module-container');
+            const pathsToTry = [
+                `admin/modules/${moduleName}.html`,
+                `modules/${moduleName}.html`
+            ];
+
+            for (const path of pathsToTry) {
+                try {
+                    const response = await fetch(path);
+                    if (response.ok) {
+                        const html = await response.text();
+                        container.innerHTML = html;
+                        console.log(`✅ تم تحميل الموديول: ${path}`);
+                        return;
+                    }
+                } catch (e) {}
+            }
+            container.innerHTML = `<div style="padding:20px; text-align:center; color:#ef4444;">تعذر العثور على ملف الموديول (${moduleName}.html)</div>`;
+        }
+
+        /**
+         * 4. بدء التشغيل
          */
         window.addEventListener('DOMContentLoaded', async () => {
-            // تحميل المكونات من مجلد admin/components
+            // تحميل المكونات الثابتة بالتوازي
             await Promise.all([
                 loadComponent('sidebar-placeholder', 'sidebar.html'),
                 loadComponent('header-placeholder', 'header.html'),
                 loadComponent('modals-placeholder', 'modals.html')
             ]);
 
-            // تحميل الموديول الافتراضي
+            // تحميل الصفحة الافتراضية
             loadModule('dashboard');
         });
     </script>
