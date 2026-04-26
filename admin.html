@@ -12,7 +12,7 @@
     
     <link rel="stylesheet" href="css/admin.css">
     
-    <link rel="stylesheet" href="js/modules/customers.css">
+    <link rel="stylesheet" href="css/customers.css">
 
     <style>
         :root {
@@ -115,7 +115,7 @@
         window.loadModule = async function(moduleName) {
             const container = document.getElementById('module-container');
             
-            // 1. إظهار حالة التحميل أثناء التبديل
+            // 1. إظهار حالة التحميل
             container.innerHTML = `
                 <div class="loading-state">
                     <i class="fas fa-spinner fa-spin fa-2x"></i>
@@ -125,37 +125,36 @@
             // 2. معالجة موديول العملاء
             if (moduleName === 'customers') {
                 try {
-                    // استيراد الموديول برمجياً (Dynamic Import)
+                    // استيراد الموديول ديناميكياً
+                    // تأكد أن المسار المكتوب هنا يطابق مكان ملف الـ JS الفعلي
                     const { initCustomersUI } = await import('./js/modules/customers-ui.js');
                     
-                    // مسح الحاوية وبناء واجهة العملاء
                     container.innerHTML = ''; 
                     const customerDiv = document.createElement('div');
                     customerDiv.id = 'customers-module-container';
                     container.appendChild(customerDiv);
                     
-                    // تهيئة الواجهة
                     initCustomersUI(customerDiv);
                 } catch (err) {
                     console.error("❌ فشل تحميل موديول العملاء:", err);
-                    container.innerHTML = '<p style="color:red; text-align:center; padding:20px;">حدث خطأ أثناء تحميل موديول العملاء. تأكد من وجود ملف customers-ui.js</p>';
+                    container.innerHTML = `
+                        <div style="color:red; text-align:center; padding:20px;">
+                            <p>حدث خطأ أثناء تحميل موديول العملاء.</p>
+                            <small>${err.message}</small>
+                        </div>`;
                 }
             } else {
-                // حالة افتراضية لباقي الموديولات
                 container.innerHTML = `<div style="padding:20px;"><h2>موديول ${moduleName} قيد التطوير...</h2></div>`;
             }
         };
 
-        // تشغيل التحميل عند فتح الصفحة
+        // بدء تحميل المكونات الأساسية عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', async () => {
             await Promise.all([
                 loadStatic('sidebar-placeholder', 'sidebar.html'),
                 loadStatic('header-placeholder', 'header.html'),
                 loadStatic('modals-placeholder', 'modals.html')
             ]);
-            
-            // تحميل موديول افتراضي (مثلاً لوحة التحكم) بعد تحميل السايدبار
-            // window.loadModule('dashboard'); 
         });
     </script>
 
