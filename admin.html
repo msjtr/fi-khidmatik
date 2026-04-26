@@ -54,20 +54,20 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        /* هذا هو الحاوي الذي يستخدمه ملف main.js الخاص بك */
+        /* الحاوي الذي يحتاجه main.js */
         #module-container {
             flex-grow: 1;
             padding: 25px;
             overflow-y: auto;
         }
 
-        .loader-box {
+        .loading-state {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
-            color: #64748b;
+            color: #2563eb;
         }
     </style>
 </head>
@@ -80,9 +80,9 @@
             <div id="header-placeholder"></div>
 
             <main id="module-container">
-                <div class="loader-box">
-                    <i class="fas fa-spinner-third fa-spin fa-2x" style="color: #2563eb;"></i>
-                    <p style="margin-top: 15px;">جاري تشغيل نواة النظام...</p>
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 15px; font-weight: bold;">جاري تشغيل النظام...</p>
                 </div>
             </main>
         </div>
@@ -92,10 +92,9 @@
 
     <script>
         /**
-         * دالة تحميل المكونات الثابتة (Header/Sidebar)
-         * يجب أن تظل هنا لأنها تسبق عمل main.js
+         * دالة تحميل المكونات الثابتة
          */
-        async function loadStaticComponent(id, fileName) {
+        async function loadStatic(id, fileName) {
             const path = `admin/components/${fileName}`;
             try {
                 const response = await fetch(path);
@@ -103,21 +102,21 @@
                 const html = await response.text();
                 document.getElementById(id).innerHTML = html;
             } catch (err) {
-                console.error(`❌ فشل تحميل المكون الثابت: ${path}`);
+                console.error(`❌ فشل تحميل المكون: ${path}`);
             }
         }
 
-        // تشغيل التحميلات الأولية
+        // تحميل الهيكل الأساسي قبل تشغيل الـ JS الرئيسي
         window.addEventListener('DOMContentLoaded', async () => {
             await Promise.all([
-                loadStaticComponent('sidebar-placeholder', 'sidebar.html'),
-                loadStaticComponent('header-placeholder', 'header.html'),
-                loadStaticComponent('modals-placeholder', 'modals.html')
+                loadStatic('sidebar-placeholder', 'sidebar.html'),
+                loadStatic('header-placeholder', 'header.html'),
+                loadStatic('modals-placeholder', 'modals.html')
             ]);
         });
     </script>
 
-    <script type="module" src="admin/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 
 </body>
 </html>
