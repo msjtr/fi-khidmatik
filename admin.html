@@ -11,8 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="css/admin.css">
-    
-    <link rel="stylesheet" href="css/customers.css">
 
     <style>
         :root {
@@ -36,32 +34,37 @@
             height: 100%;
         }
 
+        /* حاوية القائمة الجانبية */
         #sidebar-placeholder {
             width: var(--sidebar-width);
             height: 100%;
             background: #fff;
             flex-shrink: 0;
             border-left: 1px solid #e2e8f0;
+            z-index: 100;
         }
 
         .content-area {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* لمنع تداخل المحتوى مع الهيدر */
         }
 
+        /* حاوية الهيدر */
         #header-placeholder {
             height: var(--header-height);
             background: #fff;
             border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
         }
 
-        /* الحاوي الرئيسي للموديولات */
+        /* الحاوية الرئيسية للموديولات (التي يتم التبديل داخلها) */
         #module-container {
             flex-grow: 1;
-            padding: 25px;
+            padding: 0; /* التنسيق يتم داخل الموديولات نفسها */
             overflow-y: auto;
+            position: relative;
         }
 
         .loading-state {
@@ -71,21 +74,22 @@
             justify-content: center;
             height: 100%;
             color: var(--primary-blue);
+            background: rgba(255, 255, 255, 0.8);
         }
     </style>
 </head>
 <body>
 
     <div class="main-wrapper">
-        <div id="sidebar-placeholder"></div>
+        <aside id="sidebar-placeholder"></aside>
 
         <div class="content-area">
-            <div id="header-placeholder"></div>
+            <header id="header-placeholder"></header>
 
             <main id="module-container">
                 <div class="loading-state">
                     <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p style="margin-top: 15px; font-weight: bold;">جاري تحميل النظام والبيانات...</p>
+                    <p style="margin-top: 15px; font-weight: bold;">جاري تهيئة النظام...</p>
                 </div>
             </main>
         </div>
@@ -95,66 +99,34 @@
 
     <script>
         /**
-         * تحميل المكونات الثابتة (Header, Sidebar, Modals)
+         * دالة تحميل المكونات الثابتة
          */
-        async function loadStatic(id, fileName) {
+        async function loadStaticComponent(id, fileName) {
             const path = `admin/components/${fileName}`;
             try {
-                const response = await fetch(path);
-                if (!response.ok) throw new Error('Not Found');
+                const response = await fetch(`${path}?v=${Date.now()}`);
+                if (!response.ok) throw new Error('File not found');
                 const html = await response.text();
                 document.getElementById(id).innerHTML = html;
+                console.log(`✅ تم تحميل: ${fileName}`);
             } catch (err) {
-                console.error(`❌ فشل تحميل مكون: ${path}`, err);
+                console.error(`❌ فشل تحميل ${fileName}:`, err);
             }
         }
 
-        /**
-         * المحرك الرئيسي لتبديل الموديولات داخل صفحة الأدمن
-         */
-        window.loadModule = async function(moduleName) {
-            const container = document.getElementById('module-container');
-            
-            // 1. إظهار حالة التحميل
-            container.innerHTML = `
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p style="margin-top: 15px;">جاري تحميل ${moduleName}...</p>
-                </div>`;
-
-            // 2. معالجة موديول العملاء
-            if (moduleName === 'customers') {
-                try {
-                    // استيراد الموديول ديناميكياً
-                    // تأكد أن المسار المكتوب هنا يطابق مكان ملف الـ JS الفعلي
-                    const { initCustomersUI } = await import('./js/modules/customers-ui.js');
-                    
-                    container.innerHTML = ''; 
-                    const customerDiv = document.createElement('div');
-                    customerDiv.id = 'customers-module-container';
-                    container.appendChild(customerDiv);
-                    
-                    initCustomersUI(customerDiv);
-                } catch (err) {
-                    console.error("❌ فشل تحميل موديول العملاء:", err);
-                    container.innerHTML = `
-                        <div style="color:red; text-align:center; padding:20px;">
-                            <p>حدث خطأ أثناء تحميل موديول العملاء.</p>
-                            <small>${err.message}</small>
-                        </div>`;
-                }
-            } else {
-                container.innerHTML = `<div style="padding:20px;"><h2>موديول ${moduleName} قيد التطوير...</h2></div>`;
-            }
-        };
-
-        // بدء تحميل المكونات الأساسية عند فتح الصفحة
+        // تشغيل التحميل عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', async () => {
+            // تحميل المكونات الأساسية بالتوازي
             await Promise.all([
-                loadStatic('sidebar-placeholder', 'sidebar.html'),
-                loadStatic('header-placeholder', 'header.html'),
-                loadStatic('modals-placeholder', 'modals.html')
+                loadStaticComponent('sidebar-placeholder', 'sidebar.html'),
+                loadStaticComponent('header-placeholder', 'header.html'),
+                loadStaticComponent('modals-placeholder', 'modals.html')
             ]);
+            
+            // بعد تحميل السايدبار، نتأكد من تفعيل نظام التوجيه
+            if (window.handleRoute) {
+                window.handleRoute(); 
+            }
         });
     </script>
 
