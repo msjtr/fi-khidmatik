@@ -3,115 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | تيرا جيت واي</title>
+    <title>Tera Gateway | لوحة التحكم</title>
     
-    <link rel="icon" href="data:,">
-
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.5.1/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/admin.css">
     
-    <link rel="stylesheet" href="./css/admin.css">
-
     <style>
-        /* تنسيق أولي لضمان عدم تداخل العناصر قبل تحميل المكونات */
-        .admin-layout { display: flex; min-height: 100vh; }
-        .main-body { flex-grow: 1; background: #f8fafc; transition: all 0.3s; }
-        .loader-wrapper { display: flex; justify-content: center; align-items: center; height: 300px; }
+        /* تنسيق توزيع الصفحة الرئيسي */
+        :root {
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        #sidebar-placeholder {
+            width: var(--sidebar-width);
+            height: 100%;
+            background: #fff;
+            flex-shrink: 0;
+            transition: width 0.3s ease;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #header-placeholder {
+            height: var(--header-height);
+            flex-shrink: 0;
+        }
+
+        #module-container {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        /* حالة تصغير القائمة الجانبية */
+        .sidebar-collapsed #sidebar-placeholder {
+            width: 85px;
+        }
     </style>
 </head>
-<body>
+<body class="loading">
 
-    <div class="admin-layout">
-        <aside id="sidebar-placeholder"></aside>
+    <div class="main-wrapper">
+        <div id="sidebar-placeholder"></div>
 
-        <main class="main-body">
-            <header id="header-placeholder"></header>
+        <div class="content-area">
+            <div id="header-placeholder"></div>
 
-            <div id="main-content-area" style="padding: 25px;">
-                <div class="loader-wrapper">
-                    <div style="text-align: center;">
-                        <i class="fas fa-circle-notch fa-spin fa-3x" style="color: #2563eb;"></i>
-                        <p style="margin-top: 15px; font-weight: bold;">جاري تحميل نظام تيرا...</p>
-                    </div>
+            <main id="module-container">
+                <div class="loader-box">
+                    <i class="fas fa-spinner-third fa-spin"></i>
+                    <p>جاري تحميل البيانات...</p>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <div id="modals-placeholder"></div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        /**
+         * 1. حل مشكلة أخطاء الدوال غير المعرفة (Global Error Prevention)
+         * نقوم بتعريف الدوال هنا عالمياً لتكون جاهزة حتى قبل تحميل ملفات الـ HTML الفرعية
+         */
+        window.closeCustomerModal = function() {
+            const modal = document.getElementById('customer-modal');
+            if (modal) modal.style.display = 'none';
+        };
 
-    <script type="module">
-        // تم تعديل المسار ليكون مباشراً من المجلد الرئيسي كما في هيكلتك
-        import { initCustomersUI } from './js/modules/customers-ui.js';
+        window.openCustomerModal = function(title = "إضافة عميل جديد") {
+            const modal = document.getElementById('customer-modal');
+            if (modal) {
+                const titleEl = document.getElementById('modal-title');
+                if (titleEl) titleEl.innerText = title;
+                modal.style.display = 'flex';
+            }
+        };
 
-        // دالة جلب المكونات الفرعية (HTML)
-        async function fetchComponent(id, path) {
+        window.closeConfirmModal = function() {
+            const modal = document.getElementById('confirm-modal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        /**
+         * 2. دالة تحميل المكونات (Component Loader)
+         */
+        async function loadComponent(id, path) {
             try {
                 const response = await fetch(path);
-                if (!response.ok) throw new Error(`ملف غير موجود: ${path}`);
                 const html = await response.text();
                 document.getElementById(id).innerHTML = html;
-                return true;
-            } catch (err) {
-                console.error(`❌ خطأ في تحميل ${id}:`, err.message);
-                return false;
-            }
-        }
-
-        async function initializeApp() {
-            try {
-                // تحميل المكونات من مجلد admin/components
-                await Promise.all([
-                    fetchComponent('sidebar-placeholder', './admin/components/sidebar.html'),
-                    fetchComponent('header-placeholder', './admin/components/header.html'),
-                    fetchComponent('modals-placeholder', './admin/components/modals.html')
-                ]);
-
-                // تشغيل واجهة إدارة العملاء
-                const container = document.getElementById('main-content-area');
-                if (container) {
-                    await initCustomersUI(container);
-                }
-
-                // تشغيل محرر النصوص Quill بعد تأكد تحميل المودال
-                if (document.querySelector('#cust-notes-editor')) {
-                    window.quill = new Quill('#cust-notes-editor', {
-                        theme: 'snow',
-                        placeholder: 'ملاحظات إضافية عن العميل...',
-                        modules: { 
-                            toolbar: [['bold', 'italic', 'underline'], [{ 'color': [] }], ['link']] 
-                        }
-                    });
-                }
-
-                // ضبط مسار الشعار في الهيدر أو السايدبار
-                document.querySelectorAll('.logo-img').forEach(img => {
-                    img.src = './images/logo.svg';
-                });
-
-                console.log("✅ تم تشغيل نظام تيرا جيت واي بنجاح.");
-
+                console.log(`✅ تم تحميل: ${path}`);
             } catch (error) {
-                console.error("❌ حدث خطأ أثناء تشغيل النظام:", error);
-                document.getElementById('main-content-area').innerHTML = `
-                    <div style="background: #fee2e2; border: 1px solid #ef4444; padding: 20px; border-radius: 12px; color: #b91c1c;">
-                        <h3 style="margin-top: 0;">تعذر تحميل النظام</h3>
-                        <p>تأكد من وجود ملفات البرمجة والمكونات في مساراتها الصحيحة.</p>
-                        <code>${error.message}</code>
-                    </div>
-                `;
+                console.error(`❌ خطأ في تحميل ${path}:`, error);
             }
         }
 
-        // بدء التشغيل فور اكتمال تحميل الصفحة
-        window.addEventListener('DOMContentLoaded', initializeApp);
+        /**
+         * 3. تحميل الموديولات (Module Switcher)
+         */
+        async function loadModule(moduleName) {
+            const container = document.getElementById('module-container');
+            container.innerHTML = '<div class="loader-box"><i class="fas fa-spinner-third fa-spin"></i></div>';
+            
+            try {
+                const response = await fetch(`modules/${moduleName}.html`);
+                if (!response.ok) throw new Error('Module not found');
+                const html = await response.text();
+                container.innerHTML = html;
+                
+                // تحديث عنوان الصفحة برمجياً
+                document.title = `Tera Gateway | ${moduleName.toUpperCase()}`;
+            } catch (error) {
+                container.innerHTML = `<div class="error-box">تعذر تحميل الموديول: ${moduleName}</div>`;
+            }
+        }
+
+        /**
+         * 4. بدء التشغيل (Initialization)
+         */
+        window.addEventListener('DOMContentLoaded', async () => {
+            // تحميل المكونات الثابتة
+            await loadComponent('sidebar-placeholder', 'components/sidebar.html');
+            await loadComponent('header-placeholder', 'components/header.html');
+            await loadComponent('modals-placeholder', 'components/modals.html');
+
+            // تحميل الموديول الافتراضي (الرئيسية)
+            loadModule('dashboard');
+            
+            document.body.classList.remove('loading');
+        });
     </script>
 
 </body>
