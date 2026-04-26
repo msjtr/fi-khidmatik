@@ -12,10 +12,10 @@
         :root { --sidebar-width: 280px; --header-height: 70px; }
         body { margin: 0; font-family: 'Tajawal', sans-serif; background-color: #f8fafc; display: flex; height: 100vh; overflow: hidden; }
         .main-wrapper { display: flex; width: 100%; height: 100%; }
-        #sidebar-placeholder { width: var(--sidebar-width); height: 100%; background: #fff; flex-shrink: 0; border-left: 1px solid #e2e8f0; }
+        #sidebar-placeholder { width: var(--sidebar-width); height: 100%; background: #fff; border-left: 1px solid #e2e8f0; }
         .content-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         #header-placeholder { height: var(--header-height); background: #fff; border-bottom: 1px solid #e2e8f0; }
-        #module-container { flex-grow: 1; padding: 20px; overflow-y: auto; }
+        #module-container { flex-grow: 1; padding: 25px; overflow-y: auto; }
         .loader-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; }
     </style>
 </head>
@@ -28,7 +28,7 @@
             <main id="module-container">
                 <div class="loader-box">
                     <i class="fas fa-circle-notch fa-spin fa-2x" style="color: #f97316;"></i>
-                    <p style="margin-top: 15px;">جاري الاتصال بـ Tera Gateway...</p>
+                    <p style="margin-top:15px;">جاري تشغيل Tera Gateway...</p>
                 </div>
             </main>
         </div>
@@ -37,55 +37,46 @@
     <div id="modals-placeholder"></div>
 
     <script>
-        /**
-         * تم تعديل المسار هنا ليناسب الهيكل الظاهر في صورتك:
-         * المكونات موجودة داخل: admin/components/
-         */
+        // دالة تحميل المكونات (Sidebar, Header, Modals)
         async function loadComponent(id, fileName) {
-            // إضافة admin/ للمسار لأن الـ Console أظهر أنها مفقودة من الرابط
-            const path = `admin/components/${fileName}`; 
-            
+            const path = `components/${fileName}`; 
             try {
                 const response = await fetch(path);
-                
-                // إذا فشل المسار الأول، نجرب المسار المباشر (للتوافق مع الاستضافات المختلفة)
-                if (!response.ok) {
-                    const fallbackPath = `components/${fileName}`;
-                    const fallbackRes = await fetch(fallbackPath);
-                    if (!fallbackRes.ok) throw new Error("File not found in both paths");
-                    
-                    const html = await fallbackRes.text();
-                    document.getElementById(id).innerHTML = html;
-                    return;
-                }
-
-                const html = await response.text();
-                document.getElementById(id).innerHTML = html;
-                console.log(`✅ تم تحميل المكون: ${path}`);
+                if (!response.ok) throw new Error();
+                document.getElementById(id).innerHTML = await response.text();
+                console.log(`✅ تم تحميل: ${path}`);
             } catch (err) {
-                console.error(`❌ فشل تحميل: ${fileName}`, err);
-                document.getElementById(id).innerHTML = `<div style="color:red; padding:10px; font-size:12px;">خطأ في تحميل ${fileName}</div>`;
+                console.error(`❌ خطأ في مسار: ${path}`);
+                document.getElementById(id).innerHTML = `<div style="color:red; padding:10px;">خطأ في تحميل ${fileName}</div>`;
             }
         }
 
-        // تشغيل التحميل
+        // دالة تحميل الموديول (Dashboard)
+        async function loadModule(moduleName) {
+            const container = document.getElementById('module-container');
+            const path = `modules/${moduleName}.html`;
+            try {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error();
+                container.innerHTML = await response.text();
+            } catch (err) {
+                container.innerHTML = `<div style="text-align:center; padding:50px;">
+                    <i class="fas fa-exclamation-circle fa-3x" style="color:#cbd5e1;"></i>
+                    <p>يرجى التأكد من إنشاء ملف ${moduleName}.html داخل مجلد modules</p>
+                </div>`;
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
-            // نستخدم Promise.all لضمان تحميل الكل معاً
+            // تحميل المكونات الثلاثة بالتوازي
             await Promise.all([
                 loadComponent('sidebar-placeholder', 'sidebar.html'),
                 loadComponent('header-placeholder', 'header.html'),
                 loadComponent('modals-placeholder', 'modals.html')
             ]);
 
-            // تحميل لوحة البيانات الافتراضية
-            // تأكد أن لديك مجلد admin/modules/dashboard.html
-            const container = document.getElementById('module-container');
-            try {
-                const res = await fetch('admin/modules/dashboard.html');
-                if(res.ok) container.innerHTML = await res.text();
-            } catch(e) {
-                console.log("Dashboard module not loaded yet.");
-            }
+            // تحميل الصفحة الرئيسية
+            loadModule('dashboard');
         });
 
         // دوال المودال العالمية
