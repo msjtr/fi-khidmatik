@@ -1,51 +1,39 @@
-<div id="customer-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-card shadow-lg">
+<div id="customer-modal" class="modal-overlay" style="display: none;" onclick="window.handleOutsideClick(event, 'customer-modal')">
+    <div class="modal-card shadow-lg" onclick="event.stopPropagation()">
         <div class="modal-header">
             <h3 id="modal-title"><i class="fas fa-user-plus"></i> إضافة عميل جديد</h3>
-            <button class="close-btn" onclick="closeCustomerModal()">&times;</button>
+            <button class="close-btn" onclick="window.closeCustomerModal()">&times;</button>
         </div>
 
         <div class="modal-body">
             <form id="customer-form">
-                <div class="form-section-header">البيانات الأساسية والهوية</div>
-                <div class="row-flex">
-                    <div class="photo-upload-zone">
-                        <div id="photo-preview" class="avatar-box">
-                            <i class="fas fa-user-tie fa-3x"></i>
-                        </div>
-                        <label class="upload-label">
-                            <i class="fas fa-camera"></i> رفع صورة
-                            <input type="file" id="cust-photo" hidden accept="image/*" onchange="previewCustomerPhoto(this)">
-                        </label>
+                <div class="form-section-header">البيانات الشخصية</div>
+                <div class="grid-3-cols">
+                    <div class="input-group">
+                        <label>الاسم الكامل</label>
+                        <input type="text" id="cust-name" placeholder="الاسم الثلاثي" required>
                     </div>
-                    
-                    <div class="grid-3-cols" style="flex-grow: 1;">
-                        <div class="input-group">
-                            <label>اسم العميل الكامل</label>
-                            <input type="text" id="cust-name" placeholder="أدخل الاسم الثلاثي" required>
-                        </div>
-                        <div class="input-group">
-                            <label>رقم الجوال</label>
-                            <input type="tel" id="cust-phone" dir="ltr" placeholder="5xxxxxxxx" required>
-                        </div>
-                        <div class="input-group">
-                            <label>البريد الإلكتروني</label>
-                            <input type="email" id="cust-email" placeholder="example@mail.com">
-                        </div>
+                    <div class="input-group">
+                        <label>رقم الجوال</label>
+                        <input type="tel" id="cust-phone" dir="ltr" placeholder="5xxxxxxxx" required>
+                    </div>
+                    <div class="input-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" id="cust-email" placeholder="example@mail.com">
                     </div>
                 </div>
 
                 <div class="grid-4-cols">
                     <div class="input-group">
-                        <label>مفتاح الدولة</label>
-                        <select id="cust-countryCode">
-                            <option value="+966" selected>السعودية +966</option>
-                            <option value="+971">الإمارات +971</option>
-                            <option value="+965">الكويت +965</option>
-                        </select>
+                        <label>الهوية / الإقامة</label>
+                        <input type="text" id="cust-id" placeholder="10xxxxxxxx">
                     </div>
                     <div class="input-group">
-                        <label>حالة العميل</label>
+                        <label>تاريخ الميلاد</label>
+                        <input type="date" id="cust-dob">
+                    </div>
+                    <div class="input-group">
+                        <label>الحالة</label>
                         <select id="cust-status">
                             <option value="نشط">نشط</option>
                             <option value="معلق">معلق</option>
@@ -53,11 +41,10 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label>تصنيف العميل</label>
+                        <label>التصنيف</label>
                         <select id="cust-category">
                             <option value="فرد">فرد</option>
-                            <option value="شركة">شركة</option>
-                            <option value="VIP">عميل VIP</option>
+                            <option value="مؤسسة">مؤسسة</option>
                         </select>
                     </div>
                 </div>
@@ -67,93 +54,126 @@
                     <div class="input-group"><label>المدينة</label><input type="text" id="cust-city"></div>
                     <div class="input-group"><label>الحي</label><input type="text" id="cust-district"></div>
                     <div class="input-group"><label>الشارع</label><input type="text" id="cust-street"></div>
-                    <div class="input-group"><label>رقم المبنى</label><input type="text" id="cust-buildingNo"></div>
-                    <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="cust-additionalNo"></div>
-                    <div class="input-group"><label>الرمز البريدي</label><input type="text" id="cust-postalCode"></div>
-                    <div class="input-group"><label>صندوق البريد</label><input type="text" id="cust-poBox"></div>
-                    <div class="input-group"><label>تاريخ الإضافة</label><input type="text" id="cust-createdAt" readonly class="readonly-input"></div>
-                </div>
-
-                <div class="form-section-header">الملاحظات والطلبات</div>
-                <div class="rich-text-wrapper">
-                    <div id="cust-notes-editor" style="height: 120px; background: white; border-radius: 8px;"></div>
+                    <div class="input-group"><label>رقم المبنى</label><input type="text" id="cust-building"></div>
+                    <div class="input-group"><label>الرمز البريدي</label><input type="text" id="cust-zip"></div>
+                    <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="cust-ext"></div>
                 </div>
             </form>
         </div>
 
         <div class="modal-footer">
-            <button type="button" class="btn-cancel" onclick="closeCustomerModal()">إلغاء</button>
-            <button type="button" class="btn-save" onclick="saveCustomerData()">
+            <button type="button" class="btn-cancel" onclick="window.closeCustomerModal()">إلغاء</button>
+            <button type="button" class="btn-save" id="save-customer-btn">
                 <i class="fas fa-check"></i> حفظ البيانات
             </button>
         </div>
     </div>
 </div>
 
-<hr style="display:none">
-
-<div id="confirm-modal" class="tera-modal-overlay" style="display: none;">
-    <div class="tera-confirm-content">
+<div id="confirm-modal" class="tera-modal-overlay" style="display: none;" onclick="window.handleOutsideClick(event, 'confirm-modal')">
+    <div class="tera-confirm-content" onclick="event.stopPropagation()">
         <div class="confirm-icon-circle">
-            <i class="fas fa-exclamation-circle"></i>
+            <i class="fas fa-exclamation-triangle"></i>
         </div>
         <h3 id="confirm-title">تأكيد الإجراء</h3>
-        <p id="confirm-message">هل أنت متأكد من تنفيذ هذه العملية؟</p>
+        <p id="confirm-message">هل أنت متأكد؟</p>
         <div class="confirm-actions">
-            <button id="confirm-yes" class="btn-confirm-yes">تأكيد</button>
-            <button id="confirm-no" class="btn-confirm-no">تراجع</button>
+            <button id="confirm-yes" class="btn-confirm-yes">تأكيد التنفيذ</button>
+            <button id="confirm-no" class="btn-confirm-no" onclick="window.closeConfirmModal()">تراجع</button>
         </div>
     </div>
 </div>
 
 <style>
-    /* التنسيقات الأساسية لنوافذ العميل */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-    .modal-card { background: #fff; width: 90%; max-width: 900px; border-radius: 20px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; animation: slideIn 0.3s ease-out; }
-    .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-    .modal-header h3 { color: var(--primary); margin: 0; }
+    /* التنسيقات العامة للمودالز لضمان عملها فوراً */
+    .modal-overlay, .tera-modal-overlay {
+        position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-card, .tera-confirm-content {
+        background: white; border-radius: 20px; animation: modalIn 0.3s ease-out;
+    }
+    .modal-card { width: 90%; max-width: 850px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+    .modal-header { padding: 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
     .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
-    .form-section-header { background: var(--primary-light); padding: 8px 15px; border-radius: 8px; margin: 20px 0 15px; font-weight: 800; color: var(--primary); border-right: 4px solid var(--primary); }
-    .grid-4-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .modal-footer { padding: 15px 25px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; }
     .grid-3-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .row-flex { display: flex; gap: 20px; align-items: center; }
-    .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
-    .btn-save { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+    .grid-4-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; }
+    .form-section-header { background: #fff7ed; color: #f97316; padding: 10px; border-radius: 8px; margin: 20px 0 10px; font-weight: 800; border-right: 4px solid #f97316; }
+    
+    .btn-save, .btn-confirm-yes { background: #f97316; color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+    .btn-cancel, .btn-confirm-no { background: #f1f5f9; color: #64748b; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
 
-    /* تنسيقات نافذة التأكيد */
-    .tera-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; }
-    .tera-confirm-content { background: white; padding: 40px 30px; border-radius: 24px; text-align: center; max-width: 400px; width: 95%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-    .confirm-icon-circle { width: 70px; height: 70px; background: #fff7ed; color: #f97316; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; }
-    .confirm-actions { display: flex; gap: 12px; margin-top: 25px; }
-    .confirm-actions button { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; }
-    .btn-confirm-yes { background: #f97316; color: white; }
-    .btn-confirm-no { background: #f1f5f9; color: #64748b; }
+    @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    @keyframes slideIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    /* تنسيقات نافذة التأكيد الصغير */
+    .tera-confirm-content { padding: 40px; text-align: center; max-width: 400px; width: 95%; }
+    .confirm-icon-circle { width: 60px; height: 60px; background: #fff7ed; color: #f97316; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 1.5rem; }
+    .confirm-actions { display: flex; gap: 10px; margin-top: 25px; }
+    .confirm-actions button { flex: 1; }
 </style>
 
 <script>
     /**
-     * دالة عرض نافذة التأكيد
+     * ربط جميع الوظائف بـ window لضمان عملها من أي مكان في النظام
      */
-    window.showConfirm = (title, message, onConfirm) => {
+
+    // 1. فتح نافذة العميل
+    window.openCustomerModal = function(title = "إضافة عميل جديد") {
+        document.getElementById('modal-title').innerHTML = `<i class="fas fa-user-plus"></i> ${title}`;
+        document.getElementById('customer-modal').style.display = 'flex';
+    };
+
+    // 2. إغلاق نافذة العميل (تم حل مشكلة ReferenceError هنا)
+    window.closeCustomerModal = function() {
+        const modal = document.getElementById('customer-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.getElementById('customer-form').reset();
+        }
+    };
+
+    // 3. إغلاق نافذة التأكيد
+    window.closeConfirmModal = function() {
+        const modal = document.getElementById('confirm-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    // 4. نظام التأكيد الشامل
+    window.showConfirm = function(title, message, onConfirm) {
         const modal = document.getElementById('confirm-modal');
         document.getElementById('confirm-title').innerText = title;
         document.getElementById('confirm-message').innerHTML = message;
         modal.style.display = 'flex';
 
-        document.getElementById('confirm-yes').onclick = () => {
+        const yesBtn = document.getElementById('confirm-yes');
+        // إزالة أي أحداث سابقة لضمان عدم التكرار
+        const newYesBtn = yesBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+
+        newYesBtn.onclick = function() {
             onConfirm();
-            modal.style.display = 'none';
+            window.closeConfirmModal();
         };
-        document.getElementById('confirm-no').onclick = () => modal.style.display = 'none';
     };
 
-    /**
-     * إغلاق نافذة العميل
-     */
-    window.closeCustomerModal = () => {
-        document.getElementById('customer-modal').style.display = 'none';
-        document.getElementById('customer-form').reset();
+    // 5. دالة الإغلاق عند النقر خارج الصندوق (Overlay Click)
+    window.handleOutsideClick = function(event, modalId) {
+        if (event.target.id === modalId) {
+            if (modalId === 'customer-modal') window.closeCustomerModal();
+            if (modalId === 'confirm-modal') window.closeConfirmModal();
+        }
+    };
+
+    // 6. ربط زر الحفظ (اختياري، يمكنك ربطه بـ Firebase لاحقاً)
+    document.getElementById('save-customer-btn').onclick = function() {
+        // إذا كنت تستخدم دالة حفظ خارجية، استدعها هنا
+        if (typeof window.saveCustomerData === 'function') {
+            window.saveCustomerData();
+        } else {
+            console.warn("دالة saveCustomerData غير معرفة في السكريبت الرئيسي.");
+            window.closeCustomerModal();
+        }
     };
 </script>
