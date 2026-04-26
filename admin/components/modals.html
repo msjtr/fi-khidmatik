@@ -7,30 +7,32 @@
 
         <div class="modal-body">
             <form id="customer-form">
-                <div class="form-section-header">البيانات الشخصية والاتصال</div>
+                <div class="form-section-header">
+                    <i class="fas fa-id-card"></i> البيانات الشخصية والاتصال
+                </div>
                 <div class="grid-3-cols">
                     <div class="input-group">
-                        <label>الاسم الكامل (1)</label>
-                        <input type="text" id="cust-name" placeholder="الاسم الثلاثي" required>
+                        <label>الاسم الكامل</label>
+                        <input type="text" id="cust-name" placeholder="الاسم الثلاثي كما في الهوية" required>
                     </div>
                     <div class="input-group">
-                        <label>رقم الجوال (2)</label>
+                        <label>رقم الجوال</label>
                         <input type="tel" id="cust-phone" dir="ltr" placeholder="05xxxxxxxx" required>
                     </div>
                     <div class="input-group">
-                        <label>رقم الهوية / الإقامة (3)</label>
-                        <input type="text" id="cust-national-id" placeholder="10xxxxxxxx">
+                        <label>رقم الهوية / الإقامة</label>
+                        <input type="text" id="cust-national-id" placeholder="10xxxxxxxx" required>
                     </div>
                     <div class="input-group">
-                        <label>البريد الإلكتروني (4)</label>
+                        <label>البريد الإلكتروني</label>
                         <input type="email" id="cust-email" placeholder="mail@example.com">
                     </div>
                     <div class="input-group">
-                        <label>تاريخ الميلاد (5)</label>
+                        <label>تاريخ الميلاد</label>
                         <input type="date" id="cust-dob">
                     </div>
                     <div class="input-group">
-                        <label>الجنس (6)</label>
+                        <label>الجنس</label>
                         <select id="cust-gender">
                             <option value="ذكر">ذكر</option>
                             <option value="أنثى">أنثى</option>
@@ -38,50 +40,42 @@
                     </div>
                 </div>
 
-                <div class="form-section-header">بيانات العنوان الوطني (العنوان المسجل)</div>
+                <div class="form-section-header">
+                    <i class="fas fa-map-marked-alt"></i> بيانات العنوان الوطني (حسب سبل)
+                </div>
                 <div class="grid-4-cols">
                     <div class="input-group">
-                        <label>المدينة (7)</label>
+                        <label>المدينة</label>
                         <input type="text" id="cust-city" placeholder="مثال: حائل">
                     </div>
                     <div class="input-group">
-                        <label>الحي (8)</label>
+                        <label>الحي</label>
                         <input type="text" id="cust-district">
                     </div>
                     <div class="input-group">
-                        <label>اسم الشارع (9)</label>
+                        <label>اسم الشارع</label>
                         <input type="text" id="cust-street">
                     </div>
                     <div class="input-group">
-                        <label>رقم المبنى (10)</label>
-                        <input type="text" id="cust-building-no" placeholder="4 أرقام">
-                    </div>
-                    <div class="input-group">
-                        <label>الرمز البريدي (11)</label>
-                        <input type="text" id="cust-zip-code" placeholder="5 أرقام">
-                    </div>
-                    <div class="input-group">
-                        <label>الرقم الإضافي (12)</label>
-                        <input type="text" id="cust-additional-no" placeholder="4 أرقام">
-                    </div>
-                    <div class="input-group">
-                        <label>رقم الوحدة (13)</label>
-                        <input type="text" id="cust-unit-no">
+                        <label>رقم المبنى</label>
+                        <input type="text" id="cust-building-no" maxlength="4" placeholder="4 أرقام">
                     </div>
                 </div>
 
-                <div class="form-section-header">بيانات العمل والحالة المالية</div>
+                <div class="form-section-header">
+                    <i class="fas fa-briefcase"></i> بيانات العمل والحالة المالية
+                </div>
                 <div class="grid-3-cols">
                     <div class="input-group">
-                        <label>جهة العمل (14)</label>
+                        <label>جهة العمل</label>
                         <input type="text" id="cust-employer" placeholder="اسم الشركة أو الوزارة">
                     </div>
                     <div class="input-group">
-                        <label>الراتب الشهري (15)</label>
+                        <label>الراتب الشهري (SAR)</label>
                         <input type="number" id="cust-salary" placeholder="0.00">
                     </div>
                     <div class="input-group">
-                        <label>حالة الالتزام (16)</label>
+                        <label>حالة الالتزام</label>
                         <select id="cust-commitment">
                             <option value="ملتزم">ملتزم</option>
                             <option value="متعثر">متعثر</option>
@@ -90,9 +84,11 @@
                     </div>
                 </div>
 
-                <div class="form-section-header">إضافات</div>
+                <div class="form-section-header">
+                    <i class="fas fa-sticky-note"></i> إضافات
+                </div>
                 <div class="input-group full-width">
-                    <label>ملاحظات إضافية (17)</label>
+                    <label>ملاحظات إضافية</label>
                     <textarea id="cust-notes" rows="3" placeholder="أي معلومات أخرى تخص العميل..."></textarea>
                 </div>
             </form>
@@ -101,7 +97,7 @@
         <div class="modal-footer">
             <button type="button" class="btn-cancel" onclick="window.closeCustomerModal()">إلغاء</button>
             <button type="button" class="btn-save" id="btn-save-customer">
-                <i class="fas fa-save"></i> حفظ في قاعدة البيانات
+                <i class="fas fa-save"></i> حفظ البيانات
             </button>
         </div>
     </div>
@@ -109,36 +105,54 @@
 
 <div id="confirm-modal" class="tera-modal-overlay" style="display: none;">
     <div class="tera-confirm-content">
-        <div class="confirm-icon-circle"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="confirm-icon-circle"><i class="fas fa-exclamation-circle"></i></div>
         <h3 id="confirm-title">تأكيد الإجراء</h3>
-        <p id="confirm-message">هل أنت متأكد؟</p>
+        <p id="confirm-message">هل أنت متأكد من تنفيذ هذا الإجراء؟</p>
         <div class="confirm-actions">
-            <button id="confirm-yes" class="btn-confirm-yes">نعم، متأكد</button>
+            <button id="confirm-yes" class="btn-confirm-yes">نعم، استمر</button>
             <button id="confirm-no" class="btn-confirm-no" onclick="window.closeConfirmModal()">تراجع</button>
         </div>
     </div>
 </div>
 
 <style>
-    /* التنسيقات المتطورة للمودال */
+    /* التنسيقات العامة للمودال */
     .modal-overlay, .tera-modal-overlay {
-        position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
-        backdrop-filter: blur(10px); z-index: 10000; display: none; align-items: center; justify-content: center;
+        position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center;
+        padding: 20px;
     }
+
     .modal-card { 
-        background: white; width: 95%; max-width: 900px; border-radius: 24px; 
+        background: white; width: 100%; max-width: 950px; border-radius: 28px; 
         max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        animation: modalSlideUp 0.4s ease-out;
     }
-    .modal-header { padding: 20px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-    .modal-header h3 { color: #f97316; font-weight: 800; margin: 0; }
-    .modal-body { padding: 30px; overflow-y: auto; flex: 1; background: #fafafa; }
+
+    @keyframes modalSlideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header { 
+        padding: 20px 30px; border-bottom: 1px solid #f1f5f9; 
+        display: flex; justify-content: space-between; align-items: center;
+        background: #fff;
+    }
+
+    .modal-header h3 { color: #2563eb; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+
+    .close-btn { background: #f1f5f9; border: none; font-size: 1.5rem; width: 35px; height: 35px; border-radius: 10px; cursor: pointer; color: #64748b; }
+
+    .modal-body { padding: 25px 35px; overflow-y: auto; flex: 1; background: #ffffff; }
     
     .form-section-header { 
-        padding: 8px 15px; background: #fff7ed; color: #f97316; 
-        border-right: 4px solid #f97316; border-radius: 4px; font-weight: 800;
-        margin: 25px 0 15px; font-size: 0.9rem;
+        padding: 10px 0; color: #1e293b; 
+        border-bottom: 2px solid #eff6ff; font-weight: 800;
+        margin: 25px 0 15px; font-size: 0.95rem; display: flex; align-items: center; gap: 10px;
     }
+    .form-section-header i { color: #2563eb; }
 
     .grid-3-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .grid-4-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
@@ -147,19 +161,22 @@
     .input-group label { font-size: 0.85rem; font-weight: 700; color: #475569; }
     .input-group input, .input-group select, .input-group textarea {
         padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px;
-        font-family: inherit; transition: 0.2s; background: white;
+        font-family: 'Tajawal', sans-serif; transition: 0.2s; background: #f8fafc;
     }
-    .input-group input:focus { border-color: #f97316; outline: none; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
-    .full-width { grid-column: span 3; }
-
-    .modal-footer { padding: 20px 30px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px; }
-    .btn-save { background: #f97316; color: white; border: none; padding: 12px 25px; border-radius: 14px; font-weight: 800; cursor: pointer; }
-    .btn-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 12px 25px; border-radius: 14px; cursor: pointer; }
+    .input-group input:focus { border-color: #2563eb; outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
     
-    /* نافذة التأكيد الصغير */
-    .tera-confirm-content { background: white; padding: 40px; border-radius: 24px; text-align: center; max-width: 400px; width: 90%; }
-    .confirm-icon-circle { font-size: 2.5rem; color: #f97316; margin-bottom: 20px; }
+    .full-width { grid-column: 1 / -1; }
+
+    .modal-footer { padding: 20px 35px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px; background: #f8fafc; }
+    
+    .btn-save { background: #2563eb; color: white; border: none; padding: 12px 30px; border-radius: 14px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+    .btn-save:hover { background: #1d4ed8; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+
+    .btn-cancel { background: white; color: #64748b; border: 1px solid #e2e8f0; padding: 12px 30px; border-radius: 14px; font-weight: 700; cursor: pointer; }
+
+    /* نافذة التأكيد */
+    .tera-confirm-content { background: white; padding: 40px; border-radius: 30px; text-align: center; max-width: 420px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .confirm-icon-circle { font-size: 3rem; color: #2563eb; margin-bottom: 20px; background: #eff6ff; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border-radius: 50%; }
     .confirm-actions { display: flex; gap: 12px; margin-top: 30px; }
-    .btn-confirm-yes { flex: 1; background: #f97316; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-    .btn-confirm-no { flex: 1; background: #f1f5f9; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-</style>
+    .btn-confirm-yes { flex: 2; background: #2563eb; color: white; border: none; padding: 14px; border-radius: 15px; font-weight: 800; cursor: pointer; }
+    .btn-
