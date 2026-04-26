@@ -11,11 +11,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="css/admin.css">
+    
+    <link rel="stylesheet" href="js/modules/customers.css">
 
     <style>
         :root {
             --sidebar-width: 280px;
             --header-height: 70px;
+            --primary-blue: #2563eb;
         }
 
         body {
@@ -67,7 +70,7 @@
             align-items: center;
             justify-content: center;
             height: 100%;
-            color: #2563eb;
+            color: var(--primary-blue);
         }
     </style>
 </head>
@@ -92,7 +95,7 @@
 
     <script>
         /**
-         * تحميل المكونات الثابتة من مجلد admin/components
+         * تحميل المكونات الثابتة (Header, Sidebar, Modals)
          */
         async function loadStatic(id, fileName) {
             const path = `admin/components/${fileName}`;
@@ -102,16 +105,57 @@
                 const html = await response.text();
                 document.getElementById(id).innerHTML = html;
             } catch (err) {
-                console.error(`❌ فشل تحميل: ${path}`);
+                console.error(`❌ فشل تحميل مكون: ${path}`, err);
             }
         }
 
+        /**
+         * المحرك الرئيسي لتبديل الموديولات داخل صفحة الأدمن
+         */
+        window.loadModule = async function(moduleName) {
+            const container = document.getElementById('module-container');
+            
+            // 1. إظهار حالة التحميل أثناء التبديل
+            container.innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 15px;">جاري تحميل ${moduleName}...</p>
+                </div>`;
+
+            // 2. معالجة موديول العملاء
+            if (moduleName === 'customers') {
+                try {
+                    // استيراد الموديول برمجياً (Dynamic Import)
+                    const { initCustomersUI } = await import('./js/modules/customers-ui.js');
+                    
+                    // مسح الحاوية وبناء واجهة العملاء
+                    container.innerHTML = ''; 
+                    const customerDiv = document.createElement('div');
+                    customerDiv.id = 'customers-module-container';
+                    container.appendChild(customerDiv);
+                    
+                    // تهيئة الواجهة
+                    initCustomersUI(customerDiv);
+                } catch (err) {
+                    console.error("❌ فشل تحميل موديول العملاء:", err);
+                    container.innerHTML = '<p style="color:red; text-align:center; padding:20px;">حدث خطأ أثناء تحميل موديول العملاء. تأكد من وجود ملف customers-ui.js</p>';
+                }
+            } else {
+                // حالة افتراضية لباقي الموديولات
+                container.innerHTML = `<div style="padding:20px;"><h2>موديول ${moduleName} قيد التطوير...</h2></div>`;
+            }
+        };
+
+        // تشغيل التحميل عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', async () => {
             await Promise.all([
                 loadStatic('sidebar-placeholder', 'sidebar.html'),
                 loadStatic('header-placeholder', 'header.html'),
                 loadStatic('modals-placeholder', 'modals.html')
             ]);
+            
+            // تحميل موديول افتراضي (مثلاً لوحة التحكم) بعد تحميل السايدبار
+            // window.loadModule('dashboard'); 
         });
     </script>
 
