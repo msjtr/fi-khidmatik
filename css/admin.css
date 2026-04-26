@@ -6,25 +6,29 @@
 }
 
 :root {
-    --primary: #e67e22;
-    --primary-light: #fef5e8;
-    --dark: #1e293b;
-    --text-main: #2c3e50;
+    /* تم تعديل البرتقالي ليكون أكثر حيوية وجاذبية للتمويل */
+    --primary: #f97316; 
+    --primary-hover: #ea580c;
+    --primary-light: #fff7ed;
+    --dark: #0f172a;
+    --text-main: #1e293b;
     --text-muted: #64748b;
-    --bg-body: #f5f7fb;
+    --bg-body: #f1f5f9;
     --bg-content: #f8fafc;
     --white: #ffffff;
     --border-color: #e2e8f0;
-    --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
-    --transition: all 0.3s ease;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
     font-family: 'Tajawal', sans-serif;
     background: var(--bg-body);
     color: var(--text-main);
-    overflow: hidden;
+    overflow: hidden; /* لمنع التمرير المزدوج */
     line-height: 1.6;
+    direction: rtl; /* التوجيه العربي الأساسي */
 }
 
 /* --- الهيكل الرئيسي (App Shell) --- */
@@ -36,8 +40,8 @@ body {
 
 .app-header {
     background: var(--white);
-    padding: 0 25px;
-    height: 70px;
+    padding: 0 30px;
+    height: 75px;
     box-shadow: var(--shadow-sm);
     display: flex;
     justify-content: space-between;
@@ -45,18 +49,20 @@ body {
     position: sticky;
     top: 0;
     z-index: 1001;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .app-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .app-brand span {
-    font-weight: 800;
-    font-size: 1.4rem;
+    font-weight: 900;
+    font-size: 1.6rem;
     color: var(--dark);
+    letter-spacing: -0.5px;
 }
 
 .app-brand span b {
@@ -66,7 +72,10 @@ body {
 .header-clock {
     font-weight: 700;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    background: var(--bg-body);
+    padding: 8px 15px;
+    border-radius: 50px;
 }
 
 /* --- الجسم والقائمة الجانبية --- */
@@ -77,7 +86,7 @@ body {
 }
 
 .app-sidebar {
-    width: 260px;
+    width: 280px;
     background: var(--white);
     border-left: 1px solid var(--border-color);
     display: flex;
@@ -86,174 +95,159 @@ body {
 }
 
 .side-nav {
-    padding-top: 15px;
+    padding: 20px 0;
     overflow-y: auto;
+    flex: 1;
 }
 
 .nav-label {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: #94a3b8;
-    padding: 15px 25px 8px;
+    padding: 10px 30px;
     text-transform: uppercase;
     font-weight: 800;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 .nav-item {
-    padding: 12px 20px;
+    padding: 14px 25px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
     color: var(--text-muted);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 700;
     transition: var(--transition);
-    border-radius: 0 50px 50px 0;
-    margin-left: 15px;
+    border-radius: 50px 0 0 50px; /* معكوس للغة العربية */
+    margin-right: 15px;
     cursor: pointer;
+    margin-bottom: 5px;
 }
 
 .nav-item i {
-    width: 20px;
+    width: 24px;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
 }
 
 .nav-item:hover, .nav-item.active {
     background: var(--primary-light);
     color: var(--primary);
-    border-right: 4px solid var(--primary);
+    border-right: 5px solid var(--primary);
 }
 
-/* --- منطقة المحتوى --- */
+/* --- منطقة المحتوى المتغيرة --- */
 .app-content {
     flex: 1;
     overflow-y: auto;
-    padding: 25px;
+    padding: 30px;
     background: var(--bg-content);
+    position: relative;
 }
 
-/* --- عناصر الواجهة الموحدة (UI Components) --- */
+/* --- عناصر الواجهة (UI Components) --- */
 
-/* البطاقات */
-.card {
-    background: var(--white);
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 20px;
-}
-
-/* النماذج والمدخلات */
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: var(--dark);
-}
-
-.tera-input, .form-input, .form-select {
-    width: 100%;
-    padding: 12px 15px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    font-family: inherit;
-    font-size: 0.9rem;
-    transition: var(--transition);
-}
-
-.tera-input:focus, .form-input:focus {
-    border-color: var(--primary);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
-}
-
-/* الأزرار */
-.btn-primary-tera, .btn-primary {
+/* الأزرار المطورة */
+.btn-primary-tera {
     background: var(--primary);
     color: var(--white);
     border: none;
-    padding: 12px 25px;
+    padding: 12px 28px;
     border-radius: 12px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     align-items: center;
-    gap: 8px;
-    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
 }
 
 .btn-primary-tera:hover {
-    background: #d35400;
+    background: var(--primary-hover);
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
 }
 
-/* الجداول */
+/* الجداول الحديثة (مع دعم التمرير) */
+.table-wrapper {
+    background: var(--white);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
 .tera-table-modern {
     width: 100%;
     border-collapse: collapse;
-    background: var(--white);
 }
 
 .tera-table-modern th {
     background: #f8fafc;
-    padding: 15px;
+    padding: 18px 20px;
     text-align: right;
     color: var(--text-muted);
     font-weight: 800;
+    font-size: 0.85rem;
     border-bottom: 2px solid var(--border-color);
 }
 
 .tera-table-modern td {
-    padding: 15px;
+    padding: 16px 20px;
     border-bottom: 1px solid #f1f5f9;
+    font-size: 0.95rem;
 }
 
-/* المودال (Modal) */
+/* المودال (النافذة المنبثقة) بلمسة زجاجية */
 .tera-modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(5px);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    padding: 20px;
 }
 
 .tera-modal-content {
     background: var(--white);
-    border-radius: 24px;
-    padding: 30px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
+    border-radius: 28px;
+    padding: 35px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 85vh;
     overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalScale 0.3s ease-out;
 }
 
-/* --- الشبكات (Grid System) --- */
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+@keyframes modalScale {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
 
-/* --- شريط التمرير المخصص --- */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+/* --- شريط التمرير (الستايل المودرن) --- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { 
+    background: #cbd5e1; 
+    border-radius: 20px; 
+    border: 2px solid var(--bg-content); 
+}
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-/* --- التجاوب مع الشاشات الصغيرة --- */
+/* --- التجاوب (Responsive) --- */
+@media (max-width: 1024px) {
+    .app-sidebar { width: 80px; }
+    .nav-label, .nav-item span { display: none; }
+    .nav-item { margin-right: 5px; justify-content: center; border-radius: 12px; }
+}
+
 @media (max-width: 768px) {
-    .app-sidebar {
-        position: fixed;
-        right: -260px;
-        height: 100%;
-        z-index: 2000;
-    }
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .app-header { padding: 0 15px; }
+    .app-sidebar { position: fixed; right: -100%; height: 100%; z-index: 2000; }
+    .app-content { padding: 15px; }
 }
