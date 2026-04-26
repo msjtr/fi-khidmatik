@@ -1,48 +1,142 @@
 /* fi-khidmatik/css/customers.css */
 
-/* تأثير الزجاج على البطاقات */
-.toolbar-card, .table-container {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 15px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --primary-color: #2563eb;
 }
 
-/* ضبط عرض الأعمدة للبيانات الـ 17 */
+/* الحاوية الرئيسية للموديول */
+.customers-dashboard {
+    padding: 20px;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* تأثير الزجاج (Glassmorphism) على البطاقات */
+.toolbar-card, .table-container, .stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+    margin-bottom: 20px;
+}
+
+.toolbar-card {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* إحصائيات سريعة */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-card span { display: block; color: #64748b; font-size: 0.9rem; margin-bottom: 5px; }
+.stat-card strong { font-size: 1.5rem; color: var(--primary-color); }
+
+/* ضبط الجدول للبيانات الكثيرة */
+.table-container {
+    overflow-x: auto; /* تمرير عرضي ضروري لـ 17 حقل */
+    position: relative;
+}
+
 table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 8px; /* مسافة بين الصفوف كأنها بطاقات */
+    border-spacing: 0;
+    font-size: 0.9rem;
 }
 
 th {
     position: sticky;
     top: 0;
-    background: #f1f5f9;
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    padding: 15px;
+    text-align: right;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
     z-index: 10;
-    white-space: nowrap; /* منع انقسام النص في العناوين */
 }
 
 td {
-    white-space: nowrap; /* الحفاظ على البيانات في سطر واحد مع تمرير عرضي */
     padding: 12px 15px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    white-space: nowrap;
+    color: #1e293b;
 }
 
-/* تمييز حالة العميل بالألوان */
-.badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: bold;
+/* تثبيت عمود الإجراءات (Sticky Actions) */
+.sticky-actions {
+    position: sticky;
+    left: 0; /* لأن النظام RTL */
+    background: white;
+    z-index: 5;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    border-right: 2px solid #f1f5f9;
 }
+
+tr:hover .sticky-actions {
+    background: #f8fafc;
+}
+
+/* الأزرار الصغيرة للإجراءات */
+.btn-sm {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: 0.3s;
+}
+
+.btn-edit { background: #eff6ff; color: #2563eb; }
+.btn-print { background: #f0fdf4; color: #16a34a; }
+.btn-delete { background: #fef2f2; color: #dc2626; }
+
+.btn-sm:hover { transform: translateY(-2px); filter: brightness(0.9); }
+
+/* حالات العميل والتصنيفات */
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
 .status-نشط { background: #dcfce7; color: #15803d; }
 .status-معلق { background: #fef9c3; color: #a16207; }
 .status-موقوف { background: #fee2e2; color: #b91c1c; }
 
-/* تأثير عند تمرير الفأرة على الصف */
-.customer-row:hover {
-    background: #f8fafc !important;
-    transform: scale(1.002);
-    transition: 0.2s ease-in-out;
+.type-VIP { background: #fae8ff; color: #a21caf; font-weight: bold; }
+.type-شركة { background: #e0f2fe; color: #0369a1; }
+
+/* تحسين شكل المدخلات */
+.tera-input {
+    padding: 10px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.tera-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
