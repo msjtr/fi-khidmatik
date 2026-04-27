@@ -15,17 +15,33 @@ const customersRef = collection(db, "customers");
  */
 export async function addCustomer(data) {
     const defaultData = {
-        name: "", phone: "", countryCode: "+966", email: "",
-        country: "المملكة العربية السعودية", city: "", district: "",
-        street: "", buildingNo: "", additionalNo: "", postalCode: "",
-        poBox: "", status: "نشط", tag: "عادي", notes: "",
-        photoURL: "assets/images/default-avatar.png", // الصورة الافتراضية
+        name: "", 
+        phone: "", 
+        countryCode: "+966", 
+        email: "",
+        country: "المملكة العربية السعودية", 
+        city: "", 
+        district: "",
+        street: "", 
+        buildingNo: "", 
+        additionalNo: "", 
+        postalCode: "",
+        poBox: "", 
+        status: "نشط", 
+        tag: "عادي", 
+        type: "فرد", // تم إضافة نوع العميل للإحصائيات
+        notes: "",
+        photoURL: "admin/images/default-product.png", // المسار المعتمد حسب شجرتك
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     };
 
-    // دمج البيانات المدخلة مع القيم الافتراضية لضمان عدم نقص أي حقل
-    return await addDoc(customersRef, { ...defaultData, ...data });
+    // دمج البيانات مع ضمان عدم وجود حقول undefined لـ Firestore
+    const cleanData = Object.fromEntries(
+        Object.entries({ ...defaultData, ...data }).filter(([_, v]) => v !== undefined)
+    );
+
+    return await addDoc(customersRef, cleanData);
 }
 
 /**
@@ -33,18 +49,25 @@ export async function addCustomer(data) {
  */
 export async function updateCustomer(id, data) {
     const docRef = doc(db, "customers", id);
-    return await updateDoc(docRef, {
+    const updateData = {
         ...data,
         updatedAt: serverTimestamp()
-    });
+    };
+    
+    return await updateDoc(docRef, updateData);
 }
 
 /**
  * 3. جلب بيانات عميل واحد بالرقم المرجعي
  */
 export async function fetchCustomerById(id) {
-    const snap = await getDoc(doc(db, "customers", id));
-    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+    try {
+        const snap = await getDoc(doc(db, "customers", id));
+        return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+    } catch (error) {
+        console.error("Error fetching customer:", error);
+        throw error;
+    }
 }
 
 /**
@@ -59,11 +82,12 @@ export async function fetchAllCustomers() {
  * 5. حذف عميل نهائياً
  */
 export async function deleteCustomer(id) {
-    return await deleteDoc(doc(db, "customers", id));
+    const docRef = doc(db, "customers", id);
+    return await deleteDoc(docRef);
 }
 
 /**
- * 6. جلب إحصائيات المجموعة بشكل مفصل
+ * 6. جلب إحصائيات المجموعة بشكل مفصل (Logic Layer)
  */
 export async function getCustomersStats() {
     const snapshot = await getDocs(customersRef);
@@ -72,48 +96,48 @@ export async function getCustomersStats() {
         complete: 0,
         incomplete: 0,
         active: 0,
-        inactive: 0,
         suspended: 0,
         vip: 0,
         companies: 0,
-        individuals: 0
+        individuals: 0,
+        withBalance: 0 // إحصائية إضافية للديون المستحقة مستقبلاً
     };
 
-    snapshot.forEach(doc => {
-        const d = doc.data();
+    snapshot.forEach(docSnap => {
+        const d = docSnap.data();
         stats.total++;
         
-        // فحص اكتمال البيانات الأساسية
-        const isComplete = (d.name && d.phone && d.email && d.postalCode && d.buildingNo);
+        // معيار اكتمال البيانات لـ "تيرا جيت واي"
+        const isComplete = (d.name && d.phone && d.city && d.district && d.buildingNo && d.postalCode);
         isComplete ? stats.complete++ : stats.incomplete++;
 
-        // تصنيف الحالة
+        // تصنيف الحالة برمجياً
         if (d.status === 'نشط') stats.active++;
-        else if (d.status === 'موقف') stats.suspended++;
-        else stats.inactive++;
+        else if (d.status === 'موقوف') stats.suspended++;
 
-        // تصنيف النوع
-        if (d.tag?.toLowerCase() === 'vip') stats.vip++;
-        if (d.tag === 'شركة') stats.companies++;
-        if (d.tag === 'أفراد') stats.individuals++;
+        // تصنيف الأهمية والنوع
+        if (d.tag === 'VIP') stats.vip++;
+        if (d.type === 'شركة') stats.companies++;
+        else stats.individuals++;
     });
 
     return stats;
 }
 
 /**
- * 7. منطق استيراد البيانات من Excel (قالب)
+ * 7. منطق استيراد البيانات الضخم (Bulk Import)
  */
 export async function importCustomersFromExcel(dataArray) {
     const results = { success: 0, failed: 0, logs: [] };
     
+    // تنفيذ العمليات بشكل متسلسل لضمان استقرار Firestore
     for (const item of dataArray) {
         try {
             await addCustomer(item);
             results.success++;
         } catch (err) {
             results.failed++;
-            results.logs.push(`فشل إضافة: ${item.name || 'مجهول'}`);
+            results.logs.push(`فشل إضافة: ${item.name || 'مجهول'} - السبب: ${err.message}`);
         }
     }
     return results;
