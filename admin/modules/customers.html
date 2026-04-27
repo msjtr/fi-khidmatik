@@ -49,12 +49,12 @@
         </div>
     </div>
 
-    <div class="glass-table-container">
+    <div class="glass-table-container" style="overflow-x: auto;">
         <table class="modern-table" id="main-customers-table">
             <thead>
                 <tr>
                     <th class="sticky-col">#</th>
-                    <th class="sticky-col-name">اسم العميل الرباعي</th>
+                    <th class="sticky-col-name">اسم العميل الكامل</th>
                     <th>رقم الجوال</th>
                     <th>مفتاح الدولة</th>
                     <th>البريد الإلكتروني</th>
@@ -77,7 +77,7 @@
                     <td colspan="17" style="text-align: center; padding: 60px;">
                         <div class="loading-spinner">
                             <i class="fas fa-circle-notch fa-spin fa-2x"></i>
-                            <p style="margin-top: 15px; font-weight: 600; color: #64748b;">جاري مزامنة بيانات العملاء من السحابة...</p>
+                            <p style="margin-top: 15px; font-weight: 600; color: #64748b;">جاري مزامنة بيانات العملاء...</p>
                         </div>
                     </td>
                 </tr>
@@ -101,7 +101,6 @@
 <script type="module">
     import { initCustomersUI } from '../../js/modules/customers-ui.js';
     
-    // تشغيل محرك الواجهة فور جاهزية المستند
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => startModule());
     } else {
@@ -110,14 +109,15 @@
 
     function startModule() {
         try {
+            // تشغيل المحرك المطور الذي يدعم الـ 17 عنصراً
             initCustomersUI();
-            console.log("Customer Module: Initialized Successfully.");
+            console.log("Customer Module: 17-Element Protocol Active.");
         } catch (err) {
             console.error("Customer Module Error:", err);
             const container = document.getElementById('customers-data-rows');
             if (container) {
                 container.innerHTML = `<tr><td colspan="17" style="color:#e11d48; text-align:center; padding:30px; font-weight:bold;">
-                    <i class="fas fa-exclamation-triangle"></i> فشل تحميل البيانات. يرجى التأكد من اتصال الإنترنت.
+                    <i class="fas fa-exclamation-triangle"></i> فشل مزامنة البيانات.
                 </td></tr>`;
             }
         }
@@ -125,7 +125,7 @@
 </script>
 
 <style>
-    /* تحسينات بصرية لتناسب لوحة تحكم تيرا */
+    /* تحسينات بصرية لهوية تيرا - Tera Gateway */
     .icon-box-blue {
         width: 45px; height: 45px; background: #2563eb; color: #fff; 
         border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
@@ -154,4 +154,7 @@
         margin-top: 15px; display: flex; justify-content: space-between; 
         align-items: center; background: #fff; padding: 12px 25px; border-radius: 15px; border: 1px solid #e2e8f0;
     }
+    /* تثبيت الأعمدة المهمة لسهولة القراءة */
+    .sticky-col { position: sticky; right: 0; background: #f8fafc; z-index: 2; }
+    .sticky-col-name { position: sticky; right: 50px; background: #f8fafc; z-index: 2; border-left: 2px solid #e2e8f0; }
 </style>
