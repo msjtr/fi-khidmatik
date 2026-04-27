@@ -1,55 +1,38 @@
 <div class="customers-module-wrapper">
-    
     <div class="glass-header">
         <div class="title-zone">
-            <div class="icon-box"><i class="fas fa-users"></i></div>
+            <div class="icon-box"><i class="fas fa-users-cog"></i></div>
             <div class="text-box">
-                <h1>مجموعة العملاء</h1>
-                <p>إدارة <span class="badge-group">customers</span> ومراقبة النشاط</p>
+                <h1>قاعدة بيانات العملاء</h1>
+                <p>إدارة المجموعة: <span class="badge-group">customers</span></p>
             </div>
         </div>
-        
         <div class="action-zone">
             <div class="search-wrapper">
                 <i class="fas fa-search"></i>
-                <input type="text" id="customerSearch" placeholder="ابحث عن عميل، رقم جوال، أو مدينة...">
+                <input type="text" id="customerSearch" placeholder="بحث سريع...">
             </div>
-            <button class="btn-glass-add" onclick="openAddCustomerModal()">
-                <i class="fas fa-plus"></i> إضافة عميل
+            <button class="btn-glass-add" onclick="window.openAddCustomerModal()">
+                <i class="fas fa-plus"></i> إضافة عميل جديد
             </button>
         </div>
     </div>
 
-    <div class="quick-stats">
-        <div class="stat-item">
-            <span class="label">إجمالي المجموعة</span>
-            <strong id="count-total">0</strong>
-        </div>
-        <div class="stat-item">
-            <span class="label">نشط حالياً</span>
-            <strong id="count-active" class="text-success">0</strong>
-        </div>
-        <div class="stat-item">
-            <span class="label">خارج الخدمة</span>
-            <strong id="count-inactive" class="text-danger">0</strong>
-        </div>
-    </div>
-
     <div class="glass-table-container">
-        <table id="customersTable" class="modern-table">
+        <table class="modern-table">
             <thead>
                 <tr>
                     <th class="sticky-col">#</th>
                     <th class="sticky-col-name">اسم العميل</th>
                     <th>رقم الجوال</th>
                     <th>المفتاح</th>
-                    <th>البريد</th>
+                    <th>البريد الإلكتروني</th>
                     <th>الدولة</th>
                     <th>المدينة</th>
                     <th>الحي</th>
                     <th>الشارع</th>
-                    <th>المبنى</th>
-                    <th>الإضافي</th>
+                    <th>رقم المبنى</th>
+                    <th>الرقم الإضافي</th>
                     <th>الرمز البريدي</th>
                     <th>صندوق البريد</th>
                     <th>تاريخ الإضافة</th>
@@ -59,7 +42,8 @@
                 </tr>
             </thead>
             <tbody id="customers-data-rows">
-                </tbody>
+                <tr><td colspan="17" style="text-align:center; padding:40px;">جاري تحميل البيانات...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
