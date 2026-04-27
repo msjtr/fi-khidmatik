@@ -1,10 +1,10 @@
 /**
  * main.js - المحرك المركزي لنظام Tera Gateway
- * الإصدار: 2.1.0 - تحديث أبريل 2026
- * الوظيفة: إدارة التنقل، ربط الموديولات، والجسر البرمجي للأزرار
+ * الإصدار: 2.2.0 - تحديث أبريل 2026
+ * الوظيفة: إدارة التنقل (Routing)، الجسر البرمجي للأزرار، وحل مشاكل النطاق (Scope)
  */
 
-// 1. خريطة المسارات المعتمدة (تطابق شجرة الملفات admin/modules/)
+// 1. خريطة المسارات المعتمدة
 const routes = {
     'dashboard': 'admin/modules/orders-dashboard.html',
     'customers': 'admin/modules/customers.html',
@@ -18,11 +18,25 @@ const routes = {
     'general':   'admin/modules/general.html'
 };
 
-// متغيرات عالمية للوصول إليها من الموديولات
+// متغيرات عالمية
 window.quillEditor = null;
 
 /**
- * 2. المحرك الرئيسي لتبديل الأقسام
+ * 2. دالة الجسر العالمي للتنقل (حل مشكلة ReferenceError)
+ * تُستدعى من onclick في sidebar.html
+ */
+window.handleNavClick = function(element, moduleName) {
+    // منع السلوك الافتراضي إذا لزم الأمر
+    if (window.event) window.event.preventDefault();
+
+    console.log(`🚀 جاري الانتقال إلى موديول: ${moduleName}`);
+    
+    // تحديث الـ Hash في المتصفح مما سيشغل تلقائياً حدث hashchange
+    window.location.hash = moduleName;
+};
+
+/**
+ * 3. المحرك الرئيسي لتبديل الأقسام
  */
 async function switchModule(moduleName) {
     const container = document.getElementById('module-container');
@@ -30,12 +44,12 @@ async function switchModule(moduleName) {
     
     if (!container) return;
     if (!path) {
-        console.error(`الموديول ${moduleName} غير معرف في المسارات.`);
+        console.error(`❌ الموديول ${moduleName} غير معرف في المسارات.`);
         return;
     }
 
     try {
-        // إظهار واجهة التحميل اللطيفة
+        // إظهار واجهة التحميل
         container.innerHTML = `
             <div class="loader-wrapper" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:100px;">
                 <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#2563eb; margin-bottom:20px;"></i>
@@ -51,40 +65,38 @@ async function switchModule(moduleName) {
         // تحديث حالة القائمة الجانبية (Active Class)
         updateSidebarUI(moduleName);
 
-        // تشغيل المنطق البرمجي الخاص بكل موديول
+        // تشغيل المنطق البرمجي الخاص بالموديول
         await initializeModuleLogic(moduleName);
 
     } catch (error) {
-        console.error("Navigation Error:", error);
+        console.error("❌ Navigation Error:", error);
         container.innerHTML = `
             <div style="text-align:center; padding:80px; color:#ef4444;">
                 <i class="fas fa-exclamation-circle fa-3x"></i>
-                <p style="margin-top:15px; font-weight:bold;">حدث خطأ أثناء تحميل القسم. يرجى التأكد من مسار الملف:</p>
+                <p style="margin-top:15px; font-weight:bold;">حدث خطأ أثناء تحميل القسم.</p>
                 <code>${path}</code>
             </div>`;
     }
 }
 
 /**
- * 3. الجسر البرمجي (The Bridge) - ربط موديول العملاء
+ * 4. الجسر البرمجي لربط موديول العملاء بالـ UI
  */
 async function initializeModuleLogic(moduleName) {
     if (moduleName === 'customers') {
         try {
-            // استيراد موديول الواجهة ديناميكياً
             const module = await import(`./modules/customers-ui.js?v=${Date.now()}`);
             
             if (module && module.initCustomersUI) {
-                // تشغيل جلب البيانات ورسم الجدول
+                // تشغيل الواجهة
                 module.initCustomersUI();
 
-                // --- الجسر البرمجي: ربط أزرار الـ HTML بالدوال المعزولة داخل الموديول ---
+                // ربط أزرار الـ HTML بالدوال (Exported Functions)
                 window.openAddCustomer = () => module.openCustomerModal('add');
                 window.editCustomer = (id) => module.openCustomerModal('edit', id);
                 window.saveCustomer = (e) => module.handleCustomerSubmit(e);
                 window.deleteCust = (id) => module.deleteCust(id);
                 
-                // وظيفة إغلاق النافذة المنبثقة
                 window.closeCustomerModal = () => {
                     const modal = document.getElementById('customer-modal');
                     if (modal) {
@@ -93,24 +105,25 @@ async function initializeModuleLogic(moduleName) {
                     }
                 };
 
-                // تهيئة محرر Quill للملاحظات
                 initQuillEditor();
-                console.log("✅ تم ربط جسر عمليات العملاء بنجاح");
+                console.log("✅ تم تفعيل جسر عمليات العملاء");
             }
         } catch (err) {
-            console.error("فشل تحميل موديول العملاء:", err);
+            console.error("❌ فشل تحميل موديول العملاء:", err);
         }
     }
-    
-    // يمكن إضافة جسر موديولات أخرى هنا (مثل المنتجات أو الطلبات)
+    // يمكن إضافة initialize لـ products أو orders هنا بنفس الطريقة
 }
 
 /**
- * 4. تهيئة محرر النصوص (Quill)
+ * 5. تهيئة محرر Quill
  */
 function initQuillEditor() {
     const editorElem = document.getElementById('customer-notes-editor');
     if (editorElem) {
+        // تصفير المحرر القديم إذا وجد
+        if (window.quillEditor) window.quillEditor = null;
+        
         window.quillEditor = new Quill('#customer-notes-editor', {
             theme: 'snow',
             placeholder: 'سجل الملاحظات والشروط هنا...',
@@ -126,12 +139,12 @@ function initQuillEditor() {
 }
 
 /**
- * 5. تحديث القائمة الجانبية بصرياً
+ * 6. تحديث واجهة القائمة الجانبية بصرياً
  */
 function updateSidebarUI(moduleName) {
     document.querySelectorAll('.nav-item').forEach(link => {
-        // التحقق مما إذا كان الزر يستدعي الموديول الحالي
         const clickAttr = link.getAttribute('onclick') || '';
+        // التحقق من اسم الموديول داخل دالة handleNavClick أو switchModule
         if (clickAttr.includes(`'${moduleName}'`)) {
             link.classList.add('active');
         } else {
@@ -141,16 +154,16 @@ function updateSidebarUI(moduleName) {
 }
 
 /**
- * 6. نظام التوجيه عبر الروابط (Hash Routing)
+ * 7. إدارة التوجيه عبر الـ Hash
  */
 function handleHashRoute() {
     const hash = window.location.hash.replace('#', '') || 'dashboard';
     switchModule(hash);
 }
 
-// الاستماع لأحداث التحميل وتغيير الرابط
+// الاستماع للأحداث
 window.addEventListener('load', handleHashRoute);
 window.addEventListener('hashchange', handleHashRoute);
 
-// إتاحة الدوال عالمياً للأزرار
+// إتاحة الدوال عالمياً للأزرار (Global Access)
 window.switchModule = switchModule;
