@@ -1,10 +1,9 @@
 /**
  * main.js - المحرك المركزي لنظام Tera Gateway
- * الإصدار: 2.2.0 - تحديث أبريل 2026
- * الوظيفة: إدارة التنقل (Routing)، الجسر البرمجي للأزرار، وحل مشاكل النطاق (Scope)
+ * الإصدار: 2.3.0 - تحديث أبريل 2026
+ * الوظيفة: إدارة التنقل (Routing) والجسر البرمجي للعمليات
  */
 
-// 1. خريطة المسارات المعتمدة
 const routes = {
     'dashboard': 'admin/modules/orders-dashboard.html',
     'customers': 'admin/modules/customers.html',
@@ -18,38 +17,26 @@ const routes = {
     'general':   'admin/modules/general.html'
 };
 
-// متغيرات عالمية
 window.quillEditor = null;
 
 /**
- * 2. دالة الجسر العالمي للتنقل (حل مشكلة ReferenceError)
- * تُستدعى من onclick في sidebar.html
+ * 1. الجسر العالمي للتنقل من القائمة الجانبية
  */
 window.handleNavClick = function(element, moduleName) {
-    // منع السلوك الافتراضي إذا لزم الأمر
     if (window.event) window.event.preventDefault();
-
-    console.log(`🚀 جاري الانتقال إلى موديول: ${moduleName}`);
-    
-    // تحديث الـ Hash في المتصفح مما سيشغل تلقائياً حدث hashchange
     window.location.hash = moduleName;
 };
 
 /**
- * 3. المحرك الرئيسي لتبديل الأقسام
+ * 2. المحرك الرئيسي لتبديل الأقسام
  */
 async function switchModule(moduleName) {
     const container = document.getElementById('module-container');
     const path = routes[moduleName];
     
-    if (!container) return;
-    if (!path) {
-        console.error(`❌ الموديول ${moduleName} غير معرف في المسارات.`);
-        return;
-    }
+    if (!container || !path) return;
 
     try {
-        // إظهار واجهة التحميل
         container.innerHTML = `
             <div class="loader-wrapper" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:100px;">
                 <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#2563eb; margin-bottom:20px;"></i>
@@ -62,68 +49,59 @@ async function switchModule(moduleName) {
         const html = await response.text();
         container.innerHTML = html;
 
-        // تحديث حالة القائمة الجانبية (Active Class)
         updateSidebarUI(moduleName);
 
-        // تشغيل المنطق البرمجي الخاص بالموديول
-        await initializeModuleLogic(moduleName);
+        // تشغيل المنطق البرمجي بناءً على القسم
+        if (moduleName === 'customers') {
+            await loadCustomersModule(container);
+        } else {
+            // منطق الموديولات الأخرى يمكن إضافته هنا
+        }
 
     } catch (error) {
         console.error("❌ Navigation Error:", error);
-        container.innerHTML = `
-            <div style="text-align:center; padding:80px; color:#ef4444;">
-                <i class="fas fa-exclamation-circle fa-3x"></i>
-                <p style="margin-top:15px; font-weight:bold;">حدث خطأ أثناء تحميل القسم.</p>
-                <code>${path}</code>
-            </div>`;
+        container.innerHTML = `<div style="text-align:center; padding:80px; color:#ef4444;"><p>تعذر تحميل الموديول.</p></div>`;
     }
 }
 
 /**
- * 4. الجسر البرمجي لربط موديول العملاء بالـ UI
+ * 3. موديول العملاء - التحميل والجسر البرمجي لإصلاح الأزرار
  */
-async function initializeModuleLogic(moduleName) {
-    if (moduleName === 'customers') {
-        try {
-            const module = await import(`./modules/customers-ui.js?v=${Date.now()}`);
+async function loadCustomersModule(container) {
+    try {
+        const module = await import(`./modules/customers-ui.js?v=${Date.now()}`);
+        if (module && module.initCustomersUI) {
+            // تشغيل الواجهة
+            module.initCustomersUI(container);
             
-            if (module && module.initCustomersUI) {
-                // تشغيل الواجهة
-                module.initCustomersUI();
+            // --- الجسر البرمجي لإصلاح الأزرار (The Bridge) ---
+            window.openAddCustomer = () => module.openCustomerModal('add');
+            window.editCustomer = (id) => module.openCustomerModal('edit', id);
+            window.saveCustomer = (e) => module.handleCustomerSubmit(e);
+            
+            window.closeCustomerModal = () => {
+                const modal = document.getElementById('customer-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    if (window.quillEditor) window.quillEditor.setContents([]);
+                }
+            };
 
-                // ربط أزرار الـ HTML بالدوال (Exported Functions)
-                window.openAddCustomer = () => module.openCustomerModal('add');
-                window.editCustomer = (id) => module.openCustomerModal('edit', id);
-                window.saveCustomer = (e) => module.handleCustomerSubmit(e);
-                window.deleteCust = (id) => module.deleteCust(id);
-                
-                window.closeCustomerModal = () => {
-                    const modal = document.getElementById('customer-modal');
-                    if (modal) {
-                        modal.style.display = 'none';
-                        if (window.quillEditor) window.quillEditor.setContents([]);
-                    }
-                };
-
-                initQuillEditor();
-                console.log("✅ تم تفعيل جسر عمليات العملاء");
-            }
-        } catch (err) {
-            console.error("❌ فشل تحميل موديول العملاء:", err);
+            // تهيئة المحرر
+            initQuillEditor();
+            console.log("✅ تم تفعيل جسر عمليات العملاء بنجاح");
         }
+    } catch (err) {
+        console.error("❌ تعذر ربط أزرار العمليات:", err);
     }
-    // يمكن إضافة initialize لـ products أو orders هنا بنفس الطريقة
 }
 
 /**
- * 5. تهيئة محرر Quill
+ * 4. تهيئة محرر Quill
  */
 function initQuillEditor() {
     const editorElem = document.getElementById('customer-notes-editor');
     if (editorElem) {
-        // تصفير المحرر القديم إذا وجد
-        if (window.quillEditor) window.quillEditor = null;
-        
         window.quillEditor = new Quill('#customer-notes-editor', {
             theme: 'snow',
             placeholder: 'سجل الملاحظات والشروط هنا...',
@@ -139,12 +117,11 @@ function initQuillEditor() {
 }
 
 /**
- * 6. تحديث واجهة القائمة الجانبية بصرياً
+ * 5. تحديث حالة القائمة الجانبية
  */
 function updateSidebarUI(moduleName) {
     document.querySelectorAll('.nav-item').forEach(link => {
         const clickAttr = link.getAttribute('onclick') || '';
-        // التحقق من اسم الموديول داخل دالة handleNavClick أو switchModule
         if (clickAttr.includes(`'${moduleName}'`)) {
             link.classList.add('active');
         } else {
@@ -154,16 +131,15 @@ function updateSidebarUI(moduleName) {
 }
 
 /**
- * 7. إدارة التوجيه عبر الـ Hash
+ * 6. معالج المسارات (Hash Routing)
  */
 function handleHashRoute() {
     const hash = window.location.hash.replace('#', '') || 'dashboard';
     switchModule(hash);
 }
 
-// الاستماع للأحداث
+// تشغيل النظام
 window.addEventListener('load', handleHashRoute);
 window.addEventListener('hashchange', handleHashRoute);
 
-// إتاحة الدوال عالمياً للأزرار (Global Access)
 window.switchModule = switchModule;
