@@ -1,12 +1,14 @@
 /**
- * main.js - Core Router & Global Controllers
- * نظام التوجيه وإدارة الدوال العامة - مشروع "في خدمتك"
+ * main.js - Tera Gateway Core Router
+ * المحرك المركزي لإدارة التنقل وتحميل الموديولات
+ * المسار: js/main.js
  */
 
+// 1. خريطة المسارات المعتمدة حسب شجرة الملفات
 const routes = {
     'dashboard': 'admin/modules/orders-dashboard.html',
     'customers': 'admin/modules/customers.html',
-    'orders':    'admin/modules/order-form.html',
+    'order-form': 'admin/modules/order-form.html',
     'products':  'admin/modules/products.html',
     'inventory': 'admin/modules/inventory.html',
     'payments':  'admin/modules/payments.html',
@@ -16,96 +18,107 @@ const routes = {
     'general':   'admin/modules/general.html'
 };
 
-// متغير عالمي لمحرر النصوص لضمان الوصول إليه من أي مكان
+// متغيرات عالمية
 window.quillEditor = null;
 
 /**
- * دالة تبديل الأقسام (Modules)
+ * 2. دالة تبديل الأقسام (Core Switcher)
  */
 async function switchModule(moduleName) {
     const container = document.getElementById('module-container');
-    if (!container) return;
-
     const path = routes[moduleName];
-    if (!path) return;
+    if (!container || !path) return;
 
     try {
-        // 1. إظهار مؤشر تحميل زجاجي متناسق مع التصميم
+        // إظهار مؤشر التحميل بتصميم تيرا
         container.innerHTML = `
-            <div class="loader-wrapper" style="text-align:center; padding:100px; color:#2563eb;">
-                <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-                <p style="margin-top:15px; font-weight:bold;">جاري جلب بيانات ${moduleName}...</p>
+            <div class="loader-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px;">
+                <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#2563eb;"></i>
+                <p style="margin-top:20px; font-weight:800; color:#1e293b;">جاري تحميل ${moduleName}...</p>
             </div>`;
 
-        // 2. جلب ملف الـ HTML
         const response = await fetch(`${path}?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`404: ${path}`);
+        if (!response.ok) throw new Error(`Status: ${response.status}`);
         
         const html = await response.text();
         container.innerHTML = html;
 
-        // 3. تحديث روابط القائمة الجانبية
+        // تحديث القائمة الجانبية
         updateSidebarUI(moduleName);
 
-        // 4. تهيئة موديول العملاء بشكل خاص
-        if (moduleName === 'customers') {
-            await initializeCustomersModule(container);
-        }
+        // تشغيل المنطق الخاص بكل صفحة (Initialization Logic)
+        initModuleLogic(moduleName);
 
     } catch (error) {
         console.error("Navigation Error:", error);
-        container.innerHTML = `<div class="error-msg" style="padding:40px; text-align:center; color:#ef4444;">
-            <i class="fas fa-exclamation-circle fa-2x"></i>
-            <p>حدث خطأ أثناء تحميل القسم، يرجى إعادة المحاولة.</p>
-        </div>`;
+        container.innerHTML = `
+            <div style="text-align:center; padding:100px;">
+                <i class="fas fa-exclamation-triangle fa-3x" style="color:#ef4444;"></i>
+                <p style="margin-top:20px; font-weight:bold;">عذراً، فشل تحميل القسم. تأكد من وجود الملف في: <br><code>${path}</code></p>
+            </div>`;
     }
 }
 
 /**
- * تهيئة موديول العملاء: تحميل التنسيق، الموديول، ومحرر النصوص
+ * 3. توزيع المنطق البرمجي بناءً على الصفحة المحملة
  */
-async function initializeCustomersModule(container) {
-    // تحميل CSS الموديول إذا لم يكن موجوداً
-    if (!document.getElementById('module-customers-style')) {
-        const link = document.createElement('link');
-        link.id = 'module-customers-style';
-        link.rel = 'stylesheet';
-        link.href = `css/customers.css?v=${Date.now()}`;
-        document.head.appendChild(link);
-    }
-
-    try {
-        // استيراد ملف الـ UI
-        const modulePath = `./modules/customers-ui.js?v=${Date.now()}`;
-        const module = await import(modulePath);
+async function initModuleLogic(moduleName) {
+    switch (moduleName) {
+        case 'customers':
+            await loadModuleScript('js/modules/customers-ui.js', 'initCustomersUI');
+            initQuillEditor();
+            break;
         
-        if (module && module.initCustomersUI) {
-            // انتظار بسيط لضمان حقن الـ HTML في الـ DOM
-            setTimeout(() => {
-                module.initCustomersUI(container);
-                // تهيئة محرر النصوص Quill بعد تحميل الواجهة
-                initQuillEditor();
-            }, 100);
+        case 'products':
+            await loadModuleScript('js/modules/products-ui.js', 'initProductsUI');
+            break;
+
+        case 'orders-dashboard':
+        case 'dashboard':
+            await loadModuleScript('js/modules/orders-dashboard.js', 'initOrdersDashboard');
+            break;
+
+        case 'inventory':
+            await loadModuleScript('js/modules/inventory.js', 'initInventory');
+            break;
+
+        case 'payments':
+            await loadModuleScript('js/modules/payments.js', 'initPayments');
+            break;
+            
+        case 'settings':
+            await loadModuleScript('js/modules/settings.js', 'initSettings');
+            break;
+    }
+}
+
+/**
+ * 4. محرك استيراد الملفات البرمجية ديناميكياً
+ */
+async function loadModuleScript(scriptPath, initFunctionName) {
+    try {
+        const module = await import(`../${scriptPath}?v=${Date.now()}`);
+        if (module && module[initFunctionName]) {
+            module[initFunctionName]();
         }
     } catch (err) {
-        console.error("فشل في تشغيل موديول العملاء:", err);
+        console.warn(`⚠️ تنبيه: لم يتم العثور على وظيفة التشغيل في ${scriptPath}`);
     }
 }
 
 /**
- * تهيئة محرر النصوص (Quill Editor) للملاحظات
+ * 5. تهيئة محرر Quill (خاص بالعملاء والمنتجات)
  */
 function initQuillEditor() {
     const editorElem = document.getElementById('customer-notes-editor');
-    if (editorElem && !window.quillEditor) {
+    if (editorElem) {
         window.quillEditor = new Quill('#customer-notes-editor', {
             theme: 'snow',
-            placeholder: 'اكتب ملاحظات العميل هنا...',
+            placeholder: 'سجل الملاحظات أو الشروط هنا...',
             modules: {
                 toolbar: [
                     ['bold', 'italic', 'underline'],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
                     ['clean']
                 ]
             }
@@ -114,40 +127,13 @@ function initQuillEditor() {
 }
 
 /**
- * إدارة النوافذ المنبثقة (Global Modals)
- * تضمن العمل الفعلي لأزرار الإضافة والتعديل والإغلاق
- */
-
-window.openCustomerModal = function(mode = 'add', customerId = null) {
-    const modal = document.getElementById('customer-modal');
-    if (!modal) return;
-
-    modal.style.display = 'flex';
-    
-    // ضبط عنوان النافذة
-    const title = document.getElementById('modal-title');
-    if(title) title.innerText = mode === 'edit' ? 'تعديل بيانات العميل' : 'إضافة عميل جديد';
-
-    // إذا كان تعديل، نقوم بتصفير المحرر وتهيئته بالبيانات (تتم عبر customers-ui.js)
-    if (mode === 'add') {
-        const form = document.getElementById('customer-form');
-        if(form) form.reset();
-        if(window.quillEditor) window.quillEditor.setContents([]);
-    }
-};
-
-window.closeCustomerModal = function() {
-    const modal = document.getElementById('customer-modal');
-    if (modal) modal.style.display = 'none';
-};
-
-/**
- * تحديث واجهة القائمة الجانبية
+ * 6. التحكم في القائمة الجانبية (Sidebar)
  */
 function updateSidebarUI(moduleName) {
-    document.querySelectorAll('.sidebar-nav a').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === `#${moduleName}`) {
+    document.querySelectorAll('.nav-item').forEach(link => {
+        // نتحقق من الـ onclick أو الـ hash
+        const isCurrent = link.getAttribute('onclick')?.includes(`'${moduleName}'`);
+        if (isCurrent) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
@@ -156,16 +142,16 @@ function updateSidebarUI(moduleName) {
 }
 
 /**
- * نظام التوجيه (Routing)
+ * 7. نظام التوجيه عبر الـ Hash (#)
  */
-function handleRoute() {
+function handleHashRoute() {
     const hash = window.location.hash.replace('#', '') || 'dashboard';
     switchModule(hash);
 }
 
-// الاستماع للأحداث
-window.addEventListener('load', handleRoute);
-window.addEventListener('hashchange', handleRoute);
+// الاستماع للأحداث العالمية
+window.addEventListener('load', handleHashRoute);
+window.addEventListener('hashchange', handleHashRoute);
 
-// إتاحة الدوال عالمياً للأزرار
+// إتاحة الدوال عالمياً
 window.switchModule = switchModule;
