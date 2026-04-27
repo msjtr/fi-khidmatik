@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام في خدمتك | لوحة الإدارة الذكية</title>
+    <title>نظام في خدمتك | لوحة الإدارة</title>
     
     <link rel="icon" href="../images/logo.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -39,7 +39,6 @@
             height: 100%;
         }
 
-        /* منطقة القائمة الجانبية */
         #sidebar-placeholder {
             width: var(--sidebar-width);
             height: 100%;
@@ -49,7 +48,6 @@
             z-index: 1000;
         }
 
-        /* منطقة المحتوى الديناميكي */
         .content-area {
             flex-grow: 1;
             display: flex;
@@ -70,10 +68,8 @@
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
-            scroll-behavior: smooth;
         }
 
-        /* شاشة التحميل الاحترافية */
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -93,12 +89,6 @@
             opacity: 0;
             pointer-events: none;
         }
-
-        /* تحسينات التجاوب */
-        @media (max-width: 1024px) {
-            :root { --sidebar-width: 80px; }
-            .sidebar-text { display: none; }
-        }
     </style>
 </head>
 <body>
@@ -112,7 +102,7 @@
             <main id="module-container">
                 <div class="loading-state" id="main-loader">
                     <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary-blue);"></i>
-                    <p style="margin-top: 20px; font-weight: 700; color: #1e293b;">جاري مزامنة بيانات تيرا جيت واي...</p>
+                    <p style="margin-top: 20px; font-weight: 700;">جاري تحميل النظام...</p>
                 </div>
             </main>
         </div>
@@ -124,11 +114,11 @@
 
     <script>
         /**
-         * دالة جلب المكونات الثابتة (Header, Sidebar, Modals)
+         * دالة جلب المكونات من مجلد components الموجود داخل مجلد admin
          */
         async function loadCoreComponent(id, fileName) {
             const container = document.getElementById(id);
-            // المسار بالنسبة لمجلد admin/
+            // بما أننا داخل admin.html، مجلد components هو مجلد مجاور
             const path = `components/${fileName}`;
             
             try {
@@ -144,22 +134,18 @@
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // تحميل المكونات الأساسية بالتوازي لسرعة الأداء
+            // تحميل المكونات من المجلد الحالي
             await Promise.all([
                 loadCoreComponent('sidebar-placeholder', 'sidebar.html'),
                 loadCoreComponent('header-placeholder', 'header.html'),
                 loadCoreComponent('modals-placeholder', 'modals.html')
             ]);
 
-            // إخفاء الـ Loader بعد التأكد من تحميل المكونات
             const loader = document.getElementById('main-loader');
             if (loader) {
                 loader.classList.add('hidden');
                 setTimeout(() => loader.remove(), 600);
             }
-            
-            // استدعاء نظام التوجيه لبدء عرض الصفحة الافتراضية
-            if (window.handleRoute) window.handleRoute();
         });
     </script>
 
