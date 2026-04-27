@@ -1,172 +1,180 @@
-<aside id="main-sidebar" class="app-sidebar">
-    <div class="sidebar-header">
-        <span class="menu-label">القائمة الرئيسية</span>
+<div class="tera-sidebar-content">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <i class="fas fa-gateway"></i>
+        </div>
+        <div class="brand-text">
+            <span class="brand-name">TERA</span>
+            <span class="brand-sub">GATEWAY</span>
+        </div>
     </div>
-    
-    <nav class="side-nav">
-        <ul id="admin-menu" class="sidebar-nav">
-            <li>
-                <a href="#dashboard" class="nav-item active" data-module="dashboard">
-                    <div class="nav-icon"><i class="fas fa-th-large"></i></div>
-                    <span>الرئيسية</span>
-                    <div class="active-pill"></div>
-                </a>
-            </li>
-            
-            <li>
-                <a href="#products" class="nav-item" data-module="products">
-                    <div class="nav-icon"><i class="fas fa-boxes-stacked"></i></div>
-                    <span>المنتجات</span>
-                    <div class="active-pill"></div>
-                </a>
-            </li>
-            
-            <li>
-                <a href="#orders" class="nav-item" data-module="orders">
-                    <div class="nav-icon"><i class="fas fa-hand-holding-dollar"></i></div>
-                    <span>طلبات التقسيط</span>
-                    <div class="active-pill"></div>
-                </a>
-            </li>
-            
-            <li>
-                <a href="#customers" class="nav-item" data-module="customers">
-                    <div class="nav-icon"><i class="fas fa-users-gear"></i></div>
-                    <span>قاعدة العملاء</span>
-                    <div class="active-pill"></div>
-                </a>
-            </li>
 
-            <li>
-                <a href="#inventory" class="nav-item" data-module="inventory">
-                    <div class="nav-icon"><i class="fas fa-warehouse"></i></div>
-                    <span>المخزون</span>
-                    <div class="active-pill"></div>
-                </a>
-            </li>
-            
-            <div class="nav-divider"></div>
-            
-            <li>
-                <a href="#settings" class="nav-item" data-module="settings">
-                    <div class="nav-icon"><i class="fas fa-user-shield"></i></div>
-                    <span>إعدادات النظام</span>
-                    <div class="active-pill"></div>
-                </a>
-            </li>
-        </ul>
+    <nav class="sidebar-nav">
+        <div class="nav-section">الرئيسية</div>
+        
+        <a href="#" class="nav-item active" onclick="handleNavClick(this, 'dashboard')">
+            <i class="fas fa-th-large"></i>
+            <span>لوحة التحكم</span>
+        </a>
+
+        <div class="nav-section">إدارة العملاء</div>
+        <a href="#" class="nav-item" onclick="handleNavClick(this, 'customers')">
+            <i class="fas fa-users-cog"></i>
+            <span>قاعدة البيانات</span>
+        </a>
+
+        <div class="nav-section">العمليات المالية</div>
+        <a href="#" class="nav-item" onclick="handleNavClick(this, 'orders-dashboard')">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>إدارة الطلبات</span>
+        </a>
+        <a href="#" class="nav-item" onclick="handleNavClick(this, 'payments')">
+            <i class="fas fa-credit-card"></i>
+            <span>المدفوعات</span>
+        </a>
+
+        <div class="nav-section">المخزون والمنتجات</div>
+        <a href="#" class="nav-item" onclick="handleNavClick(this, 'products')">
+            <i class="fas fa-box-open"></i>
+            <span>بطاقات سوا</span>
+        </a>
+        <a href="#" class="nav-item" onclick="handleNavClick(this, 'inventory')">
+            <i class="fas fa-warehouse"></i>
+            <span>المستودع</span>
+        </a>
+
+        <div class="nav-section">النظام</div>
+        <a href="#" class="nav-item" onclick="handleNavClick(this, 'settings')">
+            <i class="fas fa-cog"></i>
+            <span>الإعدادات</span>
+        </a>
+        <a href="#" class="nav-item" onclick="handleNavClick(this, 'backup')">
+            <i class="fas fa-database"></i>
+            <span>النسخ الاحتياطي</span>
+        </a>
     </nav>
 
     <div class="sidebar-footer">
-        <div class="system-status">
-            <span class="status-dot"></span>
-            <small>تيرا جيت واي: متصل</small>
+        <div class="user-profile-mini">
+            <img src="admin/images/default-product.png" alt="User">
+            <div class="user-info">
+                <span class="u-name">محمد صالح</span>
+                <span class="u-role">مدير النظام</span>
+            </div>
         </div>
     </div>
-</aside>
+</div>
+
+<script>
+    /**
+     * وظيفة التعامل مع النقر على الروابط وتغيير الموديول
+     */
+    function handleNavClick(element, moduleName) {
+        // 1. إزالة حالة النشاط من جميع الروابط
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // 2. إضافة حالة النشاط للرابط الحالي
+        element.classList.add('active');
+
+        // 3. استدعاء وظيفة تحميل الموديول الموجودة في index.html
+        if (typeof window.loadModule === 'function') {
+            window.loadModule(moduleName);
+        }
+        
+        // 4. منع السلوك الافتراضي للرابط
+        return false;
+    }
+</script>
 
 <style>
-    /* تحسينات التصميم للهوية البصرية */
-    :root {
-        --primary-tera: #2563eb; /* اللون الأزرق المعتمد في admin.html */
-        --primary-light: #eff6ff;
-    }
-
-    .app-sidebar {
+    .tera-sidebar-content {
         display: flex;
         flex-direction: column;
-        background: #ffffff;
         height: 100%;
-        width: 280px;
-        border-left: 1px solid #e2e8f0;
-        overflow: hidden;
+        padding: 20px 15px;
+        background: #fff;
     }
 
-    .sidebar-header { padding: 25px 25px 15px; }
-
-    .menu-label {
-        font-size: 0.75rem;
-        font-weight: 800;
-        color: #94a3b8;
-        text-transform: uppercase;
-    }
-
-    .sidebar-nav { list-style: none; padding: 0 15px; }
-    
-    /* إلغاء التنسيق الافتراضي للروابط */
-    .sidebar-nav a { text-decoration: none; display: flex; }
-
-    .nav-item {
-        position: relative;
+    .sidebar-brand {
+        display: flex;
         align-items: center;
         gap: 12px;
-        padding: 12px 18px;
-        margin-bottom: 8px;
-        border-radius: 14px;
+        padding: 0 10px 30px;
+        border-bottom: 1px solid #f1f5f9;
+        margin-bottom: 20px;
+    }
+
+    .brand-icon {
+        background: #2563eb;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name { font-weight: 900; font-size: 1.1rem; color: #1e293b; letter-spacing: 1px; }
+    .brand-sub { font-size: 0.65rem; color: #64748b; font-weight: 700; margin-top: -3px; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding-right: 5px; }
+
+    .nav-section {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #94a3b8;
+        margin: 20px 12px 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 15px;
         color: #64748b;
-        font-weight: 700;
-        font-size: 0.95rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        margin-bottom: 4px;
     }
 
-    .nav-icon {
-        width: 36px; height: 36px;
-        display: flex; align-items: center; justify-content: center;
-        border-radius: 10px; background: #f8fafc;
-        transition: 0.3s; font-size: 1.1rem;
+    .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
+
+    .nav-item:hover { background: #f8fafc; color: #2563eb; }
+    .nav-item.active { background: #eff6ff; color: #2563eb; }
+
+    .sidebar-footer {
+        padding-top: 20px;
+        border-top: 1px solid #f1f5f9;
+        margin-top: 20px;
     }
 
-    /* حالة التحويم */
-    .nav-item:hover {
-        background: var(--primary-light);
-        color: var(--primary-tera);
-        transform: translateX(-5px);
+    .user-profile-mini {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #f8fafc;
+        padding: 10px;
+        border-radius: 15px;
     }
 
-    .nav-item:hover .nav-icon {
-        background: white;
-        color: var(--primary-tera);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    .user-profile-mini img {
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        background: #e2e8f0;
     }
 
-    /* الحالة النشطة */
-    .nav-item.active {
-        background: var(--primary-light);
-        color: var(--primary-tera);
-    }
-
-    .nav-item.active .nav-icon {
-        background: var(--primary-tera);
-        color: #ffffff;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }
-
-    .active-pill {
-        position: absolute;
-        right: -15px; width: 5px; height: 24px;
-        background: var(--primary-tera);
-        border-radius: 5px 0 0 5px;
-        opacity: 0; transition: 0.3s;
-    }
-
-    .nav-item.active .active-pill { opacity: 1; }
-
-    .nav-divider { height: 1px; background: #f1f5f9; margin: 20px 15px; }
-
-    .sidebar-footer { padding: 20px 25px; background: #fafafa; border-top: 1px solid #f1f5f9; }
-
-    .system-status { display: flex; align-items: center; gap: 10px; color: #64748b; font-weight: 700; font-size: 0.85rem; }
-
-    .status-dot { width: 10px; height: 10px; background: #10b981; border-radius: 50%; position: relative; }
-
-    .status-dot::after {
-        content: ''; position: absolute; width: 100%; height: 100%;
-        background: #10b981; border-radius: 50%;
-        animation: pulse 2s infinite; opacity: 0.5;
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); opacity: 0.5; }
-        100% { transform: scale(2.5); opacity: 0; }
-    }
+    .user-info { display: flex; flex-direction: column; }
+    .u-name { font-size: 0.8rem; font-weight: 800; color: #1e293b; }
+    .u-role { font-size: 0.7rem; color: #64748b; font-weight: 600; }
 </style>
