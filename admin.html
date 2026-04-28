@@ -38,28 +38,31 @@
     <div id="modal-container"></div>
 
     <script type="module">
+        // استيراد المحركات الأساسية من مجلد js في الجذر
         import './js/core/firebase.js'; 
         import './js/main.js';          
 
         class TeraRouter {
             constructor() {
                 this.moduleContainer = document.getElementById('module-container');
+                // basePath تشير لمجلد admin الذي يحتوي على components و modules
                 this.basePath = 'admin'; 
                 this.init();
             }
 
             async init() {
                 try {
+                    // تحميل المكونات من مجلد admin/components
                     await Promise.all([
-                        this.loadComponent('sidebar-container', `${this.basePath}/components/sidebar.html`),
-                        this.loadComponent('header-container', `${this.basePath}/components/header.html`),
-                        this.loadComponent('modal-container', `${this.basePath}/components/modals.html`).catch(() => {})
+                        this.loadComponent('sidebar-container', `./${this.basePath}/components/sidebar.html`),
+                        this.loadComponent('header-container', `./${this.basePath}/components/header.html`),
+                        this.loadComponent('modal-container', `./${this.basePath}/components/modals.html`).catch(() => {})
                     ]);
 
                     window.addEventListener('hashchange', () => this.handleRouting());
                     this.handleRouting();
                 } catch (err) {
-                    console.error("Initialization Error:", err);
+                    console.error("Tera Engine Init Error:", err);
                 }
             }
 
@@ -73,7 +76,7 @@
                         container.innerHTML = html;
                         this.executeScripts(container);
                     }
-                } catch (e) { console.error(e); }
+                } catch (e) { console.warn("Component Load Error:", e); }
             }
 
             async handleRouting() {
@@ -88,8 +91,9 @@
                 `;
 
                 try {
-                    const response = await fetch(`${this.basePath}/modules/${moduleName}.html`);
-                    if (!response.ok) throw new Error('Module not found');
+                    // تحميل صفحات الـ HTML من admin/modules
+                    const response = await fetch(`./${this.basePath}/modules/${moduleName}.html`);
+                    if (!response.ok) throw new Error('Module HTML not found');
                     const html = await response.text();
                     
                     this.moduleContainer.innerHTML = html;
@@ -105,44 +109,39 @@
 
             async initModuleJS(name) {
                 try {
+                    // خريطة المسارات بناءً على هيكل مجلد js في الجذر
                     const jsMap = {
                         'customers': './js/modules/customers-ui.js',
                         'orders-dashboard': './js/modules/orders-dashboard.js',
                         'inventory': './js/modules/inventory.js',
                         'products': './js/modules/products-ui.js',
-                        'settings': './js/modules/settings.js'
+                        'settings': './js/modules/settings.js',
+                        'payments': './js/modules/payments.js'
                     };
 
                     if (jsMap[name]) {
-                        // استخدام الطابع الزمني لضمان تحميل أحدث نسخة من الملف
+                        // كسر الكاش لضمان تحميل التحديثات من GitHub
                         const module = await import(`${jsMap[name]}?v=${Date.now()}`);
                         
-                        // تصحيح: معالجة الأسماء التي تحتوي على فواصل (مثل orders-dashboard)
+                        // تحويل الاسم (مثلاً orders-dashboard إلى initOrdersDashboardUI)
                         const camelCaseName = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
                         const initFuncName = `init${camelCaseName}UI`;
 
                         if (typeof module[initFuncName] === 'function') {
                             await module[initFuncName](this.moduleContainer);
-                            console.log(`✅ Module [${name}] initialized via ${initFuncName}`);
+                            console.log(`✅ Tera Engine: ${name} logic loaded.`);
                         } else if (typeof module.init === 'function') {
                             await module.init(this.moduleContainer);
                         }
                     }
                 } catch (err) {
-                    console.warn(`⚠️ Tera Router: [${name}] logic error or missing entry point.`, err);
+                    console.warn(`⚠️ Tera Router: [${name}] JS Logic not found at expected path.`);
                 }
             }
 
             updateActiveLinks(name) {
-                // تحديث القائمة الجانبية إذا كانت الدالة موجودة في main.js
                 if (window.updateSidebarUI) {
                     window.updateSidebarUI(name);
-                } else {
-                    document.querySelectorAll('.nav-item').forEach(el => {
-                        el.classList.remove('active');
-                        const link = el.getAttribute('href') || el.getAttribute('onclick') || '';
-                        if (link.includes(name)) el.classList.add('active');
-                    });
                 }
             }
 
@@ -151,7 +150,7 @@
                     <div class="error-state">
                         <i class="fas fa-file-circle-exclamation fa-4x" style="color:#f97316; margin-bottom:20px;"></i>
                         <h3 style="color:#1e293b; font-weight:800;">الصفحة غير موجودة</h3>
-                        <p>تأكد من وجود الملف: <code>admin/modules/${name}.html</code></p>
+                        <p>المسار المفقود: <code>admin/modules/${name}.html</code></p>
                     </div>`;
             }
 
@@ -166,6 +165,7 @@
             }
         }
 
+        // تشغيل المحرك
         window.teraApp = new TeraRouter();
         window.loadModule = (name) => { window.location.hash = name; };
     </script>
