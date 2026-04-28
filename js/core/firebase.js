@@ -1,11 +1,10 @@
-/**
- * js/core/firebase.js - الإصدار 12.12.1 الحديث
- * منصة تيرا جيت واي - إدارة الاتصال بـ Firestore
- */
+// js/core/firebase.js
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
@@ -17,25 +16,22 @@ const firebaseConfig = {
     measurementId: "G-NDVGC9GPQZ"
 };
 
-// 1. تهيئة التطبيق (مع التحقق لضمان عدم التهيئة المكررة)
+// 1. تهيئة Firebase
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
-// 2. تهيئة الخدمات
+// 2. تصدير الخدمات لسهولة الوصول إليها في المشروع
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
-// 3. تأمين الوصول العالمي (ضروري لعمل الموديولات التي تعتمد على window.db)
-window.app = app;
+// 3. ربط الخدمات بنطاق النافذة (Window) لكي تراها الموديولات التي تعتمد على window.db
+window.firebaseApp = app;
 window.db = db;
 window.auth = auth;
+window.storage = storage;
 
-// 4. التصدير للاستخدام في الملفات الأخرى عبر import
-export { app, db, auth };
+console.log("✅ Tera Engine: تم ربط محرك Firebase بنجاح.");
 
-console.log("✅ Tera Engine: Firebase V12.12.1 Connected Successfully.");
-
-/**
- * ملاحظة تقنية: 
- * تم حذف إعادة تصدير initializeApp و getFirestore 
- * لأن الملفات الأخرى يجب أن تستورد 'db' مباشرة بدلاً من إعادة تهيئتها.
- */
+// اختياري: تصديرهم كموديول أيضاً
+export { app, db, auth, storage };
