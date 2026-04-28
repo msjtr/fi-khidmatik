@@ -12,8 +12,6 @@
     
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/customers.css">
-    <link rel="stylesheet" href="css/table.css">
-    <link rel="stylesheet" href="css/orders.css">
 </head>
 <body>
 
@@ -24,11 +22,21 @@
                 <span>تيرا جيت واي</span>
             </div>
             <nav class="nav-menu" id="main-nav">
-                <a href="#dashboard" class="nav-item active" data-route="dashboard"><i class="fas fa-chart-line"></i> الرئيسية</a>
-                <a href="#customers" class="nav-item" data-route="customers"><i class="fas fa-users"></i> قاعدة العملاء</a>
-                <a href="#orders" class="nav-item" data-route="orders"><i class="fas fa-file-invoice-dollar"></i> الطلبات والفواتير</a>
-                <a href="#inventory" class="nav-item" data-route="inventory"><i class="fas fa-boxes"></i> المخزن</a>
-                <a href="#settings" class="nav-item" data-route="settings"><i class="fas fa-cog"></i> الإعدادات</a>
+                <a href="javascript:void(0)" class="nav-item active" onclick="loadModule('dashboard', this)">
+                    <i class="fas fa-chart-line"></i> الرئيسية
+                </a>
+                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('customers', this)">
+                    <i class="fas fa-users"></i> قاعدة العملاء
+                </a>
+                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('orders', this)">
+                    <i class="fas fa-file-invoice-dollar"></i> الطلبات والفواتير
+                </a>
+                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('inventory', this)">
+                    <i class="fas fa-boxes"></i> المخزن
+                </a>
+                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('settings', this)">
+                    <i class="fas fa-cog"></i> الإعدادات
+                </a>
             </nav>
         </aside>
 
@@ -59,23 +67,52 @@
     <div id="modal-placeholder"></div>
 
     <script type="module">
-        // استيراد بالترتيب لضمان وجود window.db قبل تشغيل main.js
-        import './js/core/firebase.js';
-        import './js/core/config.js';
-        import './js/main.js';
+        import './js/core/firebase.js'; // تهيئة قاعدة البيانات
+        import './js/main.js';         // تهيئة المنطق الرئيسي
 
-        // جسر الربط العالمي للوظائف التي تستدعى من HTML مباشرة
+        /**
+         * دالة تحميل الموديولات ديناميكياً
+         * تعمل على جلب ملفات الـ HTML من مجلد admin/modules/
+         */
+        window.loadModule = async (name, element) => {
+            const container = document.getElementById('module-container');
+            
+            // 1. تحديث شكل القائمة الجانبية (Active State)
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            // 2. إظهار اللودر أثناء الجلب
+            container.innerHTML = `<div class="loading-state" style="text-align: center; padding: 100px;"><div class="spinner"></div></div>`;
+
+            try {
+                const response = await fetch(`admin/modules/${name}.html`);
+                if (!response.ok) throw new Error('Module Not Found');
+                const html = await response.text();
+                container.innerHTML = html;
+
+                // 3. إذا كان الموديول هو العملاء، نقوم بتشغيل محرك الـ UI الخاص به
+                if (name === 'customers') {
+                    const { initCustomersUI } = await import('./js/modules/customers-ui.js');
+                    initCustomersUI(container);
+                }
+            } catch (error) {
+                container.innerHTML = `<div style="text-align:center; padding:50px; color:red;">⚠️ فشل تحميل الموديول: ${name}</div>`;
+            }
+        };
+
+        // تشغيل موديول "الرئيسية" تلقائياً عند فتح الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            loadModule('dashboard');
+        });
+
+        // إغلاق المودال عالمياً
         window.closeCustomerModal = () => {
             const modal = document.querySelector('.modal-wrapper') || document.getElementById('customer-modal');
             if (modal) {
                 modal.style.opacity = '0';
-                setTimeout(() => modal.remove(), 300); // إزالة من الـ DOM لتحسين الأداء
+                setTimeout(() => modal.remove(), 300);
             }
         };
-
-        console.log("✅ Tera Gateway: UI Engine v12.12.1 Fully Loaded.");
     </script>
-
-    <script type="module" src="js/utils/helpers.js" defer></script>
 </body>
 </html>
