@@ -3,116 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تيرا جيت واي | لوحة التحكم</title>
+    <title>تيرا جيت واي | لوحة التحكم المركزية</title>
     
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/table.css">
     <link rel="stylesheet" href="css/customers.css">
 </head>
-<body>
+<body class="tera-admin-body">
 
-    <div class="admin-wrapper">
-        <aside class="sidebar">
-            <div class="logo-section">
-                <img src="images/logo.svg" alt="Tera Logo">
-                <span>تيرا جيت واي</span>
+    <div class="admin-layout">
+        
+        <div id="sidebar-container"></div>
+
+        <main class="main-wrapper">
+            <div id="header-container">
+                <header class="top-bar-placeholder" style="height: 70px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; padding: 0 30px;">
+                    <div class="loading-pulse" style="color: #94a3b8; font-weight: 600;"><i class="fas fa-circle-notch fa-spin"></i> جاري ربط مكونات تيرا...</div>
+                </header>
             </div>
-            <nav class="nav-menu" id="main-nav">
-                <a href="javascript:void(0)" class="nav-item active" onclick="loadModule('dashboard', this)">
-                    <i class="fas fa-chart-line"></i> الرئيسية
-                </a>
-                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('customers', this)">
-                    <i class="fas fa-users"></i> قاعدة العملاء
-                </a>
-                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('orders', this)">
-                    <i class="fas fa-file-invoice-dollar"></i> الطلبات والفواتير
-                </a>
-                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('inventory', this)">
-                    <i class="fas fa-boxes"></i> المخزن
-                </a>
-                <a href="javascript:void(0)" class="nav-item" onclick="loadModule('settings', this)">
-                    <i class="fas fa-cog"></i> الإعدادات
-                </a>
-            </nav>
-        </aside>
 
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="global-search" placeholder="ابحث في تيرا جيت واي...">
-                </div>
-                <div class="user-info">
-                    <div class="user-text">
-                        <span class="user-name">محمد بن صالح</span>
-                        <span class="user-role">مدير النظام</span>
-                    </div>
-                    <img src="admin/images/default-product.png" class="avatar" alt="Admin Profile">
-                </div>
-            </header>
-
-            <section id="module-container" class="content-body">
-                <div class="loading-state" id="main-loader" style="text-align: center; padding: 100px;">
-                    <div class="spinner"></div>
-                    <p style="margin-top: 20px; font-family: 'Cairo'; font-weight: 600;">جاري مزامنة محرك تيرا جيت واي...</p>
+            <section id="module-container" class="content-area">
+                <div class="initial-loader">
+                    <div class="spinner-tera"></div>
+                    <p style="margin-top: 20px; font-weight: 700; color: #64748b;">جاري مزامنة محرك تيرا جيت واي...</p>
                 </div>
             </section>
         </main>
     </div>
 
-    <div id="modal-placeholder"></div>
+    <div id="modal-container"></div>
 
     <script type="module">
-        import './js/core/firebase.js'; // تهيئة قاعدة البيانات
-        import './js/main.js';         // تهيئة المنطق الرئيسي
+        // استيراد إعدادات قاعدة البيانات فايربيس والمنطق الرئيسي
+        import './js/core/firebase.js'; 
+        import './js/main.js';          
 
         /**
-         * دالة تحميل الموديولات ديناميكياً
-         * تعمل على جلب ملفات الـ HTML من مجلد admin/modules/
+         * محرك التوجيه وإدارة المكونات لـ Tera Gateway (Tera Router)
+         * يقوم بقراءة الرابط (Hash) وتحميل الصفحة المطلوبة من مجلد admin/modules
          */
-        window.loadModule = async (name, element) => {
-            const container = document.getElementById('module-container');
-            
-            // 1. تحديث شكل القائمة الجانبية (Active State)
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(element) element.classList.add('active');
-
-            // 2. إظهار اللودر أثناء الجلب
-            container.innerHTML = `<div class="loading-state" style="text-align: center; padding: 100px;"><div class="spinner"></div></div>`;
-
-            try {
-                const response = await fetch(`admin/modules/${name}.html`);
-                if (!response.ok) throw new Error('Module Not Found');
-                const html = await response.text();
-                container.innerHTML = html;
-
-                // 3. إذا كان الموديول هو العملاء، نقوم بتشغيل محرك الـ UI الخاص به
-                if (name === 'customers') {
-                    const { initCustomersUI } = await import('./js/modules/customers-ui.js');
-                    initCustomersUI(container);
-                }
-            } catch (error) {
-                container.innerHTML = `<div style="text-align:center; padding:50px; color:red;">⚠️ فشل تحميل الموديول: ${name}</div>`;
+        class TeraRouter {
+            constructor() {
+                this.moduleContainer = document.getElementById('module-container');
+                this.init();
             }
-        };
 
-        // تشغيل موديول "الرئيسية" تلقائياً عند فتح الصفحة
+            async init() {
+                // أولاً: تحميل المكونات الأساسية الثابتة للنظام
+                await this.loadComponent('sidebar-container', 'admin/components/sidebar.html');
+                await this.loadComponent('header-container', 'admin/components/header.html');
+                
+                // حاول تحميل النوافذ المنبثقة إن وجدت
+                await this.loadComponent('modal-container', 'admin/components/modals.html').catch(() => console.log('لا يوجد ملف مودال منفصل، سيتم المتابعة'));
+
+                // ثانياً: مراقبة تغيير الروابط لتبديل الصفحات
+                window.addEventListener('hashchange', () => this.handleRouting());
+                
+                // ثالثاً: تنفيذ التوجيه الأولي عند فتح الموقع
+                this.handleRouting();
+            }
+
+            // دالة جلب ولصق أكواد الـ HTML
+            async loadComponent(containerId, path) {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error(`Missing ${path}`);
+                const html = await response.text();
+                document.getElementById(containerId).innerHTML = html;
+                this.executeScripts(document.getElementById(containerId));
+            }
+
+            // دالة التوجيه (تحديد أي صفحة ستظهر بناءً على الرابط)
+            async handleRouting() {
+                // إذا لم يكن هناك Hash، افتراضياً اذهب للوحة التحكم
+                const hash = window.location.hash || '#dashboard';
+                const moduleName = hash.replace('#', '');
+                
+                // شاشة تحميل مصغرة داخل الحاوية أثناء جلب الصفحة
+                this.moduleContainer.innerHTML = `
+                    <div class="initial-loader" style="animation: fadeIn 0.3s ease;">
+                        <div class="spinner-tera"></div>
+                        <p style="margin-top: 15px; font-weight: 700; color: #64748b;">جاري جلب بيانات ${moduleName}...</p>
+                    </div>
+                `;
+
+                try {
+                    // جلب الصفحة من مجلد modules
+                    const response = await fetch(`admin/modules/${moduleName}.html`);
+                    if (!response.ok) throw new Error('Module not found');
+                    const html = await response.text();
+                    
+                    this.moduleContainer.innerHTML = html;
+                    this.executeScripts(this.moduleContainer);
+
+                    // إذا كانت دالة مزامنة القائمة الجانبية موجودة (من ملف sidebar.html)، قم بتشغيلها
+                    if (typeof window.syncSidebarWithHash === 'function') {
+                        window.syncSidebarWithHash();
+                    }
+
+                    // الاستدعاء الديناميكي لملفات JS الخاصة بكل صفحة (حسب هيكل مجلداتك)
+                    if (moduleName === 'customers') {
+                        const { initCustomersUI } = await import('./js/modules/customers-ui.js');
+                        if (initCustomersUI) initCustomersUI(this.moduleContainer);
+                    } else if (moduleName === 'orders') {
+                        const { initOrdersUI } = await import('./js/modules/orders-dashboard.js').catch(() => ({}));
+                        if (initOrdersUI) initOrdersUI(this.moduleContainer);
+                    }
+                    
+                } catch (error) {
+                    this.moduleContainer.innerHTML = `
+                        <div class="error-state">
+                            <i class="fas fa-exclamation-triangle fa-4x" style="color:#ef4444; margin-bottom:20px;"></i>
+                            <h3 style="color:#1e293b; font-weight:800;">عذراً، فشل تحميل الصفحة</h3>
+                            <p style="color:#64748b;">لم يتم العثور على الملف <code>admin/modules/${moduleName}.html</code> أو يوجد خطأ في التوجيه.</p>
+                        </div>
+                    `;
+                    console.error("Routing Error:", error);
+                }
+            }
+
+            // دالة ضرورية لتفعيل أكواد الـ JavaScript المكتوبة داخل صفحات الـ HTML المجلوبة عبر Fetch
+            executeScripts(container) {
+                const scripts = container.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(script.innerHTML));
+                    script.parentNode.replaceChild(newScript, script);
+                });
+            }
+        }
+
+        // تهيئة النظام عند اكتمال بناء الصفحة
         window.addEventListener('DOMContentLoaded', () => {
-            loadModule('dashboard');
+            window.teraApp = new TeraRouter();
         });
 
-        // إغلاق المودال عالمياً
+        // جعل دالة loadModule عالمية لضمان عمل الأزرار التي تعتمد على onclick القديم
+        window.loadModule = (name) => {
+            window.location.hash = '#' + name;
+        };
+
+        // إدارة إغلاق النوافذ المنبثقة
         window.closeCustomerModal = () => {
-            const modal = document.querySelector('.modal-wrapper') || document.getElementById('customer-modal');
+            const modal = document.getElementById('customer-modal') || document.querySelector('.modal-overlay');
             if (modal) {
-                modal.style.opacity = '0';
-                setTimeout(() => modal.remove(), 300);
+                modal.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.style.animation = ''; 
+                }, 300);
             }
         };
     </script>
+
+    <style>
+        /* التنسيقات الهيكلية الأساسية للصفحة الأم (Layout) */
+        :root {
+            --tera-orange: #f97316;
+            --tera-bg: #f8fafc;
+        }
+
+        body.tera-admin-body {
+            margin: 0; padding: 0;
+            background-color: var(--tera-bg);
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            overflow: hidden; /* نمنع تمرير الصفحة بأكملها، التمرير يكون داخل حاوية المحتوى فقط */
+        }
+
+        .admin-layout {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        /* تنسيق شريط التمرير (Scrollbar) ليتناسب مع الهوية */
+        .content-area::-webkit-scrollbar { width: 8px; }
+        .content-area::-webkit-scrollbar-track { background: transparent; }
+        .content-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .content-area::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* شاشة التحميل ومؤشر الخطأ */
+        .initial-loader {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 70vh;
+        }
+
+        .spinner-tera {
+            width: 55px; height: 55px;
+            border: 5px solid #e2e8f0;
+            border-top-color: var(--tera-orange);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        .error-state {
+            text-align: center; padding: 80px 30px;
+            background: white; border-radius: 24px;
+            border: 2px dashed #e2e8f0; margin: 40px auto; max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+    </style>
 </body>
 </html>
