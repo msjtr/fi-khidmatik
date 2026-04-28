@@ -14,57 +14,62 @@
     </div>
 
     <div id="header-datetime" class="header-clock">
-        <i class="fas fa-calendar-day" style="margin-left: 8px; opacity: 0.7;"></i>
-        <span id="time-display">جاري التحميل...</span>
+        <i class="far fa-clock" style="margin-left: 10px; color: var(--primary-tera);"></i>
+        <span id="time-display">00:00:00</span>
     </div>
 </header>
 
 <style>
     :root {
-        --primary-tera: #2563eb;
-        --primary-soft: rgba(37, 99, 235, 0.1);
-        --header-bg: rgba(255, 255, 255, 0.85);
-        --border-color: #e2e8f0;
+        --primary-tera: #f97316; /* برتقالي تيرا */
+        --primary-soft: rgba(249, 115, 22, 0.08);
+        --header-bg: rgba(255, 255, 255, 0.9);
+        --border-color: #f1f5f9;
+        --tera-dark: #1e293b;
     }
 
     .app-header {
         background: var(--header-bg);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--border-color);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 20px;
+        padding: 0 25px;
         height: 70px;
         width: 100%;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
     }
 
     .header-right {
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 20px;
     }
 
     .sidebar-trigger {
         background: var(--primary-soft);
-        border: none;
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
+        border: 1px solid rgba(249, 115, 22, 0.1);
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
         color: var(--primary-tera);
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s ease;
     }
 
     .sidebar-trigger:hover {
         background: var(--primary-tera);
         color: white;
-        transform: scale(1.05);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
     }
 
     .app-brand {
@@ -74,80 +79,90 @@
     }
 
     .header-logo {
-        width: 35px;
-        height: 35px;
+        width: 32px;
+        height: 32px;
         object-fit: contain;
     }
 
     .brand-text {
         font-weight: 800;
-        font-size: 1.2rem;
-        color: #1e293b;
-        letter-spacing: -0.5px;
+        font-size: 1.15rem;
+        color: var(--tera-dark);
+        letter-spacing: -0.2px;
     }
 
     .brand-text .highlight {
         color: var(--primary-tera);
+        font-weight: 900;
     }
 
     .header-clock {
         font-family: 'Tajawal', sans-serif;
-        font-size: 0.85rem;
-        color: #64748b;
+        font-size: 0.9rem;
+        color: #475569;
         font-weight: 700;
         background: #f8fafc;
-        padding: 8px 18px;
-        border-radius: 50px;
+        padding: 8px 20px;
+        border-radius: 12px;
         border: 1px solid var(--border-color);
         display: flex;
         align-items: center;
-        min-width: 220px;
+        min-width: 250px;
         justify-content: center;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
     }
 
     @media (max-width: 768px) {
         .brand-text { display: none; }
-        .header-clock { min-width: auto; padding: 6px 12px; font-size: 0.75rem; }
+        .header-clock { min-width: auto; padding: 6px 12px; font-size: 0.8rem; }
     }
 </style>
 
 <script>
     /**
-     * تحديث الساعة والتاريخ بأرقام إنجليزية وتنسيق عربي
+     * تحديث الساعة والتاريخ - أرقام إنجليزية (Western Arabic Numerals)
      */
     function updateHeaderTime() {
         const timeEl = document.getElementById('time-display');
         if (timeEl) {
             const now = new Date();
-            const options = {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'short',
+            
+            // خيارات التنسيق لضمان لغة الأرقام الإنجليزية
+            const timeOptions = {
                 hour: '2-digit',
                 minute: '2-digit',
+                second: '2-digit',
                 hour12: true
             };
-            // استخدم 'en-GB' لضمان بقاء الأرقام إنجليزية (123) كما تفضل في المراسلات
-            const formatted = now.toLocaleDateString('en-GB', options);
-            timeEl.innerText = formatted.replace(',', ' |');
+            
+            const dateOptions = {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            };
+
+            const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+            const dateStr = now.toLocaleDateString('en-GB', dateOptions);
+            
+            timeEl.innerText = `${dateStr} | ${timeStr.toUpperCase()}`;
         }
     }
 
-    // تشغيل فوري للساعة
+    // تشغيل وتحديث
     updateHeaderTime();
-    
-    // منع تكرار الـ Interval
     if (window.headerClockInterval) clearInterval(window.headerClockInterval);
     window.headerClockInterval = setInterval(updateHeaderTime, 1000);
 
-    // تفعيل السايدبار
+    // تفعيل السايدبار (جسر الربط مع index.html)
     const toggleBtn = document.getElementById('sidebar-toggle');
     if (toggleBtn) {
         toggleBtn.onclick = function() {
             const sidebar = document.getElementById('sidebar-placeholder');
             if (sidebar) {
                 sidebar.classList.toggle('collapsed');
-                localStorage.setItem('sidebar-state', sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+                // حفظ الحالة للمرة القادمة
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebar-state', isCollapsed ? 'collapsed' : 'expanded');
             }
         };
     }
