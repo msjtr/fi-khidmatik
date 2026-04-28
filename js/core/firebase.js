@@ -1,9 +1,8 @@
 /**
  * js/core/firebase.js
- * إصلاح منصة تيرا جيت واي - نسخة التوافق المستقرة
+ * تهيئة Firebase لمنصة تيرا - نسخة التوافق v10
  */
 
-// إعدادات مشروع منصة تيرا
 const firebaseConfig = {
     apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
     authDomain: "msjt301-974bb.firebaseapp.com",
@@ -18,23 +17,22 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// تهيئة Firestore مع حلول الاتصال الجذري
 const db = firebase.firestore();
+const auth = firebase.auth();
 
+// إعدادات Firestore: إضافة merge: true يحل تحذير overriding host في الكونسول
 db.settings({
     cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
-    experimentalForceLongPolling: true // حل أخطاء RPC في الشبكات المحلية
+    experimentalForceLongPolling: true,
+    merge: true 
 });
 
-// جعل المحرك متاحاً لكافة موديولات النظام (مثل العملاء والطلبات)
+// جعلها متاحة عالمياً للملفات القديمة
 window.db = db;
-window.firebase = firebase;
-window.auth = firebase.auth();
-
-export const APP_CONFIG = {
-    name: "Tera Gateway",
-    version: "2.0.2"
-};
+window.auth = auth;
 
 console.log("✅ Tera Engine: Firebase Ready & window.db is active.");
-export { db };
+
+// التصدير للموديولات الحديثة (مثل config.js)
+export { db, auth, firebase };
+export default firebase;
