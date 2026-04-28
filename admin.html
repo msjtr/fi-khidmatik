@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم تيرا جيت واي | Tera Gateway</title>
+    <title>تيرا جيت واي | لوحة التحكم</title>
     
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
 
@@ -23,7 +23,7 @@
                 <img src="images/logo.svg" alt="Tera Logo">
                 <span>تيرا جيت واي</span>
             </div>
-            <nav class="nav-menu">
+            <nav class="nav-menu" id="main-nav">
                 <a href="#dashboard" class="nav-item active"><i class="fas fa-chart-line"></i> الرئيسية</a>
                 <a href="#customers" class="nav-item"><i class="fas fa-users"></i> قاعدة العملاء</a>
                 <a href="#orders" class="nav-item"><i class="fas fa-file-invoice-dollar"></i> الطلبات والفواتير</a>
@@ -35,18 +35,22 @@
         <main class="main-content">
             <header class="top-bar">
                 <div class="search-box">
-                    <input type="text" id="global-search" placeholder="ابحث باسم العميل أو رقم الجوال...">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="global-search" placeholder="ابحث في تيرا جيت واي...">
                 </div>
-                <div class="user-profile">
-                    <span id="admin-display-name">مرحبًا، محمد بن صالح</span>
-                    <img src="admin/images/default-product.png" class="avatar" alt="User">
+                <div class="user-info">
+                    <div class="user-text">
+                        <span class="user-name">محمد بن صالح</span>
+                        <span class="user-role">مدير النظام</span>
+                    </div>
+                    <img src="admin/images/default-product.png" class="avatar" alt="Admin">
                 </div>
             </header>
 
             <section id="module-container" class="content-body">
-                <div class="loading-overlay">
+                <div class="loading-state" style="text-align: center; padding: 100px;">
                     <div class="spinner"></div>
-                    <p>جاري مزامنة بيانات تيرا...</p>
+                    <p style="margin-top: 20px; font-family: 'Cairo';">جاري مزامنة محرك تيرا جيت واي...</p>
                 </div>
             </section>
         </main>
@@ -55,10 +59,19 @@
     <div id="modal-placeholder"></div>
 
     <script type="module">
-        // استيراد الملفات بالترتيب لضمان حقن window.db قبل تشغيل main.js
+        // 1. تحميل المحرك والتهيئة
         import './js/core/firebase.js';
         import './js/core/config.js';
         import './js/main.js';
+
+        // 2. جسر الربط العالمي (لضمان عمل أزرار onclick في الملفات الخارجية)
+        window.closeCustomerModal = () => {
+            const modal = document.getElementById('customer-modal') || document.getElementById('customerModal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        // دالة تنظيف الكاش عند التحديث
+        console.log("✅ Tera Gateway: UI Engine v12.12.1 Loaded.");
     </script>
 
     <script src="js/utils/helpers.js" defer></script>
