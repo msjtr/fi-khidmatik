@@ -1,6 +1,6 @@
 /**
- * موديول واجهة مستخدم العملاء - مطور لمنصة تيرا جيت واي
- * متوافق تماماً مع حقول Firestore v12 الخاصة بك
+ * موديول واجهة مستخدم العملاء - Tera Gateway
+ * نسخة معالجة خطأ كائن Firestore v12
  */
 
 import { 
@@ -13,7 +13,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 export async function initCustomersUI(container) {
-    if (!window.db) return console.error("❌ window.db غير جاهز");
+    console.log("🚀 جاري فحص محرك البيانات...");
+
+    // التأكد من أن window.db هو كائن Firestore صحيح وليس مجرد نص أو undefined
+    if (!window.db || typeof window.db !== 'object') {
+        console.error("❌ خطأ: window.db ليس كائن Firestore صالح. راجع ملف main.js");
+        return;
+    }
 
     const tableBody = container.querySelector('#customers-data-rows');
     if (tableBody) {
@@ -22,35 +28,37 @@ export async function initCustomersUI(container) {
 }
 
 async function renderCustomersTable(tableBody) {
-    tableBody.innerHTML = '<tr><td colspan="17" style="text-align:center;">جاري مزامنة بيانات العملاء...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:20px;">جاري سحب البيانات من السحابة...</td></tr>';
 
     try {
-        const customersRef = collection(window.db, "customers");
+        // التأكد من تمرير window.db كأول معامل للدالة collection
+        const db = window.db; 
+        const customersRef = collection(db, "customers"); 
         const q = query(customersRef, orderBy("name", "asc"));
         const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {
-            tableBody.innerHTML = '<tr><td colspan="17" style="text-align:center;">لا يوجد عملاء مسجلين.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:30px;">قاعدة بيانات العملاء فارغة.</td></tr>';
             return;
         }
 
         let html = '';
-        let stats = { total: 0, vip: 0, active: 0, complete: 0, incomplete: 0 };
+        let stats = { total: 0, vip: 0, complete: 0, incomplete: 0 };
         let index = 1;
 
         querySnapshot.forEach((customerDoc) => {
             const data = customerDoc.data();
             const id = customerDoc.id;
 
-            // تحديث الإحصائيات بناءً على الحقول الحقيقية
+            // تحديث الإحصائيات بناءً على حقولك الحقيقية
             stats.total++;
-            if (data.tag === 'vip') stats.vip++; // استخدام tag بدلاً من classification
+            if (data.tag === 'vip') stats.vip++;
             
-            // فحص اكتمال البيانات (حسب حقولك: الاسم، الجوال، المدينة، رقم المبنى)
+            // فحص اكتمال البيانات الأساسية
             const isComplete = data.name && data.phone && data.city && data.buildingNo;
             isComplete ? stats.complete++ : stats.incomplete++;
 
-            // تنسيق التاريخ (بما أن createdAt نص في بياناتك)
+            // تنسيق التاريخ من String إلى مقروء
             const dateDisplay = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-SA') : '---';
 
             html += `
@@ -60,7 +68,7 @@ async function renderCustomersTable(tableBody) {
                     <td dir="ltr">${data.phone || '---'}</td>
                     <td>${data.countryCode || '+966'}</td>
                     <td>${data.email || '---'}</td>
-                    <td>${data.country || 'السعودية'}</td>
+                    <td>${data.country || 'المملكة العربية السعودية'}</td>
                     <td>${data.city || '---'}</td>
                     <td>${data.district || '---'}</td>
                     <td>${data.street || '---'}</td>
@@ -85,8 +93,8 @@ async function renderCustomersTable(tableBody) {
         updateStats(stats);
 
     } catch (error) {
-        console.error("🔴 خطأ أثناء العرض:", error);
-        tableBody.innerHTML = `<tr><td colspan="17" style="color:red; text-align:center;">خطأ: ${error.message}</td></tr>`;
+        console.error("🔴 فشل العرض النهائي:", error);
+        tableBody.innerHTML = `<tr><td colspan="17" style="color:red; text-align:center;">خطأ في Firestore: ${error.message}</td></tr>`;
     }
 }
 
@@ -100,11 +108,11 @@ function updateStats(s) {
 
 // الدوال العالمية
 window.deleteCustomer = async (id) => {
-    if (confirm("هل أنت متأكد من حذف هذا العميل؟")) {
+    if (confirm("هل تريد حذف بيانات العميل نهائياً؟")) {
         try {
             await deleteDoc(doc(window.db, "customers", id));
             renderCustomersTable(document.getElementById('customers-data-rows'));
-        } catch (e) { alert("خطأ: " + e.message); }
+        } catch (e) { alert("فشل الحذف: " + e.message); }
     }
 };
 
