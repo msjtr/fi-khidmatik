@@ -4,7 +4,8 @@
  * المطور: محمد بن صالح الشمري
  */
 
-// 1. استيراد الكائنات من ملف firebase.js (الآن سيجد app بنجاح)
+// 1. استيراد الكائنات من ملف firebase.js 
+// تأكد من استخدام المسار النسبي الصحيح (./firebase.js)
 import { db, auth, app } from './firebase.js';
 
 // 2. الثوابت الأساسية للمنصة
@@ -16,15 +17,13 @@ export const APP_CONFIG = {
     debug: true
 };
 
-// 3. تكوين أسماء المجموعات (Collections) لضمان عدم حدوث أخطاء إملائية في الكود
-export const FIREBASE_CONFIG = {
-    collections: {
-        products: 'products',
-        orders: 'orders',
-        customers: 'customers',
-        payments: 'payments',
-        settings: 'settings'
-    }
+// 3. تكوين أسماء المجموعات (Collections) لضمان المركزية
+export const FIREBASE_COLLECTIONS = {
+    products: 'products',
+    orders: 'orders',
+    customers: 'customers',
+    payments: 'payments',
+    settings: 'settings'
 };
 
 // 4. الإعدادات المالية الخاصة بالسوق السعودي (تيرا)
@@ -40,12 +39,13 @@ export const FINANCIAL_CONFIG = {
 export function getAllConfig() {
     return { 
         app: APP_CONFIG, 
-        firebase: FIREBASE_CONFIG,
+        collections: FIREBASE_COLLECTIONS,
         financial: FINANCIAL_CONFIG 
     };
 }
 
-// 5. تصدير الخدمات لضمان سهولة الاستيراد في الموديولات الأخرى
+// 5. إعادة تصدير الخدمات لضمان سهولة الاستيراد من ملف واحد
+// ملاحظة: هذا يسمح للموديولات باستيراد db من config.js بدلاً من firebase.js مباشرة
 export { db, auth, app };
 
 // التصدير الافتراضي المجمع
@@ -54,6 +54,7 @@ export default {
     auth, 
     app,
     APP_CONFIG,
-    FIREBASE_CONFIG,
-    FINANCIAL_CONFIG
+    FIREBASE_COLLECTIONS,
+    FINANCIAL_CONFIG,
+    getAllConfig
 };
