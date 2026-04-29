@@ -1,110 +1,118 @@
 /**
- * موديول واجهة مستخدم العملاء - إصدار Tera Engine V12.12.1
- * تم الإصلاح: إضافة الأقواس المفقودة، تصدير الدوال، وربط الجسر البرمجي
+ * fi-khidmatik/js/dashboard-core.js
+ * المحرك الرئيسي للوحة التحكم - الإصدار 3.5.0
+ * مسؤول عن التوجيه (Routing) وربط الموديولات
  */
 
-import { 
-    collection, 
-    getDocs, 
-    doc, 
-    deleteDoc, 
-    query, 
-    orderBy,
-    addDoc,
-    serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { auth } from './core/firebase.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// --- 1. الدالة الرئيسية لتشغيل الموديول ---
-export async function initCustomersUI(container) {
-    console.log("🚀 Tera Gateway: موديول العملاء نشط");
-    const db = window.db;
+// استيراد الموديولات المحدثة
+import ordersDashboard from './modules/orders-dashboard.js';
+import orderFormUI from './modules/order-form-ui.js';
+// نفترض وجود موديول للعملاء
+// import customersModule from './modules/customers-module.js';
+
+// ===================== متغيرات الحالة العامة =====================
+const state = {
+    currentView: 'dashboard',
+    user: null,
+    mainContainer: document.getElementById('main-content')
+};
+
+// ===================== محرك التشغيل (Initialization) =====================
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Dashboard Core Initialized');
     
-    if (!db) {
-        console.error("❌ قاعدة البيانات غير متصلة");
-        return;
-    }
+    // مراقبة حالة تسجيل الدخول
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            state.user = user;
+            setupEventListeners();
+            navigateTo('dashboard'); // عرض الصفحة الرئيسية عند الدخول
+        } else {
+            window.location.href = 'login.html'; // إعادة التوجيه إذا لم يسجل دخول
+        }
+    });
+});
 
-    const tableBody = document.getElementById('customers-data-rows');
-    if (tableBody) {
-        await renderCustomersTable(db, tableBody);
+// ===================== نظام التنقل (Routing System) =====================
+
+/**
+ * دالة التنقل بين الصفحات بدون إعادة تحميل المتصفح
+ * @param {string} view - اسم الصفحة المطلوبة
+ * @param {Object} params - بيانات إضافية (مثل معرف الطلب للتعديل)
+ */
+async function navigateTo(view, params = null) {
+    state.currentView = view;
+    const container = state.mainContainer;
+    
+    // إغلاق أي مودالات مفتوحة كإجراء احترازي
+    if (typeof orderFormUI.closeOrderModal === 'function') orderFormUI.closeOrderModal();
+
+    switch (view) {
+        case 'dashboard':
+            await ordersDashboard.initOrdersDashboard(container);
+            break;
+            
+        case 'new-order':
+            // فتح واجهة إضافة طلب جديد مباشرة
+            orderFormUI.showOrderModal('add');
+            break;
+
+        case 'customers':
+            container.innerHTML = `<div class="p-4"><h3>👤 إدارة العملاء</h3><p>جاري العمل على هذا القسم...</p></div>`;
+            break;
+
+        default:
+            container.innerHTML = `<div class="text-center p-5"><h4>الصفحة غير موجودة</h4></div>`;
     }
+    
+    updateActiveSidebarLink(view);
 }
 
-// --- 2. دالة جلب وعرض البيانات في الجدول ---
-export async function renderCustomersTable(db, tableBody) {
-    tableBody.innerHTML = '<tr><td colspan="17" style="text-align:center;">جاري تحميل البيانات...</td></tr>';
+// ===================== مراقبة الأحداث (Event Listeners) =====================
 
-    try {
-        const customersRef = collection(db, "customers");
-        const q = query(customersRef, orderBy("name"));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            tableBody.innerHTML = '<tr><td colspan="17" style="text-align:center;">لا يوجد عملاء مسجلين حالياً.</td></tr>';
-            return;
-        }
-
-        let html = '';
-        let index = 1;
-
-        querySnapshot.forEach((customerDoc) => {
-            const data = customerDoc.data();
-            const id = customerDoc.id;
-
-            html += `
-                <tr>
-                    <td>${index++}</td>
-                    <td><strong>${data.name || '---'}</strong></td>
-                    <td dir="ltr">${data.phone || '---'}</td>
-                    <td>${data.city || '---'}</td>
-                    <td>${data.classification || 'عادي'}</td>
-                    <td><span class="status-badge">${data.status || 'نشط'}</span></td>
-                    <td>
-                        <button onclick="editCustomerRow('${id}')" class="btn-edit"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteCustomerRow('${id}')" class="btn-delete"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
+function setupEventListeners() {
+    // مراقبة أزرار القائمة الجانبية (Sidebar)
+    document.querySelectorAll('[data-nav]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetView = e.currentTarget.getAttribute('data-nav');
+            navigateTo(targetView);
         });
+    });
 
-        tableBody.innerHTML = html;
+    // زر تسجيل الخروج
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                await signOut(auth);
+            }
+        });
+    }
 
-    } catch (error) {
-        console.error("🔴 خطأ في عرض الجدول:", error);
-        tableBody.innerHTML = `<tr><td colspan="17" style="color:red;">خطأ: ${error.message}</td></tr>`;
+    // زر "إضافة طلب" السريع (غالباً يكون Floating Button أو في الهيدر)
+    const quickAddBtn = document.getElementById('quick-add-order');
+    if (quickAddBtn) {
+        quickAddBtn.addEventListener('click', () => orderFormUI.showOrderModal('add'));
     }
 }
 
-// --- 3. دالة فتح مودال إضافة عميل جديد ---
-export function openAddCustomerModal() {
-    const modal = document.getElementById('customerModal') || document.getElementById('customer-modal');
-    if (modal) {
-        modal.style.display = 'flex';
-        const form = modal.querySelector('form');
-        if (form) form.reset();
-        console.log("✅ تم فتح نافذة إضافة عميل");
-    }
-}
+// ===================== وظائف مساعدة للواجهة =====================
 
-// --- 4. دالة حذف عميل ---
-window.deleteCustomerRow = async (id) => {
-    if (confirm("هل أنت متأكد من حذف هذا العميل نهائياً؟")) {
-        try {
-            await deleteDoc(doc(window.db, "customers", id));
-            alert("تم الحذف بنجاح");
-            const tableBody = document.getElementById('customers-data-rows');
-            if (tableBody) renderCustomersTable(window.db, tableBody);
-        } catch (e) {
-            alert("خطأ في الحذف: " + e.message);
+function updateActiveSidebarLink(view) {
+    document.querySelectorAll('[data-nav]').forEach(link => {
+        if (link.getAttribute('data-nav') === view) {
+            link.classList.add('active-link');
+        } else {
+            link.classList.remove('active-link');
         }
-    }
-};
+    });
+}
 
-// --- 5. دالة تعديل عميل ---
-window.editCustomerRow = (id) => {
-    console.log("تعديل العميل ذو المعرف:", id);
-    // هنا يتم وضع منطق فتح المودال وتعبئة البيانات
-    if (window.openCustomerModal) window.openCustomerModal('edit', id);
-};
-
-// إغلاق أي أقواس مفتوحة لضمان عدم حدوث Syntax Error
-console.log("✅ تم تحميل ملف customers-ui.js بالكامل.");
+// ===================== التصدير للاستخدام في ملفات أخرى =====================
+export { navigateTo, state };
+window.navigateTo = navigateTo; // إتاحة الوصول لها من الـ HTML مباشرة
