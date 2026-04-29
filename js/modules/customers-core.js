@@ -1,19 +1,20 @@
 /**
- * js/modules/customers-core.js - المحرك التشغيلي المطور (V12.12.1)
+ * js/modules/customers-core.js - المحرك التشغيلي المطور (V12.12.6)
  * يدعم نظام البيانات الـ 17 المعتمد لمنصة تيرا جيت واي
+ * الإصدار المستقر للمكتبة: 10.7.1
  */
 
 import { db } from '../core/firebase.js'; 
 import { 
     collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, query, orderBy, serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // المرجع الرئيسي لمجموعة العملاء
 const customersRef = collection(db, "customers");
 
 /**
  * 1. إضافة عميل جديد
- * تم تحسين دمج البيانات لضمان توافق الـ 17 حقلاً مع Firestore الحديث
+ * تم تحسين دمج البيانات لضمان توافق الـ 17 حقلاً مع معايير تيرا
  */
 export async function addCustomer(data) {
     const defaultData = {
@@ -22,7 +23,7 @@ export async function addCustomer(data) {
         countryCode: "+966", 
         email: "",
         country: "المملكة العربية السعودية", 
-        city: "حائل", // الافتراضي حائل لسرعة الإدخال
+        city: "حائل",
         district: "",
         street: "", 
         buildingNo: "", 
@@ -33,15 +34,14 @@ export async function addCustomer(data) {
         tag: "عادي", 
         type: "فرد", 
         notes: "",
-        photoURL: "admin/images/default-avatar.png", // تم تعديل المسار ليكون أيقونة مستخدم
+        photoURL: "admin/images/default-avatar.png",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     };
 
-    // دمج البيانات مع القيم الافتراضية
     const finalData = { ...defaultData, ...data };
 
-    // تنظيف البيانات: إزالة القيم undefined أو الخالية تماماً لمنع أخطاء الـ Payload
+    // تنظيف البيانات من القيم undefined لمنع أخطاء الـ Payload
     Object.keys(finalData).forEach(key => {
         if (finalData[key] === undefined) delete finalData[key];
     });
@@ -67,7 +67,6 @@ export async function updateCustomer(id, data) {
         updatedAt: serverTimestamp()
     };
     
-    // حماية: منع تعديل تاريخ الإنشاء الأصلي وحذف القيم غير المعرفة
     delete updateData.createdAt; 
     Object.keys(updateData).forEach(key => (updateData[key] === undefined) && delete updateData[key]);
 
@@ -81,7 +80,7 @@ export async function updateCustomer(id, data) {
 }
 
 /**
- * 3. جلب بيانات عميل واحد بالرقم المرجعي (ID)
+ * 3. جلب بيانات عميل واحد
  */
 export async function fetchCustomerById(id) {
     try {
@@ -94,10 +93,11 @@ export async function fetchCustomerById(id) {
 }
 
 /**
- * 4. جلب كافة العملاء مرتبين حسب الأحدث
+ * 4. جلب كافة العملاء (مرتبين حسب الأحدث)
  */
 export async function fetchAllCustomers() {
     try {
+        // تأكد من وجود Index في Firebase لـ createdAt إذا لم تظهر النتائج
         const q = query(customersRef, orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -122,7 +122,7 @@ export async function deleteCustomer(id) {
 }
 
 /**
- * 6. جلب إحصائيات متقدمة لواجهة الإدارة
+ * 6. جلب إحصائيات متقدمة
  */
 export async function getCustomersStats() {
     try {
@@ -142,18 +142,14 @@ export async function getCustomersStats() {
             const d = docSnap.data();
             stats.total++;
             
-            // معيار اكتمال الملف الشخصي (تيرا ستاندرد)
             const isComplete = !!(d.name && d.phone && d.city && d.district && d.buildingNo);
             isComplete ? stats.complete++ : stats.incomplete++;
 
-            // الحالة
             if (d.status === 'نشط' || d.status === 'active') stats.active++;
             else stats.suspended++;
 
-            // التصنيف (دعم حالة الأحرف VIP و vip)
-            if (d.tag?.toUpperCase() === 'VIP' || d.classification?.toUpperCase() === 'VIP') stats.vip++;
+            if (d.tag?.toUpperCase() === 'VIP') stats.vip++;
             
-            // النوع
             if (d.type === 'شركة') stats.companies++;
             else stats.individuals++;
         });
@@ -166,12 +162,11 @@ export async function getCustomersStats() {
 }
 
 /**
- * 7. منطق الاستيراد الجماعي (Bulk Import)
+ * 7. الاستيراد الجماعي
  */
 export async function importCustomersFromExcel(dataArray) {
     const results = { success: 0, failed: 0, logs: [] };
     
-    // تنفيذ العمليات بشكل متوازي لسرعة الأداء في الملفات الكبيرة
     const promises = dataArray.map(async (item) => {
         try {
             await addCustomer(item);
