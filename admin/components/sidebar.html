@@ -1,178 +1,35 @@
-<div class="tera-sidebar-content">
-    <div class="sidebar-brand">
-        <div class="brand-icon">
-            <i class="fas fa-microchip"></i>
-        </div>
-        <div class="brand-text">
-            <span class="brand-name">TERA</span>
-            <span class="brand-sub">GATEWAY</span>
-        </div>
-    </div>
-
-    <nav class="sidebar-nav">
-        <div class="nav-section">الرئيسية</div>
+<!-- في ملف sidebar.html -->
+<nav class="side-nav">
+    <ul id="admin-menu">
+        <!-- لوحة التحكم -->
+        <li class="nav-item" data-module="dashboard" onclick="location.hash='#dashboard'">
+            <div class="nav-icon"><i class="fas fa-grid-2"></i></div>
+            <span class="nav-text">لوحة التحكم</span>
+        </li>
         
-        <a href="#dashboard" class="nav-item active" onclick="handleNavClick('dashboard')">
-            <i class="fas fa-chart-pie"></i>
-            <span>لوحة التحكم</span>
-        </a>
+        <!-- طلبات التقسيط (تم تعديل المسار ليتطابق مع ملفاتك) -->
+        <li class="nav-item" data-module="orders-dashboard" onclick="location.hash='#orders-dashboard'">
+            <div class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+            <span class="nav-text">طلبات التقسيط</span>
+        </li>
 
-        <div class="nav-section">إدارة العملاء</div>
-        <a href="#customers" class="nav-item" onclick="handleNavClick('customers')">
-            <i class="fas fa-address-book"></i>
-            <span>قاعدة البيانات</span>
-        </a>
+        <!-- قاعدة العملاء -->
+        <li class="nav-item" data-module="customers" onclick="location.hash='#customers'">
+            <div class="nav-icon"><i class="fas fa-user-group"></i></div>
+            <span class="nav-text">قاعدة العملاء</span>
+        </li>
+        
+        <!-- الأقساط والمدفوعات (تم الربط مع payments.html) -->
+        <li class="nav-item" data-module="payments" onclick="location.hash='#payments'">
+            <div class="nav-icon"><i class="fas fa-calendar-check"></i></div>
+            <span class="nav-text">سجل المدفوعات</span>
+        </li>
 
-        <div class="nav-section">العمليات والتمويل</div>
-        <a href="#orders" class="nav-item" onclick="handleNavClick('orders')">
-            <i class="fas fa-receipt"></i>
-            <span>إدارة الطلبات</span>
-        </a>
-        <a href="#installments" class="nav-item" onclick="handleNavClick('installments')">
-            <i class="fas fa-calendar-alt"></i>
-            <span>الأقساط المجدولة</span>
-        </a>
+        <div class="nav-divider"><span>المخزون</span></div>
 
-        <div class="nav-section">المنتجات</div>
-        <a href="#sawa" class="nav-item" onclick="handleNavClick('sawa')">
-            <i class="fas fa-sim-card"></i>
-            <span>بطاقات سوا</span>
-        </a>
-
-        <div class="nav-section">الإعدادات</div>
-        <a href="#settings" class="nav-item" onclick="handleNavClick('settings')">
-            <i class="fas fa-sliders-h"></i>
-            <span>إعدادات النظام</span>
-        </a>
-    </nav>
-
-    <div class="sidebar-footer">
-        <div class="user-profile-mini">
-            <img src="admin/images/default-avatar.png" alt="Admin Avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
-            <div class="user-info">
-                <span class="u-name">محمد بن صالح</span>
-                <span class="u-role">مدير النظام</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* التنسيقات الأساسية */
-    .tera-sidebar-content {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        padding: 20px 15px;
-        background: #fff;
-        border-left: 1px solid #f1f5f9;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        width: 260px;
-    }
-
-    /* حالة القائمة المتقلصة (Collapsed) */
-    #sidebar-container.collapsed .tera-sidebar-content {
-        width: 80px;
-        padding: 20px 10px;
-    }
-
-    #sidebar-container.collapsed .brand-text,
-    #sidebar-container.collapsed .nav-section,
-    #sidebar-container.collapsed .nav-item span,
-    #sidebar-container.collapsed .user-info {
-        display: none;
-    }
-
-    #sidebar-container.collapsed .nav-item {
-        justify-content: center;
-        padding: 12px;
-    }
-
-    /* بقية التنسيقات الاحترافية */
-    .sidebar-brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 0 10px 25px;
-        border-bottom: 1px solid #f1f5f9;
-        margin-bottom: 15px;
-    }
-
-    .brand-icon {
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        color: white;
-        width: 42px;
-        height: 42px;
-        min-width: 42px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
-    }
-
-    .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
-    .brand-name { font-weight: 900; font-size: 1.2rem; color: #1e293b; letter-spacing: 0.5px; }
-    .brand-sub { font-size: 0.7rem; color: #94a3b8; font-weight: 700; }
-
-    .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; }
-
-    .nav-section {
-        font-size: 0.65rem;
-        font-weight: 800;
-        color: #cbd5e1;
-        margin: 20px 12px 8px;
-        text-transform: uppercase;
-    }
-
-    .nav-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        color: #64748b;
-        text-decoration: none;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        margin-bottom: 4px;
-        cursor: pointer;
-    }
-
-    .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
-
-    .nav-item:hover, .nav-item.active { 
-        background: #fff7ed; 
-        color: #f97316; 
-    }
-
-    .nav-item.active {
-        box-shadow: inset -4px 0 0 #f97316; /* الاتجاه لليمين لأننا RTL */
-    }
-
-    .sidebar-footer {
-        padding-top: 20px;
-        border-top: 1px solid #f1f5f9;
-    }
-
-    .user-profile-mini {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: #f8fafc;
-        padding: 10px;
-        border-radius: 14px;
-    }
-
-    .user-profile-mini img {
-        width: 35px;
-        height: 35px;
-        border-radius: 10px;
-        object-fit: cover;
-    }
-
-    .u-name { font-size: 0.8rem; font-weight: 800; color: #1e293b; }
-    .u-role { font-size: 0.65rem; color: #94a3b8; }
-</style>
+        <li class="nav-item" data-module="products" onclick="location.hash='#products'">
+            <div class="nav-icon"><i class="fas fa-box-archive"></i></div>
+            <span class="nav-text">بطاقات Sawa</span>
+        </li>
+    </ul>
+</nav>
