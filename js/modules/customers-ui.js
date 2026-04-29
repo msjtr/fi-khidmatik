@@ -2,6 +2,7 @@
  * Tera Gateway - Customers UI Module
  * Version: 12.12.6
  * Description: التحكم في واجهة المستخدم لقاعدة العملاء والتعامل مع النوافذ المنبثقة
+ * المطور: محمد بن صالح الشمري
  */
 
 import { db } from '../core/config.js';
@@ -12,7 +13,7 @@ class CustomersUI {
         this.form = document.getElementById('customerForm');
         this.tableBody = document.getElementById('customersList');
         // استخدام رابط خارجي للأفاتار لتجنب أخطاء 404 في GitHub Pages
-        this.defaultAvatar = "https://ui-avatars.com/api/?background=f97316&color=fff&name=";
+        this.defaultAvatar = "https://ui-avatars.com/api/?background=f97316&color=fff&bold=true&name=";
         
         this.init();
     }
@@ -43,9 +44,12 @@ class CustomersUI {
             this.form.reset();
             this.form.dataset.mode = 'add';
             delete this.form.dataset.editId;
-            // تعيين صورة افتراضية نظيفة
+            
+            // تعيين صورة افتراضية نظيفة للمعاينة
             const preview = document.getElementById('imagePreview');
-            if (preview) preview.style.backgroundImage = `url('${this.defaultAvatar}New+User')`;
+            if (preview) {
+                preview.style.backgroundImage = `url('${this.defaultAvatar}New+User')`;
+            }
         }
     }
 
@@ -61,7 +65,12 @@ class CustomersUI {
 
     async loadCustomers() {
         try {
-            this.tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center">جاري تحميل بيانات العملاء من تيرا...</td></tr>';
+            this.tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center; padding: 20px;">
+                        <i class="fas fa-spinner fa-spin"></i> جاري تحميل بيانات العملاء من تيرا...
+                    </td>
+                </tr>`;
             
             // جلب البيانات مع ترتيبها حسب التاريخ الأحدث
             const snapshot = await db.collection('customers').orderBy('createdAt', 'desc').get();
@@ -89,7 +98,7 @@ class CustomersUI {
             <tr class="animate-row">
                 <td>
                     <div class="user-info">
-                        <div class="avatar-circle" style="background-image: url('${avatarUrl}'); background-size: cover;">
+                        <div class="avatar-circle" style="background-image: url('${avatarUrl}'); background-size: cover; border: 1px solid #ddd;">
                         </div>
                         <div class="name-details">
                             <strong>${cust.name || 'بدون اسم'}</strong>
@@ -128,11 +137,13 @@ class CustomersUI {
 
     async handleSubmit(e) {
         e.preventDefault();
-        const btn = e.target.querySelector('.btn-save');
+        const btn = this.form.querySelector('.btn-save');
         const formData = new FormData(this.form);
         
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        }
 
         const customerData = {
             name: formData.get('name'),
@@ -161,8 +172,10 @@ class CustomersUI {
         } catch (error) {
             alert("حدث خطأ في منصة تيرا: " + error.message);
         } finally {
-            btn.disabled = false;
-            btn.innerText = 'حفظ البيانات';
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = 'حفظ البيانات';
+            }
         }
     }
 
@@ -174,14 +187,16 @@ class CustomersUI {
                 this.form.dataset.mode = 'edit';
                 this.form.dataset.editId = id;
                 
-                // تعبئة الحقول
+                // تعبئة الحقول ديناميكياً
                 Object.keys(data).forEach(key => {
                     const input = this.form.querySelector(`[name="${key}"]`);
                     if (input) input.value = data[key];
                 });
 
                 const preview = document.getElementById('imagePreview');
-                if (preview) preview.style.backgroundImage = `url('${this.defaultAvatar}${encodeURIComponent(data.name)}')`;
+                if (preview) {
+                    preview.style.backgroundImage = `url('${this.defaultAvatar}${encodeURIComponent(data.name)}')`;
+                }
             }
         } catch (error) {
             console.error("Error fetching customer:", error);
@@ -189,7 +204,7 @@ class CustomersUI {
     }
 
     handleSearch() {
-        const input = document.getElementById('customerSearch').value.toLowerCase();
+        const input = document.getElementById('customerSearch')?.value.toLowerCase() || '';
         const rows = this.tableBody.getElementsByTagName('tr');
 
         Array.from(rows).forEach(row => {
