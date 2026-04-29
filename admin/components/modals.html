@@ -1,5 +1,6 @@
-<div id="customer-modal" class="modal-overlay" style="animation: fadeIn 0.3s ease;">
+<div id="customer-modal" class="modal-overlay" style="display: none; animation: fadeIn 0.3s ease;">
     <div class="modal-card tera-premium-shadow">
+        <!-- الهيدر -->
         <div class="modal-header-tera">
             <div class="header-title-wrap">
                 <div class="icon-circle">
@@ -13,11 +14,13 @@
             <button class="close-btn-tera" onclick="window.closeCustomerModal()">&times;</button>
         </div>
 
+        <!-- البودي -->
         <div class="modal-body-tera">
             <form id="customer-form">
+                <!-- رفع الصورة -->
                 <div class="image-profile-upload-tera">
                     <div class="profile-preview-wrapper">
-                        <img id="cust-img-preview" src="admin/images/default-product.png" alt="صورة العميل">
+                        <img id="cust-img-preview" src="admin/images/default-avatar.png" alt="صورة العميل" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
                         <label for="cust-image-file" class="upload-badge">
                             <i class="fas fa-camera"></i>
                             <input type="file" id="cust-image-file" accept="image/*" style="display: none;" onchange="previewCustomerImage(event)">
@@ -34,7 +37,7 @@
                     <div class="grid-3-cols">
                         <div class="input-group-tera">
                             <label>اسم العميل الكامل</label>
-                            <input type="text" id="cust-name" name="name" placeholder="مثال: محمد صالح الشمري" required>
+                            <input type="text" id="cust-name" name="name" placeholder="محمد صالح الشمري" required>
                         </div>
                         <div class="input-group-tera">
                             <label>رقم الجوال</label>
@@ -48,23 +51,14 @@
                             <select id="cust-tag" name="tag">
                                 <option value="regular">عميل عادي (Regular)</option>
                                 <option value="vip">عميل مميز (VIP)</option>
+                                <option value="blacklisted">قائمة سوداء</option>
                             </select>
-                        </div>
-                    </div>
-                    <div class="grid-2-cols mt-15">
-                        <div class="input-group-tera">
-                            <label>البريد الإلكتروني (اختياري)</label>
-                            <input type="email" id="cust-email" name="email" placeholder="example@gmail.com">
-                        </div>
-                        <div class="input-group-tera">
-                            <label>الرقم المدني / الهوية</label>
-                            <input type="text" id="cust-nationalId" name="nationalId" placeholder="1XXXXXXXXX">
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section-tera bg-light">
-                    <div class="section-title"><i class="fas fa-map-marked-alt"></i> العنوان الوطني (Saudi Post - SPL)</div>
+                    <div class="section-title"><i class="fas fa-map-marked-alt"></i> العنوان الوطني (SPL)</div>
                     <div class="grid-4-cols">
                         <div class="input-group-tera">
                             <label>المدينة</label>
@@ -72,138 +66,68 @@
                         </div>
                         <div class="input-group-tera">
                             <label>الحي</label>
-                            <input type="text" id="cust-district" name="district" placeholder="النقرة">
+                            <input type="text" id="cust-district" name="district">
                         </div>
                         <div class="input-group-tera">
                             <label>الشارع</label>
-                            <input type="text" id="cust-street" name="street" placeholder="اسم الشارع">
+                            <input type="text" id="cust-street" name="street">
                         </div>
                         <div class="input-group-tera">
                             <label>رقم المبنى</label>
-                            <input type="text" id="cust-buildingNo" name="buildingNo" placeholder="8804">
-                        </div>
-                    </div>
-                    <div class="grid-3-cols mt-15">
-                        <div class="input-group-tera">
-                            <label>الرمز البريدي</label>
-                            <input type="text" id="cust-postalCode" name="postalCode" placeholder="54745">
-                        </div>
-                        <div class="input-group-tera">
-                            <label>الرقم الإضافي</label>
-                            <input type="text" id="cust-additionalNo" name="additionalNo" placeholder="7714">
-                        </div>
-                        <div class="input-group-tera">
-                            <label>صندوق البريد</label>
-                            <input type="text" id="cust-poBox" name="poBox">
+                            <input type="text" id="cust-buildingNo" name="buildingNo">
                         </div>
                     </div>
                 </div>
 
-                <div class="form-section-tera">
-                    <div class="input-group-tera full-width">
-                        <label>ملاحظات إضافية عن الائتمان أو السداد</label>
-                        <textarea id="cust-notes" name="notes" rows="2" placeholder="اكتب أي تفاصيل أخرى هنا..."></textarea>
-                    </div>
+                <div class="input-group-tera full-width" style="margin-top: 15px;">
+                    <label>ملاحظات إضافية</label>
+                    <textarea id="cust-notes" name="notes" rows="2" placeholder="اكتب أي تفاصيل أخرى هنا..."></textarea>
                 </div>
             </form>
         </div>
 
+        <!-- الفوتر -->
         <div class="modal-footer-tera">
             <button type="button" class="btn-tera secondary" onclick="window.closeCustomerModal()">إلغاء</button>
             <button type="button" class="btn-tera primary" id="btn-save-customer">
-                <i class="fas fa-save"></i> حفظ في قاعدة البيانات
+                <i class="fas fa-save"></i> حفظ العميل
             </button>
         </div>
     </div>
 </div>
 
 <style>
-    /* المتغيرات الأساسية */
-    :root {
-        --tera-orange: #f97316;
-        --tera-orange-dark: #ea580c;
-        --tera-bg: #f8fafc;
-        --text-main: #1e293b;
+    /* التكملة والإصلاحات للـ CSS */
+    .grid-3-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .grid-4-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .full-width { width: 100%; }
+    .mt-15 { margin-top: 15px; }
+
+    .modal-footer-tera {
+        padding: 20px 30px;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
     }
 
-    .modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(8px);
-        display: flex; align-items: center; justify-content: center; z-index: 9999;
-        padding: 20px;
-    }
-
-    .modal-card {
-        background: white; width: 100%; max-width: 850px;
-        border-radius: 28px; overflow: hidden;
-        display: flex; flex-direction: column; max-height: 90vh;
-    }
-
-    .tera-premium-shadow { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-
-    /* الهيدر */
-    .modal-header-tera {
-        padding: 25px 30px; border-bottom: 1px solid #f1f5f9;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-
-    .header-title-wrap { display: flex; align-items: center; gap: 15px; }
-    .icon-circle {
-        background: #fff7ed; color: var(--tera-orange);
-        width: 45px; height: 45px; border-radius: 14px;
-        display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-    }
-
-    .modal-header-tera h3 { margin: 0; font-size: 1.3rem; font-weight: 900; color: var(--text-main); }
-    .subtitle { margin: 0; font-size: 0.8rem; color: #94a3b8; font-weight: 600; }
-    .close-btn-tera { border: none; background: none; font-size: 2rem; color: #cbd5e1; cursor: pointer; }
-
-    /* البودي */
-    .modal-body-tera { padding: 30px; overflow-y: auto; }
-
-    /* رفع الصورة */
-    .image-profile-upload-tera {
-        display: flex; align-items: center; gap: 20px; margin-bottom: 30px;
-        padding: 20px; background: #f8fafc; border-radius: 20px; border: 1px solid #f1f5f9;
-    }
-
-    .profile-preview-wrapper { position: relative; }
-    .profile-preview-wrapper img {
-        width: 85px; height: 85px; border-radius: 20px; object-fit: cover;
-        border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .upload-badge {
-        position: absolute; bottom: -5px; left: -5px;
-        background: var(--tera-orange); color: white;
-        width: 28px; height: 28px; border-radius: 8px;
-        display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
-        cursor: pointer; border: 2px solid white;
-    }
-
-    .upload-info .main-label { display: block; font-weight: 800; color: var(--text-main); font-size: 0.95rem; }
-    .upload-info .sub-label { font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
-
-    /* تنسيق المدخلات */
-    .form-section-tera { margin-bottom: 25px; }
-    .form-section-tera.bg-light { background: #f8fafc; padding: 20px; border-radius: 18px; }
-    .section-title { font-weight: 800; font-size: 0.9rem; color: var(--tera-orange); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-
-    .input-group-tera { display: flex; flex-direction: column; gap: 8px; }
-    .input-group-tera label { font-size: 0.85rem; font-weight: 800; color: #64748b; }
-    .input-group-tera input, .input-group-tera select, .input-group-tera textarea {
-        padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0;
-        font-family: 'Cairo', sans-serif; font-size: 0.9rem; font-weight: 600;
+    .btn-tera {
+        padding: 12px 25px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        font-family: 'Cairo', sans-serif;
         transition: 0.3s;
     }
 
-    .input-group-tera input:focus { border-color: var(--tera-orange); outline: none; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1); }
+    .btn-tera.primary { background: #f97316; color: white; }
+    .btn-tera.secondary { background: #e2e8f0; color: #475569; }
+    .btn-tera:hover { transform: translateY(-2px); opacity: 0.9; }
 
-    .phone-input-wrap { position: relative; display: flex; align-items: center; }
-    .phone-input-wrap input { width: 100%; padding-left: 55px; text-align: left; letter-spacing: 1px; }
-    .country-tag { position: absolute; left: 12px; font-weight: 800; color: #94a3b8; font-size: 0.85rem; }
-
-    /* الشبكة (Grid) */
-    .grid-3-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .grid-4-cols { display: grid
+    @media (max-width: 768px) {
+        .grid-3-cols, .grid-4-cols { grid-template-columns: 1fr; }
+        .modal-card { max-height: 95vh; border-radius: 0; }
+    }
+</style>
