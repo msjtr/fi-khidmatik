@@ -9,45 +9,52 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- ربط ملفات التنسيق مع إضافة رقم نسخة عشوائي لضمان التحديث -->
-    <link rel="stylesheet" href="css/admin.css?v=1.2">
-    <link rel="stylesheet" href="css/table.css?v=1.2">
-    <link rel="stylesheet" href="css/customers.css?v=1.2">
+    <link rel="stylesheet" href="css/admin.css?v=2.1">
+    <link rel="stylesheet" href="css/table.css?v=2.1">
+    <link rel="stylesheet" href="css/customers.css?v=2.1">
 </head>
 <body class="tera-admin-body">
 
     <div class="admin-layout">
+        <!-- القائمة الجانبية -->
         <div id="sidebar-container"></div>
+        
         <main class="main-wrapper">
+            <!-- الهيدر العلوي -->
             <div id="header-container"></div>
+            
+            <!-- منطقة المحتوى المتغيرة -->
             <section id="module-container" class="content-area">
                 <div class="initial-loader">
                     <div class="spinner-tera"></div>
-                    <p>جاري المزامنة مع تيرا...</p>
+                    <p>جاري تشغيل محرك تيرا...</p>
                 </div>
             </section>
         </main>
     </div>
 
+    <!-- المحرك الرئيسي للنظام -->
     <script type="module">
-        // استيراد المحركات الأساسية (Firebase 12)
-        import './js/core/firebase.js'; 
-        import './js/main.js';          
+        // 1. استيراد الإعدادات والمحرك الرئيسي أولاً لضمان جاهزية Firebase
+        import { db, auth } from './js/core/config.js';
+        import './js/main.js';
 
         class TeraRouter {
             constructor() {
                 this.moduleContainer = document.getElementById('module-container');
-                // اسم المستودع الخاص بك على GitHub
+                
+                // ذكاء اصطناعي لتحديد المسار: إذا كان على GitHub Pages يضيف اسم المستودع، وإذا كان محلياً يتركه فارغاً
+                const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
                 this.repoName = 'fi-khidmatik';
-                // بناء المسار الأساسي ديناميكياً
-                this.baseUrl = `${window.location.origin}/${this.repoName}`;
-                this.version = Date.now(); // لكسر التخزين المؤقت
+                this.baseUrl = isLocal ? window.location.origin : `${window.location.origin}/${this.repoName}`;
+                
+                this.version = Date.now();
                 this.init();
             }
 
             async init() {
                 try {
-                    // تحميل المكونات الثابتة (القائمة الجانبية والهيدر)
+                    // تحميل المكونات الأساسية
                     await Promise.all([
                         this.loadComponent('sidebar-container', `${this.baseUrl}/admin/components/sidebar.html`),
                         this.loadComponent('header-container', `${this.baseUrl}/admin/components/header.html`)
@@ -56,19 +63,18 @@
                     window.addEventListener('hashchange', () => this.handleRouting());
                     this.handleRouting();
                 } catch (err) {
-                    console.error("Tera Engine Error:", err);
+                    console.error("🔴 Tera Router Init Error:", err);
                 }
             }
 
             async loadComponent(containerId, path) {
                 try {
                     const response = await fetch(`${path}?v=${this.version}`);
-                    if (response.ok) {
-                        const html = await response.text();
-                        document.getElementById(containerId).innerHTML = html;
-                    }
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+                    const html = await response.text();
+                    document.getElementById(containerId).innerHTML = html;
                 } catch (e) {
-                    console.error(`Failed to load component: ${path}`);
+                    console.error(`❌ Failed to load component: ${path}`, e);
                 }
             }
 
@@ -76,75 +82,78 @@
                 const hash = window.location.hash || '#dashboard';
                 const moduleName = hash.replace('#', '');
                 
-                // إظهار مؤشر التحميل عند الانتقال
-                this.moduleContainer.innerHTML = '<div class="spinner-tera"></div>';
+                // مؤشر تحميل لطيف
+                this.moduleContainer.innerHTML = `
+                    <div class="initial-loader">
+                        <div class="spinner-tera"></div>
+                        <p>جاري تحميل ${moduleName}...</p>
+                    </div>`;
                 
                 try {
                     const response = await fetch(`${this.baseUrl}/admin/modules/${moduleName}.html?v=${this.version}`);
-                    if (!response.ok) throw new Error('Module not found');
+                    if (!response.ok) throw new Error('Module Not Found');
                     
-                    this.moduleContainer.innerHTML = await response.text();
+                    const html = await response.text();
+                    this.moduleContainer.innerHTML = html;
                     
-                    // تشغيل الملف البرمجي الخاص بالموديول (مثل ملف العملاء)
-                    this.initModuleJS(moduleName);
+                    // تشغيل المنطق البرمجي الخاص بالموديول
+                    await this.initModuleJS(moduleName);
                 } catch (e) {
-                    this.moduleContainer.innerHTML = `
-                        <div style="text-align:center; padding:50px;">
-                            <i class="fas fa-exclamation-triangle fa-3x" style="color:#f97316;"></i>
-                            <h2 style="margin-top:20px;">الصفحة [${moduleName}] قيد التطوير أو غير موجودة</h2>
-                            <p>تأكد من وجود الملف في admin/modules/${moduleName}.html</p>
-                        </div>`;
+                    this.renderError(moduleName);
                 }
             }
 
             async initModuleJS(name) {
                 const jsMap = {
-                    'customers': 'js/modules/customers-ui.js',
-                    'orders-dashboard': 'js/modules/orders-dashboard.js',
-                    'inventory': 'js/modules/inventory.js',
-                    'products': 'js/modules/products-ui.js'
+                    'customers': './js/modules/customers-ui.js',
+                    'orders': './js/modules/orders.js',
+                    'products': './js/modules/products-ui.js'
                 };
 
                 if (jsMap[name]) {
                     try {
-                        const moduleUrl = `${this.baseUrl}/${jsMap[name]}?v=${this.version}`;
+                        const moduleUrl = `${jsMap[name]}?v=${this.version}`;
                         const module = await import(moduleUrl);
                         
-                        // تحويل الاسم من 'customers' إلى 'initCustomersUI'
-                        const funcName = `init${name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}UI`;
+                        // بناء اسم الدالة تلقائياً: customers -> initCustomersUI
+                        const funcName = `init${name.charAt(0).toUpperCase() + name.slice(1)}UI`;
                         
                         if (typeof module[funcName] === 'function') {
-                            module[funcName](this.moduleContainer);
-                            console.log(`✅ Tera System: [${name}] Logic Active`);
+                            await module[funcName](this.moduleContainer);
+                            console.log(`✅ [${name}] تم الربط بنجاح`);
                         }
                     } catch (err) {
-                        console.error(`❌ Logic Error [${name}]:`, err);
+                        console.error(`🔴 Logic Error in [${name}]:`, err);
                     }
                 }
             }
+
+            renderError(module) {
+                this.moduleContainer.innerHTML = `
+                    <div style="text-align:center; padding:100px 20px;">
+                        <i class="fas fa-search fa-4x" style="color:#cbd5e1; margin-bottom:20px;"></i>
+                        <h2>الموديول [${module}] غير جاهز بعد</h2>
+                        <p>يرجى التأكد من إضافة الملف في المسار: admin/modules/${module}.html</p>
+                        <button onclick="window.location.hash='#dashboard'" class="btn-back">العودة للرئيسية</button>
+                    </div>`;
+            }
         }
 
-        // تشغيل المحرك
-        window.teraApp = new TeraRouter();
+        // تشغيل المحرك بعد التأكد من جاهزية الـ DOM
+        window.addEventListener('DOMContentLoaded', () => {
+            window.teraApp = new TeraRouter();
+        });
     </script>
 
     <style>
-        :root { --tera-orange: #f97316; --tera-slate: #1e293b; }
-        body { margin: 0; background: #f8fafc; font-family: 'Cairo', sans-serif; color: var(--tera-slate); }
-        .admin-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        :root { --tera-orange: #f97316; --tera-slate: #1e293b; --tera-bg: #f1f5f9; }
+        body { margin: 0; background: var(--tera-bg); font-family: 'Cairo', sans-serif; overflow: hidden; }
+        .admin-layout { display: flex; height: 100vh; }
         .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .content-area { flex: 1; overflow-y: auto; padding: 30px; background: #f1f5f9; }
-        
-        .initial-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .spinner-tera { 
-            width: 50px; height: 50px; 
-            border: 5px solid #e2e8f0; 
-            border-top-color: var(--tera-orange); 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-            margin: 0 auto;
-        }
-        
+        .content-area { flex: 1; overflow-y: auto; padding: 25px; }
+        .initial-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; }
+        .spinner-tera { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: var(--tera-orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 15px; }
+        .btn-back { background: var(--tera-orange); color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; margin-top: 20px; font-family: 'Cairo'; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </body>
