@@ -1,24 +1,22 @@
 /**
  * js/main.js
- * المحرك الرئيسي لإدارة نظام "تيرا جيت واي" - الإصدار المحدث V12.12.1
+ * المحرك الرئيسي لإدارة نظام "تيرا جيت واي" - الإصدار V12.12.2
  * المطور: محمد بن صالح الشمري
- * الوظيفة: الربط المركزي بين Firebase، الموديولات، وواجهة المستخدم.
+ * الوظيفة: الإدارة المركزية للمنطق، الربط بـ Firebase، والتنقل بدون قيود الدخول حالياً.
  */
 
-// استيراد الخدمات المهيئة مسبقاً من config لضمان عدم تكرار التهيئة
 import { db, auth } from './core/config.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { navigateTo } from './dashboard-core.js';
 
-console.log("⚙️ Tera Engine Core: جاري تشغيل المحرك الرئيسي...");
+console.log("⚙️ Tera Engine Core: جاري تشغيل المحرك في وضع التطوير...");
 
 /**
  * 1. الدوال العالمية المساعدة (Global Utilities)
- * يتم ربطها بـ window لضمان وصول الموديولات القديمة والـ HTML إليها.
  */
 
-// جلب البيانات مع فحص حالة الاتصال
+// جلب البيانات مع معالجة ذكية للتواريخ
 window.getCollectionData = async (collectionName) => {
     if (!db) {
         console.error("❌ Tera Engine: قاعدة البيانات غير متصلة.");
@@ -27,20 +25,29 @@ window.getCollectionData = async (collectionName) => {
 
     try {
         const querySnapshot = await getDocs(collection(db, collectionName));
-        return querySnapshot.docs.map(doc => ({ 
-            id: doc.id, 
-            ...doc.data(),
-            dateFormatted: doc.data().createdAt?.toDate ? 
-                           doc.data().createdAt.toDate().toLocaleDateString('ar-SA') : 
-                           new Date(doc.data().createdAt).toLocaleDateString('ar-SA')
-        }));
+        return querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            let formattedDate = '---';
+
+            // معالجة التاريخ سواء كان Firebase Timestamp أو string
+            if (data.createdAt) {
+                const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                formattedDate = dateObj.toLocaleDateString('ar-SA');
+            }
+
+            return { 
+                id: doc.id, 
+                ...data,
+                dateFormatted: formattedDate
+            };
+        });
     } catch (error) {
         console.error(`🔴 Error fetching ${collectionName}:`, error);
         return [];
     }
 };
 
-// إدارة المودالات (إغلاق شامل وتنظيف)
+// إغلاق المودالات وتنظيف الذاكرة البصرية
 window.closeAllModals = () => {
     const modals = document.querySelectorAll('.modal, .tera-modal, [role="dialog"]');
     modals.forEach(modal => {
@@ -58,28 +65,30 @@ window.closeAllModals = () => {
 };
 
 /**
- * 2. نظام مراقبة التنقل (Routing & Sidebar)
+ * 2. نظام مراقبة التنقل (Navigation System)
  */
 window.handleNavigation = (hash) => {
     const view = hash.replace('#', '') || 'dashboard';
     
-    // تحديث القائمة الجانبية بصرياً
+    // تحديث الحالة البصرية للقائمة الجانبية
     document.querySelectorAll('.nav-item, .sidebar-link').forEach(item => {
         item.classList.remove('active');
         const href = item.getAttribute('href');
         const dataNav = item.getAttribute('data-nav');
+        
         if (href === hash || dataNav === view || (hash === '' && (href === '#dashboard' || dataNav === 'dashboard'))) {
             item.classList.add('active');
         }
     });
 
-    // استدعاء محرك التنقل لتبديل المحتوى
+    // استدعاء الموجه الرئيسي لتبديل المحتوى
     if (typeof navigateTo === 'function') {
         navigateTo(view);
+    } else {
+        console.warn("⚠️ Tera Router: دالة navigateTo غير معرفة في dashboard-core.js");
     }
 };
 
-// حل مشكلة onclick في الـ HTML للموديولات
 window.handleNavClick = (view) => {
     window.location.hash = view;
 };
@@ -88,22 +97,18 @@ window.handleNavClick = (view) => {
  * 3. تشغيل المحرك والخدمات الأساسية
  */
 function initCoreEngine() {
-    // أ- مراقبة حالة المستخدم (Security Gate)
+    // أ- مراقبة حالة المستخدم (معطلة مؤقتاً للتطوير)
     onAuthStateChanged(auth, (user) => {
-        const isLoginPage = window.location.pathname.includes('login.html');
-        if (!user && !isLoginPage) {
-            console.warn("🔒 دخول غير مصرح، تحويل لصفحة تسجيل الدخول...");
-            window.location.href = 'login.html';
-        } else if (user && isLoginPage) {
-            window.location.href = 'admin.html';
+        if (!user) {
+            console.info("ℹ️ Tera Auth: وضع التطوير نشط - الدخول متاح بدون تسجيل.");
         }
     });
 
-    // ب- تحديث العناصر التلقائية (السنة)
+    // ب- تحديث الفوتر تلقائياً
     const yearEl = document.getElementById('current-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // ج- مستمعات أحداث المتصفح (Hash & Keys)
+    // ج- مستمعات الأحداث
     window.addEventListener('hashchange', () => {
         window.handleNavigation(window.location.hash);
     });
@@ -112,13 +117,13 @@ function initCoreEngine() {
         if (e.key === 'Escape') window.closeAllModals();
     });
 
-    // د- تشغيل التنقل الأولي
+    // د- التوجيه الأولي عند فتح الصفحة
     window.handleNavigation(window.location.hash);
 
-    console.log("🚀 Tera Engine Core: النظام جاهز ومستقر.");
+    console.log("🚀 Tera Engine Core: النظام جاهز ومستقر (وضع التطوير).");
 }
 
-// الانطلاق فور جاهزية المستند
+// البدء عند جاهزية المتصفح
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCoreEngine);
 } else {
