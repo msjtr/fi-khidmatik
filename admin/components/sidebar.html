@@ -1,6 +1,5 @@
 <!-- Tera Gateway Sidebar Component -->
 <aside id="main-sidebar" class="app-sidebar">
-    <!-- الهيدر الخاص بالسايدبار -->
     <div class="sidebar-header">
         <div class="brand-minimal">
             <div class="logo-dot-tera"></div>
@@ -8,189 +7,34 @@
         </div>
     </div>
     
-    <!-- قائمة التنقل -->
     <nav class="side-nav">
         <ul id="admin-menu">
-            <li class="nav-item active" data-module="dashboard" onclick="handleSidebarClick(this, 'dashboard')">
+            <!-- لاحظ استخدام window. لضمان الوصول للدالة من أي مكان -->
+            <li class="nav-item active" data-module="dashboard" onclick="window.handleSidebarClick(this, 'dashboard')">
                 <div class="nav-icon"><i class="fas fa-th-large"></i></div>
                 <span class="nav-text">لوحة التحكم</span>
                 <div class="active-indicator"></div>
             </li>
             
-            <li class="nav-item" data-module="orders" onclick="handleSidebarClick(this, 'orders')">
+            <li class="nav-item" data-module="orders" onclick="window.handleSidebarClick(this, 'orders')">
                 <div class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                 <span class="nav-text">طلبات التقسيط</span>
                 <div class="active-indicator"></div>
             </li>
 
-            <li class="nav-item" data-module="customers" onclick="handleSidebarClick(this, 'customers')">
+            <li class="nav-item" data-module="customers" onclick="window.handleSidebarClick(this, 'customers')">
                 <div class="nav-icon"><i class="fas fa-user-group"></i></div>
                 <span class="nav-text">قاعدة العملاء</span>
                 <div class="active-indicator"></div>
             </li>
-            
-            <li class="nav-item" data-module="payments" onclick="handleSidebarClick(this, 'payments')">
-                <div class="nav-icon"><i class="fas fa-calendar-check"></i></div>
-                <span class="nav-text">سجل المدفوعات</span>
-                <div class="active-indicator"></div>
-            </li>
 
-            <div class="nav-divider"><span>المخزون</span></div>
-
-            <li class="nav-item" data-module="products" onclick="handleSidebarClick(this, 'products')">
-                <div class="nav-icon"><i class="fas fa-box-archive"></i></div>
-                <span class="nav-text">بطاقات Sawa</span>
-                <div class="active-indicator"></div>
-            </li>
-            
             <div class="nav-divider"><span>النظام</span></div>
             
-            <li class="nav-item" data-module="settings" onclick="handleSidebarClick(this, 'settings')">
+            <li class="nav-item" data-module="settings" onclick="window.handleSidebarClick(this, 'settings')">
                 <div class="nav-icon"><i class="fas fa-cog"></i></div>
                 <span class="nav-text">إعدادات النظام</span>
                 <div class="active-indicator"></div>
             </li>
         </ul>
     </nav>
-
-    <!-- الفوتر (حالة السيرفر) -->
-    <div class="sidebar-footer">
-        <div class="status-card">
-            <div class="pulse-container">
-                <div class="dot"></div>
-                <div class="pulse"></div>
-            </div>
-            <div class="status-info">
-                <span class="status-title">متصل</span>
-                <span class="status-server">Cloud Server</span>
-            </div>
-        </div>
-    </div>
 </aside>
-
-<style>
-    :root {
-        --tera-primary: #f97316;
-        --sidebar-bg: #ffffff;
-        --sidebar-text: #64748b;
-        --sidebar-active-bg: rgba(249, 115, 22, 0.08);
-        --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .app-sidebar {
-        width: 280px;
-        height: 100vh;
-        background: var(--sidebar-bg);
-        border-left: 1px solid #f1f5f9;
-        display: flex;
-        flex-direction: column;
-        transition: width var(--transition);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        overflow: hidden;
-    }
-
-    .sidebar-header { padding: 30px 20px; overflow: hidden; }
-    .brand-minimal { display: flex; align-items: center; gap: 15px; white-space: nowrap; }
-
-    .logo-dot-tera {
-        width: 12px; height: 12px;
-        background: var(--tera-primary);
-        border-radius: 4px;
-        box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
-        flex-shrink: 0;
-    }
-
-    .menu-label { font-weight: 800; font-size: 0.95rem; color: #1e293b; transition: opacity 0.3s; }
-
-    .side-nav { flex: 1; padding: 10px 15px; overflow-y: auto; }
-    .side-nav::-webkit-scrollbar { width: 0; } /* إخفاء السكرول */
-
-    .nav-item {
-        display: flex; align-items: center; gap: 15px; padding: 12px 16px;
-        margin-bottom: 6px; border-radius: 12px; color: var(--sidebar-text);
-        font-weight: 700; cursor: pointer; transition: all 0.3s;
-        position: relative; white-space: nowrap;
-    }
-
-    .nav-icon {
-        width: 38px; height: 38px; min-width: 38px; display: flex;
-        align-items: center; justify-content: center;
-        background: #f8fafc; border-radius: 10px; font-size: 1.1rem;
-    }
-
-    .nav-item:hover { background: #f8fafc; color: var(--tera-primary); }
-
-    .nav-item.active { background: var(--sidebar-active-bg); color: var(--tera-primary); }
-    .nav-item.active .nav-icon { background: var(--tera-primary); color: white; }
-
-    .nav-text { transition: opacity 0.3s; font-size: 0.9rem; }
-
-    .active-indicator {
-        position: absolute; right: -15px; width: 4px; height: 20px;
-        background: var(--tera-primary); border-radius: 4px 0 0 4px;
-        opacity: 0;
-    }
-    .nav-item.active .active-indicator { opacity: 1; }
-
-    .nav-divider { margin: 20px 10px 10px; height: 1px; background: #f1f5f9; position: relative; }
-    .nav-divider span {
-        position: absolute; top: -10px; right: 15px; background: white;
-        padding: 0 8px; font-size: 0.65rem; color: #cbd5e1; font-weight: 900;
-    }
-
-    .sidebar-footer { padding: 15px; border-top: 1px solid #f1f5f9; }
-    .status-card {
-        background: #f8fafc; padding: 10px; border-radius: 12px;
-        display: flex; align-items: center; gap: 12px;
-    }
-
-    .status-info { display: flex; flex-direction: column; white-space: nowrap; }
-    .status-title { font-size: 0.75rem; font-weight: 800; color: #10b981; }
-    .status-server { font-size: 0.6rem; color: #94a3b8; }
-
-    /* تأثير النبض للاتصال */
-    .pulse-container { position: relative; width: 8px; height: 8px; flex-shrink: 0; }
-    .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
-    .pulse {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: #10b981; border-radius: 50%; opacity: 0.5;
-        animation: status-pulse 2s infinite ease-out;
-    }
-
-    @keyframes status-pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3); opacity: 0; } }
-
-    /* وضع الانكماش */
-    .sidebar-container.collapsed .app-sidebar { width: 85px; }
-    .sidebar-container.collapsed .nav-text, 
-    .sidebar-container.collapsed .menu-label, 
-    .sidebar-container.collapsed .nav-divider span,
-    .sidebar-container.collapsed .status-info { 
-        opacity: 0; visibility: hidden; 
-    }
-</style>
-
-<script>
-    /**
-     * معالجة النقر على عناصر القائمة
-     */
-    function handleSidebarClick(element, moduleName) {
-        // 1. تحديث الشكل المرئي
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        element.classList.add('active');
-
-        // 2. تحديث التوجيه (Router)
-        if (typeof window.handleNavClick === 'function') {
-            window.handleNavClick(moduleName);
-        } else {
-            // كخيار احتياطي إذا لم تكن الدالة جاهزة
-            location.hash = '#' + moduleName;
-        }
-
-        // 3. إغلاق القائمة في الموبايل تلقائياً بعد النقر
-        if (window.innerWidth <= 768) {
-            document.querySelector('.sidebar-container').classList.remove('mobile-open');
-        }
-    }
-</script>
