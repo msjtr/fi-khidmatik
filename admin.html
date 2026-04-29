@@ -4,27 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تيرا جيت واي | لوحة التحكم</title>
-    
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    
-    <!-- ربط ملفات التنسيق مع كسر التخزين المؤقت -->
-    <link rel="stylesheet" href="css/admin.css?v=2.2">
-    <link rel="stylesheet" href="css/table.css?v=2.2">
-    <link rel="stylesheet" href="css/customers.css?v=2.2">
+    <link rel="stylesheet" href="css/admin.css?v=2.3">
+    <link rel="stylesheet" href="css/table.css?v=2.3">
+    <link rel="stylesheet" href="css/customers.css?v=2.3">
 </head>
 <body class="tera-admin-body">
 
     <div class="admin-layout">
-        <!-- القائمة الجانبية -->
         <div id="sidebar-container"></div>
-        
         <main class="main-wrapper">
-            <!-- الهيدر العلوي -->
             <div id="header-container"></div>
-            
-            <!-- منطقة المحتوى المتغيرة -->
             <section id="module-container" class="content-area">
                 <div class="initial-loader">
                     <div class="spinner-tera"></div>
@@ -34,12 +26,11 @@
         </main>
     </div>
 
-    <!-- المحرك الرئيسي للنظام -->
     <script type="module">
         import { db, auth } from './js/core/config.js';
         import './js/main.js';
 
-        // --- إصلاح مهم: تعريف دالة التنقل عالمياً لتعمل مع onclick في القائمة الجانبية ---
+        // إصلاح خطأ ReferenceError: جعل الدالة عالمية ليراها الـ HTML
         window.handleNavClick = (view) => {
             window.location.hash = view;
         };
@@ -47,29 +38,22 @@
         class TeraRouter {
             constructor() {
                 this.moduleContainer = document.getElementById('module-container');
-                
-                // تحديد المسار الأساسي بدقة
                 const isGitHub = window.location.hostname.includes('github.io');
-                this.repoName = 'fi-khidmatik';
-                // تأكد من وجود السلاش في البداية والنهاية لـ GitHub
-                this.baseUrl = isGitHub ? `/${this.repoName}` : '';
-                
+                this.baseUrl = isGitHub ? '/fi-khidmatik' : '';
                 this.version = Date.now();
                 this.init();
             }
 
             async init() {
                 try {
-                    // تحميل المكونات الثابتة
                     await Promise.all([
                         this.loadComponent('sidebar-container', `${this.baseUrl}/admin/components/sidebar.html`),
                         this.loadComponent('header-container', `${this.baseUrl}/admin/components/header.html`)
                     ]);
-
                     window.addEventListener('hashchange', () => this.handleRouting());
                     this.handleRouting();
                 } catch (err) {
-                    console.error("🔴 Tera Router Init Error:", err);
+                    console.error("🔴 Router Init Error:", err);
                 }
             }
 
@@ -77,105 +61,35 @@
                 try {
                     const response = await fetch(`${path}?v=${this.version}`);
                     if (!response.ok) throw new Error(`Status: ${response.status}`);
-                    const html = await response.text();
-                    document.getElementById(containerId).innerHTML = html;
-                    console.log(`✅ Loaded Component: ${path}`);
-                } catch (e) {
-                    console.error(`❌ Failed to load component: ${path}`, e);
-                }
+                    document.getElementById(containerId).innerHTML = await response.text();
+                } catch (e) { console.error(`❌ Component Fail: ${path}`, e); }
             }
 
             async handleRouting() {
                 const hash = window.location.hash || '#dashboard';
                 const moduleName = hash.replace('#', '');
                 
-                this.moduleContainer.innerHTML = `
-                    <div class="initial-loader">
-                        <div class="spinner-tera"></div>
-                        <p>جاري تحميل موديول ${moduleName}...</p>
-                    </div>`;
+                // تحديد المسار بناءً على اسم الموديول (حل مشكلة الـ 404)
+                // إذا كان الموديول هو dashboard ابحث عنه في components كما في ملفاتك
+                let folder = 'modules';
+                if (moduleName === 'dashboard') folder = 'components'; 
+
+                const modulePath = `${this.baseUrl}/admin/${folder}/${moduleName}.html`;
                 
                 try {
-                    // بناء المسار: موديول الداشبورد أو غيره
-                    const modulePath = `${this.baseUrl}/admin/modules/${moduleName}.html`;
-                    
                     const response = await fetch(`${modulePath}?v=${this.version}`);
+                    if (!response.ok) throw new Error('Not Found');
+                    this.moduleContainer.innerHTML = await response.text();
                     
-                    if (!response.ok) {
-                        throw new Error(`Module ${moduleName} not found at ${modulePath}`);
-                    }
-                    
-                    const html = await response.text();
-                    this.moduleContainer.innerHTML = html;
-                    
-                    // تحديث الحالة النشطة في القائمة الجانبية (Sidebar)
+                    // تحديث الـ Active State في القائمة
                     if (window.syncNavigationUI) window.syncNavigationUI(hash);
-
-                    // تشغيل ملف الـ JavaScript المرتبط بالموديول
-                    await this.initModuleJS(moduleName);
                 } catch (e) {
-                    console.error("🔴 Routing Error:", e);
-                    this.renderError(moduleName);
+                    this.moduleContainer.innerHTML = `<div style="padding:50px; text-align:center;"><h2>الموديول ${moduleName} غير موجود</h2><p>${modulePath}</p></div>`;
                 }
-            }
-
-            async initModuleJS(name) {
-                const jsMap = {
-                    'dashboard': './js/modules/dashboard.js', // إضافة الداشبورد هنا
-                    'customers': './js/modules/customers-ui.js',
-                    'orders-dashboard': './js/modules/orders-dashboard.js',
-                    'inventory': './js/modules/inventory.js',
-                    'products': './js/modules/products-ui.js',
-                    'settings': './js/modules/settings.js'
-                };
-
-                if (jsMap[name]) {
-                    try {
-                        const moduleUrl = `${jsMap[name]}?v=${this.version}`;
-                        const module = await import(moduleUrl);
-                        
-                        // محاولة تشغيل دالة التهيئة تلقائياً
-                        const formattedName = name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
-                        const funcName = `init${formattedName}UI`;
-                        
-                        if (typeof module[funcName] === 'function') {
-                            await module[funcName](this.moduleContainer);
-                            console.log(`🚀 Logic Active: ${funcName}`);
-                        }
-                    } catch (err) {
-                        console.warn(`ℹ️ JS Module Notice [${name}]: ملف الـ JS قد لا يحتوي على دالة init أو غير موجود.`);
-                    }
-                }
-            }
-
-            renderError(module) {
-                this.moduleContainer.innerHTML = `
-                    <div style="text-align:center; padding:100px 20px;">
-                        <i class="fas fa-exclamation-circle fa-4x" style="color:#f97316; margin-bottom:20px;"></i>
-                        <h2 style="color:#1e293b">الموديول [${module}] غير متاح حالياً</h2>
-                        <p style="color:#64748b">تأكد من نقل ملف <b>${module}.html</b> إلى مجلد <b>admin/modules/</b></p>
-                        <button onclick="window.location.hash='#dashboard'" class="btn-back">العودة للرئيسية</button>
-                    </div>`;
             }
         }
 
-        // انطلاق التطبيق
-        window.addEventListener('DOMContentLoaded', () => {
-            window.teraApp = new TeraRouter();
-        });
+        window.addEventListener('DOMContentLoaded', () => { window.teraApp = new TeraRouter(); });
     </script>
-
-    <style>
-        :root { --tera-orange: #f97316; --tera-slate: #1e293b; --tera-bg: #f1f5f9; }
-        body { margin: 0; background: var(--tera-bg); font-family: 'Cairo', sans-serif; overflow: hidden; }
-        .admin-layout { display: flex; height: 100vh; width: 100vw; }
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .content-area { flex: 1; overflow-y: auto; padding: 25px; }
-        .initial-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; width: 100%; }
-        .spinner-tera { width: 45px; height: 45px; border: 4px solid #e2e8f0; border-top-color: var(--tera-orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 15px; }
-        .btn-back { background: var(--tera-orange); color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; margin-top: 25px; font-family: 'Cairo'; font-weight: bold; transition: 0.3s; }
-        .btn-back:hover { opacity: 0.9; transform: translateY(-2px); }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
 </body>
 </html>
