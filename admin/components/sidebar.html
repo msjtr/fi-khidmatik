@@ -12,35 +12,35 @@
     <nav class="sidebar-nav">
         <div class="nav-section">الرئيسية</div>
         
-        <a href="javascript:void(0)" class="nav-item active" onclick="handleNavClick(this, 'dashboard')">
+        <a href="#dashboard" class="nav-item active" onclick="handleNavClick('dashboard')">
             <i class="fas fa-chart-pie"></i>
             <span>لوحة التحكم</span>
         </a>
 
         <div class="nav-section">إدارة العملاء</div>
-        <a href="javascript:void(0)" class="nav-item" onclick="handleNavClick(this, 'customers')">
+        <a href="#customers" class="nav-item" onclick="handleNavClick('customers')">
             <i class="fas fa-address-book"></i>
             <span>قاعدة البيانات</span>
         </a>
 
         <div class="nav-section">العمليات والتمويل</div>
-        <a href="javascript:void(0)" class="nav-item" onclick="handleNavClick(this, 'orders')">
+        <a href="#orders" class="nav-item" onclick="handleNavClick('orders')">
             <i class="fas fa-receipt"></i>
             <span>إدارة الطلبات</span>
         </a>
-        <a href="javascript:void(0)" class="nav-item" onclick="handleNavClick(this, 'installments')">
+        <a href="#installments" class="nav-item" onclick="handleNavClick('installments')">
             <i class="fas fa-calendar-alt"></i>
             <span>الأقساط المجدولة</span>
         </a>
 
         <div class="nav-section">المنتجات</div>
-        <a href="javascript:void(0)" class="nav-item" onclick="handleNavClick(this, 'sawa')">
+        <a href="#sawa" class="nav-item" onclick="handleNavClick('sawa')">
             <i class="fas fa-sim-card"></i>
             <span>بطاقات سوا</span>
         </a>
 
         <div class="nav-section">الإعدادات</div>
-        <a href="javascript:void(0)" class="nav-item" onclick="handleNavClick(this, 'settings')">
+        <a href="#settings" class="nav-item" onclick="handleNavClick('settings')">
             <i class="fas fa-sliders-h"></i>
             <span>إعدادات النظام</span>
         </a>
@@ -48,7 +48,7 @@
 
     <div class="sidebar-footer">
         <div class="user-profile-mini">
-            <img src="admin/images/default-product.png" alt="Admin Avatar">
+            <img src="admin/images/default-avatar.png" alt="Admin Avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
             <div class="user-info">
                 <span class="u-name">محمد بن صالح</span>
                 <span class="u-role">مدير النظام</span>
@@ -57,33 +57,38 @@
     </div>
 </div>
 
-<script>
-    /**
-     * معالج النقر المطور لنظام SPA
-     */
-    function handleNavClick(element, moduleName) {
-        // 1. تحديث الحالة البصرية
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        element.classList.add('active');
-
-        // 2. استدعاء المحرك الرئيسي (الموجود في index.html)
-        if (typeof window.loadModule === 'function') {
-            window.loadModule(moduleName);
-        } else {
-            console.warn("محرك التحميل loadModule غير متاح في الصفحة الرئيسية.");
-        }
-    }
-</script>
-
 <style>
+    /* التنسيقات الأساسية */
     .tera-sidebar-content {
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: 100vh;
         padding: 20px 15px;
         background: #fff;
+        border-left: 1px solid #f1f5f9;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 260px;
     }
 
+    /* حالة القائمة المتقلصة (Collapsed) */
+    #sidebar-container.collapsed .tera-sidebar-content {
+        width: 80px;
+        padding: 20px 10px;
+    }
+
+    #sidebar-container.collapsed .brand-text,
+    #sidebar-container.collapsed .nav-section,
+    #sidebar-container.collapsed .nav-item span,
+    #sidebar-container.collapsed .user-info {
+        display: none;
+    }
+
+    #sidebar-container.collapsed .nav-item {
+        justify-content: center;
+        padding: 12px;
+    }
+
+    /* بقية التنسيقات الاحترافية */
     .sidebar-brand {
         display: flex;
         align-items: center;
@@ -98,6 +103,7 @@
         color: white;
         width: 42px;
         height: 42px;
+        min-width: 42px;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -110,13 +116,7 @@
     .brand-name { font-weight: 900; font-size: 1.2rem; color: #1e293b; letter-spacing: 0.5px; }
     .brand-sub { font-size: 0.7rem; color: #94a3b8; font-weight: 700; }
 
-    .sidebar-nav { 
-        flex: 1; 
-        overflow-y: auto; 
-        padding: 10px 0;
-        scrollbar-width: thin;
-        scrollbar-color: #f1f5f9 transparent;
-    }
+    .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; }
 
     .nav-section {
         font-size: 0.65rem;
@@ -138,23 +138,19 @@
         font-size: 0.9rem;
         transition: all 0.2s ease;
         margin-bottom: 4px;
+        cursor: pointer;
     }
 
-    .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; transition: 0.2s; }
+    .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
 
-    .nav-item:hover { 
+    .nav-item:hover, .nav-item.active { 
         background: #fff7ed; 
         color: #f97316; 
-        transform: translateX(-4px);
     }
 
-    .nav-item.active { 
-        background: #fff7ed; 
-        color: #f97316; 
-        box-shadow: inset 4px 0 0 #f97316; /* مؤشر جانبي للنشاط */
+    .nav-item.active {
+        box-shadow: inset -4px 0 0 #f97316; /* الاتجاه لليمين لأننا RTL */
     }
-
-    .nav-item.active i { color: #f97316; }
 
     .sidebar-footer {
         padding-top: 20px;
@@ -166,19 +162,17 @@
         align-items: center;
         gap: 12px;
         background: #f8fafc;
-        padding: 12px;
-        border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        padding: 10px;
+        border-radius: 14px;
     }
 
     .user-profile-mini img {
-        width: 38px;
-        height: 38px;
+        width: 35px;
+        height: 35px;
         border-radius: 10px;
         object-fit: cover;
-        background: #fff;
     }
 
-    .u-name { font-size: 0.85rem; font-weight: 800; color: #1e293b; display: block; }
-    .u-role { font-size: 0.7rem; color: #94a3b8; font-weight: 600; }
+    .u-name { font-size: 0.8rem; font-weight: 800; color: #1e293b; }
+    .u-role { font-size: 0.65rem; color: #94a3b8; }
 </style>
