@@ -1,217 +1,156 @@
 /**
  * js/modules/orders-dashboard.js
- * موديول الطلبات - عرض بيانات العملاء بشكل كامل
+ * موديول الطلبات - عرض البيانات المالية والعملاء (V3.2.0)
  */
 
 import { db } from '../core/firebase.js';
 import { 
-    collection, getDocs, query, orderBy, doc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    collection, getDocs, query, orderBy, doc, getDoc, limit 
+} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-console.log('🚀 orders-dashboard.js تم تحميله بنجاح');
+// ===================== أدوات التنسيق (Utilities) =====================
 
-// ===================== دوال مساعدة =====================
+const formatPrice = (num) => Number(num || 0).toLocaleString('ar-SA', { style: 'currency', currency: 'SAR' });
 
-function escapeHtml(str) {
-    var text = String(str === undefined || str === null ? '' : str);
-    return text.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
+const escapeHtml = (str) => {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+};
+
+function getStatusBadge(status) {
+    const statuses = {
+        'مكتمل': { bg: '#dcfce7', color: '#166534' },
+        'قيد التنفيذ': { bg: '#fef9c3', color: '#854d0e' },
+        'ملغي': { bg: '#fee2e2', color: '#991b1b' },
+        'default': { bg: '#f1f5f9', color: '#475569' }
+    };
+    const style = statuses[status] || statuses['default'];
+    return `<span style="background:${style.bg}; color:${style.color}; padding:4px 12px; border-radius:12px; font-size:0.75rem; font-weight:bold;">${status || 'غير محدد'}</span>`;
 }
 
-function formatCurrency(amount) {
-    var num = Number(amount) || 0;
-    return num.toFixed(2) + ' ر.س';
+// ===================== محرك جلب البيانات =====================
+
+async function fetchOrdersWithDetails() {
+    const ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(50));
+    const snapshot = await getDocs(ordersQuery);
+    
+    // جلب بيانات جميع العملاء المرتبطين بالطلبات دفعة واحدة لتقليل طلبات الشبكة
+    const orders = [];
+    let totalSales = 0;
+
+    for (const orderDoc of snapshot.docs) {
+        const orderData = orderDoc.data();
+        let customerInfo = null;
+
+        if (orderData.customerId) {
+            const cSnap = await getDoc(doc(db, "customers", orderData.customerId));
+            if (cSnap.exists()) customerInfo = cSnap.data();
+        }
+
+        const total = Number(orderData.total || 0);
+        totalSales += total;
+
+        orders.push({
+            id: orderDoc.id,
+            ...orderData,
+            customer: customerInfo,
+            finalTotal: total
+        });
+    }
+    return { orders, totalSales };
 }
 
-function formatFullAddress(customer) {
-    if (!customer) return '';
-    var parts = [];
-    if (customer.buildingNo) parts.push('مبنى ' + customer.buildingNo);
-    if (customer.street) parts.push('شارع ' + customer.street);
-    if (customer.district) parts.push('حي ' + customer.district);
-    if (customer.city) parts.push(customer.city);
-    if (customer.additionalNo) parts.push('رقم إضافي ' + customer.additionalNo);
-    if (customer.poBox) parts.push('ص.ب ' + customer.poBox);
-    if (customer.country) parts.push(customer.country);
-    return parts.length > 0 ? parts.join('، ') : 'لا يوجد عنوان';
-}
+// ===================== بناء الواجهة الرسومية =====================
 
-// ===================== عرض الطلبات =====================
-
-async function displayOrders(container) {
-    container.innerHTML = '<div style="padding: 40px; text-align: center;"><i class="fas fa-spinner fa-spin fa-2x"></i><p>جاري تحميل الطلبات...</p></div>';
+async function renderDashboard(container) {
+    container.innerHTML = `
+        <div style="display:flex; justify-content:center; padding:50px;">
+            <div class="spinner-tera"></div> 
+        </div>`;
 
     try {
-        var ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-        var querySnapshot = await getDocs(ordersQuery);
-        
-        if (querySnapshot.empty) {
-            container.innerHTML = '<div style="padding: 40px; text-align: center; color: #7f8c8d;"><i class="fas fa-inbox fa-3x"></i><p>لا توجد طلبات مسجلة حالياً.</p></div>';
+        const { orders, totalSales } = await fetchOrdersWithDetails();
+
+        if (orders.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:50px; color:#64748b;">لا توجد طلبات مسجلة حتى الآن.</div>`;
             return;
         }
 
-        var totalSales = 0;
-        var ordersHtml = '<div style="padding: 20px;"><h3 style="margin-bottom: 20px;">📋 قائمة الطلبات</h3>';
-        
-        for (var i = 0; i < querySnapshot.docs.length; i++) {
-            var docSnapshot = querySnapshot.docs[i];
-            var order = docSnapshot.data();
-            var orderId = docSnapshot.id;
-            var total = Number(order.total) || 0;
-            totalSales += total;
+        let html = `
+            <!-- ملخص مالي -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px;">
+                <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); border-right:5px solid #f97316;">
+                    <p style="color:#64748b; margin:0; font-size:0.9rem;">إجمالي المبيعات</p>
+                    <h3 style="margin:10px 0 0; color:#1e293b; font-size:1.5rem;">${formatPrice(totalSales)}</h3>
+                </div>
+                <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); border-right:5px solid #0ea5e9;">
+                    <p style="color:#64748b; margin:0; font-size:0.9rem;">عدد الفواتير</p>
+                    <h3 style="margin:10px 0 0; color:#1e293b; font-size:1.5rem;">${orders.length} طلب</h3>
+                </div>
+            </div>
+
+            <!-- قائمة الطلبات -->
+            <div style="display:flex; flex-direction:column; gap:15px;">
+        `;
+
+        orders.forEach(order => {
+            const date = order.createdAt?.toDate().toLocaleDateString('ar-SA', { day: 'numeric', month: 'long' }) || '---';
+            const name = order.customerName || order.customer?.name || 'عميل نقدي';
             
-            // محاولة جلب بيانات العميل إذا كان هناك customerId
-            var customer = null;
-            var customerId = order.customerId;
-            if (customerId) {
-                try {
-                    var customerDoc = await getDoc(doc(db, "customers", customerId));
-                    if (customerDoc.exists()) {
-                        customer = customerDoc.data();
-                    }
-                } catch (err) {
-                    console.error("خطأ في جلب العميل:", err);
-                }
-            }
-            
-            // دمج البيانات (الطلب + العميل)
-            var customerName = order.customerName || (customer ? customer.name : 'غير معروف');
-            var phone = order.phone || (customer ? customer.phone : 'غير موجود');
-            var email = order.email || (customer ? customer.email : '');
-            var address = order.address || order.shippingAddress || (customer ? formatFullAddress(customer) : '');
-            
-            // تنسيق التاريخ
-            var date = 'تاريخ غير معروف';
-            if (order.createdAt && typeof order.createdAt.toDate === 'function') {
-                date = order.createdAt.toDate().toLocaleDateString('ar-SA');
-            } else if (order.orderDate) {
-                date = String(order.orderDate);
-            } else if (order.createdAt) {
-                date = String(order.createdAt);
-            }
-            
-            var orderNumber = order.orderNumber ? String(order.orderNumber) : orderId.slice(0, 8);
-            
-            ordersHtml += `
-                <div style="background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-right: 4px solid #e67e22;">
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
-                        <span style="background: #e67e22; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">
-                            🧾 ` + escapeHtml(orderNumber) + `
-                        </span>
-                        <span style="color: #7f8c8d; font-size: 0.8rem;">
-                            <i class="far fa-calendar-alt"></i> ` + escapeHtml(date) + `
-                        </span>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                            <i class="fas fa-user" style="color: #e67e22; width: 25px;"></i>
-                            <strong style="width: 70px;">العميل:</strong>
-                            <span>` + escapeHtml(customerName) + `</span>
+            html += `
+                <div style="background:white; border-radius:12px; padding:20px; display:flex; align-items:center; justify-content:space-between; transition:transform 0.2s; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="display:flex; align-items:center; gap:20px;">
+                        <div style="background:#f1f5f9; width:50px; height:50px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#f97316;">
+                            <i class="fas fa-file-invoice-dollar fa-lg"></i>
                         </div>
-                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                            <i class="fas fa-phone" style="color: #e67e22; width: 25px;"></i>
-                            <strong style="width: 70px;">الجوال:</strong>
-                            <span dir="ltr">` + escapeHtml(phone) + `</span>
-                        </div>
-                        ` + (email ? `
-                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                            <i class="fas fa-envelope" style="color: #e67e22; width: 25px;"></i>
-                            <strong style="width: 70px;">البريد:</strong>
-                            <span>` + escapeHtml(email) + `</span>
-                        </div>
-                        ` : '') + `
-                        ` + (address ? `
-                        <div style="display: flex; align-items: flex-start; margin-bottom: 8px;">
-                            <i class="fas fa-location-dot" style="color: #e67e22; width: 25px; margin-top: 3px;"></i>
-                            <strong style="width: 70px;">العنوان:</strong>
-                            <span style="flex: 1;">` + escapeHtml(address) + `</span>
-                        </div>
-                        ` : '') + `
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #eee;">
                         <div>
-                            <span style="color: #7f8c8d; font-size: 0.8rem;">
-                                <i class="fas fa-box"></i> المنتجات: ` + (order.items ? order.items.length : 0) + `
-                            </span>
-                            ` + (order.paymentMethodName ? `
-                            <span style="color: #7f8c8d; font-size: 0.8rem; margin-right: 15px;">
-                                <i class="fas fa-credit-card"></i> ` + escapeHtml(order.paymentMethodName) + `
-                            </span>
-                            ` : '') + `
-                        </div>
-                        <div style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
-                            ` + formatCurrency(total) + `
+                            <h4 style="margin:0 0 5px; color:#1e293b;">${escapeHtml(name)}</h4>
+                            <div style="display:flex; gap:15px; font-size:0.8rem; color:#64748b;">
+                                <span><i class="far fa-calendar-alt"></i> ${date}</span>
+                                <span><i class="fas fa-hashtag"></i> ${order.orderNumber || order.id.slice(0, 6)}</span>
+                            </div>
                         </div>
                     </div>
                     
-                    ` + (order.status ? `
-                    <div style="margin-top: 10px; text-align: left;">
-                        <span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;">
-                            الحالة: ` + escapeHtml(order.status) + `
-                        </span>
+                    <div style="text-align:left; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                        <div style="font-weight:bold; color:#10b981; font-size:1.1rem;">${formatPrice(order.finalTotal)}</div>
+                        ${getStatusBadge(order.status)}
                     </div>
-                    ` : '') + `
                 </div>
             `;
-        }
-        
-        ordersHtml = `
-            <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; text-align: center;">
-                <h3 style="margin: 0;">💰 إجمالي المبيعات</h3>
-                <div style="font-size: 1.8rem; font-weight: bold;">` + formatCurrency(totalSales) + `</div>
-                <div>عدد الطلبات: ` + querySnapshot.size + `</div>
-            </div>
-        ` + ordersHtml;
-        
-        ordersHtml += '</div>';
-        container.innerHTML = ordersHtml;
-        console.log('✅ تم عرض الطلبات بنجاح');
+        });
+
+        html += `</div>`;
+        container.innerHTML = html;
 
     } catch (error) {
-        console.error("خطأ في جلب الطلبات:", error);
-        container.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #e74c3c;">
-                <i class="fas fa-exclamation-triangle fa-3x"></i>
-                <p>حدث خطأ: ` + error.message + `</p>
-                <button onclick="location.reload()" style="margin-top: 15px; padding: 8px 20px; background: #e67e22; color: white; border: none; border-radius: 8px; cursor: pointer;">إعادة المحاولة</button>
-            </div>
-        `;
+        console.error("🔴 Dashboard Error:", error);
+        container.innerHTML = `<div style="color:red; text-align:center; padding:20px;">عذراً، فشل تحميل البيانات. يرجى التأكد من اتصال الإنترنت.</div>`;
     }
 }
 
-// ===================== الدوال الرئيسية =====================
+// ===================== تهيئة الموديول =====================
 
 export async function initOrdersDashboard(container) {
-    console.log('✅ initOrdersDashboard تم استدعاؤها');
+    if (!container) return;
     
-    if (!container) {
-        console.error('❌ container غير موجود');
-        return;
-    }
-
     container.innerHTML = `
-        <div style="padding: 20px; font-family: 'Tajawal', sans-serif;">
-            <h2 style="color: #2c3e50; margin-bottom: 20px;">
-                <i class="fas fa-receipt" style="color: #e67e22;"></i> 
-                نظام الطلبات والفواتير
-            </h2>
-            <div id="orders-content" style="margin-top: 20px;"></div>
+        <div style="font-family:'Cairo', sans-serif; max-width:1000px; margin:0 auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <h2 style="margin:0; color:#1e293b;"><i class="fas fa-chart-line" style="color:#f97316;"></i> ملخص العمليات المالية</h2>
+                <button onclick="location.reload()" style="background:#f97316; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    <i class="fas fa-sync"></i> تحديث
+                </button>
+            </div>
+            <div id="tera-orders-list"></div>
         </div>
     `;
-    
-    var ordersContainer = document.getElementById('orders-content');
-    await displayOrders(ordersContainer);
+
+    const listContainer = document.getElementById('tera-orders-list');
+    await renderDashboard(listContainer);
 }
 
-export async function initOrders(container) {
-    return initOrdersDashboard(container);
-}
-
+// توافق مع الأسماء المختلفة للاستدعاء
+export const initOrders = initOrdersDashboard;
 export default { initOrdersDashboard, initOrders };
