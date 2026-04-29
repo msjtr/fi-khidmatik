@@ -1,114 +1,147 @@
-<header class="app-header">
+<!-- Tera Gateway Professional Header v12.12.6 -->
+<header class="app-header animate-slide-down">
     <div class="header-right">
-        <!-- زر التحكم في السايدبار -->
-        <button id="sidebar-toggle" class="sidebar-trigger" aria-label="Toggle Sidebar">
+        <!-- زر التحكم في السايدبار بتصميم نيومورفيزم مطور -->
+        <button id="sidebar-toggle" class="sidebar-trigger ripple" aria-label="Toggle Sidebar">
             <i class="fas fa-bars-staggered"></i>
         </button>
         
-        <!-- الهوية والبذوغ -->
-        <div class="app-brand">
-            <img src="images/logo.svg" 
-                 alt="Tera Gateway" 
-                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/5968/5968322.png'"
-                 class="header-logo">
+        <!-- الهوية والبذوغ مع الشعار المحدث -->
+        <div class="app-brand" onclick="navigateTo('dashboard')" style="cursor: pointer;">
+            <div class="logo-wrapper">
+                <img src="images/logo.svg" 
+                     alt="Tera Gateway" 
+                     onerror="this.src='https://cdn-icons-png.flaticon.com/512/5968/5968322.png'"
+                     class="header-logo">
+                <div class="logo-glow"></div>
+            </div>
             <span class="brand-text">Tera <b class="highlight">Gateway</b></span>
         </div>
     </div>
 
-    <!-- الساعة والتاريخ الحية -->
-    <div id="header-datetime" class="header-clock">
-        <i class="far fa-clock"></i>
-        <span id="time-display">جاري التحميل...</span>
+    <!-- الساعة والتاريخ والطقس البسيط -->
+    <div class="header-meta-info">
+        <div id="header-datetime" class="header-clock shadow-sm">
+            <div class="clock-icon-wrap">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <span id="time-display" class="font-monospace">جاري الاتصال بالساعة الذرية...</span>
+        </div>
     </div>
 </header>
 
 <style>
     :root {
-        --primary-tera: #2563eb; 
-        --primary-soft: rgba(37, 99, 235, 0.08);
-        --header-bg: rgba(255, 255, 255, 0.85);
-        --border-color: #e2e8f0;
-        --tera-dark: #1e293b;
+        --primary-tera: #f97316; /* اللون البرتقالي الرسمي لتيرا */
+        --primary-soft: rgba(249, 115, 22, 0.08);
+        --header-bg: rgba(255, 255, 255, 0.9);
+        --border-color: #f1f5f9;
+        --tera-dark: #0f172a;
     }
 
     .app-header {
         background: var(--header-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
         border-bottom: 1px solid var(--border-color);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 25px;
-        height: 70px;
+        padding: 0 24px;
+        height: 75px;
         position: sticky;
         top: 0;
         z-index: 1000;
+        transition: all 0.3s ease;
     }
 
     .header-right { display: flex; align-items: center; gap: 20px; }
 
     .sidebar-trigger {
         background: var(--primary-soft);
-        border: 1px solid rgba(37, 99, 235, 0.1);
-        width: 42px; height: 42px;
-        border-radius: 12px;
+        border: 1px solid rgba(249, 115, 22, 0.1);
+        width: 44px; height: 44px;
+        border-radius: 14px;
         color: var(--primary-tera);
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         cursor: pointer;
         display: flex; align-items: center; justify-content: center;
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .sidebar-trigger:hover {
         background: var(--primary-tera);
         color: white;
-        transform: rotate(90deg); /* تدوير خفيف بدلاً من 180 لجمالية الحركة */
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
     }
 
-    .app-brand { display: flex; align-items: center; gap: 12px; }
+    .app-brand { display: flex; align-items: center; gap: 14px; }
 
+    .logo-wrapper { position: relative; }
     .header-logo {
-        width: 35px; height: 35px;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        width: 38px; height: 38px;
+        z-index: 2; position: relative;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+    }
+    
+    .logo-glow {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%; height: 100%;
+        background: var(--primary-tera);
+        filter: blur(15px); opacity: 0.15;
     }
 
     .brand-text {
-        font-family: 'Cairo', sans-serif;
+        font-family: 'Tajawal', sans-serif;
         font-weight: 800;
-        font-size: 1.2rem;
+        font-size: 1.3rem;
+        letter-spacing: -0.5px;
         color: var(--tera-dark);
     }
 
-    .brand-text .highlight { color: var(--primary-tera); }
+    .brand-text .highlight { color: var(--primary-tera); font-weight: 900; }
 
     .header-clock {
-        font-family: 'Cairo', sans-serif;
-        font-size: 0.85rem;
-        color: #475569;
-        font-weight: 700;
-        background: white;
-        padding: 8px 18px;
-        border-radius: 50px;
+        background: #ffffff;
+        padding: 6px 16px;
+        border-radius: 16px;
         border: 1px solid var(--border-color);
-        display: flex; align-items: center; gap: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        display: flex; align-items: center; gap: 12px;
+        transition: all 0.3s ease;
     }
 
-    .header-clock i { color: var(--primary-tera); }
+    .clock-icon-wrap {
+        width: 30px; height: 30px;
+        background: var(--primary-soft);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--primary-tera);
+    }
 
-    /* تحسينات الجوال */
+    #time-display {
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* أنيميشن الدخول */
+    @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    .animate-slide-down { animation: slideDown 0.5s ease-out; }
+
     @media (max-width: 768px) {
         .brand-text { display: none; }
-        .header-clock { padding: 6px 12px; font-size: 0.75rem; }
-        .app-header { padding: 0 15px; }
+        .header-clock { padding: 4px 10px; }
+        #time-display { font-size: 0.8rem; }
     }
 </style>
 
 <script>
     (function() {
         /**
-         * تحديث الساعة والتاريخ بالتنسيق العربي - السعودية
+         * نظام الوقت المطور - Tera Time Engine
          */
         function updateHeaderTime() {
             const timeEl = document.getElementById('time-display');
@@ -117,46 +150,58 @@
             const now = new Date();
             
             try {
-                const formatter = new Intl.DateTimeFormat('ar-SA', {
-                    weekday: 'long',
+                const options = {
+                    weekday: 'short',
                     day: 'numeric',
-                    month: 'long',
+                    month: 'short',
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit',
                     hour12: true
+                };
+
+                // تنسيق سعودي محترف
+                const formatter = new Intl.DateTimeFormat('ar-SA', options);
+                let parts = formatter.formatToParts(now);
+                let timeStr = "";
+                
+                // بناء النص بشكل مخصص لضمان الجمالية
+                parts.forEach(part => {
+                    if(part.type === 'day' || part.type === 'month') timeStr += part.value + " ";
+                    else if(part.type === 'weekday') timeStr += part.value + " | ";
+                    else timeStr += part.value;
                 });
 
-                // تجميل النص: استبدال الفاصلة بعلامة | وتصحيح العرض
-                let formatted = formatter.format(now).replace(/،/g, ' |');
-                timeEl.innerText = formatted;
+                timeEl.innerText = timeStr;
             } catch (e) {
                 timeEl.innerText = now.toLocaleTimeString('ar-SA');
             }
         }
 
-        // تنظيف أي مؤقت سابق قبل البدء
+        // بدء المحرك
         if (window.teraClock) clearInterval(window.teraClock);
-        
         updateHeaderTime();
         window.teraClock = setInterval(updateHeaderTime, 1000);
 
-        // التحكم في السايدبار (Sidebar Toggle)
+        // نظام التحكم في القائمة الجانبية مع حفظ الحالة
         const toggleBtn = document.getElementById('sidebar-toggle');
         if (toggleBtn) {
-            toggleBtn.onclick = function() {
-                const sidebar = document.getElementById('sidebar-container');
+            toggleBtn.addEventListener('click', function() {
+                const sidebar = document.getElementById('main-sidebar');
                 const mainWrapper = document.querySelector('.main-wrapper');
 
                 if (sidebar) {
                     sidebar.classList.toggle('collapsed');
                     if (mainWrapper) mainWrapper.classList.toggle('expanded');
                     
-                    // حفظ الحالة في المتصفح ليبقى النظام على آخر وضع اختاره المستخدم
                     const isCollapsed = sidebar.classList.contains('collapsed');
-                    localStorage.setItem('tera_sidebar_state', isCollapsed ? 'collapsed' : 'expanded');
+                    localStorage.setItem('tera_sidebar_state', isCollapsed ? 'true' : 'false');
+                    
+                    // تأثير تدوير الأيقونة عند الضغط
+                    const icon = this.querySelector('i');
+                    icon.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
                 }
-            };
+            });
         }
     })();
 </script>
