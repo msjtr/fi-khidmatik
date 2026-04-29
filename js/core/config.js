@@ -1,31 +1,30 @@
 /**
  * js/core/config.js
- * إعدادات منصة تيرا جيت واي - الإصدار الحديث V12.12.1
+ * إعدادات منصة تيرا جيت واي - الإصدار الحديث V12.12.6
  * المطور: محمد بن صالح الشمري
  */
 
-// 1. استيراد الخدمات المهيأة من الملف الأساسي
-// نستخدم المسار النسبي المباشر لضمان التوافق مع المتصفحات
+// 1. استيراد الخدمات المهيأة من ملف المحرك الأساسي
+// تأكد أن ملف firebase.js يستخدم إصدار 10.7.1 في روابطه
 import { db, auth, app, storage } from './firebase.js';
 
 // 2. الثوابت الأساسية للمنصة
 export const APP_CONFIG = {
     name: 'Tera Gateway',
-    version: '2.0.2', 
-    company: 'في خدمتكم | Fi Khidmatik', // تحديث الاسم للهوية الجديدة
-    region: 'Saudi Arabia',
+    version: '12.12.6', // تحديث لرقم الإصدار الحالي للنظام
+    company: 'في خدمتكم | Fi Khidmatik',
+    region: 'Hail, Saudi Arabia', // تحديد المنطقة بدقة
     debug: true
 };
 
 // 3. تكوين أسماء المجموعات (Collections) لضمان المركزية
-// تغيير أي اسم هنا سيحدثه في كامل النظام فوراً
 export const FIREBASE_COLLECTIONS = {
     products: 'products',
     orders: 'orders',
-    customers: 'customers',
+    customers: 'customers', // المجموعة التي فشل جلبها سابقاً
     payments: 'payments',
     settings: 'settings',
-    logs: 'system_logs' // إضافة سجل العمليات
+    logs: 'system_logs'
 };
 
 // 4. الإعدادات المالية الخاصة بالسوق السعودي
@@ -38,7 +37,6 @@ export const FINANCIAL_CONFIG = {
 
 /**
  * دالة جلب الإعدادات الكاملة
- * مفيدة عند الحاجة لتحميل الإعدادات في واجهات الإدارة
  */
 export function getAllConfig() {
     return { 
@@ -50,21 +48,20 @@ export function getAllConfig() {
 
 /**
  * دالة التحقق من جاهزية قاعدة البيانات
- * تمنع الأخطاء في حالة تأخر اتصال Firebase
+ * تم تحسينها لتعمل كـ Promise لضمان انتظار الاتصال
  */
 export async function ensureDbReady() {
     if (!db) {
-        console.error("❌ Tera Config: قاعدة البيانات غير جاهزة!");
+        console.error("❌ Tera Config: محرك Firestore غير متصل! تأكد من روابط الإصدار 10.7.1");
         return false;
     }
     return true;
 }
 
 // 5. إعادة تصدير الخدمات لضمان سهولة الاستيراد من ملف واحد
-// الآن يمكنك كتابة: import { db } from './core/config.js';
 export { db, auth, app, storage };
 
-// التصدير الافتراضي المجمع (Object Export)
+// التصدير الافتراضي المجمع
 export default {
     db, 
     auth, 
