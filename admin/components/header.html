@@ -21,7 +21,7 @@
 
 <style>
     :root {
-        --primary-tera: #f97316; /* برتقالي تيرا */
+        --primary-tera: #f97316;
         --primary-soft: rgba(249, 115, 22, 0.08);
         --header-bg: rgba(255, 255, 255, 0.9);
         --border-color: #f1f5f9;
@@ -97,7 +97,7 @@
     }
 
     .header-clock {
-        font-family: 'Tajawal', sans-serif;
+        font-family: 'Cairo', sans-serif; /* تغيير للخط المعتمد في المشروع */
         font-size: 0.9rem;
         color: #475569;
         font-weight: 700;
@@ -119,51 +119,52 @@
 </style>
 
 <script>
-    /**
-     * تحديث الساعة والتاريخ - أرقام إنجليزية (Western Arabic Numerals)
-     */
-    function updateHeaderTime() {
-        const timeEl = document.getElementById('time-display');
-        if (timeEl) {
-            const now = new Date();
-            
-            // خيارات التنسيق لضمان لغة الأرقام الإنجليزية
-            const timeOptions = {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            };
-            
-            const dateOptions = {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-            };
+    (function() {
+        /**
+         * تحديث الساعة والتاريخ
+         */
+        function updateHeaderTime() {
+            const timeEl = document.getElementById('time-display');
+            if (timeEl) {
+                const now = new Date();
+                
+                const timeOptions = {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                };
+                
+                const dateOptions = {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                };
 
-            const timeStr = now.toLocaleTimeString('en-US', timeOptions);
-            const dateStr = now.toLocaleDateString('en-GB', dateOptions);
-            
-            timeEl.innerText = `${dateStr} | ${timeStr.toUpperCase()}`;
-        }
-    }
-
-    // تشغيل وتحديث
-    updateHeaderTime();
-    if (window.headerClockInterval) clearInterval(window.headerClockInterval);
-    window.headerClockInterval = setInterval(updateHeaderTime, 1000);
-
-    // تفعيل السايدبار (جسر الربط مع index.html)
-    const toggleBtn = document.getElementById('sidebar-toggle');
-    if (toggleBtn) {
-        toggleBtn.onclick = function() {
-            const sidebar = document.getElementById('sidebar-placeholder');
-            if (sidebar) {
-                sidebar.classList.toggle('collapsed');
-                // حفظ الحالة للمرة القادمة
-                const isCollapsed = sidebar.classList.contains('collapsed');
-                localStorage.setItem('sidebar-state', isCollapsed ? 'collapsed' : 'expanded');
+                const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+                const dateStr = now.toLocaleDateString('en-GB', dateOptions);
+                
+                timeEl.innerText = `${dateStr} | ${timeStr.toUpperCase()}`;
             }
-        };
-    }
+        }
+
+        // تنظيف أي إنترفال قديم وتفعيل الجديد
+        if (window.headerClockInterval) clearInterval(window.headerClockInterval);
+        updateHeaderTime();
+        window.headerClockInterval = setInterval(updateHeaderTime, 1000);
+
+        // تفعيل إخفاء القائمة الجانبية (Sidebar Toggle)
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        if (toggleBtn) {
+            toggleBtn.onclick = function() {
+                // ملاحظة: الروتر يضع السايدبار داخل #sidebar-container
+                const sidebar = document.getElementById('sidebar-container');
+                if (sidebar) {
+                    sidebar.classList.toggle('collapsed');
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    localStorage.setItem('sidebar-state', isCollapsed ? 'collapsed' : 'expanded');
+                }
+            };
+        }
+    })();
 </script>
