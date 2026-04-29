@@ -1,152 +1,70 @@
-/* 
- * Tera Gateway - Advanced Mega Tables System (v12.12.6)
- * مُحسن لمعالجة جداول الأقساط والعملاء في منطقة حائل
- */
+/* تنسيق الموديول العام */
+.customers-module { padding: 10px; }
 
-/* الحاوية الرئيسية مع تقنية الحفاظ على المساحة المحجوزة */
-.table-scroll-wrapper {
-    scrollbar-gutter: stable; 
-    border-radius: 20px;
-    border: 1px solid #f1f5f9;
-    overflow-x: auto;
-    background: #ffffff;
-    position: relative;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-    /* تفعيل التسريع العتادي للتمرير السلس */
-    -webkit-overflow-scrolling: touch;
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
 }
 
-/* تنسيق الجدول العصري (Modern Table Core) */
-.modern-table {
+/* تنسيق الجدول الاحترافي */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow-x: auto; /* لحل مشكلة عدم ظهور البيانات كاملة */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    min-width: 900px; /* ضمان عدم انضغاط البيانات */
+    border-collapse: collapse;
+    min-width: 1000px; /* لضمان عدم تداخل الأعمدة */
 }
 
-/* تحسينات رؤوس الجداول (Headers) */
-.modern-table th {
+th {
     background: #f8fafc;
-    color: #64748b;
-    font-weight: 800;
-    font-size: 0.8rem;
-    padding: 18px 15px;
-    border-bottom: 2px solid #f1f5f9;
-    text-align: right;
-    white-space: nowrap;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-}
-
-/* تمييز الصفوف وتأثير مخطط "Zebra" الناعم */
-.modern-table tbody tr:nth-child(even) {
-    background-color: #fafbfc;
-}
-
-/* تأثير التحويم الفائق (Ultra-Smooth Hover) */
-.modern-table tbody tr {
-    transition: background-color 0.2s ease, transform 0.15s ease;
-}
-
-.modern-table tbody tr:hover td {
-    background-color: #f1f5f9 !important;
-    cursor: default;
-}
-
-/* حماية البيانات عند التمرير الأفقي (Sticky Columns) */
-.sticky-col-name {
-    position: sticky;
-    right: 0; /* متوافق مع الاتجاه RTL */
-    background: inherit;
-    z-index: 15;
+    padding: 15px;
     font-weight: 700;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
 }
 
-/* تأثير الظل الجانبي للعمود المثبت عند التمرير */
-.sticky-col-name::after {
-    content: '';
-    position: absolute;
-    left: -15px; 
-    top: 0;
-    bottom: 0;
-    width: 15px;
-    background: linear-gradient(to right, transparent, rgba(0,0,0,0.04));
-    pointer-events: none;
+td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
 }
 
-/* تخصيص السكرول بار (Apple-Style Scrollbar) */
-.table-scroll-wrapper::-webkit-scrollbar {
-    height: 8px;
-    width: 8px;
-}
-
-.table-scroll-wrapper::-webkit-scrollbar-track {
-    background: #f8fafc;
-    border-radius: 10px;
-}
-
-.table-scroll-wrapper::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
-    border: 2px solid #f8fafc;
-}
-
-.table-scroll-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
-}
-
-/* تنسيق الخلايا المالية والمبالغ (Financial Cells) */
-.price-cell {
-    font-family: 'Inter', 'Tajawal', sans-serif;
-    font-weight: 800;
-    color: #10b981; /* لون النجاح والمال */
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums; /* محاذاة الأرقام عمودياً بدقة */
-    letter-spacing: -0.5px;
-}
-
-.price-cell::after {
-    content: ' ر.س';
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #94a3b8;
-    margin-right: 4px;
-}
-
-/* ميزة التمييز البصري للـ VIP والقضايا الهامة */
-.vip-row {
-    border-right: 5px solid #f59e0b !important;
-}
-
-.vip-row td {
-    background-color: #fffbeb !important;
-}
-
-/* خلايا الإجراءات (Actions) */
-.actions-cell {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-start;
-}
-
-.action-btn-sm {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
+/* النافذة المنبثقة Modal */
+.tera-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    top: 0; right: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
-    border: 1px solid #e2e8f0;
-    background: #fff;
-    color: #64748b;
-    font-size: 0.9rem;
 }
 
-.action-btn-sm:hover {
-    background: var(--tera-orange-soft);
-    color: var(--tera-orange);
-    border-color: var(--tera-orange);
-    transform: scale(1.1);
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 700px;
+    border-radius: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
 }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+/* الأزرار */
+.btn-primary { background: #f97316; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+.btn-primary:hover { background: #ea580c; }
