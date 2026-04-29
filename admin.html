@@ -3,36 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تيرا جيت واي | لوحة التحكم</title>
+    <title>تيرا جيت واي | الإصدار 12.12.6</title>
     
     <!-- الروابط الأساسية -->
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- ملفات الستايل المحدثة -->
+    <!-- استدعاء ملفات الستايل مع وسم النسخة لكسر الكاش -->
     <link rel="stylesheet" href="css/admin.css?v=12.12.6">
-    <link rel="stylesheet" href="css/sidebar.css?v=12.12.6"> <!-- المسار المعتمد -->
+    <link rel="stylesheet" href="css/sidebar.css?v=12.12.6"> 
     <link rel="stylesheet" href="css/table.css?v=12.12.6">
     <link rel="stylesheet" href="css/customers.css?v=12.12.6">
 
     <style>
-        /* لودر احترافي أثناء التنقل بين الموديولات */
+        :root { --tera-orange: #f97316; --tera-bg: #f8fafc; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--tera-bg); }
+        
         .loader-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 60vh;
-            color: #f97316;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 70vh; color: var(--tera-orange);
         }
         .spinner-tera {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f1f5f9;
-            border-top: 4px solid #f97316;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+            width: 48px; height: 48px; border: 5px solid #e2e8f0;
+            border-top: 5px solid var(--tera-orange); border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -40,107 +35,111 @@
 <body class="tera-admin-body">
 
     <div class="admin-layout">
-        <!-- الحاوية الأساسية للسايدبار (سيتم حقن المكون بداخلها) -->
-        <div id="sidebar-container" class="sidebar-container"></div>
+        <!-- حاوية القائمة الجانبية (Sidebar) -->
+        <aside id="sidebar-container" class="sidebar-container"></aside>
         
         <main class="main-wrapper">
-            <!-- الهيدر العلوي -->
+            <!-- الهيدر العلوي (Header) -->
             <header id="header-container" class="top-bar"></header>
             
-            <!-- منطقة عرض المحتوى المتغيرة -->
+            <!-- منطقة حقن الموديولات ديناميكياً -->
             <section id="module-container" class="content-area">
                 <div class="loader-box">
                     <div class="spinner-tera"></div>
-                    <p style="margin-top: 15px; font-weight: bold; color: #64748b;">جاري تشغيل محرك تيرا...</p>
+                    <p style="margin-top: 20px; font-weight: 700; color: #475569;">
+                        جاري تشغيل محرك تيرا جيت واي...
+                    </p>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- المحرك الرئيسي -->
+    <!-- تشغيل المحرك الرئيسي للنظام -->
     <script type="module">
+        // استيراد الإعدادات المعتمدة على 10.7.1
         import { db, auth } from './js/core/config.js';
         import './js/main.js';
 
-        class TeraRouter {
+        class TeraApp {
             constructor() {
-                this.moduleContainer = document.getElementById('module-container');
-                const hostname = window.location.hostname;
-                
-                // تحديد المسار الأساسي ديناميكياً
-                this.baseUrl = hostname.includes('github.io') ? '/fi-khidmatik' : '';
+                this.container = document.getElementById('module-container');
                 this.version = "12.12.6";
+                
+                // تحديد المسار الأساسي ذكياً (GitHub Pages vs Localhost)
+                const isGithub = window.location.hostname.includes('github.io');
+                this.baseUrl = isGithub ? '/fi-khidmatik' : '';
+                
                 this.init();
             }
 
             async init() {
                 try {
-                    // تحميل المكونات الهيكلية (السايدبار والهيدر)
+                    // 1. تحميل الهيكل الأساسي (Header & Sidebar)
                     await Promise.all([
-                        this.loadComponent('sidebar-container', `${this.baseUrl}/admin/components/sidebar.html`),
-                        this.loadComponent('header-container', `${this.baseUrl}/admin/components/header.html`)
+                        this.fetchToElement('sidebar-container', `${this.baseUrl}/admin/components/sidebar.html`),
+                        this.fetchToElement('header-container', `${this.baseUrl}/admin/components/header.html`)
                     ]);
 
-                    // تفعيل مراقب تغيير الروابط
-                    window.addEventListener('hashchange', () => this.handleRouting());
-                    
-                    // تشغيل التوجيه لأول مرة بناءً على الـ Hash الحالي
-                    this.handleRouting();
+                    // 2. تفعيل نظام التوجيه (Routing)
+                    window.addEventListener('hashchange', () => this.route());
+                    this.route(); // التشغيل الأول
 
                 } catch (err) {
-                    console.error("🔴 Router Init Error:", err);
+                    console.error("Critical System Failure:", err);
                 }
             }
 
-            async loadComponent(containerId, path) {
+            async fetchToElement(id, path) {
                 try {
-                    const response = await fetch(`${path}?v=${this.version}`);
-                    if (!response.ok) throw new Error(`Status: ${response.status}`);
-                    const html = await response.text();
-                    document.getElementById(containerId).innerHTML = html;
-                } catch (e) { 
-                    console.error(`❌ Component Fail: ${path}`, e); 
+                    const res = await fetch(`${path}?v=${this.version}`);
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    document.getElementById(id).innerHTML = await res.text();
+                } catch (e) {
+                    console.error(`Failed to load component: ${path}`, e);
                 }
             }
 
-            async handleRouting() {
+            async route() {
                 const hash = window.location.hash || '#dashboard';
-                const moduleName = hash.replace('#', '');
+                const module = hash.replace('#', '');
                 
-                // تحديد مجلد الملف (dashboard في components والبقية في modules)
-                const folder = (moduleName === 'dashboard') ? 'components' : 'modules';
-                const modulePath = `${this.baseUrl}/admin/${folder}/${moduleName}.html`;
-                
+                // توزيع الملفات: لوحة التحكم في components والبقية في modules
+                const folder = (module === 'dashboard') ? 'components' : 'modules';
+                const targetPath = `${this.baseUrl}/admin/${folder}/${module}.html`;
+
                 try {
-                    this.moduleContainer.innerHTML = '<div class="loader-box"><div class="spinner-tera"></div></div>';
-
-                    const response = await fetch(`${modulePath}?v=${this.version}`);
-                    if (!response.ok) throw new Error(`Module not found`);
-
-                    const content = await response.text();
-                    this.moduleContainer.innerHTML = content;
+                    this.container.innerHTML = '<div class="loader-box"><div class="spinner-tera"></div></div>';
                     
-                    // مزامنة حالة القائمة الجانبية (Active Class)
-                    if (window.syncNavigationUI) {
-                        window.syncNavigationUI(hash);
-                    }
+                    const res = await fetch(`${targetPath}?v=${this.version}`);
+                    if (!res.ok) throw new Error("Module Not Found");
+
+                    this.container.innerHTML = await res.text();
+                    
+                    // تحديث مؤشر القائمة النشط
+                    this.syncSidebar(module);
 
                 } catch (e) {
-                    this.moduleContainer.innerHTML = `
-                        <div class="loader-box" style="color:#ef4444;">
-                            <i class="fas fa-exclamation-circle fa-3x"></i>
-                            <h2 style="margin-top:20px;">خطأ في تحميل النظام</h2>
-                            <p>الموديول [${moduleName}] غير موجود في المسار المحدد.</p>
-                        </div>
-                    `;
+                    this.container.innerHTML = `
+                        <div class="loader-box" style="color:#dc2626;">
+                            <i class="fas fa-exclamation-triangle fa-3x"></i>
+                            <h3 style="margin-top:15px;">عذراً، فشل تحميل الصفحة</h3>
+                            <p>المسار المستهدف غير موجود أو هناك مشكلة في الاتصال.</p>
+                        </div>`;
                 }
+            }
+
+            syncSidebar(activeModule) {
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                    if (nav.getAttribute('data-module') === activeModule || nav.innerText.includes(activeModule)) {
+                        nav.classList.add('active');
+                    }
+                });
             }
         }
 
-        // تشغيل الراوتر
-        window.addEventListener('DOMContentLoaded', () => { 
-            window.teraApp = new TeraRouter(); 
-        });
+        // إقلاع النظام
+        window.onload = () => { window.TeraInstance = new TeraApp(); };
     </script>
 </body>
 </html>
