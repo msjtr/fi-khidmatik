@@ -38,25 +38,26 @@
     <div id="modal-container"></div>
 
     <script type="module">
-        // استيراد المحركات الأساسية من مجلد js في الجذر
+        // استيراد المحركات الأساسية
         import './js/core/firebase.js'; 
         import './js/main.js';          
 
         class TeraRouter {
             constructor() {
                 this.moduleContainer = document.getElementById('module-container');
-                // basePath تشير لمجلد admin الذي يحتوي على components و modules
                 this.basePath = 'admin'; 
+                // حل مشكلة المسارات في GitHub Pages عبر الحصول على المسار النسبي الصحيح
+                this.originPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
                 this.init();
             }
 
             async init() {
                 try {
-                    // تحميل المكونات من مجلد admin/components
+                    // تحميل المكونات باستخدام المسار المطلق المحسوب
                     await Promise.all([
-                        this.loadComponent('sidebar-container', `./${this.basePath}/components/sidebar.html`),
-                        this.loadComponent('header-container', `./${this.basePath}/components/header.html`),
-                        this.loadComponent('modal-container', `./${this.basePath}/components/modals.html`).catch(() => {})
+                        this.loadComponent('sidebar-container', `${this.originPath}/${this.basePath}/components/sidebar.html`),
+                        this.loadComponent('header-container', `${this.originPath}/${this.basePath}/components/header.html`),
+                        this.loadComponent('modal-container', `${this.originPath}/${this.basePath}/components/modals.html`).catch(() => {})
                     ]);
 
                     window.addEventListener('hashchange', () => this.handleRouting());
@@ -91,8 +92,7 @@
                 `;
 
                 try {
-                    // تحميل صفحات الـ HTML من admin/modules
-                    const response = await fetch(`./${this.basePath}/modules/${moduleName}.html`);
+                    const response = await fetch(`${this.originPath}/${this.basePath}/modules/${moduleName}.html`);
                     if (!response.ok) throw new Error('Module HTML not found');
                     const html = await response.text();
                     
@@ -109,21 +109,20 @@
 
             async initModuleJS(name) {
                 try {
-                    // خريطة المسارات بناءً على هيكل مجلد js في الجذر
                     const jsMap = {
-                        'customers': './js/modules/customers-ui.js',
-                        'orders-dashboard': './js/modules/orders-dashboard.js',
-                        'inventory': './js/modules/inventory.js',
-                        'products': './js/modules/products-ui.js',
-                        'settings': './js/modules/settings.js',
-                        'payments': './js/modules/payments.js'
+                        'customers': 'js/modules/customers-ui.js',
+                        'orders-dashboard': 'js/modules/orders-dashboard.js',
+                        'inventory': 'js/modules/inventory.js',
+                        'products': 'js/modules/products-ui.js',
+                        'settings': 'js/modules/settings.js',
+                        'payments': 'js/modules/payments.js'
                     };
 
                     if (jsMap[name]) {
-                        // كسر الكاش لضمان تحميل التحديثات من GitHub
-                        const module = await import(`${jsMap[name]}?v=${Date.now()}`);
+                        // استخدام المسار المطلق مع كسر الكاش لضمان التحديث
+                        const modulePath = `${window.location.origin}${this.originPath}/${jsMap[name]}?v=${Date.now()}`;
+                        const module = await import(modulePath);
                         
-                        // تحويل الاسم (مثلاً orders-dashboard إلى initOrdersDashboardUI)
                         const camelCaseName = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
                         const initFuncName = `init${camelCaseName}UI`;
 
@@ -135,7 +134,7 @@
                         }
                     }
                 } catch (err) {
-                    console.warn(`⚠️ Tera Router: [${name}] JS Logic not found at expected path.`);
+                    console.warn(`⚠️ Tera Router: [${name}] JS Logic load failed.`, err);
                 }
             }
 
@@ -150,7 +149,7 @@
                     <div class="error-state">
                         <i class="fas fa-file-circle-exclamation fa-4x" style="color:#f97316; margin-bottom:20px;"></i>
                         <h3 style="color:#1e293b; font-weight:800;">الصفحة غير موجودة</h3>
-                        <p>المسار المفقود: <code>admin/modules/${name}.html</code></p>
+                        <p>تعذر العثور على: <code>admin/modules/${name}.html</code></p>
                     </div>`;
             }
 
@@ -165,7 +164,6 @@
             }
         }
 
-        // تشغيل المحرك
         window.teraApp = new TeraRouter();
         window.loadModule = (name) => { window.location.hash = name; };
     </script>
