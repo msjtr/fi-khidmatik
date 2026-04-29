@@ -1,5 +1,7 @@
-/* * Tera Gateway - Main Administrative Stylesheet
- * الإصدار: 1.0.3 | التصميم: Modern Premium (RTL)
+/* 
+ * Tera Gateway - Main Administrative Stylesheet
+ * الإصدار: 12.12.6 | التصميم: Modern Premium (RTL)
+ * Path: fi-khidmatik/css/admin.css
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
@@ -17,9 +19,9 @@
     --bg-sidebar: #ffffff;
     --bg-glass: rgba(255, 255, 255, 0.9);
     
-    /* الأبعاد */
+    /* الأبعاد المزامنة مع sidebar.css */
     --sidebar-width: 280px;
-    --sidebar-collapsed-width: 90px; /* إضافة لدعم الانكماش */
+    --sidebar-collapsed-width: 85px; 
     --header-height: 75px;
     
     /* التأثيرات */
@@ -27,7 +29,7 @@
     --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
     --glass-border: 1px solid rgba(255, 255, 255, 0.3);
     --radius-lg: 18px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* الإعدادات العامة */
@@ -42,61 +44,51 @@ body {
     background-color: var(--bg-main);
     color: var(--secondary-color);
     direction: rtl;
-    overflow: hidden; 
+    overflow: hidden; /* لمنع التمرير المزدوج */
 }
 
-.main-wrapper {
+/* الهيكل الرئيسي (Layout) */
+.admin-layout {
     display: flex;
     height: 100vh;
     width: 100vw;
-}
-
-/* --- القائمة الجانبية المحدثة --- */
-.sidebar {
-    width: var(--sidebar-width);
-    background: var(--bg-sidebar);
-    border-left: 1px solid #e2e8f0;
-    display: flex;
-    flex-direction: column;
-    z-index: 1000;
-    transition: var(--transition);
-    position: relative;
-}
-
-/* دعم حالة الانكماش */
-.sidebar.collapsed {
-    width: var(--sidebar-collapsed-width);
-}
-
-.sidebar.collapsed .logo-section span,
-.sidebar.collapsed .nav-item span,
-.sidebar.collapsed .nav-divider span {
-    display: none;
-}
-
-/* المحتوى الرئيسي */
-.content-area {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
-    width: 100%;
 }
 
-/* الشريط العلوي */
+/* المحتوى الرئيسي المغلف */
+.main-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* منع تمدد العناصر المرنة */
+    background: var(--bg-main);
+}
+
+/* منطقة عرض المحتوى (Modules) */
+.content-area {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    background: var(--bg-main);
+}
+
+/* الشريط العلوي (Top Bar) */
 .top-bar {
     height: var(--header-height);
+    min-height: var(--header-height);
     background: var(--bg-glass);
     backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 30px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #f1f5f9;
     z-index: 99;
 }
 
-/* تعديل صندوق البحث */
+/* صندوق البحث الاحترافي */
 .search-box {
     position: relative;
     width: 350px;
@@ -104,10 +96,11 @@ body {
 
 .search-box i {
     position: absolute;
-    right: 15px; /* RTL */
+    right: 15px;
     top: 50%;
     transform: translateY(-50%);
     color: #94a3b8;
+    pointer-events: none;
 }
 
 .search-box input {
@@ -117,6 +110,7 @@ body {
     border: 1px solid #e2e8f0;
     background: #f1f5f9;
     font-family: 'Tajawal';
+    font-size: 0.9rem;
     outline: none;
     transition: var(--transition);
 }
@@ -127,7 +121,7 @@ body {
     box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
-/* معلومات المستخدم - تحسين المحاذاة */
+/* معلومات المستخدم والبروفايل */
 .user-info {
     display: flex;
     align-items: center;
@@ -135,15 +129,16 @@ body {
 }
 
 .user-text {
-    text-align: right; /* تعديل لـ RTL */
+    text-align: right;
     display: flex;
     flex-direction: column;
 }
 
 .user-name {
     font-weight: 800;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--secondary-color);
+    line-height: 1.2;
 }
 
 .user-role {
@@ -152,41 +147,51 @@ body {
     font-weight: 600;
 }
 
-/* حاوية الموديولات مع تمرير ناعم */
-#module-container {
-    padding: 30px;
-    overflow-y: auto;
-    height: calc(100vh - var(--header-height));
-    scroll-behavior: smooth;
+/* تخصيص السكرول بار (Scrollbar) */
+.content-area::-webkit-scrollbar {
+    width: 5px;
 }
-
-/* تخصيص شريط التمرير (Scrollbar) ليناسب التصميم */
-#module-container::-webkit-scrollbar {
-    width: 6px;
+.content-area::-webkit-scrollbar-track {
+    background: transparent;
 }
-#module-container::-webkit-scrollbar-thumb {
+.content-area::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
 }
+.content-area::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
 
-/* أزرار مخصصة متطورة */
+/* الأزرار (Buttons) */
 .btn-tera {
     background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: #fff;
     border: none;
-    padding: 12px 24px;
-    border-radius: 14px;
+    padding: 10px 20px;
+    border-radius: 12px;
     font-weight: 700;
     font-family: 'Tajawal';
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 8px;
     transition: var(--transition);
-    box-shadow: 0 4px 12px var(--primary-soft);
+    text-decoration: none;
 }
 
 .btn-tera:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3);
+    box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3);
+}
+
+/* استجابة الشاشات الصغيرة */
+@media (max-width: 1024px) {
+    .search-box { width: 200px; }
+}
+
+@media (max-width: 768px) {
+    .top-bar { padding: 0 15px; }
+    .search-box { display: none; } /* إخفاء البحث في الجوال لتوفير مساحة */
+    .content-area { padding: 20px 15px; }
 }
