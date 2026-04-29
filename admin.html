@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tera Gateway | نظام إدارة التقسيط الذكي</title>
     
+    <!-- المسارات النسبية لضمان العمل على GitHub Pages -->
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- استدعاء ملفات التنسيق مع رقم الإصدار لمنع الكاش -->
     <link rel="stylesheet" href="css/admin.css?v=12.12.6">
     <link rel="stylesheet" href="css/sidebar.css?v=12.12.6"> 
     <link rel="stylesheet" href="css/table.css?v=12.12.6">
@@ -18,47 +20,72 @@
         :root { 
             --tera-orange: #f97316;
             --tera-bg: #f8fafc; 
+            --tera-dark: #0f172a;
         }
         body { 
             font-family: 'Tajawal', sans-serif; 
             background-color: var(--tera-bg); 
             margin: 0; 
             overflow: hidden; 
+            color: var(--tera-dark);
         }
+        
+        /* تصميم شاشة التحميل (Splash Screen) */
         .loader-box {
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; height: 100vh; background: #fff;
+            position: relative; z-index: 9999;
         }
         .spinner-tera {
-            width: 50px; height: 50px; 
-            border: 4px solid #f1f5f9;
-            border-top: 4px solid var(--tera-orange); 
+            width: 60px; height: 60px; 
+            border: 5px solid #f1f5f9;
+            border-top: 5px solid var(--tera-orange); 
             border-radius: 50%;
-            animation: spin-tera 0.8s linear infinite;
+            animation: spin-tera 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         }
-        @keyframes spin-tera { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-text {
+            margin-top: 25px; font-weight: 800; color: var(--tera-orange);
+            letter-spacing: 1px; animation: pulse-text 1.5s infinite;
+        }
         
+        @keyframes spin-tera { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* تخطيط الأدمن */
         .admin-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
-        .main-wrapper { display: flex; flex-direction: column; flex: 1; min-width: 0; background: var(--tera-bg); }
-        .content-area { flex: 1; padding: 25px; overflow-y: auto; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .main-wrapper { 
+            display: flex; flex-direction: column; flex: 1; min-width: 0; 
+            background: var(--tera-bg); transition: all 0.3s ease;
+        }
+        .content-area { 
+            flex: 1; padding: 25px; overflow-y: auto; 
+            scroll-behavior: smooth; animation: fadeInContent 0.4s ease-out; 
+        }
+        
+        @keyframes fadeInContent { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="tera-gateway-v12">
 
     <div class="admin-layout">
+        <!-- حاوية السايدبار -->
         <aside id="sidebar-container"></aside>
+        
         <main class="main-wrapper">
+            <!-- حاوية الهيدر -->
             <header id="header-container"></header>
+            
+            <!-- حاوية الموديولات المتغيرة -->
             <section id="module-container" class="content-area">
                 <div class="loader-box">
                     <div class="spinner-tera"></div>
-                    <p style="margin-top: 20px; font-weight: 700;">جاري تشغيل محرك تيرا...</p>
+                    <p class="loader-text">Tera Engine v12.12.6</p>
                 </div>
             </section>
         </main>
     </div>
 
+    <!-- حاوية النوافذ المنبثقة -->
     <div id="modals-placeholder"></div>
 
     <script type="module">
@@ -68,6 +95,7 @@
             constructor() {
                 this.container = document.getElementById('module-container');
                 this.version = "12.12.6";
+                // تحديد المسار الأساسي ذكياً (GitHub vs Local)
                 const isGithub = window.location.hostname.includes('github.io');
                 this.baseUrl = isGithub ? '/fi-khidmatik' : '';
                 
@@ -76,48 +104,67 @@
 
             async init() {
                 try {
+                    // التأكد من اتصال Firebase أولاً
                     await ensureDbReady();
 
-                    // تعريف الدوال عالمياً قبل تحميل المكونات
+                    // تسجيل الدوال عالمياً للوصول إليها من HTML المدمج
                     window.navigateTo = (moduleName) => {
-                        // إصلاح خطأ تمرير العنصر بدلاً من الاسم
-                        const target = (typeof moduleName === 'string') ? moduleName : 'dashboard';
+                        // تصحيح خطأ تمرير العنصر: إذا مرر المستخدم 'this' بالخطأ
+                        let target = 'dashboard';
+                        if (typeof moduleName === 'string') target = moduleName;
+                        else if (moduleName && moduleName.getAttribute) {
+                             target = moduleName.getAttribute('data-module') || 'dashboard';
+                        }
+                        
                         window.location.hash = `#${target}`;
                     };
 
-                    // دعم التوافق مع الكود القديم
-                    window.handleSidebarClick = window.navigateTo;
+                    window.handleSidebarClick = (e, moduleName) => {
+                        if (e) e.preventDefault();
+                        window.navigateTo(moduleName);
+                    };
 
+                    // تحميل المكونات الثابتة
                     await Promise.all([
                         this.loadComponent('sidebar-container', `${this.baseUrl}/admin/components/sidebar.html`),
                         this.loadComponent('header-container', `${this.baseUrl}/admin/components/header.html`),
                         this.loadComponent('modals-placeholder', `${this.baseUrl}/admin/components/modals.html`)
                     ]);
 
+                    // تفعيل الراوتر (Routing)
                     window.addEventListener('hashchange', () => this.handleRouting());
                     this.handleRouting(); 
 
                 } catch (err) {
-                    console.error("Critical System Failure:", err);
+                    console.error("Tera System Halt:", err);
+                    this.container.innerHTML = `<div class="loader-box"><h3 style="color:red">خطأ في تشغيل النظام: ${err.message}</h3></div>`;
                 }
             }
 
             async loadComponent(id, path) {
                 try {
-                    const res = await fetch(`${path.replace(/\/+/g, '/')}?v=${this.version}`);
+                    // تنظيف المسار من السلاش المزدوج
+                    const cleanPath = path.replace(/\/+/g, '/');
+                    const res = await fetch(`${cleanPath}?v=${this.version}`);
+                    if (!res.ok) throw new Error(`Component Not Found: ${path}`);
+                    
                     const html = await res.text();
                     const el = document.getElementById(id);
-                    el.innerHTML = html;
-                    this.executeInjectedScripts(el);
-                } catch (e) { console.error("Load Error:", e); }
+                    if (el) {
+                        el.innerHTML = html;
+                        this.executeInjectedScripts(el);
+                    }
+                } catch (e) { 
+                    console.warn(`Load Fail [${id}]:`, e); 
+                }
             }
 
             async handleRouting() {
                 const hash = window.location.hash || '#dashboard';
                 let moduleName = hash.replace('#', '');
 
-                // حماية من الخطأ الذي ظهر لك: [object HTMLLIElement]
-                if (typeof moduleName !== 'string' || moduleName.includes('object')) {
+                // حماية المحرك من كائنات DOM المسربة في الهاش
+                if (moduleName.includes('object') || !moduleName) {
                     moduleName = 'dashboard';
                 }
                 
@@ -125,17 +172,29 @@
                 const targetPath = `${this.baseUrl}/admin/${folder}/${moduleName}.html`.replace(/\/+/g, '/');
 
                 try {
-                    this.container.innerHTML = '<div class="loader-box"><div class="spinner-tera"></div></div>';
-                    const res = await fetch(`${targetPath}?v=${this.version}`);
-                    if (!res.ok) throw new Error("Not Found");
-                    this.container.innerHTML = await res.text();
+                    // إظهار اللودر عند الانتقال
+                    this.container.innerHTML = '<div class="loader-box"><div class="spinner-tera"></div><p class="loader-text">جاري التحميل...</p></div>';
                     
+                    const res = await fetch(`${targetPath}?v=${this.version}`);
+                    if (!res.ok) throw new Error("Module Not Found");
+                    
+                    const content = await res.text();
+                    this.container.innerHTML = content;
+                    
+                    // تشغيل السكريبتات وتحديث الواجهة
                     setTimeout(() => {
                         this.executeInjectedScripts(this.container);
                         this.updateSidebarUI(moduleName);
                     }, 50);
+
                 } catch (e) {
-                    this.container.innerHTML = `<div class="loader-box"><h3>القسم غير متوفر حالياً</h3></div>`;
+                    console.error("Routing Error:", e);
+                    this.container.innerHTML = `
+                        <div class="loader-box">
+                            <i class="fas fa-exclamation-triangle fa-3x" style="color:#f97316 mb-20px"></i>
+                            <h3 style="margin-top:20px">عذراً، هذا القسم غير متوفر حالياً</h3>
+                            <button onclick="window.navigateTo('dashboard')" class="btn-tera" style="margin-top:15px; background:var(--tera-orange); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer">العودة للرئيسية</button>
+                        </div>`;
                 }
             }
 
@@ -143,23 +202,30 @@
                 const scripts = container.querySelectorAll('script');
                 scripts.forEach(oldScript => {
                     const newScript = document.createElement('script');
+                    // نسخ الخصائص
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    
                     if (oldScript.src) {
-                        newScript.src = `${oldScript.src.split('?')[0]}?v=${this.version}`;
+                        const cleanSrc = oldScript.src.split('?')[0];
+                        newScript.src = `${cleanSrc}?v=${this.version}`;
                     } else {
                         newScript.textContent = oldScript.textContent;
                     }
+                    
+                    // إعادة الحقن لتنفيذ الكود
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
             }
 
             updateSidebarUI(activeModule) {
                 document.querySelectorAll('.nav-item').forEach(nav => {
-                    nav.classList.toggle('active', nav.getAttribute('data-module') === activeModule);
+                    const mod = nav.getAttribute('data-module');
+                    nav.classList.toggle('active', mod === activeModule);
                 });
             }
         }
 
+        // تشغيل المحرك
         window.Tera = new TeraApp();
     </script>
 </body>
