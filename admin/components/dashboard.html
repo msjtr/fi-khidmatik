@@ -1,179 +1,216 @@
-<div class="dashboard-content" style="animation: fadeIn 0.6s ease-out; padding: 10px;">
+<div class="dashboard-content animate-fade-in" style="padding: 15px;">
     
-    <!-- الهيدر العلوي للوحة التحكم -->
-    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <div>
-            <h2 style="color: #1e293b; margin: 0; font-weight: 900; font-size: 1.6rem; letter-spacing: -0.5px;">نظرة عامة على النظام</h2>
-            <p style="color: #64748b; margin: 5px 0 0; font-size: 0.95rem; font-weight: 600;">مرحباً بك مجدداً. إليك ملخص نشاط تيرا جيت واي اليوم.</p>
+    <!-- الهيدر العلوي الذكي -->
+    <div class="dashboard-header-wrapped">
+        <div class="welcome-text">
+            <h2 class="main-title">نظرة عامة على النظام</h2>
+            <p class="sub-title">مرحباً بك يا أبا صالح. إليك حالة محرك تيرا والعمليات الحالية.</p>
         </div>
-        <div class="live-status">
-             <span class="status-pulse">
-                <i class="fas fa-circle" style="font-size: 8px; margin-left: 8px;"></i> مباشر الآن
-            </span>
+        <div class="live-status-container">
+            <div class="status-pulse">
+                <span class="pulse-dot"></span>
+                <span class="status-text">مزامنة سحابية نشطة</span>
+            </div>
         </div>
     </div>
     
-    <!-- كروت الإحصائيات -->
-    <div class="stats-container">
+    <!-- كروت الإحصائيات مع تأثيرات النيومورفيزم -->
+    <div class="stats-grid">
         
-        <div class="stat-card orange-glow">
+        <!-- كرت العملاء -->
+        <div class="stat-card orange-theme">
             <div class="stat-inner">
-                <div class="icon-box-new bg-orange-soft">
-                    <i class="fas fa-users"></i>
+                <div class="stat-icon bg-orange-soft">
+                    <i class="fas fa-users-viewfinder"></i>
                 </div>
-                <div class="stat-info">
-                    <p class="stat-label-new">إجمالي العملاء</p>
-                    <h3 class="stat-value-new" id="dash-total-customers">...</h3>
+                <div class="stat-details">
+                    <span class="label">إجمالي العملاء</span>
+                    <h3 class="value" id="dash-total-customers">...</h3>
                 </div>
             </div>
-            <div class="stat-progress-bar bg-orange"></div>
+            <div class="stat-progress"><div class="bar" style="width: 100%"></div></div>
         </div>
 
-        <div class="stat-card purple-glow">
+        <!-- كرت الأقساط - محرك حساب تلقائي -->
+        <div class="stat-card purple-theme">
             <div class="stat-inner">
-                <div class="icon-box-new bg-purple-soft">
-                    <i class="fas fa-file-invoice-dollar"></i>
+                <div class="stat-icon bg-purple-soft">
+                    <i class="fas fa-calendar-check"></i>
                 </div>
-                <div class="stat-info">
-                    <p class="stat-label-new">أقساط مستحقة اليوم</p>
-                    <h3 class="stat-value-new" id="dash-due-installments">0</h3>
+                <div class="stat-details">
+                    <span class="label">أقساط مستحقة (اليوم)</span>
+                    <h3 class="value" id="dash-due-installments">0</h3>
                 </div>
             </div>
-            <div class="stat-progress-bar bg-purple"></div>
+            <div class="stat-progress"><div class="bar" style="width: 45%"></div></div>
         </div>
 
-        <div class="stat-card green-glow">
+        <!-- كرت رصيد المحفظة/السلسلة -->
+        <div class="stat-card green-theme">
             <div class="stat-inner">
-                <div class="icon-box-new bg-green-soft">
-                    <i class="fas fa-sim-card"></i>
+                <div class="stat-icon bg-green-soft">
+                    <i class="fas fa-wallet"></i>
                 </div>
-                <div class="stat-info">
-                    <p class="stat-label-new">رصيد السلسلة</p>
-                    <h3 class="stat-value-new" id="dash-sawa-balance">متوفر</h3>
+                <div class="stat-details">
+                    <span class="label">السيولة المتاحة</span>
+                    <h3 class="value" id="dash-liquidity">...</h3>
                 </div>
             </div>
-            <div class="stat-progress-bar bg-green"></div>
+            <div class="stat-progress"><div class="bar" style="width: 75%"></div></div>
         </div>
 
     </div>
 
-    <!-- قسم الإجراءات السريعة -->
-    <div class="action-welcome-section">
-        <div class="welcome-icon-wrap">
-            <i class="fas fa-rocket fa-4x"></i>
-        </div>
-        <h3 style="color: #1e293b; font-weight: 800; margin-bottom: 12px; font-size: 1.4rem;">انطلق بإنتاجية أعلى</h3>
-        <p style="color: #64748b; max-width: 450px; margin: 0 auto; line-height: 1.7; font-weight: 500;">
-            يمكنك إضافة عملاء جدد لبرنامج التقسيط، إدارة المخزون، أو مراجعة التقارير المالية. جميع العمليات تتم بمزامنة فورية مع السحابة.
-        </p>
-        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
-            <!-- الإصلاح: الربط مع محرك التنقل المركزي -->
-            <button onclick="window.handleSidebarClick(null, 'customers')" class="btn-dashboard primary">
-                <i class="fas fa-user-plus"></i> قاعدة العملاء
-            </button>
-            <button onclick="window.handleSidebarClick(null, 'inventory')" class="btn-dashboard secondary">
-                <i class="fas fa-boxes"></i> المخزون
-            </button>
+    <!-- قسم الإجراءات السريعة - تصميم بطاقة ترحيبية -->
+    <div class="welcome-action-card">
+        <div class="action-content">
+            <div class="action-icon-main">
+                <div class="rocket-wrap"><i class="fas fa-rocket"></i></div>
+            </div>
+            <div class="action-text">
+                <h3>لوحة التحكم السريعة</h3>
+                <p>قم بإدارة عقود التقسيط وإصدار الفواتير فورياً لعملاء منطقة حائل.</p>
+            </div>
+            <div class="action-buttons">
+                <button onclick="window.handleSidebarClick(null, 'customers')" class="tera-btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> إضافة عقد جديد
+                </button>
+                <button onclick="window.handleSidebarClick(null, 'reports')" class="tera-btn btn-glass">
+                    <i class="fas fa-chart-pie"></i> التقارير المالية
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- كود جلب البيانات الحية من Firebase -->
+    <!-- المحرك البرمجي لجلب البيانات الحية -->
     <script type="module">
         import { db } from '../js/core/config.js';
-        import { collection, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, getCountFromServer, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        async function updateDashboardStats() {
+        async function initDashboard() {
             try {
-                // جلب عدد العملاء الفعلي من Firestore
-                const coll = collection(db, "customers");
-                const snapshot = await getCountFromServer(coll);
-                document.getElementById('dash-total-customers').innerText = snapshot.data().count;
+                // 1. جلب عدد العملاء
+                const customerColl = collection(db, "customers");
+                const customerCount = await getCountFromServer(customerColl);
+                document.getElementById('dash-total-customers').innerText = customerCount.data().count.toLocaleString('ar-SA');
+
+                // 2. حساب الأقساط المستحقة لليوم (مثال للمنطق البرمجي)
+                const today = new Date().toISOString().split('T')[0];
+                const dueQuery = query(collection(db, "installments"), where("dueDate", "==", today), where("status", "==", "pending"));
+                const dueCount = await getCountFromServer(dueQuery);
+                document.getElementById('dash-due-installments').innerText = dueCount.data().count.toLocaleString('ar-SA');
+
+                // 3. جلب السيولة (قيمة ثابتة أو من حقل إعدادات)
+                document.getElementById('dash-liquidity').innerText = "متوفر";
+
             } catch (error) {
-                console.error("Dashboard Stats Error:", error);
-                document.getElementById('dash-total-customers').innerText = "0";
+                console.error("Tera Dashboard Error:", error);
             }
         }
 
-        updateDashboardStats();
+        initDashboard();
     </script>
 </div>
 
 <style>
-    /* الإبقاء على الستايل الخاص بك مع تحسينات طفيفة للهوية */
     :root {
         --tera-orange: #f97316;
         --tera-purple: #8b5cf6;
         --tera-green: #10b981;
+        --tera-bg-soft: #f8fafc;
     }
 
-    .stats-container {
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-        gap: 20px;
+    .dashboard-header-wrapped {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        margin-bottom: 35px; border-right: 4px solid var(--tera-orange); padding-right: 20px;
+    }
+
+    .main-title { color: #0f172a; font-weight: 900; font-size: 1.8rem; margin: 0; }
+    .sub-title { color: #64748b; font-size: 1rem; margin-top: 5px; }
+
+    .stats-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;
     }
 
     .stat-card {
-        background: white;
-        padding: 25px;
-        border-radius: 20px;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid #f1f5f9;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
+        background: white; border-radius: 24px; padding: 25px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+        position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1);
-    }
+    .stat-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.08); }
 
     .stat-inner { display: flex; align-items: center; gap: 20px; }
-
-    .icon-box-new {
-        width: 55px; height: 55px; border-radius: 14px;
-        display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    .stat-icon {
+        width: 65px; height: 65px; border-radius: 18px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
     }
 
-    .bg-orange-soft { background: #fff7ed; color: var(--tera-orange); }
-    .bg-purple-soft { background: #f5f3ff; color: var(--tera-purple); }
-    .bg-green-soft { background: #ecfdf5; color: var(--tera-green); }
+    .stat-details .label { display: block; color: #94a3b8; font-weight: 700; font-size: 0.85rem; }
+    .stat-details .value { font-size: 2rem; font-weight: 900; color: #1e293b; margin-top: 4px; }
 
-    .stat-label-new { color: #64748b; margin: 0; font-size: 0.9rem; font-weight: 700; }
-    .stat-value-new { margin: 4px 0 0; font-size: 1.7rem; color: #1e293b; font-weight: 900; }
+    .stat-progress {
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #f1f5f9;
+    }
+    .stat-progress .bar { height: 100%; transition: width 1s ease-in-out; }
 
-    .stat-progress-bar { position: absolute; bottom: 0; right: 0; height: 4px; width: 100%; }
-    .bg-orange { background: var(--tera-orange); }
-    .bg-purple { background: var(--tera-purple); }
-    .bg-green { background: var(--tera-green); }
+    /* الألوان */
+    .orange-theme .stat-icon { background: #fff7ed; color: var(--tera-orange); }
+    .orange-theme .bar { background: var(--tera-orange); }
+    
+    .purple-theme .stat-icon { background: #f5f3ff; color: var(--tera-purple); }
+    .purple-theme .bar { background: var(--tera-purple); }
+    
+    .green-theme .stat-icon { background: #ecfdf5; color: var(--tera-green); }
+    .green-theme .bar { background: var(--tera-green); }
 
-    .action-welcome-section {
-        margin-top: 30px; background: white; padding: 50px 20px;
-        border-radius: 24px; text-align: center; border: 1px solid #e2e8f0;
+    /* بطاقة الترحيب المطورة */
+    .welcome-action-card {
+        margin-top: 40px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 40px; border-radius: 30px; border: 1px solid #e2e8f0;
+        position: relative; overflow: hidden;
     }
 
-    .welcome-icon-wrap { color: var(--tera-orange); margin-bottom: 15px; }
-
-    .btn-dashboard {
-        padding: 12px 25px; border-radius: 12px; font-weight: 700;
-        cursor: pointer; transition: 0.2s; border: none;
-        display: flex; align-items: center; gap: 8px; font-family: 'Cairo', sans-serif;
+    .action-content { display: flex; align-items: center; gap: 30px; }
+    
+    .rocket-wrap {
+        width: 80px; height: 80px; background: var(--tera-orange);
+        border-radius: 22px; display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 2.2rem; transform: rotate(-15deg);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
     }
 
-    .btn-dashboard.primary { background: var(--tera-orange); color: white; }
-    .btn-dashboard.secondary { background: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0; }
+    .action-text h3 { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+    .action-text p { color: #64748b; font-weight: 500; margin: 0; }
 
-    .btn-dashboard:hover { opacity: 0.9; transform: scale(1.02); }
+    .action-buttons { margin-right: auto; display: flex; gap: 12px; }
 
+    .tera-btn {
+        padding: 14px 28px; border-radius: 15px; font-weight: 800; border: none;
+        cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px;
+    }
+
+    .btn-primary { background: var(--tera-orange); color: white; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); }
+    .btn-glass { background: white; color: #1e293b; border: 1px solid #e2e8f0; }
+
+    .tera-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+    /* حالة المزامنة */
     .status-pulse {
-        background: #ecfdf5; color: #059669; padding: 6px 14px;
-        border-radius: 50px; font-size: 0.75rem; font-weight: 700;
-        display: flex; align-items: center; animation: pulse 2s infinite;
+        display: flex; align-items: center; gap: 10px; background: #f0fdf4;
+        padding: 8px 16px; border-radius: 50px; border: 1px solid #dcfce7;
     }
+    .pulse-dot {
+        width: 8px; height: 8px; background: #22c55e; border-radius: 50%;
+        box-shadow: 0 0 0 rgba(34, 197, 94, 0.4); animation: pulse-animation 2s infinite;
+    }
+    .status-text { color: #166534; font-weight: 800; font-size: 0.8rem; }
 
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    @keyframes fadeIn { 
-        from { opacity: 0; transform: translateY(10px); } 
-        to { opacity: 1; transform: translateY(0); } 
+    @keyframes pulse-animation { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+
+    @media (max-width: 992px) {
+        .action-content { flex-direction: column; text-align: center; }
+        .action-buttons { margin: 20px auto 0; }
+        .dashboard-header-wrapped { flex-direction: column; align-items: flex-start; gap: 15px; }
     }
 </style>
