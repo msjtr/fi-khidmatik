@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تيرا جيت واي | لوحة التحكم</title>
+    
+    <!-- الروابط الأساسية -->
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- ملفات الستايل (تأكد من وجودها في مجلد css) -->
     <link rel="stylesheet" href="css/admin.css?v=2.3">
     <link rel="stylesheet" href="css/table.css?v=2.3">
     <link rel="stylesheet" href="css/customers.css?v=2.3">
@@ -14,9 +18,12 @@
 <body class="tera-admin-body">
 
     <div class="admin-layout">
-        <div id="sidebar-container"></div>
+        <!-- الحاويات المرجعية -->
+        <aside id="sidebar-container" class="sidebar"></aside>
+        
         <main class="main-wrapper">
-            <div id="header-container"></div>
+            <header id="header-container" class="top-bar"></header>
+            
             <section id="module-container" class="content-area">
                 <div class="initial-loader">
                     <div class="spinner-tera"></div>
@@ -27,10 +34,12 @@
     </div>
 
     <script type="module">
+        // استيراد الإعدادات والملفات الأساسية
         import { db, auth } from './js/core/config.js';
+        // ملاحظة: تأكد أن main.js لا يحتوي على أكواد تعارض الـ Router
         import './js/main.js';
 
-        // إصلاح خطأ ReferenceError: جعل الدالة عالمية ليراها الـ HTML
+        // جعل الدالة عالمية لاستخدامها في onclick داخل السايدبار المحمل ديناميكياً
         window.handleNavClick = (view) => {
             window.location.hash = view;
         };
@@ -38,19 +47,27 @@
         class TeraRouter {
             constructor() {
                 this.moduleContainer = document.getElementById('module-container');
-                const isGitHub = window.location.hostname.includes('github.io');
-                this.baseUrl = isGitHub ? '/fi-khidmatik' : '';
+                
+                // تحديد المسار الأساسي (للعمل على Localhost أو GitHub Pages)
+                const hostname = window.location.hostname;
+                this.baseUrl = hostname.includes('github.io') ? '/fi-khidmatik' : '';
+                
                 this.version = Date.now();
                 this.init();
             }
 
             async init() {
                 try {
+                    // تحميل المكونات الثابتة أولاً
                     await Promise.all([
                         this.loadComponent('sidebar-container', `${this.baseUrl}/admin/components/sidebar.html`),
                         this.loadComponent('header-container', `${this.baseUrl}/admin/components/header.html`)
                     ]);
+
+                    // تفعيل مراقب الروابط
                     window.addEventListener('hashchange', () => this.handleRouting());
+                    
+                    // التشغيل لأول مرة
                     this.handleRouting();
                 } catch (err) {
                     console.error("🔴 Router Init Error:", err);
@@ -61,35 +78,68 @@
                 try {
                     const response = await fetch(`${path}?v=${this.version}`);
                     if (!response.ok) throw new Error(`Status: ${response.status}`);
-                    document.getElementById(containerId).innerHTML = await response.text();
-                } catch (e) { console.error(`❌ Component Fail: ${path}`, e); }
+                    const html = await response.text();
+                    document.getElementById(containerId).innerHTML = html;
+                } catch (e) { 
+                    console.error(`❌ Component Fail: ${path}`, e); 
+                }
             }
 
             async handleRouting() {
                 const hash = window.location.hash || '#dashboard';
                 const moduleName = hash.replace('#', '');
                 
-                // تحديد المسار بناءً على اسم الموديول (حل مشكلة الـ 404)
-                // إذا كان الموديول هو dashboard ابحث عنه في components كما في ملفاتك
+                // --- منطق تحديد المجلد الصحيح ---
+                // بناءً على هيكلتك: dashboard في components والبقية في modules
                 let folder = 'modules';
-                if (moduleName === 'dashboard') folder = 'components'; 
+                if (moduleName === 'dashboard') {
+                    folder = 'components';
+                }
 
                 const modulePath = `${this.baseUrl}/admin/${folder}/${moduleName}.html`;
                 
                 try {
+                    // إظهار اللودر أثناء الانتقال
+                    this.moduleContainer.innerHTML = '<div class="loader-box"><div class="spinner"></div></div>';
+
                     const response = await fetch(`${modulePath}?v=${this.version}`);
-                    if (!response.ok) throw new Error('Not Found');
-                    this.moduleContainer.innerHTML = await response.text();
                     
-                    // تحديث الـ Active State في القائمة
-                    if (window.syncNavigationUI) window.syncNavigationUI(hash);
+                    if (!response.ok) {
+                        throw new Error(`Module not found: ${modulePath}`);
+                    }
+
+                    const content = await response.text();
+                    this.moduleContainer.innerHTML = content;
+                    
+                    // تحديث واجهة المستخدم (تغيير الـ Active class في السايدبار)
+                    this.syncNavigationUI(moduleName);
+
                 } catch (e) {
-                    this.moduleContainer.innerHTML = `<div style="padding:50px; text-align:center;"><h2>الموديول ${moduleName} غير موجود</h2><p>${modulePath}</p></div>`;
+                    this.moduleContainer.innerHTML = `
+                        <div style="padding:100px 20px; text-align:center;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 50px; color: #f97316; margin-bottom: 20px;"></i>
+                            <h2 style="color:#1e293b;">الموديول [${moduleName}] غير متوفر</h2>
+                            <p style="color:#64748b;">تأكد من وجود الملف في: <br><code>${modulePath}</code></p>
+                        </div>
+                    `;
                 }
+            }
+
+            // دالة لتنسيق حالة العنصر النشط في القائمة الجانبية
+            syncNavigationUI(activeModule) {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-module') === activeModule) {
+                        item.classList.add('active');
+                    }
+                });
             }
         }
 
-        window.addEventListener('DOMContentLoaded', () => { window.teraApp = new TeraRouter(); });
+        // انطلاق التطبيق
+        window.addEventListener('DOMContentLoaded', () => { 
+            window.teraApp = new TeraRouter(); 
+        });
     </script>
 </body>
 </html>
