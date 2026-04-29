@@ -1,4 +1,4 @@
-<!-- Tera Gateway Sidebar Component -->
+<!-- Tera Gateway Sidebar Component v12.12.6 -->
 <aside id="main-sidebar" class="app-sidebar">
     <div class="sidebar-header">
         <div class="brand-minimal">
@@ -9,20 +9,20 @@
     
     <nav class="side-nav">
         <ul id="admin-menu">
-            <!-- لاحظ استخدام window. لضمان الوصول للدالة من أي مكان -->
-            <li class="nav-item active" data-module="dashboard" onclick="window.handleSidebarClick(this, 'dashboard')">
+            <!-- نمرر اسم القسم كنص فقط 'dashboard' لضمان استقرار التوجيه -->
+            <li class="nav-item" data-module="dashboard" onclick="navigateTo('dashboard')">
                 <div class="nav-icon"><i class="fas fa-th-large"></i></div>
                 <span class="nav-text">لوحة التحكم</span>
                 <div class="active-indicator"></div>
             </li>
             
-            <li class="nav-item" data-module="orders" onclick="window.handleSidebarClick(this, 'orders')">
+            <li class="nav-item" data-module="orders" onclick="navigateTo('orders')">
                 <div class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                 <span class="nav-text">طلبات التقسيط</span>
                 <div class="active-indicator"></div>
             </li>
 
-            <li class="nav-item" data-module="customers" onclick="window.handleSidebarClick(this, 'customers')">
+            <li class="nav-item" data-module="customers" onclick="navigateTo('customers')">
                 <div class="nav-icon"><i class="fas fa-user-group"></i></div>
                 <span class="nav-text">قاعدة العملاء</span>
                 <div class="active-indicator"></div>
@@ -30,11 +30,37 @@
 
             <div class="nav-divider"><span>النظام</span></div>
             
-            <li class="nav-item" data-module="settings" onclick="window.handleSidebarClick(this, 'settings')">
+            <li class="nav-item" data-module="settings" onclick="navigateTo('settings')">
                 <div class="nav-icon"><i class="fas fa-cog"></i></div>
                 <span class="nav-text">إعدادات النظام</span>
                 <div class="active-indicator"></div>
             </li>
+
+            <li class="nav-item" style="margin-top: auto; color: #ef4444;" onclick="handleLogout()">
+                <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                <span class="nav-text">تسجيل الخروج</span>
+            </li>
         </ul>
     </nav>
 </aside>
+
+<script>
+    /**
+     * تحديث حالة القائمة الجانبية بصرياً عند الضغط
+     * ملاحظة: التوجيه الفعلي يتم عبر HashChange في الملف الرئيسي
+     */
+    function updateSidebarActiveState(moduleName) {
+        const items = document.querySelectorAll('.nav-item');
+        items.forEach(item => {
+            if(item.getAttribute('data-module') === moduleName) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    // استدعاء التحديث فور تحميل المكون بناءً على الـ Hash الحالي
+    const currentHash = window.location.hash.replace('#', '') || 'dashboard';
+    updateSidebarActiveState(currentHash);
+</script>
