@@ -88,7 +88,7 @@
                 <div class="form-main">
                     <div class="avatar-upload">
                         <div class="avatar-preview">
-                            <img id="customerImagePreview" src="images/default-avatar.png">
+                            <img id="customerImagePreview" src="https://ui-avatars.com/api/?name=جديد&background=f97316&color=fff">
                         </div>
                         <label for="imgUpload" class="upload-badge"><i class="fas fa-camera"></i></label>
                         <input type="file" id="imgUpload" hidden accept="image/*" onchange="previewImage(event)">
@@ -151,7 +151,7 @@
     .card-style { background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 10px; }
     
     .avatar-upload { position: relative; width: 100px; margin: 0 auto 25px; }
-    .avatar-preview { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 4px solid #fff; box-shadow: var(--shadow-md); }
+    .avatar-preview { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 4px solid #fff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
     .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
     .upload-badge { position: absolute; bottom: 0; right: 0; background: #2563eb; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; }
 
@@ -162,8 +162,10 @@
     .badge-vip { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
     .status-active { color: #16a34a; background: #f0fdf4; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
     
+    .btn-icon { cursor: pointer; border: none; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; }
     .btn-icon.edit { color: #2563eb; background: #eff6ff; }
     .btn-icon.delete { color: #dc2626; background: #fef2f2; }
+    .btn-icon:hover { opacity: 0.8; transform: scale(1.05); }
 </style>
 
 <script type="module">
@@ -178,7 +180,9 @@
         const form = document.getElementById('customerForm');
         form.reset();
         document.getElementById('customerId').value = id || '';
-        document.getElementById('customerImagePreview').src = 'images/default-avatar.png';
+        
+        // الصورة الافتراضية الذكية عند الفتح
+        document.getElementById('customerImagePreview').src = 'https://ui-avatars.com/api/?name=جديد&background=f97316&color=fff';
         
         if (mode === 'edit' && id) {
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit"></i> تعديل بيانات العميل';
@@ -194,7 +198,12 @@
                 document.getElementById('buildingNo').value = data.buildingNo || '';
                 document.getElementById('postalCode').value = data.postalCode || '';
                 document.getElementById('tag').value = data.tag || 'individual';
-                if(data.photoURL) document.getElementById('customerImagePreview').src = data.photoURL;
+                
+                if(data.photoURL) {
+                    document.getElementById('customerImagePreview').src = data.photoURL;
+                } else if(data.name) {
+                     document.getElementById('customerImagePreview').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=f97316&color=fff`;
+                }
             }
         } else {
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> إضافة عميل جديد';
@@ -206,56 +215,87 @@
         document.getElementById('customerModal').style.display = 'none';
     };
 
-    // تحميل السجلات وتحديث الإحصائيات
+    // تحميل السجلات وتحديث الإحصائيات بأمان
     async function loadCustomers() {
         const list = document.getElementById('customersList');
         const q = query(customerCollection, orderBy("updatedAt", "desc"));
-        const snapshot = await getDocs(q);
         
-        list.innerHTML = '';
-        let stats = { total: 0, active: 0, vip: 0, suspended: 0 };
+        try {
+            const snapshot = await getDocs(q);
+            list.innerHTML = '';
+            let stats = { total: 0, active: 0, vip: 0, suspended: 0 };
 
-        snapshot.forEach((docSnap) => {
-            const c = docSnap.data();
-            const id = docSnap.id;
-            stats.total++;
-            if(c.status === 'active') stats.active++;
-            if(c.tag === 'vip') stats.vip++;
-            if(c.status === 'suspended') stats.suspended++;
+            snapshot.forEach((docSnap) => {
+                const c = docSnap.data();
+                if (!c) return; // حماية ضد السجلات الفارغة تماماً
+                
+                const id = docSnap.id;
+                stats.total++;
+                if(c.status === 'active') stats.active++;
+                if(c.tag === 'vip') stats.vip++;
+                if(c.status === 'suspended') stats.suspended++;
 
-            const row = `
-                <tr>
-                    <td>${stats.total}</td>
-                    <td>
-                        <div class="user-cell">
-                            <img src="${c.photoURL || 'images/default-avatar.png'}" class="table-img-circle">
-                            <div class="user-info">
-                                <strong>${c.name}</strong>
-                                <span>${c.email || 'بدون بريد'}</span>
+                // حماية المتغيرات وتجهيزها
+                const safeName = c.name || 'بدون اسم';
+                const safeTag = (c.tag || 'individual').toLowerCase();
+                const displayTag = safeTag.toUpperCase();
+                const safeStatus = c.status || 'active';
+                const displayStatus = safeStatus === 'active' ? 'نشط' : 'موقوف';
+                
+                // الصورة الاحتياطية (تتلافى خطأ 404)
+                const fallbackImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=f97316&color=fff`;
+                const photoURL = c.photoURL || fallbackImg;
+                
+                // معالجة التاريخ بأمان
+                let displayDate = '-';
+                if(c.createdAt) {
+                    try {
+                        displayDate = new Date(c.createdAt).toLocaleDateString('ar-SA');
+                    } catch(e) { displayDate = '-'; }
+                }
+
+                const row = `
+                    <tr>
+                        <td>${stats.total}</td>
+                        <td>
+                            <div class="user-cell">
+                                <img src="${photoURL}" class="table-img-circle" onerror="this.src='${fallbackImg}'">
+                                <div class="user-info">
+                                    <strong>${safeName}</strong>
+                                    <span>${c.email || 'بدون بريد'}</span>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td dir="ltr">+966 ${c.phone}</td>
-                    <td>${c.district || 'حائل'} - ${c.street || ''}</td>
-                    <td>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('ar-SA') : '-'}</td>
-                    <td><span class="badge badge-${c.tag}">${c.tag.toUpperCase()}</span></td>
-                    <td><span class="status-${c.status || 'active'}">${c.status === 'active' ? 'نشط' : 'موقوف'}</span></td>
-                    <td>
-                        <div class="actions">
-                            <button onclick="openCustomerModal('edit', '${id}')" class="btn-icon edit" title="تعديل"><i class="fas fa-pen"></i></button>
-                            <button onclick="confirmDelete('${id}')" class="btn-icon delete" title="حذف"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            list.insertAdjacentHTML('beforeend', row);
-        });
+                        </td>
+                        <td dir="ltr">+966 ${c.phone || '-'}</td>
+                        <td>${c.district || 'حائل'} - ${c.street || ''}</td>
+                        <td>${displayDate}</td>
+                        <td><span class="badge badge-${safeTag}">${displayTag}</span></td>
+                        <td><span class="status-${safeStatus}">${displayStatus}</span></td>
+                        <td>
+                            <div class="actions">
+                                <button onclick="openCustomerModal('edit', '${id}')" class="btn-icon edit" title="تعديل"><i class="fas fa-pen"></i></button>
+                                <button onclick="confirmDelete('${id}')" class="btn-icon delete" title="حذف"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                list.insertAdjacentHTML('beforeend', row);
+            });
 
-        // تحديث أرقام الإحصائيات في الواجهة
-        document.getElementById('total-customers').innerText = stats.total;
-        document.getElementById('active-customers').innerText = stats.active;
-        document.getElementById('vip-customers').innerText = stats.vip;
-        document.getElementById('suspended-customers').innerText = stats.suspended;
+            if(stats.total === 0) {
+                list.innerHTML = '<tr><td colspan="8" class="text-center p-5">لا توجد بيانات حالياً</td></tr>';
+            }
+
+            // تحديث أرقام الإحصائيات في الواجهة
+            document.getElementById('total-customers').innerText = stats.total;
+            document.getElementById('active-customers').innerText = stats.active;
+            document.getElementById('vip-customers').innerText = stats.vip;
+            document.getElementById('suspended-customers').innerText = stats.suspended;
+            
+        } catch (error) {
+            console.error("خطأ أثناء جلب العملاء:", error);
+            list.innerHTML = '<tr><td colspan="8" class="text-center text-danger">حدث خطأ في تحميل البيانات</td></tr>';
+        }
     }
 
     // الحفظ والتحديث
@@ -299,8 +339,12 @@
 
     window.confirmDelete = async (id) => {
         if(confirm("هل أنت متأكد من حذف هذا العميل نهائياً؟")) {
-            await deleteDoc(doc(db, "customers", id));
-            loadCustomers();
+            try {
+                await deleteDoc(doc(db, "customers", id));
+                loadCustomers();
+            } catch(e) {
+                alert("تعذر حذف العميل");
+            }
         }
     };
 
