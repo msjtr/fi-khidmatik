@@ -22,7 +22,7 @@ export async function addCustomer(data) {
         countryCode: "+966", 
         email: "",
         country: "المملكة العربية السعودية", 
-        city: "", 
+        city: "حائل", // الافتراضي حائل لسرعة الإدخال
         district: "",
         street: "", 
         buildingNo: "", 
@@ -33,17 +33,22 @@ export async function addCustomer(data) {
         tag: "عادي", 
         type: "فرد", 
         notes: "",
-        photoURL: "admin/images/default-product.png",
+        photoURL: "admin/images/default-avatar.png", // تم تعديل المسار ليكون أيقونة مستخدم
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     };
 
-    // إزالة أي قيم undefined لمنع أخطاء Firestore الـ Payload
+    // دمج البيانات مع القيم الافتراضية
     const finalData = { ...defaultData, ...data };
-    Object.keys(finalData).forEach(key => finalData[key] === undefined && delete finalData[key]);
+
+    // تنظيف البيانات: إزالة القيم undefined أو الخالية تماماً لمنع أخطاء الـ Payload
+    Object.keys(finalData).forEach(key => {
+        if (finalData[key] === undefined) delete finalData[key];
+    });
 
     try {
-        return await addDoc(customersRef, finalData);
+        const docRef = await addDoc(customersRef, finalData);
+        return { success: true, id: docRef.id };
     } catch (error) {
         console.error("🔴 Tera Core Error (Add):", error);
         throw error;
@@ -54,17 +59,25 @@ export async function addCustomer(data) {
  * 2. تحديث بيانات عميل
  */
 export async function updateCustomer(id, data) {
+    if (!id) throw new Error("ID العميل مطلوب للتحديث");
+    
     const docRef = doc(db, "customers", id);
     const updateData = {
         ...data,
         updatedAt: serverTimestamp()
     };
     
-    // إزالة الحقول التي لا يجب تحديثها أو التي قيمتها undefined
+    // حماية: منع تعديل تاريخ الإنشاء الأصلي وحذف القيم غير المعرفة
     delete updateData.createdAt; 
-    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+    Object.keys(updateData).forEach(key => (updateData[key] === undefined) && delete updateData[key]);
 
-    return await updateDoc(docRef, updateData);
+    try {
+        await updateDoc(docRef, updateData);
+        return { success: true };
+    } catch (error) {
+        console.error("🔴 Tera Core Error (Update):", error);
+        throw error;
+    }
 }
 
 /**
@@ -86,7 +99,8 @@ export async function fetchCustomerById(id) {
 export async function fetchAllCustomers() {
     try {
         const q = query(customersRef, orderBy("createdAt", "desc"));
-        return await getDocs(q);
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("🔴 Tera Core Error (FetchAll):", error);
         throw error;
@@ -97,13 +111,18 @@ export async function fetchAllCustomers() {
  * 5. حذف عميل نهائياً
  */
 export async function deleteCustomer(id) {
-    const docRef = doc(db, "customers", id);
-    return await deleteDoc(docRef);
+    try {
+        const docRef = doc(db, "customers", id);
+        await deleteDoc(docRef);
+        return { success: true };
+    } catch (error) {
+        console.error("🔴 Tera Core Error (Delete):", error);
+        throw error;
+    }
 }
 
 /**
  * 6. جلب إحصائيات متقدمة لواجهة الإدارة
- * تم تحسين المنطق ليعطي نتائج دقيقة فورية
  */
 export async function getCustomersStats() {
     try {
@@ -123,15 +142,18 @@ export async function getCustomersStats() {
             const d = docSnap.data();
             stats.total++;
             
-            // معيار اكتمال الملف الشخصي للعميل في تيرا
-            const isComplete = (d.name && d.phone && d.city && d.district && d.buildingNo);
+            // معيار اكتمال الملف الشخصي (تيرا ستاندرد)
+            const isComplete = !!(d.name && d.phone && d.city && d.district && d.buildingNo);
             isComplete ? stats.complete++ : stats.incomplete++;
 
-            if (d.status === 'نشط') stats.active++;
-            else if (d.status === 'موقوف' || d.status === 'inactive') stats.suspended++;
+            // الحالة
+            if (d.status === 'نشط' || d.status === 'active') stats.active++;
+            else stats.suspended++;
 
-            if (d.tag === 'VIP' || d.classification === 'VIP') stats.vip++;
+            // التصنيف (دعم حالة الأحرف VIP و vip)
+            if (d.tag?.toUpperCase() === 'VIP' || d.classification?.toUpperCase() === 'VIP') stats.vip++;
             
+            // النوع
             if (d.type === 'شركة') stats.companies++;
             else stats.individuals++;
         });
@@ -149,14 +171,17 @@ export async function getCustomersStats() {
 export async function importCustomersFromExcel(dataArray) {
     const results = { success: 0, failed: 0, logs: [] };
     
-    for (const item of dataArray) {
+    // تنفيذ العمليات بشكل متوازي لسرعة الأداء في الملفات الكبيرة
+    const promises = dataArray.map(async (item) => {
         try {
             await addCustomer(item);
             results.success++;
         } catch (err) {
             results.failed++;
-            results.logs.push(`فشل إضافة: ${item.name || 'مجهول'} - السبب: ${err.message}`);
+            results.logs.push(`فشل: ${item.name || 'مجهول'} | ${err.message}`);
         }
-    }
+    });
+
+    await Promise.all(promises);
     return results;
 }
