@@ -10,65 +10,83 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- ملفات الستايل (تأكد من وجودها في مجلد css) -->
-    <link rel="stylesheet" href="css/admin.css?v=2.3">
-    <link rel="stylesheet" href="css/table.css?v=2.3">
-    <link rel="stylesheet" href="css/customers.css?v=2.3">
+    <!-- ملفات الستايل المحدثة -->
+    <link rel="stylesheet" href="css/admin.css?v=12.12.6">
+    <link rel="stylesheet" href="css/sidebar.css?v=12.12.6"> <!-- المسار المعتمد -->
+    <link rel="stylesheet" href="css/table.css?v=12.12.6">
+    <link rel="stylesheet" href="css/customers.css?v=12.12.6">
+
+    <style>
+        /* لودر احترافي أثناء التنقل بين الموديولات */
+        .loader-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            color: #f97316;
+        }
+        .spinner-tera {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f1f5f9;
+            border-top: 4px solid #f97316;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body class="tera-admin-body">
 
     <div class="admin-layout">
-        <!-- الحاويات المرجعية -->
-        <aside id="sidebar-container" class="sidebar"></aside>
+        <!-- الحاوية الأساسية للسايدبار (سيتم حقن المكون بداخلها) -->
+        <div id="sidebar-container" class="sidebar-container"></div>
         
         <main class="main-wrapper">
+            <!-- الهيدر العلوي -->
             <header id="header-container" class="top-bar"></header>
             
+            <!-- منطقة عرض المحتوى المتغيرة -->
             <section id="module-container" class="content-area">
-                <div class="initial-loader">
+                <div class="loader-box">
                     <div class="spinner-tera"></div>
-                    <p>جاري تشغيل محرك تيرا...</p>
+                    <p style="margin-top: 15px; font-weight: bold; color: #64748b;">جاري تشغيل محرك تيرا...</p>
                 </div>
             </section>
         </main>
     </div>
 
+    <!-- المحرك الرئيسي -->
     <script type="module">
-        // استيراد الإعدادات والملفات الأساسية
         import { db, auth } from './js/core/config.js';
-        // ملاحظة: تأكد أن main.js لا يحتوي على أكواد تعارض الـ Router
         import './js/main.js';
-
-        // جعل الدالة عالمية لاستخدامها في onclick داخل السايدبار المحمل ديناميكياً
-        window.handleNavClick = (view) => {
-            window.location.hash = view;
-        };
 
         class TeraRouter {
             constructor() {
                 this.moduleContainer = document.getElementById('module-container');
-                
-                // تحديد المسار الأساسي (للعمل على Localhost أو GitHub Pages)
                 const hostname = window.location.hostname;
-                this.baseUrl = hostname.includes('github.io') ? '/fi-khidmatik' : '';
                 
-                this.version = Date.now();
+                // تحديد المسار الأساسي ديناميكياً
+                this.baseUrl = hostname.includes('github.io') ? '/fi-khidmatik' : '';
+                this.version = "12.12.6";
                 this.init();
             }
 
             async init() {
                 try {
-                    // تحميل المكونات الثابتة أولاً
+                    // تحميل المكونات الهيكلية (السايدبار والهيدر)
                     await Promise.all([
                         this.loadComponent('sidebar-container', `${this.baseUrl}/admin/components/sidebar.html`),
                         this.loadComponent('header-container', `${this.baseUrl}/admin/components/header.html`)
                     ]);
 
-                    // تفعيل مراقب الروابط
+                    // تفعيل مراقب تغيير الروابط
                     window.addEventListener('hashchange', () => this.handleRouting());
                     
-                    // التشغيل لأول مرة
+                    // تشغيل التوجيه لأول مرة بناءً على الـ Hash الحالي
                     this.handleRouting();
+
                 } catch (err) {
                     console.error("🔴 Router Init Error:", err);
                 }
@@ -89,54 +107,37 @@
                 const hash = window.location.hash || '#dashboard';
                 const moduleName = hash.replace('#', '');
                 
-                // --- منطق تحديد المجلد الصحيح ---
-                // بناءً على هيكلتك: dashboard في components والبقية في modules
-                let folder = 'modules';
-                if (moduleName === 'dashboard') {
-                    folder = 'components';
-                }
-
+                // تحديد مجلد الملف (dashboard في components والبقية في modules)
+                const folder = (moduleName === 'dashboard') ? 'components' : 'modules';
                 const modulePath = `${this.baseUrl}/admin/${folder}/${moduleName}.html`;
                 
                 try {
-                    // إظهار اللودر أثناء الانتقال
-                    this.moduleContainer.innerHTML = '<div class="loader-box"><div class="spinner"></div></div>';
+                    this.moduleContainer.innerHTML = '<div class="loader-box"><div class="spinner-tera"></div></div>';
 
                     const response = await fetch(`${modulePath}?v=${this.version}`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`Module not found: ${modulePath}`);
-                    }
+                    if (!response.ok) throw new Error(`Module not found`);
 
                     const content = await response.text();
                     this.moduleContainer.innerHTML = content;
                     
-                    // تحديث واجهة المستخدم (تغيير الـ Active class في السايدبار)
-                    this.syncNavigationUI(moduleName);
+                    // مزامنة حالة القائمة الجانبية (Active Class)
+                    if (window.syncNavigationUI) {
+                        window.syncNavigationUI(hash);
+                    }
 
                 } catch (e) {
                     this.moduleContainer.innerHTML = `
-                        <div style="padding:100px 20px; text-align:center;">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 50px; color: #f97316; margin-bottom: 20px;"></i>
-                            <h2 style="color:#1e293b;">الموديول [${moduleName}] غير متوفر</h2>
-                            <p style="color:#64748b;">تأكد من وجود الملف في: <br><code>${modulePath}</code></p>
+                        <div class="loader-box" style="color:#ef4444;">
+                            <i class="fas fa-exclamation-circle fa-3x"></i>
+                            <h2 style="margin-top:20px;">خطأ في تحميل النظام</h2>
+                            <p>الموديول [${moduleName}] غير موجود في المسار المحدد.</p>
                         </div>
                     `;
                 }
             }
-
-            // دالة لتنسيق حالة العنصر النشط في القائمة الجانبية
-            syncNavigationUI(activeModule) {
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.remove('active');
-                    if (item.getAttribute('data-module') === activeModule) {
-                        item.classList.add('active');
-                    }
-                });
-            }
         }
 
-        // انطلاق التطبيق
+        // تشغيل الراوتر
         window.addEventListener('DOMContentLoaded', () => { 
             window.teraApp = new TeraRouter(); 
         });
