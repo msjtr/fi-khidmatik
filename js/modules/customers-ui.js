@@ -1,36 +1,34 @@
 /**
  * js/modules/customers-ui.js
- * موديول واجهة إدارة العملاء - Tera Engine
- * معالجة مشكلة "عالق في المزامنة"
+ * إصدار الحل النهائي V12.12.10
  */
 
 import { db } from '../core/firebase.js';
-import { COLLECTIONS } from '../core/config.js';
-import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export async function initCustomers(container) {
     if (!container) return;
 
-    // 1. رسم الهيكل الأساسي للجدول
+    // 1. رسم الواجهة فوراً
     container.innerHTML = `
-        <div style="padding: 20px; font-family: 'Tajawal', sans-serif;">
-            <div id="customers-table-container">
-                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <thead style="background: #f8f9fa; border-bottom: 2px solid #edf2f7;">
+        <div style="padding: 20px; font-family: 'Tajawal', sans-serif; direction: rtl;">
+            <div style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: #f8f9fa;">
                         <tr>
                             <th style="padding: 15px; text-align: right;">العميل</th>
                             <th style="padding: 15px; text-align: right;">رقم الجوال</th>
-                            <th style="padding: 15px; text-align: right;">الموقع (المدينة/الحي)</th>
-                            <th style="padding: 15px; text-align: right;">تاريخ الإضافة</th>
-                            <th style="padding: 15px; text-align: right;">التصنيف</th>
-                            <th style="padding: 15px; text-align: right;">الحالة</th>
+                            <th style="padding: 15px; text-align: right;">المنطقة</th>
                             <th style="padding: 15px; text-align: center;">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="customers-tbody">
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px;">
-                                <i class="fas fa-spinner fa-spin" style="color: #e67e22;"></i> جاري مزامنة بيانات عملاء حائل...
+                            <td colspan="4" style="text-align: center; padding: 50px;">
+                                <div id="loader-status">
+                                    <i class="fas fa-spinner fa-spin fa-2x" style="color: #e67e22;"></i>
+                                    <p>جاري الاتصال بقاعدة بيانات تيرا...</p>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -39,47 +37,58 @@ export async function initCustomers(container) {
         </div>
     `;
 
-    // 2. محاولة جلب البيانات الحقيقية
+    const tbody = document.getElementById('customers-tbody');
+
+    // 2. وضع مؤقت زمني لكسر الدوران اللانهائي
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout")), 7000)
+    );
+
     try {
-        const tbody = document.getElementById('customers-tbody');
-        const customerRef = collection(db, COLLECTIONS.customers || "customers");
-        const q = query(customerRef, orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
+        // محاولة جلب أول 50 عميل فقط للتأكد من السرعة
+        const fetchPromise = getDocs(query(collection(db, "customers"), limit(50)));
+        
+        // تنفيذ الجلب مع سباق ضد الوقت
+        const querySnapshot = await Promise.race([fetchPromise, timeoutPromise]);
 
         if (querySnapshot.empty) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #95a5a6;">لا يوجد عملاء مسجلين حالياً</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;">لا توجد بيانات (المجموعة فارغة)</td></tr>`;
             return;
         }
 
-        // 3. بناء الصفوف
-        let rowsHtml = "";
+        let html = "";
         querySnapshot.forEach((doc) => {
-            const customer = doc.data();
-            const date = customer.createdAt?.toDate ? customer.createdAt.toDate().toLocaleDateString('ar-SA') : '---';
-            
-            rowsHtml += `
-                <tr style="border-bottom: 1px solid #f1f5f9; transition: 0.3s;" onmouseover="this.style.background='#fffcf9'" onmouseout="this.style.background='white'">
-                    <td style="padding: 15px;"><strong>${customer.name || '---'}</strong></td>
-                    <td style="padding: 15px; direction: ltr; text-align: right;">${customer.phone || '---'}</td>
-                    <td style="padding: 15px;">${customer.city || 'حائل'} - ${customer.district || ''}</td>
-                    <td style="padding: 15px;">${date}</td>
-                    <td style="padding: 15px;"><span style="background: #eef2ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem;">${customer.tag || 'عميل'}</span></td>
-                    <td style="padding: 15px;"><span style="color: #059669;">● نشط</span></td>
+            const c = doc.data();
+            html += `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 15px;"><strong>${c.name || 'بدون اسم'}</strong></td>
+                    <td style="padding: 15px;">${c.phone || '---'}</td>
+                    <td style="padding: 15px;">${c.city || 'حائل'}</td>
                     <td style="padding: 15px; text-align: center;">
-                        <button style="border: none; background: none; color: #e67e22; cursor: pointer;"><i class="fas fa-edit"></i></button>
+                        <button style="color: #e67e22; border:none; background:none; cursor:pointer;"><i class="fas fa-eye"></i></button>
                     </td>
                 </tr>
             `;
         });
-
-        tbody.innerHTML = rowsHtml;
+        tbody.innerHTML = html;
 
     } catch (error) {
-        console.error("🔴 Error Fetching Customers:", error);
-        document.getElementById('customers-tbody').innerHTML = `
+        console.error("Firebase Error:", error);
+        
+        // رسالة توضح السبب للمستخدم
+        let errorMsg = "حدث خطأ غير متوقع";
+        if (error.message === "Timeout") {
+            errorMsg = "فشل الاتصال: خادم Firebase لا يستجيب (تأكد من الإنترنت)";
+        } else if (error.code === "permission-denied") {
+            errorMsg = "خطأ في الصلاحيات: يرجى تحديث قواعد Firebase Rules إلى allow read: if true;";
+        }
+
+        tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 20px; color: #e74c3c;">
-                    حدث خطأ أثناء جلب البيانات. تأكد من إعدادات Firebase Cloud Firestore.
+                <td colspan="4" style="text-align: center; padding: 30px; color: #e74c3c;">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <p>${errorMsg}</p>
+                    <button onclick="location.reload()" style="background:#e67e22; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">تحديث الصفحة</button>
                 </td>
             </tr>
         `;
