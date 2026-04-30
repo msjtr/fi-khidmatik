@@ -1,30 +1,31 @@
 <!-- 
     Tera Gateway - Customer Management Module
-    Version: 12.12.8
+    Version: 12.12.10
     Path: fi-khidmatik/admin/modules/customers.html
-    Developed by: Mohammed Al-Shammari
+    Updated by: Mohammed Al-Shammari
 -->
 
-<div class="customers-module">
+<div class="customers-module animate-fade-in">
     <!-- رأس الصفحة: العنوان وأدوات البحث والإضافة -->
     <div class="module-header">
         <div class="header-title">
-            <h2><i class="fas fa-users"></i> إدارة عملاء تيرا</h2>
-            <p>لوحة التحكم في بيانات العملاء والعناوين الوطنية</p>
+            <h2><i class="fas fa-users-cog" style="color: var(--tera-orange);"></i> إدارة عملاء تيرا</h2>
+            <p>لوحة التحكم المركزية | منطقة حائل والمناطق المسجلة</p>
         </div>
         
         <div class="header-actions">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="customerSearch" placeholder="ابحث عن عميل (الاسم، الجوال، المدينة)..." onkeyup="filterCustomers()">
+                <!-- تم ربط البحث الفوري بدالة تصفية البيانات -->
+                <input type="text" id="customerSearchInput" placeholder="ابحث عن اسم العميل أو الجوال..." oninput="handleCustomerSearch(this.value)">
             </div>
-            <button class="btn-primary" onclick="openCustomerModal()">
-                <i class="fas fa-plus"></i> إضافة عميل جديد
+            <button class="btn-primary" onclick="window.openCustomerModal()">
+                <i class="fas fa-user-plus"></i> إضافة عميل جديد
             </button>
         </div>
     </div>
 
-    <!-- جدول عرض البيانات -->
+    <!-- جدول عرض البيانات - التصميم النظيف (Glassmorphism) -->
     <div class="table-container shadow-neumorphic">
         <table>
             <thead>
@@ -35,14 +36,17 @@
                     <th>تاريخ الإضافة</th>
                     <th>التصنيف</th>
                     <th>الحالة</th>
-                    <th>الإجراءات</th>
+                    <th style="text-align: center;">الإجراءات</th>
                 </tr>
             </thead>
-            <tbody id="customersList">
+            <tbody id="customersListContainer">
                 <!-- يتم تعبئة البيانات ديناميكياً بواسطة js/modules/customers-ui.js -->
                 <tr>
-                    <td colspan="7" style="text-align:center; padding: 40px;">
-                        <i class="fas fa-spinner fa-spin"></i> جاري مزامنة بيانات عملاء حائل...
+                    <td colspan="7" style="text-align:center; padding: 60px;">
+                        <div class="tera-loader-inline">
+                            <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--tera-orange);"></i>
+                            <p style="margin-top: 15px; color: #64748b;">جاري مزامنة بيانات عملاء حائل من السحابة...</p>
+                        </div>
                     </td>
                 </tr>
             </tbody>
@@ -53,121 +57,84 @@
     <div id="customerModal" class="tera-modal">
         <div class="modal-content animate-slide-up">
             <div class="modal-header-flex">
-                <h3><i class="fas fa-id-card"></i> ملف بيانات العميل</h3>
-                <button onclick="closeCustomerModal()" class="close-x">&times;</button>
+                <h3><i class="fas fa-id-card"></i> ملف بيانات العميل الجديد</h3>
+                <button onclick="window.closeCustomerModal()" class="close-x">&times;</button>
             </div>
 
-            <form id="customerForm" onsubmit="handleCustomerSubmit(event)">
-                <!-- قسم الصورة الشخصية (Preview) -->
+            <form id="customerForm" onsubmit="window.handleCustomerSubmit(event)">
+                <!-- قسم المعاينة الذكية -->
                 <div class="avatar-upload-section">
-                    <div id="imagePreview" class="image-preview shadow-inner"></div>
-                    <small>صورة رمزية تلقائية من نظام تيرا</small>
+                    <div id="imagePreview" class="image-preview shadow-inner">
+                        <i class="fas fa-user-tie fa-3x" style="color: #cbd5e1;"></i>
+                    </div>
+                    <small>نظام تيرا يقوم بإنشاء ملف تعريفي تلقائي</small>
                 </div>
 
                 <div class="form-grid">
                     <!-- المعلومات الأساسية -->
                     <div class="form-group">
                         <label>اسم العميل الكامل</label>
-                        <input type="text" name="name" placeholder="أدخل الاسم الرباعي" required>
+                        <input type="text" name="name" id="cust_name" placeholder="الاسم الرباعي الرسمي" required>
                     </div>
 
                     <div class="form-group">
                         <label>رقم الجوال</label>
-                        <div class="country-input-group">
-                            <div class="dial-select-box" onclick="toggleCountryDropdown()">
-                                <span id="dialCodeDisplay">+966</span>
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                            <input type="tel" name="phone" placeholder="5xxxxxxxx" required style="flex: 1;">
-                            
-                            <!-- قائمة الدول والبحث (تدار بواسطة JS) -->
-                            <div id="countryDropdown" class="country-dropdown">
-                                <input type="text" class="search-country" placeholder="ابحث عن دولة..." onkeyup="searchCountryList(this.value)">
-                                <div id="countryOptions" class="country-options-list"></div>
-                            </div>
+                        <div class="phone-input-wrapper" style="display: flex; gap: 5px; direction: ltr;">
+                            <input type="tel" name="phone" id="cust_phone" placeholder="5xxxxxxxx" required style="flex: 1;">
+                            <span style="background: #f1f5f9; padding: 10px; border-radius: 8px; font-weight: bold; color: #475569;">+966</span>
                         </div>
-                        <!-- حقول مخفية للمزامنة مع Firestore -->
-                        <input type="hidden" name="countryDial" id="countryDialInput" value="+966">
-                        <input type="hidden" name="countryName" id="countryNameInput" value="المملكة العربية السعودية">
                     </div>
 
-                    <div class="form-group">
-                        <label>البريد الإلكتروني</label>
-                        <input type="email" name="email" placeholder="example@mail.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label>الدولة</label>
-                        <input type="text" name="countryNameDisplay" id="countryNameDisplay" value="المملكة العربية السعودية" readonly class="readonly-input">
-                    </div>
-
-                    <!-- تفاصيل العنوان الوطني (حائل والمناطق الأخرى) -->
+                    <!-- تفاصيل العنوان الوطني -->
                     <div class="form-group">
                         <label>المدينة</label>
-                        <input type="text" name="city" placeholder="مثلاً: حائل" required>
+                        <input type="text" name="city" id="cust_city" value="حائل" required>
                     </div>
 
                     <div class="form-group">
-                        <label>الحي</label>
-                        <input type="text" name="district" placeholder="اسم الحي">
+                        <label>الحي / العنوان</label>
+                        <input type="text" name="district" id="cust_district" placeholder="اسم الحي">
                     </div>
 
                     <div class="form-group">
-                        <label>الشارع</label>
-                        <input type="text" name="street" placeholder="اسم الشارع">
-                    </div>
-
-                    <div class="form-group">
-                        <label>رقم المبنى</label>
-                        <input type="text" name="buildingNum" placeholder="4 أرقام">
-                    </div>
-
-                    <div class="form-group">
-                        <label>الرقم الإضافي</label>
-                        <input type="text" name="extraNum" placeholder="4 أرقام">
-                    </div>
-
-                    <div class="form-group">
-                        <label>الرمز البريدي</label>
-                        <input type="text" name="zipCode" placeholder="5 أرقام">
-                    </div>
-
-                    <div class="form-group">
-                        <label>صندوق البريد</label>
-                        <input type="text" name="poBox" placeholder="إن وجد">
-                    </div>
-
-                    <!-- التصنيف والحالة -->
-                    <div class="form-group">
-                        <label>حالة العميل</label>
-                        <select name="status">
-                            <option value="نشط">نشط</option>
-                            <option value="محظور">محظور</option>
-                            <option value="موقوف مؤقتاً">موقوف مؤقتاً</option>
-                        </select>
+                        <label>رقم المبنى (العنوان الوطني)</label>
+                        <input type="text" name="buildingNum" id="cust_building" placeholder="4 أرقام">
                     </div>
 
                     <div class="form-group">
                         <label>تصنيف العميل</label>
-                        <select name="category">
+                        <select name="category" id="cust_category">
                             <option value="عادي">عادي</option>
                             <option value="vip">عميل VIP 💎</option>
                             <option value="تاجر">تاجر / جملة</option>
                         </select>
                     </div>
 
-                    <!-- الملاحظات -->
                     <div class="form-group full-width">
-                        <label>ملاحظات إضافية (أية تفاصيل خاصة بالعميل)</label>
-                        <textarea name="notes" rows="3" placeholder="أدخل أية ملاحظات تهمك عند التعامل مع العميل..."></textarea>
+                        <label>ملاحظات إضافية</label>
+                        <textarea name="notes" id="cust_notes" rows="2" placeholder="أية تفاصيل خاصة بحساب العميل..."></textarea>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn-close" onclick="closeCustomerModal()">إلغاء</button>
-                    <button type="submit" class="btn-primary btn-save">حفظ العميل في قاعدة البيانات</button>
+                    <button type="button" class="btn-close" onclick="window.closeCustomerModal()">إلغاء</button>
+                    <button type="submit" id="saveBtn" class="btn-primary">
+                        <i class="fas fa-save"></i> حفظ في قاعدة البيانات
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    /**
+     * ربط الأحداث محلياً لضمان سرعة الاستجابة
+     * ملاحظة: يتم تعريف الدوال فعلياً في js/modules/customers-ui.js
+     */
+    function handleCustomerSearch(val) {
+        if (typeof window.filterCustomers === 'function') {
+            window.filterCustomers(val);
+        }
+    }
+</script>
