@@ -5,19 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>في خدمتك | Fi Khidmatik by Al-Itqan Plus</title>
     
-    <!-- 1. ربط ملفات التنسيق (CSS) من المجلد الذي ظهر في صورتك -->
+    <!-- ربط ملفات التنسيق (CSS) من المجلدات التي ظهرت في صورتك -->
     <link rel="stylesheet" href="css-styles/hub-style.css">
     <link rel="stylesheet" href="css-styles/buttons-theme.css">
     
-    <!-- أيقونات FontAwesome للجمالية -->
+    <!-- أيقونات FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* إضافة لمسة Glassmorphism سريعة لتتوافق مع ذوقك */
+        /* تنسيق خاص بالشعار لضمان ظهوره بشكل أنيق */
+        .brand-section {
+            text-align: center;
+            padding: 20px 10px;
+            border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+        }
+        .app-logo {
+            width: 80px; /* يمكنك تعديل المقاس حسب حجم شعارك */
+            height: auto;
+            margin-bottom: 15px;
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2));
+        }
         .loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 51, 102, 0.9);
+            background: #003366;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 9999; color: #c5a059; font-family: 'Tajawal', sans-serif;
         }
@@ -25,23 +36,28 @@
 </head>
 <body>
 
-    <!-- شاشة التحميل الأولية -->
+    <!-- شاشة التحميل -->
     <div id="loader" class="loading-overlay">
-        <i class="fas fa-circle-notch fa-spin fa-3x mb-3"></i>
-        <h2>جاري تشغيل تيرا جيت واي...</h2>
+        <!-- شعار التحميل (اختياري) -->
+        <img src="assets/logo.png" alt="Logo" class="app-logo animate-pulse">
+        <i class="fas fa-circle-notch fa-spin fa-2x mb-3"></i>
+        <h2 style="font-weight: 900;">تيرا جيت واي V12.12.12</h2>
     </div>
 
     <div class="hub-container">
-        <!-- القائمة الجانبية (Sidebar) -->
+        <!-- القائمة الجانبية -->
         <aside class="sidebar" id="sidebarMenu">
             <div class="brand-section">
-                <h1 class="fw-900">في خدمتك</h1>
-                <p>من الإتقان بلس</p>
-                <small>V12.12.12 | فرع حائل</small>
+                <!-- إدراج الشعار هنا -->
+                <!-- تأكد من وضع صورة الشعار في مجلد اسمه assets وتسميتها logo.png -->
+                <img src="assets/logo.png" alt="شعار في خدمتك" class="app-logo">
+                
+                <h1 class="fw-900" style="color: #c5a059; margin: 0; font-size: 1.6rem;">في خدمتك</h1>
+                <p style="color: #fff; margin: 0; opacity: 0.9;">من الإتقان بلس</p>
+                <small style="color: rgba(255,255,255,0.6);">فرع حائل | Mohammed Al-Shammari</small>
             </div>
 
             <nav class="nav-menu">
-                <!-- أزرار التحكم - مرتبة حسب موديولات main.js -->
                 <button class="nav-link active" onclick="handleSidebarClick(this, 'dashboard')">
                     <i class="fas fa-chart-line me-2"></i> لوحة التحكم
                 </button>
@@ -51,41 +67,34 @@
                 <button class="nav-link" onclick="handleSidebarClick(this, 'orders')">
                     <i class="fas fa-file-invoice-dollar me-2"></i> العقود والطلبات
                 </button>
-                <button class="nav-link" onclick="handleSidebarClick(this, 'system-logs')">
-                    <i class="fas fa-history me-2"></i> سجل العمليات
-                </button>
                 <button class="nav-link" onclick="handleSidebarClick(this, 'map-bridge')">
                     <i class="fas fa-map-marked-alt me-2"></i> نظام الخرائط
                 </button>
             </nav>
 
-            <div class="user-info-bottom">
-                <p><i class="fas fa-user-tie me-2"></i> م. محمد الشمري</p>
+            <div class="user-info-bottom" style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="font-size: 0.85rem; color: #c5a059;"><i class="fas fa-shield-alt me-2"></i> إدارة النظام</p>
             </div>
         </aside>
 
-        <!-- منطقة عرض المحتوى الديناميكي -->
+        <!-- منطقة المحتوى -->
         <main class="main-viewport">
-            <div id="main-content-area" class="animate-fade-in">
-                <!-- هنا يتم حقن الموديولات بواسطة main.js -->
+            <div id="main-content-area">
+                <!-- المحتوى يتم استدعاؤه عبر main.js -->
             </div>
         </main>
     </div>
 
-    <!-- 2. ربط ملفات البرمجة (JS) من مجلد js-logic الموضح في صورك -->
-    
-    <!-- استيراد المحرك الأساسي كموديول لدعم التوجيه (Routing) -->
+    <!-- ربط الملفات البرمجية -->
     <script type="module" src="js-logic/main.js"></script>
-
-    <!-- ربط متحكم الأزرار والوظائف العامة -->
     <script src="js-logic/btn-actions-controller.js"></script>
 
     <script>
-        // إخفاء شاشة التحميل بعد جاهزية النظام
         window.addEventListener('load', () => {
             setTimeout(() => {
+                document.getElementById('loader').style.fadeOut = "slow";
                 document.getElementById('loader').style.display = 'none';
-            }, 1000);
+            }, 1200);
         });
     </script>
 </body>
