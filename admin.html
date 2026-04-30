@@ -12,21 +12,19 @@
     
     <!-- مكتبات الدعم الخارجية -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- SweetAlert2 مهم جداً لمعاينة الخريطة والتنبيهات -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- استدعاء ملفات التنسيق المحدثة v12.12.12 -->
-    <link rel="stylesheet" href="css/admin.css?v=12.12.12">
-    <link rel="stylesheet" href="css/sidebar.css?v=12.12.12"> 
-    <link rel="stylesheet" href="css/table.css?v=12.12.12">
-    <link rel="stylesheet" href="css/customers.css?v=12.12.12">
-    <link rel="stylesheet" href="css/modals.css?v=12.12.12">
+    <!-- استدعاء ملفات التنسيق المحدثة v12.12.13 (إصلاح مشاكل التداخل) -->
+    <link rel="stylesheet" href="css/admin.css?v=12.12.13">
+    <link rel="stylesheet" href="css/sidebar.css?v=12.12.13"> 
+    <link rel="stylesheet" href="css/customers.css?v=12.12.13">
 
     <style>
         :root { 
             --tera-orange: #f97316;
             --tera-bg: #f8fafc; 
             --tera-dark: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.7);
         }
 
         body { 
@@ -37,7 +35,6 @@
             color: var(--tera-dark);
         }
 
-        /* تخطيط الإدارة الرئيسي */
         .admin-layout { 
             display: flex; 
             height: 100vh; 
@@ -54,24 +51,16 @@
             position: relative;
         }
 
+        /* منطقة المحتوى الديناميكي */
         .content-area { 
             flex: 1; 
             padding: 0; 
             overflow-y: auto; 
             scroll-behavior: smooth;
+            position: relative; /* لضمان عدم تداخل العناصر */
         }
 
-        /* تأثيرات الانتقال الاحترافية */
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* مؤشر تحميل تيرا */
+        /* لودر تيرا الذكي */
         .loader-box { 
             display: flex; 
             flex-direction: column; 
@@ -91,7 +80,7 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* تخصيص السكرول بار ليناسب التصميم الحديث */
+        /* تخصيص السكرول بار */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--tera-orange); }
@@ -100,27 +89,28 @@
 <body class="tera-gateway-v12">
 
     <div class="admin-layout">
-        <!-- القائمة الجانبية (تشحن من sidebar.html) -->
+        <!-- القائمة الجانبية -->
         <aside id="sidebar-container"></aside>
         
         <main class="main-wrapper">
-            <!-- الهيدر العلوي (يشحن من header.html) -->
+            <!-- الهيدر العلوي -->
             <header id="header-container"></header>
             
-            <!-- منطقة حقن الموديولات الديناميكية -->
+            <!-- منطقة حقن الموديولات (هنا يظهر جدول العملاء) -->
             <section id="module-container" class="content-area">
                 <div class="loader-box">
                     <div class="spinner-tera"></div>
-                    <p style="color: var(--tera-orange); margin-top: 20px; font-weight: 700; letter-spacing: 1px;">TERA ENGINE v12.12.12</p>
+                    <p style="color: var(--tera-orange); margin-top: 20px; font-weight: 700;">TERA ENGINE v12.12.13</p>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- حاوية النوافذ المنبثقة المستقلة -->
+    <!-- حاوية النوافذ المنبثقة (Modal Root) -->
+    <!-- تم وضعها هنا لضمان أنها فوق كل شيء برمجياً -->
     <div id="modal-root"></div>
 
-    <!-- المحرك الرئيسي للنظام -->
+    <!-- المحرك الرئيسي لنظام تيرا -->
     <script type="module">
         import { ensureDbReady } from './js/core/config.js';
         import { initCustomers } from './js/modules/customers-ui.js';
@@ -128,37 +118,35 @@
         class TeraApp {
             constructor() {
                 this.container = document.getElementById('module-container');
-                this.version = "12.12.12";
+                this.version = "12.12.13";
                 this.init();
             }
 
             async init() {
                 try {
-                    // 1. التأكد من جهوزية Firestore قبل أي عملية
+                    // التأكد من اتصال Firestore
                     await ensureDbReady();
 
-                    // 2. شحن المكونات الهيكلية (Sidebar/Header)
+                    // شحن الهيكل الثابت
                     await this.loadStaticComponents();
 
-                    // 3. تعريف وظيفة التنقل العالمية
+                    // وظيفة التنقل العالمية
                     window.navigateTo = (moduleName) => {
                         window.location.hash = `#${moduleName}`;
                     };
 
                     window.addEventListener('hashchange', () => this.route());
                     
-                    // تشغيل الراوتر الافتراضي
+                    // تشغيل الراوتر
                     this.route(); 
 
                 } catch (err) {
-                    console.error("🔴 System Boot Error:", err);
-                    this.container.innerHTML = `
-                        <div class="text-center p-5">
-                            <i class="fas fa-wifi-slash fa-3x text-danger mb-3"></i>
-                            <h2 class="fw-bold">خطأ في الاتصال بالسحابة</h2>
-                            <p class="text-muted">${err.message}</p>
-                            <button class="btn btn-orange mt-3" onclick="location.reload()">محاولة التوصيل مجدداً</button>
-                        </div>`;
+                    console.error("🔴 Boot Error:", err);
+                    this.container.innerHTML = `<div class="text-center p-5 mt-5">
+                        <h2 class="text-danger">عذراً، فشل تشغيل محرك تيرا</h2>
+                        <p>${err.message}</p>
+                        <button class="btn btn-warning" onclick="location.reload()">تحديث الصفحة</button>
+                    </div>`;
                 }
             }
 
@@ -174,25 +162,22 @@
                         if (res.ok) {
                             document.getElementById(comp.id).innerHTML = await res.text();
                         }
-                    } catch (e) { console.warn(`Component load failed: ${comp.name}`); }
+                    } catch (e) { console.warn(`Component fail: ${comp.name}`); }
                 }
             }
 
             async route() {
                 const hash = window.location.hash.replace('#', '') || 'dashboard';
                 
-                // إظهار اللودر عند التبديل بين الأقسام
-                this.container.innerHTML = `
-                    <div class="loader-box animate-fade-in">
-                        <div class="spinner-tera"></div>
-                    </div>`;
+                // إظهار اللودر
+                this.container.innerHTML = `<div class="loader-box"><div class="spinner-tera"></div></div>`;
 
                 try {
                     if (hash === 'customers') {
-                        // استدعاء موديول العملاء المطور V12.12.12
+                        // تشغيل موديول العملاء المطور
                         await initCustomers(this.container);
                     } else {
-                        // تحميل موديولات الـ HTML التقليدية
+                        // تحميل الموديولات الأخرى
                         const res = await fetch(`./admin/modules/${hash}.html?v=${this.version}`);
                         if (res.ok) {
                             this.container.innerHTML = await res.text();
@@ -202,12 +187,7 @@
                     }
                     this.updateActiveUI(hash);
                 } catch (e) {
-                    this.container.innerHTML = `
-                        <div class="text-center p-5 mt-5">
-                            <i class="fas fa-layer-group fa-3x text-light mb-3"></i>
-                            <h3 class="text-muted">القسم [${hash}] تحت الصيانة أو غير موجود</h3>
-                            <a href="#dashboard" class="btn btn-outline-primary mt-3 rounded-pill">العودة للرئيسية</a>
-                        </div>`;
+                    this.container.innerHTML = `<div class="text-center p-5 mt-5"><h3 class="text-muted">القسم [${hash}] غير متوفر حالياً</h3></div>`;
                 }
             }
 
@@ -219,7 +199,7 @@
             }
         }
 
-        // إطلاق محرك تيرا
+        // إطلاق التطبيق
         window.Tera = new TeraApp();
     </script>
 
