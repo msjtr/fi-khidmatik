@@ -1,47 +1,105 @@
-/* * Tera Gateway - Customer Form Styles (v12.12.12)
+/**
+ * Tera Gateway - Customer Form Styles (v12.12.12)
+ * الهوية البصرية المطورة لنماذج إضافة وتعديل العملاء
  * المطور: محمد بن صالح الشمري
  */
 
-.tera-form-container {
-    display: grid;
-    gap: 20px;
-    padding: 10px;
+:root {
+    --tera-orange: #f97316;
+    --tera-orange-soft: rgba(249, 115, 22, 0.1);
+    --tera-dark: #0f172a;
+    --glass-white: rgba(255, 255, 255, 0.8);
+    --border-smooth: #e2e8f0;
 }
 
+/* حاوية النموذج الرئيسية */
+.tera-form-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 15px;
+    background: var(--glass-white);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+}
+
+/* عناوين الأقسام بنمط حائل */
 .form-section-title {
-    font-size: 0.95rem;
+    grid-column: 1 / -1;
+    font-size: 1rem;
     font-weight: 800;
     color: var(--tera-dark);
     border-right: 4px solid var(--tera-orange);
-    padding-right: 10px;
+    padding: 8px 15px;
+    margin-top: 10px;
     margin-bottom: 15px;
     background: linear-gradient(to left, var(--tera-orange-soft), transparent);
+    border-radius: 0 8px 8px 0;
 }
 
+/* تنسيق حقول الإدخال (Clean UI) */
 .tera-field {
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 12px !important;
-    padding: 12px !important;
-    transition: all 0.3s ease !important;
+    border: 2px solid var(--border-smooth) !important;
+    border-radius: 14px !important;
+    padding: 14px 18px !important;
+    font-size: 0.95rem !important;
+    font-family: 'Tajawal', sans-serif !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     background-color: #fdfdfd !important;
+    color: var(--tera-dark) !important;
 }
 
 .tera-field:focus {
     border-color: var(--tera-orange) !important;
     background-color: #fff !important;
-    box-shadow: 0 0 0 4px var(--tera-orange-soft) !important;
+    box-shadow: 0 8px 20px -6px var(--tera-orange-soft) !important;
+    transform: translateY(-2px);
 }
 
+/* منطقة رفع صورة الهوية أو البروفايل */
 .profile-upload-zone {
+    grid-column: 1 / -1;
     background: #f8fafc;
     border: 2px dashed #cbd5e1;
     border-radius: 20px;
-    padding: 20px;
+    padding: 30px;
     text-align: center;
+    cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 .profile-upload-zone:hover {
     border-color: var(--tera-orange);
     background: #fff;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.profile-upload-zone i {
+    font-size: 2.5rem;
+    color: var(--tera-orange);
+    margin-bottom: 5px;
+}
+
+/* تسميات الحقول (Labels) */
+.tera-label {
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 0.85rem;
+}
+
+/* أزرار الإجراءات داخل النموذج */
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-smooth);
 }
