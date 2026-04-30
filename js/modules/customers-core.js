@@ -15,27 +15,27 @@ const customersRef = collection(db, "customers");
 
 /**
  * 1. إضافة عميل جديد
- * تم تحسين الهيكل ليتوافق مع الحقول الـ 17 المطلوبة في نظام تيرا
+ * تم مطابقة المسميات مع هيكل قاعدة البيانات الفعلي
  */
 export async function addCustomer(data) {
     const defaultData = {
         name: "",               // 1. الاسم الكامل
         phone: "",              // 2. رقم الجوال
-        countryDial: "+966",    // 3. مفتاح الدولة
+        countryCode: "+966",    // 3. مفتاح الدولة (تم تعديل المسمى ليتطابق مع البيانات)
         email: "",              // 4. البريد الإلكتروني
-        countryName: "المملكة العربية السعودية", // 5. الدولة
+        country: "المملكة العربية السعودية", // 5. الدولة
         city: "حائل",           // 6. المدينة
         district: "",           // 7. الحي
         street: "",             // 8. الشارع
-        buildingNum: "",        // 9. رقم المبنى
-        extraNum: "",           // 10. الرقم الإضافي
-        zipCode: "",            // 11. الرمز البريدي
+        buildingNo: "",         // 9. رقم المبنى (مطابق لقاعدة البيانات)
+        additionalNo: "",       // 10. الرقم الإضافي (مطابق لقاعدة البيانات)
+        postalCode: "",         // 11. الرمز البريدي (مطابق لقاعدة البيانات)
         poBox: "",              // 12. صندوق البريد
         status: "نشط",          // 13. الحالة (نشط/محظور)
-        category: "عادي",       // 14. التصنيف (عادي/VIP/تاجر)
+        tag: "عادي",            // 14. التصنيف (مطابق لحقل tag في البيانات: عادي/vip/تاجر)
         type: "فرد",            // 15. النوع (فرد/شركة)
         notes: "",              // 16. ملاحظات إضافية
-        avatar: "",             // 17. رابط الصورة (يتم توليده ديناميكياً)
+        avatar: "",             // 17. رابط الصورة
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     };
@@ -43,7 +43,7 @@ export async function addCustomer(data) {
     // دمج البيانات المرسلة مع القيم الافتراضية
     const finalData = { ...defaultData, ...data };
 
-    // تنظيف البيانات: تحويل القيم undefined أو null إلى نصوص فارغة لسلامة الـ Firestore
+    // تنظيف البيانات لضمان سلامة الـ Firestore
     Object.keys(finalData).forEach(key => {
         if (finalData[key] === undefined || finalData[key] === null) {
             finalData[key] = "";
@@ -71,7 +71,7 @@ export async function updateCustomer(id, data) {
         updatedAt: serverTimestamp()
     };
     
-    // منع تعديل تاريخ الإنشاء الأصلي وتنظيف الحقول
+    // حماية تاريخ الإنشاء وتنظيف الحقول
     delete updateData.createdAt; 
     Object.keys(updateData).forEach(key => {
         if (updateData[key] === undefined) delete updateData[key];
@@ -87,7 +87,7 @@ export async function updateCustomer(id, data) {
 }
 
 /**
- * 3. جلب بيانات عميل واحد بواسطة الـ ID
+ * 3. جلب بيانات عميل واحد
  */
 export async function fetchCustomerById(id) {
     try {
@@ -100,7 +100,7 @@ export async function fetchCustomerById(id) {
 }
 
 /**
- * 4. جلب كافة العملاء مرتبين من الأحدث للأقدم
+ * 4. جلب كافة العملاء (الأحدث أولاً)
  */
 export async function fetchAllCustomers() {
     try {
@@ -114,7 +114,7 @@ export async function fetchAllCustomers() {
 }
 
 /**
- * 5. حذف عميل نهائياً من النظام
+ * 5. حذف عميل
  */
 export async function deleteCustomer(id) {
     try {
@@ -128,8 +128,7 @@ export async function deleteCustomer(id) {
 }
 
 /**
- * 6. جلب إحصائيات لوحة التحكم (Dashboard Stats)
- * تم تحديث المنطق ليدعم الحقول الجديدة
+ * 6. إحصائيات لوحة التحكم
  */
 export async function getCustomersStats() {
     try {
@@ -140,7 +139,7 @@ export async function getCustomersStats() {
             blocked: 0,
             vip: 0,
             merchants: 0,
-            hailRegion: 0 // إحصائية خاصة لعملاء منطقة حائل
+            hailRegion: 0 
         };
 
         snapshot.forEach(docSnap => {
@@ -150,10 +149,12 @@ export async function getCustomersStats() {
             if (d.status === 'نشط') stats.active++;
             else if (d.status === 'محظور') stats.blocked++;
 
-            if (d.category === 'vip') stats.vip++;
-            if (d.category === 'تاجر') stats.merchants++;
+            // التحقق من الوسم (Tag)
+            const customerTag = String(d.tag || "").toLowerCase();
+            if (customerTag === 'vip') stats.vip++;
+            if (customerTag === 'تاجر') stats.merchants++;
             
-            // تتبع العملاء في منطقة حائل
+            // إحصائية أهل حائل
             if (d.city && d.city.includes("حائل")) stats.hailRegion++;
         });
 
@@ -165,8 +166,7 @@ export async function getCustomersStats() {
 }
 
 /**
- * 7. الاستيراد الجماعي (Bulk Import)
- * مفيد عند استيراد بيانات العملاء من ملفات Excel الخارجية
+ * 7. الاستيراد الجماعي
  */
 export async function importCustomersBatch(dataArray) {
     const results = { success: 0, failed: 0 };
