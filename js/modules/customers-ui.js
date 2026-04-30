@@ -5,7 +5,7 @@
  */
 
 import { db } from '../core/firebase.js';
-import { GeoEngine } from '../core/geo-engine.js'; // الربط مع نواة الخريطة المستقلة
+import { GeoEngine } from '../core/geo-engine.js'; 
 import { 
     collection, getDocs, addDoc, updateDoc, deleteDoc, doc, 
     query, orderBy, getDoc 
@@ -64,16 +64,19 @@ export async function initCustomers(container) {
     loadAndRenderData();
 }
 
-// الدوال العالمية للتحكم من الجدول
 window.editCustomer = async (id) => {
-    const snap = await getDoc(doc(db, "customers", id));
-    if (snap.exists()) openCustomerModal("تعديل بيانات العميل", id, snap.data());
+    try {
+        const snap = await getDoc(doc(db, "customers", id));
+        if (snap.exists()) openCustomerModal("تعديل بيانات العميل", id, snap.data());
+    } catch (e) { console.error("Fetch error:", e); }
 };
 
 window.deleteCustomer = async (id) => {
     if (confirm("هل أنت متأكد من حذف العميل من نظام تيرا؟")) {
-        await deleteDoc(doc(db, "customers", id));
-        loadAndRenderData();
+        try {
+            await deleteDoc(doc(db, "customers", id));
+            loadAndRenderData();
+        } catch (e) { console.error("Delete error:", e); }
     }
 };
 
@@ -81,14 +84,12 @@ async function openCustomerModal(title, id = null, data = null) {
     const modal = document.getElementById('customer-modal');
     const container = document.getElementById('modal-content-container');
     
-    // جلب النموذج
     const response = await fetch('components/customer-form.html');
     container.innerHTML = await response.text();
     
     const form = document.getElementById('customer-form');
     document.getElementById('form-action-title').innerText = title;
     
-    // ملء البيانات إذا كان تعديل
     if (id) {
         document.getElementById('cust-id-hidden').value = id;
         CUSTOMER_FIELDS.forEach(f => {
@@ -100,7 +101,6 @@ async function openCustomerModal(title, id = null, data = null) {
 
     modal.style.display = 'flex';
 
-    // ربط موديول الخريطة المستقل
     const btnMap = document.getElementById('btn-open-map');
     if (btnMap) {
         btnMap.onclick = async () => {
@@ -108,29 +108,25 @@ async function openCustomerModal(title, id = null, data = null) {
             mapArea.style.height = "300px";
             mapArea.classList.add('mb-3', 'rounded-3', 'border');
             
-            // تهيئة الخريطة من النواة المستقلة
             const initialLat = data?.latitude ? parseFloat(data.latitude) : 27.5114;
             const initialLng = data?.longitude ? parseFloat(data.longitude) : 41.7208;
             
             await GeoEngine.initMap('map-selection-area', initialLat, initialLng);
             
-            // تحديث الإحداثيات عند تحريك الماركر
             GeoEngine.marker.addListener("dragend", async () => {
                 const pos = GeoEngine.marker.getPosition();
                 form.querySelector('[name="latitude"]').value = pos.lat();
                 form.querySelector('[name="longitude"]').value = pos.lng();
                 
-                // جلب العنوان تلقائياً
                 const addr = await GeoEngine.getAddressFromCoords(pos.lat(), pos.lng());
                 if (addr && form.querySelector('[name="district"]')) {
                     form.querySelector('[name="district"]').value = addr.district;
                 }
             });
-            btnMap.style.display = 'none'; // إخفاء الزر بعد فتح الخريطة
+            btnMap.style.display = 'none';
         };
     }
 
-    // إغلاق وحفظ
     const close = () => modal.style.display = 'none';
     form.querySelector('.btn-close').onclick = close;
     form.querySelector('.btn-light').onclick = close;
@@ -165,8 +161,14 @@ async function loadAndRenderData() {
         snap.forEach(docSnap => {
             const c = docSnap.data();
             const id = docSnap.id;
+            
+            // إصلاح منطق العد لمنطقة حائل
             if (c.city === 'حائل') stats.hail++;
             if (['متعثر', 'محظور'].includes(c.customer_status)) stats.risky++;
+
+            // تصحيح الرابط لمنع ظهور undefined
+            const lat = c.latitude || "27.5114";
+            const lng = c.longitude || "41.7208";
 
             html += `
                 <tr>
@@ -187,8 +189,8 @@ async function loadAndRenderData() {
                     </td>
                     <td>
                         <div class="small">${c.district || 'غير محدد'}</div>
-                        <a href="https://maps.google.com/?q=${c.latitude},${c.longitude}" target="_blank" class="text-primary smaller text-decoration-none">
-                            <i class="fas fa-location-arrow me-1"></i> تتبع
+                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" class="text-primary smaller text-decoration-none hover-link">
+                            <i class="fas fa-location-arrow me-1"></i> تتبع الموقع
                         </a>
                     </td>
                     <td><span class="badge-tera ${getBadgeClass(c.customer_type)}">${c.customer_type || 'عادي'}</span></td>
@@ -205,18 +207,20 @@ async function loadAndRenderData() {
 
         tbody.innerHTML = html || '<tr><td colspan="6" class="text-center p-5 text-muted">لا يوجد عملاء</td></tr>';
         renderStats(stats, statsContainer);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Render Error:", e); }
 }
 
 function setupEventListeners() {
-    document.getElementById('btn-add-new').onclick = () => openCustomerModal("إضافة عميل جديد");
+    const btn = document.getElementById('btn-add-new');
+    if (btn) btn.onclick = () => openCustomerModal("إضافة عميل جديد");
 }
 
 function renderStats(stats, container) {
+    if (!container) return;
     container.innerHTML = `
-        <div class="col-md-4"><div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-primary"><small>العملاء</small><h4 class="fw-bold">${stats.total}</h4></div></div>
-        <div class="col-md-4"><div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-success"><small>حائل 📍</small><h4 class="fw-bold">${stats.hail}</h4></div></div>
-        <div class="col-md-4"><div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-danger"><small>المخاطر</small><h4 class="fw-bold text-danger">${stats.risky}</h4></div></div>
+        <div class="col-md-4"><div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-primary"><small class="text-muted">إجمالي العملاء</small><h4 class="fw-bold mb-0">${stats.total}</h4></div></div>
+        <div class="col-md-4"><div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-success"><small class="text-muted">منطقة حائل 📍</small><h4 class="fw-bold mb-0">${stats.hail}</h4></div></div>
+        <div class="col-md-4"><div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-danger"><small class="text-muted">المخاطر</small><h4 class="fw-bold text-danger mb-0">${stats.risky}</h4></div></div>
     `;
 }
 
