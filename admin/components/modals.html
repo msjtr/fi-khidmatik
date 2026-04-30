@@ -1,152 +1,156 @@
 <!-- 
     Tera Gateway v12.12.12 | Customer Management Modal
     مزامنة حقول مجموعة Customers - منطقة حائل
+    تحديث: أبريل 2026
 -->
 
-<div id="customer-modal" class="tera-modal-overlay">
-    <div class="tera-modal-card tera-premium-shadow animate-pop-in" style="max-width: 950px;">
+<div id="customer-modal" class="tera-modal-overlay shadow-lg">
+    <div class="tera-modal-card tera-premium-shadow animate-pop-in" style="max-width: 950px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.2);">
         
-        <!-- الهيدر الاحترافي -->
-        <div class="tera-modal-header">
-            <div class="tera-modal-title-wrap">
-                <div class="tera-modal-icon">
+        <!-- الهيدر الاحترافي (Glassmorphism Style) -->
+        <div class="tera-modal-header p-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #eee;">
+            <div class="tera-modal-title-wrap d-flex align-items-center">
+                <div class="tera-modal-icon bg-soft-orange text-orange rounded-4 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 1.4rem;">
                     <i class="fas fa-id-card-clip"></i>
                 </div>
                 <div>
-                    <h3 id="modal-title" style="margin:0; font-weight:800; color:var(--tera-dark);">إدارة الملف الشخصي الكامل</h3>
+                    <h3 id="modal-title" style="margin:0; font-weight:800; color:var(--tera-dark); font-size: 1.25rem;">إدارة الملف الشخصي الكامل</h3>
                     <p class="mb-0 text-muted" style="font-size: 0.75rem;">
                         <i class="fas fa-database text-success me-1"></i> مزامنة Firestore | فرع حائل
                     </p>
                 </div>
             </div>
-            <button class="tera-modal-close" onclick="window.closeCustomerModal()" title="إغلاق">
+            <button class="btn-close-custom" onclick="window.closeCustomerModal()" title="إغلاق" style="background: #f1f5f9; border: none; border-radius: 12px; width: 35px; height: 35px; color: #64748b;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <div class="tera-modal-body" style="background: #ffffff;">
+        <div class="tera-modal-body p-4" style="background: #ffffff; max-height: 75vh; overflow-y: auto;">
             <form id="customer-form" autocomplete="off">
-                <input type="hidden" id="cust-id-hidden">
+                <input type="hidden" id="cust-id-hidden" name="customerId">
                 
                 <!-- القسم العلوي: الصورة والبيانات الأساسية -->
                 <div class="row g-4 mb-4 border-bottom pb-4">
                     <div class="col-md-3 text-center border-start">
                         <div class="profile-upload-container position-relative d-inline-block">
                             <div class="profile-preview-wrapper glass-effect shadow-sm mb-2" 
-                                 style="width: 140px; height: 140px; border-radius: 24px; overflow: hidden; border: 3px solid #fff;">
+                                 style="width: 140px; height: 140px; border-radius: 24px; overflow: hidden; border: 3px solid #fff; background: #f8fafc;">
                                 <img id="cust-img-preview" src="images/default-avatar.png" 
                                      style="width: 100%; height: 100%; object-fit: cover;"
                                      onerror="this.src='https://ui-avatars.com/api/?background=f8fafc&color=cbd5e1'">
                             </div>
                             <label for="cust-image-file" class="upload-badge shadow-lg" 
-                                   style="position: absolute; bottom: 10px; left: -5px; background: var(--tera-orange); color: white; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                   style="position: absolute; bottom: 10px; left: -5px; background: #f97316; color: white; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;">
                                 <i class="fas fa-camera"></i>
                                 <input type="file" id="cust-image-file" name="profileImage" accept="image/*" style="display: none;" onchange="window.previewCustomerImage(event)">
                             </label>
                         </div>
-                        <p class="text-muted mt-2" style="font-size: 0.7rem;">صورة العميل الشخصية</p>
+                        <p class="text-muted mt-2 mb-0" style="font-size: 0.7rem;">صورة العميل الشخصية</p>
                     </div>
 
                     <div class="col-md-9">
                         <div class="section-badge mb-3">
-                            <span class="badge bg-soft-orange text-orange px-3 py-2 rounded-pill">1. المعلومات الأساسية</span>
+                            <span class="badge rounded-pill" style="background: rgba(249, 115, 22, 0.1); color: #f97316; padding: 8px 16px;">1. المعلومات الأساسية</span>
                         </div>
                         <div class="row g-3">
+                            <div class="col-md-7">
+                                <div class="tera-input-group">
+                                    <label class="form-label fw-bold small text-secondary">الاسم الرباعي الكامل</label>
+                                    <input type="text" id="cust-name" name="name" class="form-control tera-field p-2" placeholder="محمد صالح الشمري..." required style="background: #f8fafc; border-radius: 12px; border: 1.5px solid #e2e8f0;">
+                                </div>
+                            </div>
                             <div class="col-md-5">
                                 <div class="tera-input-group">
-                                    <label class="form-label fw-bold">الاسم الرباعي الكامل</label>
-                                    <input type="text" id="cust-name" name="name" class="form-control tera-field" placeholder="محمد صالح الشمري..." required>
+                                    <label class="form-label fw-bold small text-secondary">رقم الجوال</label>
+                                    <div class="input-group dir-ltr">
+                                        <span class="input-group-text bg-light border-end-0" style="border-radius: 0 12px 12px 0;">+966</span>
+                                        <input type="tel" id="cust-phone" name="phone" class="form-control tera-field border-start-0" placeholder="59XXXXXXX" maxlength="9" required style="background: #f8fafc; border-radius: 12px 0 0 12px; border: 1.5px solid #e2e8f0;">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="tera-input-group">
-                                    <label class="form-label fw-bold">رقم الجوال</label>
-                                    <div class="input-group dir-ltr">
-                                        <span class="input-group-text bg-light">+966</span>
-                                        <input type="tel" id="cust-phone" name="phone" class="form-control tera-field" placeholder="59XXXXXXX" maxlength="9" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="tera-input-group">
-                                    <label class="form-label fw-bold">التصنيف</label>
-                                    <select id="cust-tag" name="tag" class="form-select tera-field">
+                                    <label class="form-label fw-bold small text-secondary">التصنيف</label>
+                                    <select id="cust-tag" name="tag" class="form-select tera-field" style="background: #f8fafc; border-radius: 12px; border: 1.5px solid #e2e8f0;">
                                         <option value="أفراد">أفراد</option>
                                         <option value="vip">عميل VIP 💎</option>
                                         <option value="شركات">شركات / جملة</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="tera-input-group">
-                                    <label class="form-label fw-bold">البريد الإلكتروني</label>
-                                    <input type="email" id="cust-email" name="email" class="form-control tera-field" placeholder="name@domain.com">
+                                    <label class="form-label fw-bold small text-secondary">رقم الهوية / السجل</label>
+                                    <input type="text" id="cust-national-id" name="nationalId" class="form-control tera-field text-center font-monospace" placeholder="10XXXXXXXX" maxlength="10" style="background: #f8fafc; border-radius: 12px; border: 1.5px solid #e2e8f0;">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="tera-input-group">
-                                    <label class="form-label fw-bold">رقم الهوية / السجل</label>
-                                    <input type="text" id="cust-national-id" class="form-control tera-field" placeholder="10XXXXXXXX">
+                                    <label class="form-label fw-bold small text-secondary">تاريخ الميلاد (هجري)</label>
+                                    <input type="text" id="cust-dob" name="dob" class="form-control tera-field" placeholder="14xx/xx/xx" style="background: #f8fafc; border-radius: 12px; border: 1.5px solid #e2e8f0;">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- القسم الثاني: العنوان الوطني (تصميم شبكي) -->
-                <div class="address-section p-4 rounded-4" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
-                    <div class="section-badge mb-3">
-                        <span class="badge bg-soft-blue text-blue px-3 py-2 rounded-pill">2. بيانات العنوان الوطني</span>
+                <!-- القسم الثاني: العنوان الوطني (تصميم شبكي مكثف) -->
+                <div class="address-section p-4 rounded-4" style="background: #f1f5f9; border: 1px dashed #cbd5e1;">
+                    <div class="section-badge mb-3 d-flex justify-content-between">
+                        <span class="badge rounded-pill" style="background: rgba(37, 99, 235, 0.1); color: #2563eb; padding: 8px 16px;">2. بيانات العنوان الوطني</span>
+                        <small class="text-muted"><i class="fas fa-map-location-dot"></i> مخصص لمنطقة حائل</small>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label class="fs-xs fw-bold mb-1">المدينة</label>
-                            <input type="text" id="cust-city" name="city" class="form-control tera-field-sm" value="حائل">
+                            <label class="small fw-bold mb-1">المدينة</label>
+                            <input type="text" id="cust-city" name="city" class="form-control form-control-sm text-center fw-bold" value="حائل" style="border-radius: 10px;">
                         </div>
                         <div class="col-md-3">
-                            <label class="fs-xs fw-bold mb-1">الحي</label>
-                            <input type="text" id="cust-district" name="district" class="form-control tera-field-sm" placeholder="مثلاً: النقرة">
+                            <label class="small fw-bold mb-1">الحي</label>
+                            <input type="text" id="cust-district" name="district" class="form-control form-control-sm" placeholder="مثلاً: النقرة" style="border-radius: 10px;">
                         </div>
                         <div class="col-md-6">
-                            <label class="fs-xs fw-bold mb-1">اسم الشارع</label>
-                            <input type="text" id="cust-street" name="street" class="form-control tera-field-sm" placeholder="شارع الملك فهد">
+                            <label class="small fw-bold mb-1">اسم الشارع</label>
+                            <input type="text" id="cust-street" name="street" class="form-control form-control-sm" placeholder="شارع الملك فهد" style="border-radius: 10px;">
                         </div>
                         <div class="col-md-3">
-                            <label class="fs-xs fw-bold mb-1">رقم المبنى</label>
-                            <input type="text" id="cust-buildingNo" maxlength="5" class="form-control tera-field-sm text-center font-monospace" placeholder="0000">
+                            <label class="small fw-bold mb-1">رقم المبنى</label>
+                            <input type="text" id="cust-buildingNo" name="buildingNo" maxlength="4" class="form-control form-control-sm text-center font-monospace border-primary" placeholder="0000" style="border-radius: 10px; background: #fff;">
                         </div>
                         <div class="col-md-3">
-                            <label class="fs-xs fw-bold mb-1">الرمز البريدي</label>
-                            <input type="text" id="cust-postalCode" maxlength="5" class="form-control tera-field-sm text-center font-monospace" placeholder="00000">
+                            <label class="small fw-bold mb-1">الرمز البريدي</label>
+                            <input type="text" id="cust-postalCode" name="postalCode" maxlength="5" class="form-control form-control-sm text-center font-monospace" placeholder="00000" style="border-radius: 10px;">
                         </div>
                         <div class="col-md-3">
-                            <label class="fs-xs fw-bold mb-1">الرقم الإضافي</label>
-                            <input type="text" id="cust-additionalNo" maxlength="4" class="form-control tera-field-sm text-center font-monospace" placeholder="0000">
+                            <label class="small fw-bold mb-1">الرقم الإضافي</label>
+                            <input type="text" id="cust-additionalNo" name="additionalNo" maxlength="4" class="form-control form-control-sm text-center font-monospace" placeholder="0000" style="border-radius: 10px;">
                         </div>
                         <div class="col-md-3">
-                            <label class="fs-xs fw-bold mb-1">وحدة / شقة</label>
-                            <input type="text" id="cust-unitNo" class="form-control tera-field-sm text-center" placeholder="--">
+                            <label class="small fw-bold mb-1">وحدة / شقة</label>
+                            <input type="text" id="cust-unitNo" name="unitNo" class="form-control form-control-sm text-center" placeholder="--" style="border-radius: 10px;">
                         </div>
                     </div>
                 </div>
 
                 <!-- القسم الثالث: ملاحظات النظام -->
                 <div class="mt-4">
-                    <label class="form-label fw-bold"><i class="fas fa-pen-nib me-1"></i> ملاحظات إضافية</label>
-                    <textarea id="cust-notes" name="notes" class="form-control tera-field" rows="3" placeholder="أدخل أية تفاصيل ائتمانية أو ملاحظات حول العميل..."></textarea>
+                    <label class="form-label fw-bold small text-secondary"><i class="fas fa-pen-nib me-1"></i> ملاحظات ائتمانية وتاريخ التعامل</label>
+                    <textarea id="cust-notes" name="notes" class="form-control tera-field" rows="3" placeholder="أدخل أية تفاصيل ائتمانية أو ملاحظات حول العميل..." style="background: #f8fafc; border-radius: 15px; border: 1.5px solid #e2e8f0;"></textarea>
                 </div>
             </form>
         </div>
 
-        <!-- الفوتر -->
-        <div class="tera-modal-footer">
+        <!-- الفوتر (Actions) -->
+        <div class="tera-modal-footer p-4 d-flex justify-content-between align-items-center" style="background: #f8fafc; border-top: 1px solid #eee; border-radius: 0 0 28px 28px;">
             <div class="security-info">
-                <span class="text-muted fs-xs"><i class="fas fa-shield-halved text-primary me-1"></i> تشفير بيانات العميل نشط</span>
+                <span class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-shield-halved text-success me-1"></i> البيانات مشفرة وفق معايير SAMA</span>
             </div>
-            <div class="action-buttons d-flex gap-2">
-                <button type="button" class="btn btn-light px-4 rounded-pill fw-bold" onclick="window.closeCustomerModal()">إلغاء</button>
-                <button type="button" class="btn btn-primary-gradient px-4 rounded-pill fw-bold shadow-sm" id="btn-save-customer" onclick="window.handleCustomerSubmit(event)">
-                    <span>حفظ البيانات</span>
+            <div class="action-buttons d-flex gap-3">
+                <button type="button" class="btn btn-link text-decoration-none text-secondary fw-bold" onclick="window.closeCustomerModal()">إلغاء</button>
+                <button type="button" class="btn shadow-sm px-5 py-2 fw-bold animate-shimmer" id="btn-save-customer" 
+                        style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-radius: 15px; border: none;"
+                        onclick="window.handleCustomerSubmit(event)">
+                    <span>حفظ التغييرات</span>
                     <i class="fas fa-check-circle ms-2"></i>
                 </button>
             </div>
