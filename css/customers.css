@@ -1,6 +1,6 @@
 /** 
- * Tera Gateway v12.12.12 
- * التنسيق المتكامل لموديول العملاء - منطقة حائل 
+ * Tera Gateway v12.12.13
+ * التنسيق المتكامل لموديول العملاء - إصلاح مشاكل التفاعل والخريطة
  * المطور: محمد بن صالح الشمري
  */
 
@@ -18,26 +18,43 @@
 .customers-module {
     padding: 25px;
     animation: fadeIn 0.5s ease-out;
+    position: relative; /* لضمان ثبات العناصر الداخلية */
 }
 
 .module-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center; /* تم التعديل من flex-end لضمان محاذاة الزر */
     margin-bottom: 30px;
     border-bottom: 2px solid #f1f5f9;
     padding-bottom: 20px;
+    position: relative;
+    z-index: 10; /* حل مشكلة اختفاء زر الإضافة */
 }
 
-.module-header h2 {
-    font-weight: 900;
-    color: var(--tera-dark);
-    margin: 0;
-    font-size: 1.85rem;
-    letter-spacing: -0.5px;
+/* 2. إصلاح أيقونة إضافة عميل جديد */
+.btn-add-customer {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--tera-primary), #ea580c);
+    color: white;
+    border-radius: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 15px rgba(249, 115, 22, 0.2);
+    transition: all 0.3s ease;
+    border: none;
+    visibility: visible !important; /* ضمان الظهور */
 }
 
-/* 2. الجدول والبيانات (Table Design) */
+.btn-add-customer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(249, 115, 22, 0.3);
+}
+
+/* 3. الجدول وأزرار الإجراءات (Action Buttons) */
 .table-container {
     background: var(--glass-effect);
     backdrop-filter: blur(12px);
@@ -45,65 +62,52 @@
     border: 1px solid rgba(226, 232, 240, 0.8);
     box-shadow: var(--shadow-soft);
     overflow: hidden;
-    position: relative;
-}
-
-.table-responsive {
-    overflow-x: auto;
-    width: 100%;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1150px; /* ضمان استقرار عرض الحقول الـ 14 */
+    min-width: 1150px;
     text-align: right;
 }
 
-th {
-    background: #f8fafc;
-    padding: 20px 15px;
-    font-weight: 800;
-    color: var(--tera-gray);
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    border-bottom: 2px solid #e2e8f0;
+/* تنسيق أزرار التعديل والحذف والمعاينة */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
 }
 
-td {
-    padding: 18px 15px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-    color: var(--tera-dark);
-    font-weight: 500;
-    transition: background 0.2s ease;
-}
-
-tr:hover td {
-    background-color: #fffaf7;
-}
-
-/* 3. العناصر التفاعلية في الجدول */
-.table-user-img {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    object-fit: cover;
-    border: 2.5px solid white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-}
-
-.badge-tera {
-    padding: 6px 14px;
+.btn-action {
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 5; /* لضمان استجابة النقر */
 }
-.badge-vip { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-.badge-regular { background: #f1f5f9; color: #475569; }
 
-/* 4. النظام المنبثق (Modal System) */
+.btn-edit { background: #e0f2fe; color: #0284c7; }
+.btn-edit:hover { background: #0284c7; color: white; }
+
+.btn-map { background: #fef3c7; color: #d97706; }
+.btn-map:hover { background: #d97706; color: white; }
+
+/* 4. تنسيق حاوية الخريطة (Map Preview) */
+.map-preview-container {
+    width: 100%;
+    height: 350px;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+    margin-top: 15px;
+}
+
+/* 5. النظام المنبثق (Modal) */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -112,100 +116,23 @@ tr:hover td {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
-    padding: 25px;
+    z-index: 9999; /* أعلى طبقة ممكنة */
 }
 
 .modal-card {
     background: #ffffff;
     border-radius: 28px;
-    width: 100%;
+    width: 95%;
     max-width: 950px;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
+    max-height: 90vh;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    overflow: hidden;
+    animation: popIn 0.4s ease-out;
+    pointer-events: auto; /* التأكد من استقبال النقرات */
 }
 
-/* 5. شبكة النماذج (Grid Form System) */
-.modal-body {
-    padding: 30px;
-    overflow-y: auto;
-}
-
-.grid-layout {
-    display: grid;
-    gap: 22px;
-    margin-bottom: 25px;
-}
-
-.cols-2 { grid-template-columns: repeat(2, 1fr); }
-.cols-3 { grid-template-columns: repeat(3, 1fr); }
-.cols-4 { grid-template-columns: repeat(4, 1fr); }
-
-.input-group-tera {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.input-group-tera label {
-    font-size: 0.88rem;
-    font-weight: 800;
-    color: var(--tera-dark);
-}
-
-.tera-input-field, .tera-select-field {
-    background: #f1f5f9;
-    border: 2px solid transparent;
-    padding: 14px 16px;
-    border-radius: 14px;
-    font-family: 'Tajawal', sans-serif;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-}
-
-.tera-input-field:focus {
-    background: white;
-    border-color: var(--tera-primary);
-    box-shadow: 0 0 0 4px var(--tera-primary-light);
-    outline: none;
-    transform: translateY(-1px);
-}
-
-/* 6. الأزرار (Buttons) */
-.btn-tera {
-    padding: 14px 28px;
-    border-radius: 16px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: none;
-    font-size: 0.95rem;
-}
-
-.btn-primary-gradient {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: white;
-    box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.35);
-}
-
-.btn-primary-gradient:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 25px -5px rgba(249, 115, 22, 0.45);
-}
-
-/* 7. الحركات (Animations) */
+/* الحركات */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { 
-    0% { opacity: 0; transform: scale(0.92) translateY(20px); } 
-    100% { opacity: 1; transform: scale(1) translateY(0); } 
-}
-
-/* الاستجابة للهواتف */
-@media (max-width: 768px) {
-    .cols-2, .cols-3, .cols-4 { grid-template-columns: 1fr; }
-    .module-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+    from { opacity: 0; transform: scale(0.95) translateY(10px); } 
+    to { opacity: 1; transform: scale(1) translateY(0); } 
 }
