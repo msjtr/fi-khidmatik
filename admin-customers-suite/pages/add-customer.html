@@ -1,39 +1,19 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>إضافة عميل - في خدمتك من الإتقان بلس</title>
     <link rel="stylesheet" href="../css-styles/add-cust-style.css">
     <link rel="stylesheet" href="../css-styles/buttons-theme.css">
 </head>
 <body>
     <div class="form-container">
-        <header class="form-header">
-            <h3>في خدمتك من الإتقان بلس</h3>
-            <p>Fi Khidmatik by Al-Itqan Plus</p>
-        </header>
-        
+        <h3>تسجيل طلب جديد</h3>
         <form id="addCustomerForm">
-            <div class="input-field">
-                <label>اسم العميل الكامل</label>
-                <input type="text" id="custName" placeholder="أدخل اسم العميل الرباعي">
-            </div>
-            <div class="input-field">
-                <label>رقم الهوية الوطنية</label>
-                <input type="number" id="custId" placeholder="10 أرقام">
-            </div>
-            <div class="input-field">
-                <label>رقم الجوال</label>
-                <input type="tel" id="custPhone" placeholder="05xxxxxxxx">
-            </div>
-            <div class="action-bar">
-                <button type="button" id="btnSave" class="btn-main">حفظ في الإتقان بلس</button>
-                <button type="reset" class="btn-alt">تفريغ الحقول</button>
-            </div>
+            <input type="text" id="custName" placeholder="الاسم الرباعي" required>
+            <input type="number" id="custId" placeholder="رقم الهوية" required>
+            <input type="tel" id="custPhone" placeholder="05xxxxxxxx" required>
+            <button type="button" id="btnSave" class="btn-main">حفظ في الإتقان بلس</button>
         </form>
     </div>
-
-    <!-- استدعاء المنطق البرمجي المستقل -->
     <script src="../js-logic/api-connector.js"></script>
     <script src="../js-logic/add-cust-logic.js"></script>
     <script src="../js-logic/btn-actions-controller.js"></script>
