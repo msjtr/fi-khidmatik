@@ -7,98 +7,91 @@
 import { db } from '../core/firebase.js';
 import { 
     collection, getDocs, addDoc, updateDoc, deleteDoc, doc, 
-    query, orderBy, serverTimestamp, getDoc 
+    query, orderBy, getDoc 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// مصفوفة أسماء الحقول كما طلبت بدقة
+// مصفوفة الحقول الموسعة لعام 2026
 const CUSTOMER_FIELDS = [
-    "name", "phone", "countryCode", "email", "country", "city", 
-    "district", "street", "buildingNo", "additionalNo", 
-    "postalCode", "poBox", "tag", "notes"
+    "name", "phone", "country_code", "user_type", "birth_date", "gender",
+    "city", "district", "street", "building_number", "additional_number", 
+    "postal_code", "po_box", "latitude", "longitude", "customer_type", 
+    "customer_status", "customer_notes"
 ];
 
 export async function initCustomers(container) {
     if (!container) return;
 
-    // 1. رسم الهيكل العام (الإحصائيات + أدوات التحكم + الجدول)
+    // 1. رسم الهيكل العام بتصميم تيرا الحديث
     container.innerHTML = `
-        <div style="padding: 20px; font-family: 'Tajawal', sans-serif; direction: rtl;">
-            <!-- قسم الإحصائيات -->
-            <div id="customers-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
-                <div class="stat-card">جاري حساب الإحصائيات...</div>
+        <div class="tera-module-wrapper animate-fade-in" style="direction: rtl; font-family: 'Tajawal', sans-serif;">
+            <!-- لوحة الإحصائيات الذكية -->
+            <div id="customers-stats" class="row g-3 mb-4">
+                <div class="col-md-4"><div class="stat-card shadow-sm p-3 bg-white rounded-4 border-start border-4 border-primary">جاري التحميل...</div></div>
             </div>
 
-            <!-- أدوات التحكم -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="main-search" placeholder="بحث باسم العميل أو الجوال..." style="padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 5px;">
+            <!-- شريط الأدوات المطور -->
+            <div class="toolbar d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 bg-white rounded-4 shadow-sm">
+                <div class="search-box position-relative" style="min-width: 300px;">
+                    <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" id="main-search" class="form-control ps-5 rounded-pill border-light bg-light" placeholder="بحث باسم العميل أو الجوال...">
                 </div>
-                <div style="display: flex; gap: 8px;">
-                    <button id="btn-add-new" class="btn-primary" style="background:#e67e22; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;"><i class="fas fa-plus"></i> إضافة عميل جديد</button>
-                    <button id="btn-export" style="background:#27ae60; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;"><i class="fas fa-file-export"></i> تصدير</button>
-                    <button id="btn-import" style="background:#3498db; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;"><i class="fas fa-file-import"></i> استيراد</button>
+                <div class="action-buttons d-flex gap-2">
+                    <button id="btn-add-new" class="btn btn-orange-gradient rounded-pill px-4 shadow-sm text-white">
+                        <i class="fas fa-plus-circle me-1"></i> إضافة عميل
+                    </button>
+                    <button class="btn btn-outline-success rounded-pill px-3"><i class="fas fa-file-excel"></i></button>
                 </div>
             </div>
 
-            <!-- الجدول التفصيلي -->
-            <div style="background: white; border-radius: 10px; overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                <table style="width: 100%; border-collapse: collapse; min-width: 1500px;">
-                    <thead style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                        <tr>
-                            <th style="padding: 12px; text-align: center;">التسلسل</th>
-                            <th style="padding: 12px;">اسم العميل</th>
-                            <th style="padding: 12px;">الجوال</th>
-                            <th style="padding: 12px;">مفتاح الدولة</th>
-                            <th style="padding: 12px;">البريد الإلكتروني</th>
-                            <th style="padding: 12px;">الدولة</th>
-                            <th style="padding: 12px;">المدينة</th>
-                            <th style="padding: 12px;">الحي</th>
-                            <th style="padding: 12px;">الشارع</th>
-                            <th style="padding: 12px;">المبنى</th>
-                            <th style="padding: 12px;">الإضافي</th>
-                            <th style="padding: 12px;">الرمز البريدي</th>
-                            <th style="padding: 12px;">صندوق البريد</th>
-                            <th style="padding: 12px;">تاريخ الإضافة</th>
-                            <th style="padding: 12px;">الحالة</th>
-                            <th style="padding: 12px;">التصنيف</th>
-                            <th style="padding: 12px; text-align: center;">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customers-list-body">
-                        <tr><td colspan="17" style="text-align:center; padding:30px;">جاري تحميل البيانات...</td></tr>
-                    </tbody>
-                </table>
+            <!-- جدول البيانات الزجاجي -->
+            <div class="table-container bg-white rounded-4 shadow-sm overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="text-secondary small">
+                                <th class="ps-4">العميل</th>
+                                <th>الاتصال</th>
+                                <th>الموقع (حائل)</th>
+                                <th>التصنيف</th>
+                                <th>الحالة</th>
+                                <th class="text-center">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-list-body">
+                            <tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- النافذة المنبثقة (Modal) للإضافة والتعديل -->
-        <div id="customer-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-            <div style="background:white; width:90%; max-width:800px; padding:25px; border-radius:15px; max-height:90vh; overflow-y:auto;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; margin-bottom:20px; padding-bottom:10px;">
-                    <h3 id="modal-title">إضافة عميل جديد</h3>
-                    <button id="modal-close" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        <!-- مودال الإضافة/التعديل (Tera Modal) -->
+        <div id="customer-modal" class="tera-modal-overlay" style="display:none;">
+            <div class="tera-modal-content animate-slide-up">
+                <div class="modal-header-custom d-flex justify-content-between align-items-center mb-4">
+                    <h4 id="modal-title" class="fw-900 mb-0">إضافة عميل</h4>
+                    <button id="modal-close" class="btn-close-custom">&times;</button>
                 </div>
-                <form id="customer-form">
+                <form id="customer-form-dynamic" class="row g-3">
                     <input type="hidden" id="edit-id">
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;" id="fields-container">
-                        <!-- الحقول ستنشأ برمجياً هنا -->
+                    <div id="fields-container" class="row g-3">
+                        <!-- الحقول يتم حقنها برمجياً لضمان الدقة -->
                     </div>
-                    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #eee; padding-top:20px;">
-                        <button type="button" id="btn-cancel" style="padding:10px 25px; border-radius:5px; border:1px solid #ccc; background:#fff; cursor:pointer;">إغلاق</button>
-                        <button type="submit" style="padding:10px 35px; border-radius:5px; border:none; background:#e67e22; color:white; cursor:pointer; font-weight:bold;">حفظ البيانات</button>
+                    <div class="col-12 mt-4 pt-3 border-top d-flex gap-2 justify-content-end">
+                        <button type="button" id="btn-cancel" class="btn btn-light rounded-pill px-4">إلغاء</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5">حفظ البيانات</button>
                     </div>
                 </form>
             </div>
         </div>
     `;
 
-    // استدعاء الدوال التشغيلية
     setupEventListeners();
     loadAndRenderData();
 }
 
 /**
- * دالة تحميل البيانات والإحصائيات
+ * جلب البيانات وعرضها مع دعم الفلترة الجغرافية لحائل
  */
 async function loadAndRenderData() {
     const tbody = document.getElementById('customers-list-body');
@@ -107,152 +100,170 @@ async function loadAndRenderData() {
     try {
         const snap = await getDocs(query(collection(db, "customers"), orderBy("name", "asc")));
         let html = "";
-        let count = 1;
-        
-        // إحصائيات أولية
-        let stats = { total: snap.size, vip: 0, hail: 0 };
+        let stats = { total: snap.size, vip: 0, hail: 0, risky: 0 };
 
         snap.forEach(docSnap => {
             const c = docSnap.data();
-            if (c.tag === 'vip') stats.vip++;
+            if (c.customer_type === 'عميل VIP') stats.vip++;
             if (c.city === 'حائل') stats.hail++;
+            if (c.customer_status === 'عميل محتال' || c.customer_status === 'عميل مزعج') stats.risky++;
 
             html += `
-                <tr style="border-bottom:1px solid #eee; font-size:0.9rem;">
-                    <td style="text-align:center; padding:12px;">${count++}</td>
-                    <td style="padding:12px;"><strong>${c.name}</strong></td>
-                    <td style="padding:12px;">${c.phone}</td>
-                    <td style="padding:12px;">${c.countryCode || '+966'}</td>
-                    <td style="padding:12px;">${c.email}</td>
-                    <td style="padding:12px;">${c.country}</td>
-                    <td style="padding:12px;">${c.city}</td>
-                    <td style="padding:12px;">${c.district}</td>
-                    <td style="padding:12px;">${c.street}</td>
-                    <td style="padding:12px;">${c.buildingNo}</td>
-                    <td style="padding:12px;">${c.additionalNo}</td>
-                    <td style="padding:12px;">${c.postalCode}</td>
-                    <td style="padding:12px;">${c.poBox}</td>
-                    <td style="padding:12px;">${c.createdAt?.split('T')[0] || '---'}</td>
-                    <td style="padding:12px;"><span style="color:green;">نشط</span></td>
-                    <td style="padding:12px;"><span style="background:#eee; padding:2px 6px; border-radius:4px;">${c.tag || 'أفراد'}</span></td>
-                    <td style="padding:12px; text-align:center; min-width:120px;">
-                        <button onclick="window.editCustomer('${docSnap.id}')" style="color:#3498db; border:none; background:none; cursor:pointer; margin-left:8px;"><i class="fas fa-edit"></i></button>
-                        <button onclick="window.printCustomer('${docSnap.id}')" style="color:#7f8c8d; border:none; background:none; cursor:pointer; margin-left:8px;"><i class="fas fa-print"></i></button>
-                        <button onclick="window.deleteCustomer('${docSnap.id}')" style="color:#e74c3c; border:none; background:none; cursor:pointer;"><i class="fas fa-trash-alt"></i></button>
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3 bg-soft-primary text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                                ${c.name.charAt(0)}
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">${c.name}</div>
+                                <small class="text-muted">${c.user_type || 'أفراد'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="small">${c.country_code || '+966'} ${c.phone}</div>
+                        <div class="text-muted smaller">${c.email || ''}</div>
+                    </td>
+                    <td>
+                        <div class="small">${c.city} - ${c.district}</div>
+                        <a href="https://maps.google.com/?q=${c.latitude},${c.longitude}" target="_blank" class="smaller text-blue text-decoration-none">
+                            <i class="fas fa-external-link-alt"></i> فتح الخريطة
+                        </a>
+                    </td>
+                    <td><span class="badge bg-soft-info text-info rounded-pill">${c.customer_type || 'لم يصنف'}</span></td>
+                    <td>
+                        <span class="badge ${c.customer_status === 'طبيعي' ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger'} rounded-pill">
+                            ${c.customer_status || 'نشط'}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                            <button onclick="window.editCustomer('${docSnap.id}')" class="btn btn-white btn-sm px-3 border-end"><i class="fas fa-edit text-primary"></i></button>
+                            <button onclick="window.deleteCustomer('${docSnap.id}')" class="btn btn-white btn-sm px-3"><i class="fas fa-trash-alt text-danger"></i></button>
+                        </div>
                     </td>
                 </tr>
             `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="17">لا توجد بيانات</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="6" class="text-center p-5">لا يوجد عملاء مضافين</td></tr>';
         
-        // تحديث واجهة الإحصائيات
         statsContainer.innerHTML = `
-            <div style="background:#fff; padding:15px; border-radius:10px; border-right:5px solid #e67e22; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <small style="color:#7f8c8d;">إجمالي العملاء</small><h3 style="margin:5px 0;">${stats.total}</h3>
+            <div class="col-md-4">
+                <div class="stat-card bg-white p-3 rounded-4 shadow-sm border-start border-4 border-primary">
+                    <small class="text-muted fw-bold">إجمالي العملاء</small>
+                    <h3 class="fw-900 mb-0">${stats.total}</h3>
+                </div>
             </div>
-            <div style="background:#fff; padding:15px; border-radius:10px; border-right:5px solid #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <small style="color:#7f8c8d;">عملاء VIP</small><h3 style="margin:5px 0;">${stats.vip}</h3>
+            <div class="col-md-4">
+                <div class="stat-card bg-white p-3 rounded-4 shadow-sm border-start border-4 border-success">
+                    <small class="text-muted fw-bold">منطقة حائل</small>
+                    <h3 class="fw-900 mb-0">${stats.hail}</h3>
+                </div>
             </div>
-            <div style="background:#fff; padding:15px; border-radius:10px; border-right:5px solid #27ae60; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <small style="color:#7f8c8d;">منطقة حائل</small><h3 style="margin:5px 0;">${stats.hail}</h3>
+            <div class="col-md-4">
+                <div class="stat-card bg-white p-3 rounded-4 shadow-sm border-start border-4 border-danger">
+                    <small class="text-muted fw-bold">تنبيهات أمنية</small>
+                    <h3 class="fw-900 mb-0 text-danger">${stats.risky}</h3>
+                </div>
             </div>
         `;
 
     } catch (error) {
-        console.error("Load Error:", error);
-        tbody.innerHTML = '<tr><td colspan="17" style="color:red;">فشل جلب البيانات من السحابة</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger p-5">فشل الاتصال بـ Firestore</td></tr>';
     }
 }
 
 /**
- * إعداد الأزرار والعمليات
+ * إعداد مستمعات الأحداث والنموذج الديناميكي
  */
 function setupEventListeners() {
     const modal = document.getElementById('customer-modal');
-    const form = document.getElementById('customer-form');
+    const form = document.getElementById('customer-form-dynamic');
     const fieldsContainer = document.getElementById('fields-container');
 
-    // توليد الحقول تلقائياً لضمان المطابقة
+    // إنشاء الحقول برمجياً لضمان تطابق ID مع Firestore
     fieldsContainer.innerHTML = CUSTOMER_FIELDS.map(field => `
-        <div>
-            <label style="display:block; font-size:0.8rem; margin-bottom:5px; color:#555;">${getLabelAr(field)}</label>
-            <input type="text" id="f-${field}" name="${field}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        <div class="${['customer_notes'].includes(field) ? 'col-12' : 'col-md-6'}">
+            <label class="form-label small fw-bold text-muted">${getLabelAr(field)}</label>
+            ${field === 'customer_status' ? `
+                <select id="f-${field}" class="form-select tera-input">
+                    <option value="طبيعي" selected>طبيعي ✅</option>
+                    <option value="عميل مزعج">عميل مزعج ⚠️</option>
+                    <option value="عميل محتال">عميل محتال 🚩</option>
+                </select>
+            ` : field === 'customer_type' ? `
+                <select id="f-${field}" class="form-select tera-input">
+                    <option value="عميل عادي" selected>عميل عادي</option>
+                    <option value="عميل مميز">عميل مميز</option>
+                    <option value="عميل VIP">عميل VIP 💎</option>
+                </select>
+            ` : field === 'customer_notes' ? `
+                <textarea id="f-${field}" class="form-control tera-input" rows="3"></textarea>
+            ` : `
+                <input type="text" id="f-${field}" class="form-control tera-input" placeholder="...">
+            `}
         </div>
     `).join('');
 
-    // زر إضافة جديد
     document.getElementById('btn-add-new').onclick = () => {
         form.reset();
         document.getElementById('edit-id').value = "";
-        document.getElementById('modal-title').innerText = "إضافة عميل جديد لتيرا";
+        document.getElementById('modal-title').innerText = "إضافة عميل لتيرا";
         modal.style.display = 'flex';
     };
 
-    // إغلاق المودال
     document.getElementById('modal-close').onclick = () => modal.style.display = 'none';
     document.getElementById('btn-cancel').onclick = () => modal.style.display = 'none';
 
-    // حفظ البيانات (حفظ حقيقي في Firestore)
     form.onsubmit = async (e) => {
         e.preventDefault();
         const editId = document.getElementById('edit-id').value;
-        const formData = {};
-        
-        CUSTOMER_FIELDS.forEach(f => {
-            formData[f] = document.getElementById(`f-${f}`).value;
-        });
+        const data = {};
+        CUSTOMER_FIELDS.forEach(f => data[f] = document.getElementById(`f-${f}`).value);
 
         try {
             if (editId) {
-                await updateDoc(doc(db, "customers", editId), { ...formData, updatedAt: new Date().toISOString() });
-                alert("تم تحديث بيانات العميل بنجاح");
+                await updateDoc(doc(db, "customers", editId), { ...data, updatedAt: new Date().toISOString() });
             } else {
-                await addDoc(collection(db, "customers"), { 
-                    ...formData, 
-                    createdAt: new Date().toISOString(),
-                    status: "نشط"
-                });
-                alert("تمت إضافة العميل الجديد بنجاح");
+                await addDoc(collection(db, "customers"), { ...data, createdAt: new Date().toISOString() });
             }
             modal.style.display = 'none';
             loadAndRenderData();
-        } catch (error) {
-            alert("خطأ في الحفظ: " + error.message);
-        }
+        } catch (err) { alert("Error: " + err.message); }
     };
 
-    // وظائف عالمية للأزرار داخل الجدول
     window.deleteCustomer = async (id) => {
-        if (confirm("هل أنت متأكد من حذف هذا العميل نهائياً؟")) {
+        if (confirm("حذف العميل نهائياً؟")) {
             await deleteDoc(doc(db, "customers", id));
             loadAndRenderData();
         }
     };
 
     window.editCustomer = async (id) => {
-        const docSnap = await getDoc(doc(db, "customers", id));
-        if (docSnap.exists()) {
-            const data = docSnap.data();
+        const snap = await getDoc(doc(db, "customers", id));
+        if (snap.exists()) {
+            const d = snap.data();
             document.getElementById('edit-id').value = id;
-            document.getElementById('modal-title').innerText = "تعديل بيانات العميل";
             CUSTOMER_FIELDS.forEach(f => {
-                document.getElementById(`f-${f}`).value = data[f] || "";
+                const el = document.getElementById(`f-${f}`);
+                if(el) el.value = d[f] || "";
             });
             modal.style.display = 'flex';
         }
     };
-    
-    window.printCustomer = (id) => alert("جاري تجهيز تقرير العميل رقم: " + id);
 }
 
 function getLabelAr(key) {
     const labels = {
-        name: "اسم العميل الكامل", phone: "رقم الجوال", countryCode: "مفتاح الدولة",
-        email: "البريد الإلكتروني", country: "اسم الدولة", city: "المدينة",
-        district: "الحي", street: "اسم الشارع", buildingNo: "رقم المبنى",
-        additionalNo: "الرقم الإضافي", postalCode: "الرمز البريدي",
-        poBox: "صندوق البريد", tag: "تصنيف العميل (VIP/أفراد)", notes: "ملاحظات إضافية"
+        name: "اسم العميل", phone: "الجوال", country_code: "مفتاح الدولة",
+        user_type: "نوع المستخدم", birth_date: "الميلاد", gender: "الجنس",
+        city: "المدينة", district: "الحي", street: "الشارع",
+        building_number: "المبنى", additional_number: "الإضافي",
+        postal_code: "الرمز البريدي", po_box: "صندوق البريد",
+        customer_type: "التصنيف", customer_status: "الحالة الأمنية",
+        customer_notes: "ملاحظات إضافية", latitude: "خطي العرض", longitude: "خط الطول"
     };
     return labels[key] || key;
 }
