@@ -1,10 +1,11 @@
-/* 
- * Tera Gateway - Sidebar Styling (Stable v12.12.6)
- * Path: fi-khidmatik/css/sidebar.css
+/**
+ * Tera Gateway - Sidebar Styling (Stable v12.12.12)
+ * الهوية البصرية المطورة للقائمة الجانبية
+ * المطور: محمد بن صالح الشمري
  */
 
 :root {
-    --tera-orange: #f97316; /* لون Sawa/stc الرسمي */
+    --tera-orange: #f97316; /* لون Sawa/stc الرسمي المعتمد */
     --tera-orange-deep: #ea580c;
     --tera-orange-soft: rgba(249, 115, 22, 0.08);
     --sidebar-bg: #ffffff;
@@ -14,9 +15,10 @@
     --text-muted: #64748b;
     --sidebar-border: #f1f5f9;
     --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --glass-bg: rgba(255, 255, 255, 0.7);
 }
 
-/* الحاوية الأساسية للسايدبار */
+/* الحاوية الأساسية للسايدبار بنمط Glassmorphism خفيف */
 .app-sidebar {
     width: var(--sidebar-width);
     height: 100vh;
@@ -31,7 +33,7 @@
     box-shadow: 10px 0 30px rgba(0,0,0,0.02);
 }
 
-/* الهيدر وشعار "تيرا" */
+/* هيدر الشعار مع تأثير النبض */
 .sidebar-header {
     padding: 30px 24px;
     display: flex;
@@ -41,7 +43,6 @@
     white-space: nowrap;
 }
 
-/* النقطة الذكية للشعار */
 .logo-dot-tera {
     width: 14px;
     height: 14px;
@@ -52,7 +53,7 @@
     position: relative;
 }
 
-/* تأثير نبض للوجو ليعطي إحساساً بالحياة للسيستم */
+/* أنيميشن النبض لإعطاء إحساس بالنشاط للنظام */
 .logo-dot-tera::after {
     content: '';
     position: absolute;
@@ -69,56 +70,56 @@
 }
 
 .menu-label {
-    font-size: 1.1rem;
-    font-weight: 800;
+    font-size: 1.15rem;
+    font-weight: 900;
     color: var(--text-main);
     letter-spacing: -0.5px;
+    font-family: 'Tajawal', sans-serif;
 }
 
-/* قائمة التنقل */
+/* قائمة التنقل (Nav) */
 .side-nav {
     flex: 1;
     padding: 10px 16px;
     overflow-y: auto;
-    scrollbar-width: none; /* إخفاء السكرول لـ Firefox */
+    scrollbar-width: none;
 }
-
 .side-nav::-webkit-scrollbar { width: 0; }
 
 .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 14px 16px;
     margin-bottom: 8px;
-    border-radius: 14px;
+    border-radius: 16px;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     position: relative;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
 }
 
 .nav-icon {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: 14px;
     background: #f8fafc;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     transition: all 0.3s ease;
 }
 
-/* تحسين تأثير التحويم (Hover) */
+/* تأثير التحويم (Hover) باتجاه اليمين RTL */
 .nav-item:hover {
     background: #f8fafc;
     color: var(--tera-orange);
-    transform: translateX(-5px); /* حركة لليمين (لأن الاتجاه RTL) */
+    transform: translateX(-6px);
 }
 
 .nav-item:hover .nav-icon {
@@ -127,7 +128,7 @@
     color: var(--tera-orange);
 }
 
-/* الحالة النشطة (Active) */
+/* الحالة النشطة للموديول الحالي */
 .nav-item.active {
     background: var(--tera-orange-soft);
     color: var(--tera-orange);
@@ -136,20 +137,20 @@
 .nav-item.active .nav-icon {
     background: var(--tera-orange);
     color: #ffffff;
-    box-shadow: 0 8px 16px rgba(249, 115, 22, 0.25);
+    box-shadow: 0 8px 16px rgba(249, 115, 22, 0.3);
 }
 
-/* مؤشر النشاط الجانبي (Indicator) */
+/* مؤشر النشاط الجانبي */
 .active-indicator {
     position: absolute;
     right: -16px;
-    width: 4px;
-    height: 20px;
+    width: 5px;
+    height: 24px;
     background: var(--tera-orange);
     border-radius: 4px 0 0 4px;
     opacity: 0;
-    transform: scaleY(0.5);
-    transition: all 0.3s ease;
+    transform: scaleY(0.4);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .nav-item.active .active-indicator {
@@ -157,9 +158,9 @@
     transform: scaleY(1);
 }
 
-/* الفواصل */
+/* فواصل الأقسام (Dividers) */
 .nav-divider {
-    margin: 24px 12px 12px;
+    margin: 28px 12px 14px;
     height: 1px;
     background: var(--sidebar-border);
     position: relative;
@@ -167,48 +168,32 @@
 
 .nav-divider span {
     position: absolute;
-    top: -10px;
-    right: 12px;
+    top: -11px;
+    right: 15px;
     background: var(--sidebar-bg);
-    padding: 0 10px;
-    font-size: 0.65rem;
+    padding: 0 12px;
+    font-size: 0.7rem;
     color: #94a3b8;
-    font-weight: 800;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
 }
 
-/* وضع الانكماش (Collapsed State) */
-.sidebar-container.collapsed .app-sidebar {
-    width: var(--sidebar-collapsed-width);
-}
-
+/* استجابة الجوال وحالة الإغلاق */
+.sidebar-container.collapsed .app-sidebar { width: var(--sidebar-collapsed-width); }
 .sidebar-container.collapsed .nav-text, 
 .sidebar-container.collapsed .menu-label, 
 .sidebar-container.collapsed .nav-divider span {
     opacity: 0;
     visibility: hidden;
-    transition: 0.2s;
 }
 
-.sidebar-container.collapsed .nav-item {
-    padding: 12px;
-    justify-content: center;
-}
-
-.sidebar-container.collapsed .nav-item:hover {
-    transform: none;
-}
-
-/* التوافق مع الجوال */
 @media (max-width: 768px) {
     .app-sidebar {
         position: fixed;
         right: -100%;
         transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: -10px 0 30px rgba(0,0,0,0.1);
     }
-    
     .mobile-open .app-sidebar {
         right: 0;
         width: 280px;
