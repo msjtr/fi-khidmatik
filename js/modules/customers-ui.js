@@ -10,10 +10,11 @@ import {
     query, orderBy, getDoc 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// الحقول الأساسية المتوافقة مع النموذج (Model)
 const CUSTOMER_FIELDS = [
     "name", "phone", "country_code", "user_type", "birth_date", "gender",
     "city", "district", "street", "building_number", "additional_number", 
-    "postal_code", "po_box", "latitude", "longitude", "customer_type", 
+    "postal_code", "latitude", "longitude", "customer_type", 
     "customer_status", "customer_notes"
 ];
 
@@ -22,21 +23,22 @@ export async function initCustomers(container) {
 
     container.innerHTML = `
         <div class="customers-module animate-fade-in" style="direction: rtl; font-family: 'Tajawal', sans-serif;">
+            <!-- بطاقات الإحصائيات الذكية -->
             <div id="customers-stats" class="row g-3 mb-4"></div>
 
-            <div class="module-header">
-                <h2>إدارة العملاء</h2>
-                <button id="btn-add-new" class="btn-add-customer">
+            <div class="module-header d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold"><i class="fas fa-users text-primary me-2"></i> إدارة العملاء</h2>
+                <button id="btn-add-new" class="btn-add-customer shadow-sm">
                     <i class="fas fa-plus-circle"></i> إضافة عميل جديد
                 </button>
             </div>
 
-            <div class="table-container">
+            <div class="table-container shadow-sm rounded-4 overflow-hidden bg-white">
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
-                        <thead>
+                        <thead class="bg-light text-muted">
                             <tr>
-                                <th class="ps-4">العميل</th>
+                                <th class="ps-4 py-3">العميل</th>
                                 <th>الاتصال</th>
                                 <th>الموقع (حائل)</th>
                                 <th>التصنيف</th>
@@ -52,23 +54,10 @@ export async function initCustomers(container) {
             </div>
         </div>
 
-        <!-- نظام المودال الموحد لتيرا -->
-        <div id="customer-modal" class="modal-overlay" style="display:none;">
-            <div class="modal-card">
-                <div class="modal-header-custom p-4 border-bottom d-flex justify-content-between align-items-center">
-                    <h4 id="modal-title" class="fw-bold mb-0 text-dark">إضافة عميل</h4>
-                    <button type="button" class="btn-close" id="modal-close-x"></button>
-                </div>
-                <form id="customer-form-dynamic">
-                    <div class="modal-body">
-                        <input type="hidden" id="edit-id">
-                        <div id="fields-container" class="row g-3"></div>
-                    </div>
-                    <div class="modal-footer p-4 border-top d-flex gap-2 justify-content-end">
-                        <button type="button" id="btn-cancel" class="btn btn-light rounded-pill px-4">إلغاء</button>
-                        <button type="submit" class="btn-add-customer">حفظ البيانات</button>
-                    </div>
-                </form>
+        <!-- المودال المتوافق مع Tera Gateway V12 -->
+        <div id="customer-modal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+            <div id="modal-content-container" class="animate-slide-up" style="width: 95%; max-width: 900px;">
+                <!-- سيتم حقن customer-form.html هنا برمجياً -->
             </div>
         </div>
     `;
@@ -77,28 +66,81 @@ export async function initCustomers(container) {
     loadAndRenderData();
 }
 
-// تصدير الدوال للنطاق العالمي لضمان عمل الـ onclick من داخل الجدول
+// دالة تعديل العميل (Global Scope)
 window.editCustomer = async (id) => {
-    const snap = await getDoc(doc(db, "customers", id));
-    if (snap.exists()) {
-        const d = snap.data();
-        document.getElementById('edit-id').value = id;
-        document.getElementById('modal-title').innerText = "تعديل بيانات العميل";
-        
-        CUSTOMER_FIELDS.forEach(f => {
-            const el = document.getElementById(`f-${f}`);
-            if (el) el.value = d[f] || "";
-        });
-        document.getElementById('customer-modal').style.display = 'flex';
+    try {
+        const snap = await getDoc(doc(db, "customers", id));
+        if (snap.exists()) {
+            await openCustomerModal("تعديل بيانات العميل", id, snap.data());
+        }
+    } catch (e) {
+        console.error("Error fetching customer:", e);
     }
 };
 
+// دالة حذف العميل (Global Scope)
 window.deleteCustomer = async (id) => {
-    if (confirm("هل أنت متأكد من حذف هذا العميل من نظام تيرا؟")) {
-        await deleteDoc(doc(db, "customers", id));
-        loadAndRenderData();
+    if (confirm("هل أنت متأكد من حذف هذا العميل نهائياً من نظام تيرا؟")) {
+        try {
+            await deleteDoc(doc(db, "customers", id));
+            loadAndRenderData();
+        } catch (e) {
+            alert("خطأ في الحذف: " + e.message);
+        }
     }
 };
+
+async function openCustomerModal(title, id = null, data = null) {
+    const modal = document.getElementById('customer-modal');
+    const container = document.getElementById('modal-content-container');
+    
+    // جلب ملف HTML الخارجي للنموذج لضمان توحيد التصميم
+    const response = await fetch('components/customer-form.html');
+    container.innerHTML = await response.text();
+    
+    const form = document.getElementById('customer-form');
+    document.getElementById('form-action-title').innerText = title;
+    
+    if (id) {
+        document.getElementById('cust-id-hidden').value = id;
+        // ملء الحقول بالبيانات المسترجعة
+        CUSTOMER_FIELDS.forEach(f => {
+            const el = form.querySelector(`[name="${f}"]`);
+            if (el) el.value = data[f] || "";
+        });
+        
+        // تحديث محرر النصوص إذا كان موجوداً (Quill)
+        if (window.quill) window.quill.root.innerHTML = data.customer_notes || "";
+    }
+
+    modal.style.display = 'flex';
+
+    // إعداد زر الإغلاق داخل الفورم المحقون
+    form.querySelector('.btn-close').onclick = () => modal.style.display = 'none';
+    form.querySelector('.btn-light').onclick = () => modal.style.display = 'none';
+
+    // معالجة الحفظ
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const finalData = Object.fromEntries(formData.entries());
+        
+        // إضافة بيانات محرر النصوص
+        if (window.quill) finalData.customer_notes = window.quill.root.innerHTML;
+
+        try {
+            if (id) {
+                await updateDoc(doc(db, "customers", id), finalData);
+            } else {
+                await addDoc(collection(db, "customers"), { ...finalData, createdAt: new Date() });
+            }
+            modal.style.display = 'none';
+            loadAndRenderData();
+        } catch (error) {
+            console.error("Save Error:", error);
+        }
+    };
+}
 
 async function loadAndRenderData() {
     const tbody = document.getElementById('customers-list-body');
@@ -112,99 +154,84 @@ async function loadAndRenderData() {
 
         snap.forEach(docSnap => {
             const c = docSnap.data();
+            const id = docSnap.id;
+            
+            // حساب الإحصائيات (منطقة حائل والمخاطر)
             if (c.city === 'حائل') stats.hail++;
-            if (['عميل محتال', 'عميل مزعج'].includes(c.customer_status)) stats.risky++;
+            if (['متعثر', 'محظور'].includes(c.customer_status)) stats.risky++;
 
             html += `
                 <tr>
                     <td class="ps-4">
                         <div class="d-flex align-items-center">
-                            <div class="table-user-img bg-light d-flex align-items-center justify-content-center text-primary fw-bold">
+                            <div class="avatar-circle bg-soft-primary text-primary fw-bold shadow-sm">
                                 ${c.name ? c.name.charAt(0) : '?'}
                             </div>
                             <div class="ms-3">
-                                <div class="fw-bold text-dark">${c.name || 'بدون اسم'}</div>
-                                <small class="text-muted">${c.user_type || 'أفراد'}</small>
+                                <div class="fw-bold text-dark mb-0">${c.name || 'غير معروف'}</div>
+                                <span class="badge bg-light text-muted smaller">${c.user_type || 'أفراد'}</span>
                             </div>
                         </div>
                     </td>
-                    <td><div class="small">${c.country_code || '+966'} ${c.phone || ''}</div></td>
                     <td>
-                        <div class="small">${c.city || ''} - ${c.district || ''}</div>
-                        <a href="https://maps.google.com/?q=${c.latitude},${c.longitude}" target="_blank" class="text-primary smaller text-decoration-none">
-                            <i class="fas fa-map-marker-alt"></i> معاينة الموقع
+                        <div class="small fw-bold text-secondary">${c.phone || '-'}</div>
+                        <div class="smaller text-muted">${c.country_code || '+966'}</div>
+                    </td>
+                    <td>
+                        <div class="small text-dark">${c.district || 'حي غير محدد'}</div>
+                        <a href="https://maps.google.com/?q=${c.latitude},${c.longitude}" target="_blank" class="text-primary smaller text-decoration-none hover-link">
+                            <i class="fas fa-location-arrow me-1"></i> تتبع الموقع
                         </a>
                     </td>
-                    <td><span class="badge-tera badge-vip">${c.customer_type || 'عادي'}</span></td>
-                    <td><span class="badge-tera ${c.customer_status === 'طبيعي' ? 'badge-regular' : 'badge-vip'}">${c.customer_status || 'نشط'}</span></td>
+                    <td><span class="badge-tera ${getBadgeClass(c.customer_type)}">${c.customer_type || 'عادي'}</span></td>
+                    <td><span class="status-pill ${c.customer_status === 'طبيعي' ? 'status-ok' : 'status-alert'}">${c.customer_status || 'نشط'}</span></td>
                     <td class="text-center">
-                        <div class="actions-cell">
-                            <button onclick="editCustomer('${docSnap.id}')" class="btn-action btn-edit"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteCustomer('${docSnap.id}')" class="btn-action btn-map text-danger"><i class="fas fa-trash"></i></button>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button onclick="editCustomer('${id}')" class="btn-action btn-edit-icon" title="تعديل"><i class="fas fa-pen"></i></button>
+                            <button onclick="deleteCustomer('${id}')" class="btn-action btn-delete-icon text-danger" title="حذف"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </td>
                 </tr>
             `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="6" class="text-center p-5">لا يوجد بيانات</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="6" class="text-center p-5 text-muted">لا يوجد عملاء مسجلين حالياً</td></tr>';
         renderStats(stats, statsContainer);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("Render Error:", e);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-danger">فشل تحميل البيانات: ${e.message}</td></tr>`;
+    }
 }
 
 function setupEventListeners() {
-    const modal = document.getElementById('customer-modal');
-    const form = document.getElementById('customer-form-dynamic');
-    const fieldsContainer = document.getElementById('fields-container');
-
-    // توليد الحقول
-    fieldsContainer.innerHTML = CUSTOMER_FIELDS.map(field => `
-        <div class="${field === 'customer_notes' ? 'col-12' : 'col-md-4'}">
-            <label class="form-label small fw-bold">${getLabelAr(field)}</label>
-            <input type="text" id="f-${field}" class="tera-input-field w-100" placeholder="...">
-        </div>
-    `).join('');
-
-    document.getElementById('btn-add-new').onclick = () => {
-        form.reset();
-        document.getElementById('edit-id').value = "";
-        document.getElementById('modal-title').innerText = "إضافة عميل جديد";
-        modal.style.display = 'flex';
-    };
-
-    const closeModal = () => modal.style.display = 'none';
-    document.getElementById('modal-close-x').onclick = closeModal;
-    document.getElementById('btn-cancel').onclick = closeModal;
-
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const editId = document.getElementById('edit-id').value;
-        const data = {};
-        CUSTOMER_FIELDS.forEach(f => data[f] = document.getElementById(`f-${f}`).value);
-
-        if (editId) {
-            await updateDoc(doc(db, "customers", editId), data);
-        } else {
-            await addDoc(collection(db, "customers"), data);
-        }
-        closeModal();
-        loadAndRenderData();
-    };
+    document.getElementById('btn-add-new').onclick = () => openCustomerModal("إضافة عميل جديد لتيرا");
 }
 
 function renderStats(stats, container) {
     container.innerHTML = `
-        <div class="col-md-4"><div class="stat-card p-3 bg-white rounded-4 shadow-sm border-start border-4 border-primary">العملاء: ${stats.total}</div></div>
-        <div class="col-md-4"><div class="stat-card p-3 bg-white rounded-4 shadow-sm border-start border-4 border-success">حائل: ${stats.hail}</div></div>
-        <div class="col-md-4"><div class="stat-card p-3 bg-white rounded-4 shadow-sm border-start border-4 border-danger">المخاطر: ${stats.risky}</div></div>
+        <div class="col-md-4">
+            <div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-primary">
+                <small class="text-muted d-block mb-1">إجمالي العملاء</small>
+                <h4 class="fw-bold mb-0">${stats.total}</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-success">
+                <small class="text-muted d-block mb-1">منطقة حائل 📍</small>
+                <h4 class="fw-bold mb-0">${stats.hail}</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card p-3 rounded-4 shadow-sm bg-white border-bottom border-4 border-danger">
+                <small class="text-muted d-block mb-1">عملاء المخاطر/التعثر</small>
+                <h4 class="fw-bold mb-0 text-danger">${stats.risky}</h4>
+            </div>
+        </div>
     `;
 }
 
-function getLabelAr(key) {
-    const labels = {
-        name: "الاسم", phone: "الجوال", country_code: "الكود", user_type: "النوع",
-        city: "المدينة", district: "الحي", street: "الشارع", latitude: "العرض (Lat)", longitude: "الطول (Lng)",
-        customer_type: "التصنيف", customer_status: "الحالة", customer_notes: "ملاحظات"
-    };
-    return labels[key] || key;
+function getBadgeClass(type) {
+    if (type === 'عميل VIP 💎') return 'badge-vip';
+    if (type === 'عميل مميز') return 'badge-premium';
+    return 'badge-regular';
 }
