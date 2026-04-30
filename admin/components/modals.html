@@ -1,112 +1,147 @@
-<!-- نافذة إضافة/تعديل عميل - إصدار تيرا جيت واي 12.12.6 -->
-<div id="customer-modal" class="modal-overlay" style="display: none; backdrop-filter: blur(8px);">
-    <div class="modal-card tera-premium-shadow animate-pop-in">
+<!-- نافذة إضافة/تعديل عميل - إصدار تيرا جيت واي المطور 12.12.12 -->
+<div id="customer-modal" class="modal-overlay" style="display: none; backdrop-filter: blur(12px); z-index: 9999;">
+    <div class="modal-card tera-premium-shadow animate-pop-in" style="width: 95%; max-width: 950px;">
         
         <!-- الهيدر الاحترافي -->
         <div class="modal-header-tera">
             <div class="header-title-wrap">
                 <div class="icon-circle shadow-sm bg-primary-soft text-primary">
-                    <i class="fas fa-user-astronaut"></i>
+                    <i class="fas fa-id-card-clip"></i>
                 </div>
                 <div>
-                    <h3 id="modal-title" class="m-0 fw-800">إدارة الملف الشخصي</h3>
+                    <h3 id="modal-title" class="m-0 fw-800">إدارة الملف الشخصي الكامل</h3>
                     <p class="subtitle mb-0 text-muted fs-xs">
-                        <i class="fas fa-cloud text-success"></i> متصل بـ Firebase Realtime Database
+                        <i class="fas fa-database text-success"></i> مزامنة حقول مجموعة Customers | منطقة حائل
                     </p>
                 </div>
             </div>
-            <button class="close-btn-tera" onclick="closeCustomerModal()" title="إغلاق">&times;</button>
+            <button class="close-btn-tera" onclick="window.closeCustomerModal()" title="إغلاق">&times;</button>
         </div>
 
-        <div class="modal-body-tera">
+        <div class="modal-body-tera" style="max-height: 75vh; overflow-y: auto; padding: 30px;">
             <form id="customer-form" autocomplete="off">
+                <input type="hidden" id="cust-id-hidden">
                 
-                <!-- قسم الصورة الشخصية مع معاينة ذكية -->
-                <div class="image-profile-upload-tera">
-                    <div class="profile-preview-wrapper glass-effect">
-                        <img id="cust-img-preview" src="images/default-avatar.png" onerror="this.src='https://ui-avatars.com/api/?background=f8fafc&color=cbd5e1'">
-                        <label for="cust-image-file" class="upload-badge ripple shadow-lg">
-                            <i class="fas fa-camera"></i>
-                            <input type="file" id="cust-image-file" accept="image/*" style="display: none;" onchange="previewCustomerImage(event)">
-                        </label>
-                    </div>
-                    <div class="upload-info">
-                        <span class="main-label fw-bold">صورة الهوية / العميل</span>
-                        <span class="sub-label d-block text-primary">
-                            <i class="fas fa-shield-halved"></i> معالجة آمنة للبيانات
-                        </span>
-                    </div>
-                </div>
-
-                <!-- القسم الأول: البيانات الشخصية -->
-                <div class="form-section-tera border-bottom pb-4">
-                    <div class="section-title mb-3 fw-800 text-dark">
-                        <span class="step-num">1</span> البيانات الشخصية والاتصال
-                    </div>
-                    <div class="grid-layout cols-3 gap-3">
-                        <div class="input-group-tera">
-                            <label>الاسم الرباعي</label>
-                            <input type="text" id="cust-name" name="name" class="tera-input-field" placeholder="اسم العميل كما في الهوية" required>
-                        </div>
-                        <div class="input-group-tera">
-                            <label>رقم الجوال (حائل)</label>
-                            <div class="phone-input-wrap">
-                                <input type="tel" id="cust-phone" name="phone" dir="ltr" class="tera-input-field" placeholder="5XXXXXXXX" maxlength="9" required>
-                                <span class="country-tag">966+</span>
+                <!-- القسم العلوي: الصورة والبيانات الأساسية -->
+                <div class="row align-items-center mb-4">
+                    <div class="col-md-3 text-center border-start">
+                        <div class="image-profile-upload-tera mb-2">
+                            <div class="profile-preview-wrapper glass-effect shadow-sm">
+                                <img id="cust-img-preview" src="images/default-avatar.png" onerror="this.src='https://ui-avatars.com/api/?background=f8fafc&color=cbd5e1'">
+                                <label for="cust-image-file" class="upload-badge ripple shadow-lg">
+                                    <i class="fas fa-camera"></i>
+                                    <input type="file" id="cust-image-file" name="profileImage" accept="image/*" style="display: none;" onchange="window.previewCustomerImage(event)">
+                                </label>
                             </div>
                         </div>
-                        <div class="input-group-tera">
-                            <label>التصنيف الائتماني</label>
-                            <select id="cust-tag" name="tag" class="tera-select-field">
-                                <option value="regular">عميل عادي</option>
-                                <option value="vip">عميل مميز (VIP) ✨</option>
-                                <option value="gold">عميل ذهبي</option>
-                                <option value="blacklisted">قائمة محظورة ⚠️</option>
-                            </select>
+                        <small class="text-muted fs-xs">صورة العميل الافتراضية</small>
+                    </div>
+
+                    <div class="col-md-9">
+                        <div class="section-title mb-3 fw-800 text-dark">
+                            <span class="step-num">1</span> المعلومات الأساسية والتصنيف
+                        </div>
+                        <div class="grid-layout cols-3 gap-3">
+                            <div class="input-group-tera">
+                                <label>الاسم الرباعي الكامل</label>
+                                <input type="text" id="cust-name" name="name" class="tera-input-field" placeholder="محمد صالح..." required>
+                            </div>
+                            <div class="input-group-tera">
+                                <label>رقم الجوال</label>
+                                <div class="phone-input-wrap">
+                                    <input type="tel" id="cust-phone" name="phone" dir="ltr" class="tera-input-field" placeholder="59XXXXXXX" maxlength="9" required>
+                                    <span class="country-tag">966+</span>
+                                </div>
+                            </div>
+                            <div class="input-group-tera">
+                                <label>تصنيف العميل (Tag)</label>
+                                <select id="cust-tag" name="tag" class="tera-select-field">
+                                    <option value="أفراد">أفراد</option>
+                                    <option value="vip">عميل VIP 💎</option>
+                                    <option value="شركات">شركات / جملة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid-layout cols-2 gap-3 mt-3">
+                            <div class="input-group-tera">
+                                <label>البريد الإلكتروني</label>
+                                <input type="email" id="cust-email" name="email" class="tera-input-field" placeholder="example@mail.com">
+                            </div>
+                            <div class="input-group-tera">
+                                <label>مفتاح الدولة (اختياري)</label>
+                                <input type="text" id="cust-countryCode" name="countryCode" class="tera-input-field" value="+966">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- القسم الثاني: الموقع الجغرافي (مخصص لمنطقة حائل) -->
-                <div class="form-section-tera bg-light-soft rounded-4 p-4 mt-4 border-dashed">
+                <!-- القسم الثاني: تفاصيل العنوان الوطني (مطابق للمجموعة) -->
+                <div class="form-section-tera bg-light-soft rounded-4 p-4 mb-4 border-dashed">
                     <div class="section-title mb-3 fw-800">
-                        <span class="step-num">2</span> العنوان الوطني (منطقة حائل)
+                        <span class="step-num">2</span> بيانات العنوان الوطني (العناصر الإلزامية)
                     </div>
                     <div class="grid-layout cols-4 gap-3">
                         <div class="input-group-tera">
-                            <label>المنطقة/المدينة</label>
-                            <input type="text" value="حائل" class="tera-input-field readonly-bg" readonly>
+                            <label>اسم الدولة</label>
+                            <input type="text" id="cust-country" name="country" class="tera-input-field" value="المملكة العربية السعودية">
+                        </div>
+                        <div class="input-group-tera">
+                            <label>المدينة</label>
+                            <input type="text" id="cust-city" name="city" class="tera-input-field" value="حائل">
                         </div>
                         <div class="input-group-tera">
                             <label>الحي</label>
-                            <input type="text" id="cust-district" name="district" class="tera-input-field" placeholder="مثلاً: النقرة، الوسيطاء">
+                            <input type="text" id="cust-district" name="district" class="tera-input-field" placeholder="مثلاً: النقرة">
                         </div>
                         <div class="input-group-tera">
-                            <label>الشارع</label>
+                            <label>اسم الشارع</label>
                             <input type="text" id="cust-street" name="street" class="tera-input-field" placeholder="اسم الشارع">
                         </div>
+                    </div>
+                    
+                    <div class="grid-layout cols-4 gap-3 mt-3">
                         <div class="input-group-tera">
-                            <label>رقم المبنى</label>
-                            <input type="text" id="cust-buildingNo" name="buildingNo" maxlength="4" class="tera-input-field text-center font-monospace" placeholder="0000">
+                            <label>رقم المبنى (buildingNo)</label>
+                            <input type="text" id="cust-buildingNo" name="buildingNo" maxlength="5" class="tera-input-field text-center font-monospace" placeholder="00000">
+                        </div>
+                        <div class="input-group-tera">
+                            <label>الرقم الإضافي</label>
+                            <input type="text" id="cust-additionalNo" name="additionalNo" maxlength="4" class="tera-input-field text-center font-monospace" placeholder="0000">
+                        </div>
+                        <div class="input-group-tera">
+                            <label>الرمز البريدي</label>
+                            <input type="text" id="cust-postalCode" name="postalCode" maxlength="5" class="tera-input-field text-center font-monospace" placeholder="00000">
+                        </div>
+                        <div class="input-group-tera">
+                            <label>صندوق البريد</label>
+                            <input type="text" id="cust-poBox" name="poBox" class="tera-input-field text-center" placeholder="--">
                         </div>
                     </div>
                 </div>
 
-                <!-- حقل مخفي لتخزين الـ ID في حال التعديل -->
-                <input type="hidden" id="cust-id-hidden">
+                <!-- القسم الثالث: ملاحظات إضافية -->
+                <div class="form-section-tera">
+                    <div class="section-title mb-2 fw-800 text-dark">
+                        <span class="step-num">3</span> ملاحظات النظام
+                    </div>
+                    <div class="input-group-tera">
+                        <textarea id="cust-notes" name="notes" class="tera-input-field" rows="3" placeholder="أدخل أية ملاحظات إضافية حول العميل هنا..."></textarea>
+                    </div>
+                </div>
+
             </form>
         </div>
 
-        <!-- الفوتر مع أزرار الإجراءات -->
+        <!-- الفوتر مع أزرار الإجراءات الفعالة -->
         <div class="modal-footer-tera p-4 bg-white border-top d-flex justify-content-between align-items-center">
             <div class="security-note text-muted fs-xs">
-                <i class="fas fa-lock me-1"></i> تشفير AES-256 نشط
+                <i class="fas fa-shield-check text-primary me-1"></i> يتم الحفظ في <strong>Collection: customers</strong>
             </div>
             <div class="button-group">
-                <button type="button" class="btn-tera btn-soft-secondary" onclick="closeCustomerModal()">إلغاء</button>
-                <button type="button" class="btn-tera btn-primary-gradient shadow-orange" id="btn-save-customer">
-                    <span class="btn-text">حفظ وتحديث البيانات</span>
-                    <i class="fas fa-check-circle ms-2"></i>
+                <button type="button" class="btn-tera btn-soft-secondary" onclick="window.closeCustomerModal()">إلغاء وإغلاق</button>
+                <button type="button" class="btn-tera btn-primary-gradient shadow-orange" id="btn-save-customer" onclick="window.handleCustomerSubmit(event)">
+                    <span class="btn-text">حفظ في قاعدة البيانات</span>
+                    <i class="fas fa-cloud-upload-alt ms-2"></i>
                 </button>
             </div>
         </div>
