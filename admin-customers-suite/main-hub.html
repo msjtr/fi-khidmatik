@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة في خدمتك | الإتقان بلس</title>
     
-    <!-- 1. ربط الشعار كأيقونة (صعود درجة للمجلد الرئيسي ثم الدخول لـ images) -->
+    <!-- 1. ربط الشعار كأيقونة -->
     <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
 
-    <!-- 2. ربط جميع ملفات التنسيق الـ 11 بشكل دقيق وصحيح -->
+    <!-- 2. ربط ملفات التنسيق الـ 11 بالمسارات الصحيحة -->
     <link rel="stylesheet" href="css-styles/add-cust-style.css">
     <link rel="stylesheet" href="css-styles/auth-style.css">
     <link rel="stylesheet" href="css-styles/buttons-theme.css">
@@ -22,8 +22,7 @@
     <link rel="stylesheet" href="css-styles/stats-visuals.css">
 
     <style>
-        /* تنسيق أساسي لضبط الواجهة في حال تأخر تحميل ملفات CSS */
-        body { margin: 0; display: flex; height: 100vh; background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        body { margin: 0; display: flex; height: 100vh; background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
         .app-container { display: flex; width: 100%; height: 100%; }
         #sidebar-area { width: 280px; flex-shrink: 0; background: #001f3f; z-index: 100; }
         .content-area { flex-grow: 1; display: flex; flex-direction: column; }
@@ -36,71 +35,70 @@
 <body>
 
     <div class="app-container">
-        <!-- منطقة القائمة الجانبية (تسحب من mm/sidebar.html) -->
         <aside id="sidebar-area"></aside>
-
         <section class="content-area">
-            <!-- منطقة الهيدر (تسحب من mm/header.html مع الشعار) -->
             <header id="header-area">
-                <!-- استدعاء الشعار المرئي في الهيدر -->
                 <img src="../images/logo.svg" alt="الإتقان بلس" class="main-logo">
                 <div id="header-content" style="flex-grow: 1;"></div>
             </header>
 
-            <!-- منطقة عرض الصفحات الفرعية الـ 12 (من مجلد pages) -->
             <main class="page-display">
                 <iframe name="main-viewport" src="pages/customers-list.html" id="frame-engine"></iframe>
             </main>
 
-            <!-- منطقة التذييل (تسحب من mm/footer.html) -->
             <footer id="footer-area"></footer>
         </section>
     </div>
 
-    <!-- 3. المحرك البرمجي والربط الديناميكي -->
     <script type="module">
         import { initApp } from './js-logic/main.js';
 
-        // 🟢 حل مشكلة: Uncaught ReferenceError: handleSidebarClick is not defined
-        // تعريف الوظيفة بشكل عالمي (Global) لتعمل مع كل روابط القائمة الجانبية
+        // تعريف وظيفة التنقل عالمياً
         window.handleSidebarClick = function(pageName) {
             const frame = document.getElementById('frame-engine');
             if (frame && pageName) {
-                // توجيه المتصفح للمجلد الصحيح للصفحات
                 frame.src = `pages/${pageName}.html`;
             }
         };
 
-        // وظيفة سحب المكونات وتفعيل السكريبتات داخلها
+        // 🛠️ وظيفة سحب المكونات مع "المعالج الذكي" لتصحيح مسارات 404
         async function loadPart(id, file) {
             try {
                 const res = await fetch(file);
                 if (!res.ok) throw new Error(`المسار مفقود: ${file}`);
-                const html = await res.text();
+                let html = await res.text();
+                
+                // تصحيح روابط التنسيق والسكريبتات التي تحتوي على ../ لتناسب المسار الحالي
+                html = html.replace(/href="\.\.\//g, 'href="');
+                html = html.replace(/src="\.\.\//g, 'src="');
+
                 const target = document.getElementById(id);
                 target.innerHTML = html;
 
-                // إذا كان المكون يحتوي على أكواد JS مدمجة، هذا السطر سيقوم بتشغيلها
+                // تفعيل السكريبتات المدمجة بعد تصحيح مساراتها
                 const scripts = target.querySelectorAll('script');
                 scripts.forEach(oldScript => {
                     const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        let val = attr.value;
+                        if (attr.name === 'src') val = val.replace('../', '');
+                        newScript.setAttribute(attr.name, val);
+                    });
                     newScript.appendChild(document.createTextNode(oldScript.innerHTML));
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
             } catch (e) {
-                console.error("خطأ في الربط:", e);
+                console.error("خطأ في الربط الذكي:", e);
             }
         }
 
-        // تشغيل المنصة فور تحميل الصفحة
         document.addEventListener('DOMContentLoaded', async () => {
-            // تحميل المكونات الثلاثة الأساسية
+            // تحميل المكونات
             await loadPart('sidebar-area', 'mm/sidebar.html');
             await loadPart('header-content', 'mm/header.html');
             await loadPart('footer-area', 'mm/footer.html');
             
-            // تشغيل محرك Tera المركزي
+            // تشغيل محرك Tera V12.12.12
             if (typeof initApp === 'function') {
                 initApp();
             }
