@@ -1,1 +1,123 @@
+:root {
+    --stat-blue: #002d5f;
+    --stat-gold: #c5a059;
+    --stat-green: #27ae60;
+    --stat-red: #e74c3c;
+    --card-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
 
+/* 1. حاوية البطاقات (Grid System) */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 25px;
+    padding: 20px;
+    width: 100%;
+}
+
+/* 2. تصميم البطاقة الموحد (The Stat Card) */
+.stat-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 31, 63, 0.1);
+    border-color: var(--stat-gold);
+}
+
+/* خلفية تجميلية خفيفة لكل بطاقة */
+.stat-card::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 100px;
+    height: 100px;
+    background: var(--stat-gold);
+    opacity: 0.03;
+    border-radius: 50%;
+}
+
+/* 3. تفاصيل النصوص داخل البطاقة */
+.stat-title {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--stat-blue);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 5px 0;
+}
+
+.stat-trend {
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 4. حالات الألوان الذكية */
+.card-primary .stat-value { color: var(--stat-blue); }
+.card-success .stat-value { color: var(--stat-green); }
+.card-warning .stat-value { color: var(--stat-gold); }
+.card-danger .stat-value { color: var(--stat-red); }
+
+.trend-up { color: var(--stat-green); }
+.trend-down { color: var(--stat-red); }
+
+/* 5. أيقونات الإحصائيات (تنسيق اختياري) */
+.stat-icon {
+    width: 45px;
+    height: 45px;
+    background: rgba(197, 160, 89, 0.1);
+    color: var(--stat-gold);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+/* 📱 استجابة الشاشات (Mobile Optimization) */
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr; /* بطاقة واحدة في الصف للجوال */
+        gap: 15px;
+        padding: 10px;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+    }
+}
+
+/* أنيميشن عداد الأرقام (تأثير بصري) */
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-value {
+    animation: countUp 0.6s ease-out forwards;
+}
