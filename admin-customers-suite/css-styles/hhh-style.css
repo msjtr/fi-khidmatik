@@ -1,26 +1,25 @@
 /* =========================================
    ملف التنسيق الإبداعي (V12 Premium) - hhh-style.css
-   النمط: Floating Glassmorphism Dashboard
+   النمط: Floating Glassmorphism Dashboard (Slim Sidebar)
 ========================================= */
 
 /* --- 1. باليت الألوان الملكية المتطورة --- */
 :root {
-    /* ألوان الأساس */
-    --itqan-navy-bg: #071324;      /* خلفية السايدبار (كحلي ليلي عميق) */
-    --itqan-navy-light: #10213E;   /* تأثيرات التمرير */
-    --itqan-gold-primary: #D4AF37; /* ذهبي معدني نقي */
+    --itqan-navy-bg: #071324;
+    --itqan-navy-light: #10213E;
+    --itqan-gold-primary: #D4AF37;
     --itqan-gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 50%, #D4AF37 100%);
     
-    /* ألوان الواجهة والخلفية */
-    --app-bg: #F5F7FA;             /* خلفية النظام (رمادي مزرق فاتح جداً) */
-    --card-bg: #FFFFFF;            /* لون شاشة العرض */
+    --app-bg: #F5F7FA;
+    --card-bg: #FFFFFF;
     
-    /* الأبعاد والظلال */
-    --sidebar-w: 280px;            /* عرض مريح للعين */
-    --header-h: 90px;              /* هيدر رحب */
-    --footer-h: 50px;
-    --shadow-soft: 0 10px 40px rgba(7, 19, 36, 0.06);
-    --shadow-gold: 0 8px 25px rgba(212, 175, 55, 0.25);
+    /* الأبعاد المحدثة (أكثر رشاقة) */
+    --sidebar-w: 220px;            /* تم التصغير من 280 بكسل إلى 220 بكسل */
+    --header-h: 80px;              /* تم تصغير الهيدر قليلاً ليتناسب مع العرض */
+    --footer-h: 40px;
+    
+    --shadow-soft: 0 10px 40px rgba(7, 19, 36, 0.05);
+    --shadow-gold: 0 8px 20px rgba(212, 175, 55, 0.2);
 }
 
 /* --- 2. الإعدادات الأساسية --- */
@@ -35,7 +34,6 @@ body, html {
 .tera-layout {
     display: grid; 
     height: 100vh; width: 100vw;
-    /* السايدبار يأخذ كامل الارتفاع، والمحتوى مقسم بجانبه */
     grid-template-columns: var(--sidebar-w) 1fr;
     grid-template-rows: var(--header-h) 1fr var(--footer-h);
     grid-template-areas: 
@@ -44,13 +42,13 @@ body, html {
         "sidebar footer";
 }
 
-/* --- 4. القائمة الجانبية (Sidebar) - فخامة داكنة --- */
+/* --- 4. القائمة الجانبية (Sidebar النحيفة) --- */
 #sidebar-mount { 
     grid-area: sidebar; 
     background: var(--itqan-navy-bg);
-    padding: 30px 20px; 
+    padding: 25px 12px; /* تم تقليل الحواف الداخلية */
     z-index: 1000; 
-    box-shadow: -5px 0 30px rgba(0,0,0,0.1);
+    box-shadow: -3px 0 20px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
 }
@@ -61,43 +59,46 @@ body, html {
     background: var(--itqan-gold-gradient);
     -webkit-background-clip: text;
     background-clip: text;
-    font-size: 2.2rem; 
-    margin-bottom: 40px; 
+    font-size: 1.6rem; /* تم تصغير الشعار ليتناسب مع العرض الجديد */
+    margin-bottom: 30px; 
     font-weight: 900; 
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
-/* الأزرار الكبسولية في السايدبار */
+/* الأزرار الكبسولية الرشيقة */
 .nav-btn { 
-    display: flex; align-items: center; gap: 15px; width: 100%; 
+    display: flex; align-items: center; gap: 10px; width: 100%; 
     background: transparent; border: none; 
-    color: #A0B2C6; padding: 16px 20px; margin-bottom: 10px; 
-    border-radius: 16px; /* شكل كبسولي حديث */
-    cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    text-align: right; font-size: 1.05rem; font-weight: 600;
+    color: #A0B2C6; 
+    padding: 12px 15px; /* تم تقليص حجم الزر */
+    margin-bottom: 8px; 
+    border-radius: 12px; /* زوايا أنعم */
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    text-align: right; 
+    font-size: 0.9rem; /* تصغير الخط ليتناسب مع الزر */
+    font-weight: 600;
 }
 
 .nav-btn:hover { 
     background: var(--itqan-navy-light); 
     color: #FFFFFF; 
-    transform: translateX(-5px); 
+    transform: translateX(-4px); 
 }
 
-/* الزر النشط (تأثير الإضاءة الذهبية) */
 .nav-btn.active { 
     background: var(--itqan-gold-gradient); 
     color: var(--itqan-navy-bg); 
-    font-weight: bold; 
+    font-weight: 700; 
     box-shadow: var(--shadow-gold);
     transform: scale(1.02);
 }
 
-/* --- 5. الهيدر (Header) - زجاجي وشفاف --- */
+/* --- 5. الهيدر (Header) --- */
 #header-mount { 
     grid-area: header; 
-    background: transparent; /* بدون خلفية صلبة ليعطي اتساعاً */
+    background: transparent; 
     display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 40px; 
+    padding: 0 30px; 
     z-index: 900;
 }
 
@@ -105,8 +106,8 @@ body, html {
 #main-view { 
     grid-area: main; 
     background: var(--card-bg); 
-    margin: 0 0 20px 30px; /* المسافات التي تصنع تأثير العوم */
-    border-radius: 24px; /* زوايا دائرية ناعمة */
+    margin: 0 0 15px 25px; /* تم ضبط المسافات لإعطاء مساحة أكبر للشاشة */
+    border-radius: 20px; 
     box-shadow: var(--shadow-soft);
     position: relative; 
     overflow: hidden; 
@@ -116,7 +117,7 @@ body, html {
 #tera-iframe { 
     width: 100%; height: 100%; 
     border: none; 
-    border-radius: 24px; /* مطابقة لحواف الحاوية */
+    border-radius: 20px;
     background: transparent;
 }
 
@@ -125,24 +126,24 @@ body, html {
     grid-area: footer; 
     background: transparent; 
     display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 40px 15px 40px; 
-    font-size: 0.85rem; color: #8898AA; font-weight: 500;
+    padding: 0 30px 10px 30px; 
+    font-size: 0.8rem; color: #8898AA; font-weight: 500;
 }
 
-/* --- 8. ودجت الساعة الرقمية (Premium Clock) --- */
+/* --- 8. ودجت الساعة الرقمية --- */
 .clock-container { 
     background: rgba(255, 255, 255, 0.7); 
     backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    padding: 10px 25px; border-radius: 18px; 
+    padding: 8px 20px; border-radius: 15px; 
     border: 1px solid rgba(255, 255, 255, 1); 
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
 }
 
 .time-display { 
-    font-size: 1.6rem; font-weight: 900; 
+    font-size: 1.4rem; font-weight: 900; 
     color: var(--itqan-navy-bg); font-family: 'Courier New', monospace; 
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .time-display .sep { 
@@ -151,8 +152,8 @@ body, html {
 }
 
 .date-display { 
-    font-size: 0.8rem; color: #718096; font-weight: 700; 
-    margin-top: 4px; display: flex; gap: 8px; justify-content: center; align-items: center;
+    font-size: 0.75rem; color: #718096; font-weight: 700; 
+    margin-top: 2px; display: flex; gap: 8px; justify-content: center; align-items: center;
 }
 
 @keyframes blink { 
@@ -161,7 +162,7 @@ body, html {
 }
 
 /* تحسين شريط التمرير */
-::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.4); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--itqan-gold-primary); }
