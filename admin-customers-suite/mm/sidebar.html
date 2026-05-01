@@ -1,38 +1,7 @@
-<nav class="tera-sidebar-nav">
-    <div class="nav-group">
-        <label>الرئيسية</label>
-        <button class="nav-item active" onclick="teraNavigate('dashboard-home.html')">
-            <i>🏠</i> <span>لوحة الإحصائيات</span>
-        </button>
-    </div>
-
-    <div class="nav-group">
-        <label>إدارة العملاء</label>
-        <button class="nav-item" onclick="teraNavigate('customers-list.html')">
-            <i>👥</i> <span>قائمة العملاء</span>
-        </button>
-        <button class="nav-item" onclick="teraNavigate('add-customer.html')">
-            <i>➕</i> <span>إضافة عميل جديد</span>
-        </button>
-    </div>
-
-    <div class="nav-group">
-        <label>المالية وسوا</label>
-        <button class="nav-item" onclick="teraNavigate('installments.html')">
-            <i>💰</i> <span>الأقساط والعقود</span>
-        </button>
-        <button class="nav-item" onclick="teraNavigate('sawa-inventory.html')">
-            <i>📱</i> <span>مخزن بطاقات سوا</span>
-        </button>
-    </div>
-
-    <div class="nav-group">
-        <label>التقارير والنظام</label>
-        <button class="nav-item" onclick="teraNavigate('reports.html')">
-            <i>📊</i> <span>التقارير الختامية</span>
-        </button>
-        <button class="nav-item" onclick="teraNavigate('settings.html')">
-            <i>⚙️</i> <span>إعدادات المنصة</span>
-        </button>
-    </div>
+<div class="brand-title">TERA <span>V12</span></div>
+<nav>
+    <button class="nav-btn active" onclick="teraNavigate('customers-list')">👥 قائمة العملاء</button>
+    <button class="nav-btn" onclick="teraNavigate('add-customer')">➕ إضافة عميل</button>
+    <button class="nav-btn" onclick="teraNavigate('installments')">💰 متابعة الأقساط</button>
+    <button class="nav-btn" onclick="teraNavigate('reports')">📊 التقارير</button>
 </nav>
