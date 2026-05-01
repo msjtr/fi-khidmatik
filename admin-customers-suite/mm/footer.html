@@ -1,73 +1,34 @@
-<!-- 🎨 ربط التنسيقات من مجلد css-styles (تصحيح المسار للعودة من mm إلى admin-customers-suite) -->
+<!-- 🎨 ربط التنسيق الموحد عبر الرجوع خطوة للمجلد الرئيسي ثم الدخول لمجلد css-styles -->
 <link rel="stylesheet" href="../css-styles/hub-style.css">
-<link rel="stylesheet" href="../css-styles/footer-style.css">
 
-<style>
-    /* ✨ تنسيق تذييل النظام ليتماشى مع معايير الإتقان بلس */
-    .itqan-footer-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 25px;
-        background: #001529; /* كحلي غامق فخم */
-        border-top: 1px solid rgba(197, 160, 89, 0.2); /* إطار ذهبي نحيف */
-        color: #e0e0e0;
-        font-size: 0.85rem;
-    }
+<div class="itqan-footer-wrapper" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; background: #ffffff; border-top: 1px solid rgba(197, 160, 89, 0.3); font-family: 'Segoe UI', Tahoma, sans-serif;">
+    
+    <!-- القسم الأيمن: حالة الاتصال بالسحابة -->
+    <div class="footer-status-zone" style="display: flex; align-items: center; gap: 10px;">
+        <div class="pulse-indicator" style="width: 10px; height: 10px; background-color: #2ecc71; border-radius: 50%; box-shadow: 0 0 8px #2ecc71; animation: footer-pulse 2s infinite;"></div>
+        <span style="font-size: 0.85rem; color: #001f3f; font-weight: 600;">نظام Tera متصل | Firebase Cloud Real-time</span>
+    </div>
 
-    .status-dot {
-        height: 8px;
-        width: 8px;
-        background-color: #bbb;
-        border-radius: 50%;
-        display: inline-block;
-        margin-left: 8px;
-    }
+    <!-- القسم الأوسط: الحقوق والملكية -->
+    <div class="footer-copyright-zone" style="text-align: center;">
+        <p style="margin: 0; font-size: 0.85rem; color: #555; font-weight: 500;">
+            © 2026 جميع الحقوق محفوظة لـ <span style="color: #c5a059; font-weight: 700;">مؤسسة الإتقان بلس - حائل</span>
+        </p>
+    </div>
 
-    .status-dot.active {
-        background-color: #2ecc71; /* أخضر للاتصال النشط */
-        box-shadow: 0 0 8px #2ecc71;
-    }
-
-    .system-status {
-        display: flex;
-        align-items: center;
-        font-weight: 600;
-    }
-
-    .version-tag {
-        background: rgba(197, 160, 89, 0.1);
-        color: #c5a059;
-        padding: 2px 10px;
-        border-radius: 20px;
-        border: 1px solid rgba(197, 160, 89, 0.3);
-        font-family: 'Courier New', Courier, monospace;
-    }
-
-    .footer-center strong {
-        color: #c5a059;
-    }
-</style>
-
-<div class="itqan-footer-content">
-    <!-- القسم الأيمن: حالة الاتصال بسحابة Firebase -->
-    <div class="footer-right">
-        <span class="system-status">
-            <span class="status-dot active" id="db-status-dot"></span>
-            نظام Tera متصل (Firebase Cloud)
+    <!-- القسم الأيسر: رقم النسخة أو المطور -->
+    <div class="footer-version-zone" style="text-align: left;">
+        <span style="background: #001f3f; color: #c5a059; padding: 3px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; letter-spacing: 1px;">
+            VER 12.0.4
         </span>
-    </div>
-
-    <!-- القسم الأوسط: حقوق الملكية والهوية المحلية -->
-    <div class="footer-center">
-        <p>© 2026 جميع الحقوق محفوظة لـ <strong>مؤسسة الإتقان بلس - حائل</strong></p>
-    </div>
-
-    <!-- القسم الأيسر: رقم الإصدار الحالي -->
-    <div class="footer-left">
-        <span class="version-tag">V 12.12.12</span>
     </div>
 </div>
 
-<!-- 🧠 ربط ملف مراقبة السجلات (Log Tracker) من المسار المصلح -->
-<script type="module" src="../js-logic/log-tracker.js"></script>
+<style>
+    /* أنيميشن نبض حالة الاتصال ليعطي إحساساً بالحياة في النظام */
+    @keyframes footer-pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+    }
+</style>
