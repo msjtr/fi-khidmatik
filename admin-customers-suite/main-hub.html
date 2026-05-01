@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام Tera | مؤسسة الإتقان بلس</title>
 
-    <!-- 🖼️ التبويمة -->
+    <!-- 🖼️ التبويمة الرسمية للمنصة -->
     <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
 
-    <!-- 🎨 ربط كافة ملفات التنسيق (11 ملف) -->
+    <!-- 🎨 ربط ملفات التنسيق الفاخرة (11 ملف) -->
     <link rel="stylesheet" href="css-styles/hub-style.css">
     <link rel="stylesheet" href="css-styles/buttons-theme.css">
     <link rel="stylesheet" href="css-styles/header-style.css">
@@ -24,21 +24,23 @@
 <body>
 
     <div class="tera-admin-layout">
+        <!-- منطقة حقن المكونات الديناميكية -->
         <header id="header-mount"></header>
 
         <div class="tera-main-content">
             <aside id="sidebar-mount"></aside>
 
             <main class="tera-view-window">
-                <iframe id="tera-iframe" name="tera-iframe" src="pages/customers-list.html"></iframe>
+                <!-- نافذة العرض الأساسية لبيانات الإتقان بلس -->
+                <iframe id="tera-iframe" name="tera-iframe" src="pages/customers-list.html" frameborder="0"></iframe>
             </main>
         </div>
 
         <footer id="footer-mount"></footer>
     </div>
 
-    <!-- 🧠 الربط البرمجي بنظام Modules (حل مشكلة Import/Export) -->
-    <!-- تم تفعيل type="module" لجميع الملفات لضمان التوافق التام -->
+    <!-- 🧠 النظام البرمجي المتكامل بنظام Modules -->
+    <!-- ترتيب التحميل يبدأ بالمحرك الأساسي Firebase وصولاً للمكونات الإضافية -->
     <script src="js-logic/firebase.js" type="module"></script> 
     <script src="js-logic/api-connector.js" type="module"></script>
     <script src="js-logic/auth-logic.js" type="module"></script>
@@ -56,7 +58,7 @@
 
     <script>
         /**
-         * محرك تحميل المكونات بنظام الـ Dynamic Fetch
+         * محرك تهيئة نظام Tera الذكي
          */
         async function initTeraSystem() {
             const components = [
@@ -65,29 +67,40 @@
                 { id: 'footer-mount', url: 'mm/footer.html' }
             ];
 
+            // تحميل المكونات بشكل تتابعي لضمان استقرار واجهة حائل
             for (const item of components) {
                 try {
                     const response = await fetch(item.url);
                     if (response.ok) {
                         const html = await response.text();
-                        document.getElementById(item.id).innerHTML = html;
+                        const target = document.getElementById(item.id);
+                        if (target) target.innerHTML = html;
                     }
                 } catch (err) { 
-                    console.error(`تعذر تحميل المكون من حائل: ${item.url}`); 
+                    console.error(`Tera Alert: فشل تحميل المكون [${item.url}]`); 
                 }
             }
             
-            // إطلاق حدث الجاهزية لتشغيل الساعة والعمليات الأخرى
+            // إبلاغ محركات الجافا سكريبت بأن الواجهة جاهزة (مثل الساعة والإحصائيات)
             document.dispatchEvent(new Event('TeraLayoutReady'));
         }
 
-        // وظيفة التنقل العالمي بين الـ 12 صفحة
+        /**
+         * وظيفة التنقل العالمي (Global Navigation)
+         * تسمح بتغيير محتوى الـ iframe من أي مكان في النظام
+         */
         window.teraNavigate = function(targetPage) {
             const frame = document.getElementById('tera-iframe');
-            if (frame) frame.src = `pages/${targetPage}.html`;
+            if (frame) {
+                // إضافة تأثير بصري بسيط عند الانتقال
+                frame.style.opacity = '0.5';
+                frame.src = `pages/${targetPage}.html`;
+                frame.onload = () => frame.style.opacity = '1';
+            }
         };
 
-        window.onload = initTeraSystem;
+        // تشغيل النظام فور اكتمال تحميل نافذة المتصفح
+        window.addEventListener('load', initTeraSystem);
     </script>
 </body>
 </html>
