@@ -1,34 +1,12 @@
-<!-- 🎨 ربط التنسيق الموحد عبر الرجوع خطوة للمجلد الرئيسي ثم الدخول لمجلد css-styles -->
-<link rel="stylesheet" href="../css-styles/hub-style.css">
-
-<div class="itqan-footer-wrapper" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; background: #ffffff; border-top: 1px solid rgba(197, 160, 89, 0.3); font-family: 'Segoe UI', Tahoma, sans-serif;">
-    
-    <!-- القسم الأيمن: حالة الاتصال بالسحابة -->
-    <div class="footer-status-zone" style="display: flex; align-items: center; gap: 10px;">
-        <div class="pulse-indicator" style="width: 10px; height: 10px; background-color: #2ecc71; border-radius: 50%; box-shadow: 0 0 8px #2ecc71; animation: footer-pulse 2s infinite;"></div>
-        <span style="font-size: 0.85rem; color: #001f3f; font-weight: 600;">نظام Tera متصل | Firebase Cloud Real-time</span>
+<div class="tera-footer-bar">
+    <div class="footer-right">
+        <span class="status-indicator"></span>
+        <span class="status-text">متصل بقاعدة بيانات Firebase - حائل</span>
     </div>
-
-    <!-- القسم الأوسط: الحقوق والملكية -->
-    <div class="footer-copyright-zone" style="text-align: center;">
-        <p style="margin: 0; font-size: 0.85rem; color: #555; font-weight: 500;">
-            © 2026 جميع الحقوق محفوظة لـ <span style="color: #c5a059; font-weight: 700;">مؤسسة الإتقان بلس - حائل</span>
-        </p>
+    <div class="footer-center">
+        جميع الحقوق محفوظة &copy; 2026 لمؤسسة <strong>الإتقان بلس</strong>
     </div>
-
-    <!-- القسم الأيسر: رقم النسخة أو المطور -->
-    <div class="footer-version-zone" style="text-align: left;">
-        <span style="background: #001f3f; color: #c5a059; padding: 3px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; letter-spacing: 1px;">
-            VER 12.0.4
-        </span>
+    <div class="footer-left">
+        النسخة المستقرة <span class="version-tag">V12.12.12</span>
     </div>
 </div>
-
-<style>
-    /* أنيميشن نبض حالة الاتصال ليعطي إحساساً بالحياة في النظام */
-    @keyframes footer-pulse {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-    }
-</style>
