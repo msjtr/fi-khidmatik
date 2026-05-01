@@ -3,81 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tera V12 | الإتقان بلس - حائل</title>
+    <title>Tera V12 | مؤسسة الإتقان بلس</title>
+    
+    <!-- 🖼️ أيقونة النظام -->
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
 
-    <!-- 1. الأيقونة الرسمية -->
-    <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
-
-    <!-- 2. إصلاح المسارات بناءً على المجلد الجديد (admin-customers-suite) -->
-    <!-- تأكد أن هذا الملف موجود في الجذر أو بجانب مجلد admin-customers-suite -->
+    <!-- 🎨 ربط التنسيق الموحد بناءً على المسار المعتمد -->
     <link rel="stylesheet" href="admin-customers-suite/css-styles/hub-style.css">
-    <link rel="stylesheet" href="admin-customers-suite/css-styles/header-style.css">
-    <link rel="stylesheet" href="admin-customers-suite/css-styles/sidebar-style.css">
-    <link rel="stylesheet" href="admin-customers-suite/css-styles/footer-style.css">
-    <link rel="stylesheet" href="admin-customers-suite/css-styles/list-table-style.css">
 
     <style>
-        /* تنسيق الهيكل لضمان تجربة Modern Premium */
-        body { margin: 0; background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        /* التنسيقات الهيكلية لتوزيع الشبكة (Layout) */
+        :root {
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --main-bg: #f4f7f9;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--main-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; /* لمنع التمرير المزدوج */
+        }
+
         .tera-container {
             display: grid;
             grid-template-areas: 
                 "sidebar header"
                 "sidebar main"
                 "sidebar footer";
-            grid-template-columns: 280px 1fr;
-            grid-template-rows: auto 1fr auto;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            grid-template-rows: var(--header-height) 1fr auto;
             height: 100vh;
         }
-        #sidebar-mount { grid-area: sidebar; background: #001f3f; }
-        #header-mount { grid-area: header; }
-        #main-view { grid-area: main; overflow-y: auto; padding: 25px; background: #f8f9fa; }
-        #footer-mount { grid-area: footer; }
+
+        /* حاويات المكونات الديناميكية */
+        #sidebar-mount { grid-area: sidebar; z-index: 100; }
+        #header-mount { grid-area: header; z-index: 90; }
+        #main-viewport { 
+            grid-area: main; 
+            overflow-y: auto; 
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        #footer-mount { grid-area: footer; z-index: 80; }
+
+        /* تأثير تحميل بسيط */
+        .loader-hub {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #001f3f;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
     <div class="tera-container">
+        <!-- تحميل القائمة الجانبية -->
         <aside id="sidebar-mount"></aside>
+
+        <!-- تحميل الهيدر العلوي -->
         <header id="header-mount"></header>
-        <main id="main-view">
-            <div id="content-area">
-                <!-- شاشة ترحيبية تليق بمؤسسة الإتقان بلس -->
-                <div style="text-align: center; margin-top: 15vh; opacity: 0.8;">
-                    <h2 style="color: #001f3f;">نظام Tera لإدارة العمليات</h2>
-                    <p style="color: #c5a059;">جاري مزامنة البيانات مع Firebase Cloud...</p>
-                </div>
+
+        <!-- منطقة العرض الرئيسية -->
+        <main id="main-viewport">
+            <div id="dynamic-content-area" class="loader-hub">
+                جاري مزامنة بيانات "الإتقان بلس"...
             </div>
         </main>
+
+        <!-- تحميل التذييل -->
         <footer id="footer-mount"></footer>
     </div>
 
-    <!-- 3. الربط البرمجي مع مراعاة مسار admin-customers-suite -->
-    <script type="module" src="admin-customers-suite/js-logic/firebase.js"></script>
-    <script type="module" src="admin-customers-suite/js-logic/main.js"></script>
-    <script type="module" src="admin-customers-suite/js-logic/clock-logic.js"></script>
-
-    <!-- 4. محرك تحميل المكونات من مجلد mm -->
     <script>
-        async function loadComponent(id, file) {
-            const mount = document.getElementById(id);
+        /**
+         * دالة استدعاء المكونات (Components Loader)
+         * تقوم بسحب ملفات HTML من مجلد mm ووضعها في الحاويات
+         */
+        async function injectComponent(elementId, fileName) {
             try {
-                // محاولة الجلب من المسار الفرعي المخصص للمكونات
-                const response = await fetch(`admin-customers-suite/mm/${file}`);
-                if (!response.ok) throw new Error(`Status: ${response.status}`);
-                mount.innerHTML = await response.text();
-                console.log(`✅ ${file} تم التحميل بنجاح`);
-            } catch (err) {
-                console.error(`❌ خطأ في تحميل ${file}:`, err);
-                mount.innerHTML = `<div style="color:red; padding:20px;">تعذر تحميل ${file} - تأكد من المسار</div>`;
+                const response = await fetch(`admin-customers-suite/mm/${fileName}`);
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const htmlContent = await response.text();
+                document.getElementById(elementId).innerHTML = htmlContent;
+            } catch (error) {
+                console.error(`خطأ في تحميل المكون ${fileName}:`, error);
+                document.getElementById(elementId).innerHTML = `<p style="color:red; padding:10px;">فشل تحميل ${fileName}</p>`;
             }
         }
 
+        // تشغيل التحميل عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', () => {
-            loadComponent('sidebar-mount', 'sidebar.html');
-            loadComponent('header-mount', 'header.html');
-            loadComponent('footer-mount', 'footer.html');
+            injectComponent('sidebar-mount', 'sidebar.html');
+            injectComponent('header-mount', 'header.html');
+            injectComponent('footer-mount', 'footer.html');
+            
+            // افتراضياً: تحميل واجهة الساعة عند الدخول
+            setTimeout(() => {
+                injectComponent('dynamic-content-area', 'clock-view.html');
+            }, 500);
         });
     </script>
+
 </body>
 </html>
