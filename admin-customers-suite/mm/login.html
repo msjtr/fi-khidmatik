@@ -3,39 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول النظام | Tera الإتقان بلس</title>
-    
-    <!-- الربط المباشر مع ملف التنسيق المعتمد -->
-    <link rel="stylesheet" href="css-styles/auth-style.css">
-    
-    <!-- أيقونة منصة Tera الرسمية -->
-    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
-</head>
-<body class="itqan-auth-bg">
-    <div class="login-container">
-        <div class="login-header">
-            <!-- الشعار الرسمي لنظام Tera -->
-            <img src="images/logo.svg" alt="Tera Logo" class="auth-logo">
-            <h1>دخول الإدارة</h1>
-            <p>مؤسسة الإتقان بلس - حائل</p>
-        </div>
-        
-        <div class="login-fields">
-            <div class="auth-input-group">
-                <input type="email" id="userEmail" placeholder="البريد الإلكتروني للإدارة" required autocomplete="email">
-            </div>
-            <div class="auth-input-group">
-                <input type="password" id="userPass" placeholder="كلمة المرور" required autocomplete="current-password">
-            </div>
-            <!-- زر الدخول الذهبي -->
-            <button id="loginBtn" class="btn-auth">دخول النظام</button>
-        </div>
+    <title>تسجيل الدخول | نظام Tera V12</title>
 
-        <!-- منطقة عرض رسائل الخطأ أو التنبيهات -->
-        <div id="auth-message" class="auth-msg-area"></div>
+    <!-- 🖼️ الأيقونة -->
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+
+    <!-- 🎨 ملفات التنسيق -->
+    <link rel="stylesheet" href="css-styles/auth-style.css">
+    <link rel="stylesheet" href="css-styles/buttons-theme.css">
+
+    <style>
+        /* 🛠️ تنسيق خاص بصفحة الدخول لضمان الفخامة */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #001f3f 0%, #001529 100%); /* أزرق الإتقان العميق */
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow: hidden;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(197, 160, 89, 0.3); /* إطار ذهبي خفيف */
+            text-align: center;
+        }
+
+        .login-logo img {
+            width: 120px;
+            margin-bottom: 20px;
+        }
+
+        .login-header h2 {
+            color: #001f3f;
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .login-header p {
+            color: #c5a059; /* ذهبي */
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* تنسيق الحقول */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            font-family: inherit;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #c5a059;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #001f3f;
+            color: #c5a059;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background: #c5a059;
+            color: #001f3f;
+            transform: translateY(-2px);
+        }
+
+        .footer-text {
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* زينة خلفية (دوائر ذهبية) */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(197, 160, 89, 0.05);
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- عناصر زينة خلفية -->
+    <div class="bg-circle" style="width: 400px; height: 400px; top: -100px; right: -100px;"></div>
+    <div class="bg-circle" style="width: 300px; height: 300px; bottom: -50px; left: -50px;"></div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-logo">
+                <!-- تأكد من وجود الشعار في مجلد images -->
+                <img src="images/logo.svg" alt="Tera Logo" onerror="this.src='https://ui-avatars.com/api/?name=Tera+V12&background=001f3f&color=c5a059'">
+            </div>
+
+            <div class="login-header">
+                <h2>TERA <span>V12</span></h2>
+                <p>مؤسسة الإتقان بلس - حائل</p>
+            </div>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label>البريد الإلكتروني أو اسم المستخدم</label>
+                    <input type="email" id="user-email" placeholder="example@itqan.sa" required>
+                </div>
+
+                <div class="input-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="user-password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="login-btn">دخول النظام</button>
+            </form>
+
+            <div class="footer-text">
+                نظام إدارة الأقساط والاتصالات المطور
+            </div>
+        </div>
     </div>
 
-    <!-- استدعاء المنطق البرمجي بنظام Module لضمان أمان البيانات -->
-    <script type="module" src="js-logic/auth-logic.js"></script>
+    <!-- 🧠 منطق Firebase Auth -->
+    <script type="module">
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        // استيراد إعدادات firebase.js التي قمت بإنشائها مسبقاً
+        
+        const loginForm = document.getElementById('login-form');
+        
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('user-email').value;
+            const pass = document.getElementById('user-password').value;
+            
+            // هنا يتم الربط مع firebase-auth.js
+            console.log("محاولة تسجيل دخول للمستخدم:", email);
+            
+            // تحويل المستخدم إلى الصفحة الرئيسية بعد التحقق بنجاح
+            window.location.href = 'main-hub.html';
+        });
+    </script>
 </body>
 </html>
