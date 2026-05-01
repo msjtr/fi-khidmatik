@@ -5,23 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام Tera V12 | مؤسسة الإتقان بلس</title>
 
+    <!-- 1. الشعار (Favicon) - المسار من المجلد الخارجي -->
     <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
 
+    <!-- 2. التنسيق الموحد (المصحح لمنع التداخل) -->
     <link rel="stylesheet" href="css-styles/hub-style.css">
-    <ink rel="stylesheet" href="css-styles/buttons-theme.css">
-    
-    <link rel="stylesheet" href="css-styles/auth-style.css">
-    <link rel="stylesheet" href="css-styles/add-cust-style.css">
-    <link rel="stylesheet" href="css-styles/list-table-style.css">
-    <link rel="stylesheet" href="css-styles/stats-visuals.css">
-    <link rel="stylesheet" href="css-styles/print-layout.css">
-
+    <link rel="stylesheet" href="css-styles/buttons-theme.css">
     <style>
-        /* 🛠️ هندسة الشبكة (Grid) لمنع التداخل نهائياً */
+        /* نظام الحماية من التداخل (Grid) */
         :root {
-            --sidebar-w: 280px;
-            --header-h: 75px;
-            --footer-h: 40px;
+            --sidebar-w: 260px;
+            --header-h: 70px;
+            --footer-h: 35px;
         }
 
         body, html {
@@ -33,65 +28,54 @@
         .tera-main-wrapper {
             display: grid;
             height: 100vh;
-            grid-template-rows: var(--header-h) 1fr var(--footer-h);
-            grid-template-columns: var(--sidebar-w) 1fr;
             grid-template-areas: 
                 "header header"
                 "sidebar main-view"
                 "footer footer";
+            grid-template-columns: var(--sidebar-w) 1fr;
+            grid-template-rows: var(--header-h) 1fr var(--footer-h);
         }
 
-        #header-mount { grid-area: header; z-index: 1000; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        #sidebar-mount { grid-area: sidebar; z-index: 900; background: #001f3f; overflow-y: auto; }
-        #footer-mount { grid-area: footer; z-index: 1000; background: #fff; border-top: 1px solid #eee; }
-        
-        .tera-view-window { 
-            grid-area: main-view; 
-            position: relative; 
-            overflow: hidden; 
-        }
-
-        #tera-iframe { 
-            width: 100%; height: 100%; border: none; 
-            transition: opacity 0.3s ease; 
-        }
+        #header-mount { grid-area: header; background: white; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #sidebar-mount { grid-area: sidebar; background: #001f3f; z-index: 900; overflow-y: auto; }
+        #footer-mount { grid-area: footer; background: #fff; border-top: 1px solid #ddd; z-index: 1000; }
+        .tera-view-window { grid-area: main-view; position: relative; overflow: hidden; }
+        #tera-iframe { width: 100%; height: 100%; border: none; transition: opacity 0.3s ease; }
     </style>
 </head>
 <body>
 
     <div class="tera-main-wrapper">
-        
+        <!-- يتم جلب هذه المكونات من مجلد mm -->
         <header id="header-mount"></header>
-        
         <aside id="sidebar-mount"></aside>
-        
         <main class="tera-view-window">
+            <!-- تأكد من وجود ملف dashboard-home.html في المجلد الرئيسي -->
             <iframe id="tera-iframe" src="dashboard-home.html" name="tera-frame"></iframe>
         </main>
-        
         <footer id="footer-mount"></footer>
-
     </div>
 
+    <!-- 3. ربط ملفات البرمجة (إصلاح الـ Module Error) -->
+    <!-- تم إضافة type="module" لجميع الملفات التي تستخدم import/export -->
     <script type="module" src="js-logic/firebase.js"></script>
-    <script src="js-logic/api-connector.js"></script>
-    
-    <script src="js-logic/main.js"></script>
-    <script src="js-logic/auth-logic.js"></script>
-    <script src="js-logic/header-logic.js"></script>
-    <script src="js-logic/sidebar-logic.js"></script>
-    <script src="js-logic/clock-logic.js"></script>
-    <script src="js-logic/btn-actions-controller.js"></script>
-    <script src="js-logic/list-table-logic.js"></script>
-    <script src="js-logic/add-cust-logic.js"></script>
-    <script src="js-logic/stats-engine.js"></script>
-    <script src="js-logic/map-logic.js"></script>
-    <script src="js-logic/pdf-generator.js"></script>
-    <script src="js-logic/log-tracker.js"></script>
+    <script type="module" src="js-logic/api-connector.js"></script>
+    <script type="module" src="js-logic/main.js"></script>
+    <script type="module" src="js-logic/auth-logic.js"></script>
+    <script type="module" src="js-logic/header-logic.js"></script>
+    <script type="module" src="js-logic/sidebar-logic.js"></script>
+    <script type="module" src="js-logic/clock-logic.js"></script>
+    <script type="module" src="js-logic/btn-actions-controller.js"></script>
+    <script type="module" src="js-logic/map-logic.js"></script>
+    <script type="module" src="js-logic/log-tracker.js"></script>
+    <script type="module" src="js-logic/list-table-logic.js"></script>
+    <script type="module" src="js-logic/add-cust-logic.js"></script>
+    <script type="module" src="js-logic/stats-engine.js"></script>
+    <script type="module" src="js-logic/pdf-generator.js"></script>
 
+    <!-- 4. منطق تحميل المكونات من مجلد mm (الصورة رقم image_15.png) -->
     <script>
         async function loadTeraComponents() {
-            // المسارات هنا تشير مباشرة إلى مجلد mm بناءً على صورتك الأخيرة
             const components = [
                 { id: 'header-mount', path: 'mm/header.html' },
                 { id: 'sidebar-mount', path: 'mm/sidebar.html' },
@@ -104,31 +88,21 @@
                     if (response.ok) {
                         const html = await response.text();
                         document.getElementById(comp.id).innerHTML = html;
-                    } else {
-                        console.error(`خطأ: لم يتم العثور على ${comp.path}`);
                     }
-                } catch (error) {
-                    console.error(`فشل في تحميل المكون ${comp.path}:`, error);
+                } catch (err) {
+                    console.error("فشل تحميل المكون:", comp.path, err);
                 }
             }
-
-            // إطلاق حدث لتشغيل الساعة (clock-logic.js) بعد اكتمال تحميل الهيدر
-            document.dispatchEvent(new Event('TeraLayoutReady'));
         }
 
-        // نظام التنقل لتغيير محتوى الـ iframe
-        window.teraNavigate = function(pageUrl) {
+        // وظيفة التنقل السلس بين الصفحات داخل الإطار
+        window.teraNavigate = function(url) {
             const iframe = document.getElementById('tera-iframe');
             if (iframe) {
-                iframe.style.opacity = '0.3'; // تأثير بصري عند التحميل
-                setTimeout(() => {
-                    iframe.src = pageUrl;
-                    iframe.onload = () => iframe.style.opacity = '1';
-                }, 200);
+                iframe.src = url;
             }
         };
 
-        // بدء التحميل بمجرد فتح الصفحة
         window.addEventListener('DOMContentLoaded', loadTeraComponents);
     </script>
 </body>
