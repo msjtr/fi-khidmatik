@@ -17,7 +17,7 @@ export function initApp() {
     // 1. مراقبة حالة تسجيل الدخول
     checkUserAuth();
 
-    // 2. تهيئة المستمعات العامة للأزرار (إن وجدت)
+    // 2. تهيئة المستمعات العامة للأزرار
     setupGlobalListeners();
 }
 
@@ -31,9 +31,9 @@ function checkUserAuth() {
             console.log("تم التحقق من هوية المدير: ", user.email);
             updateUIForUser(user);
         } else {
-            // لا يوجد مستخدم، توجيه لصفحة الدخول
-            console.warn("تنبيه: لم يتم تسجيل الدخول، جاري التحويل...");
-            window.location.href = 'login.html';
+            // تصحيح المسار: التوجيه لصفحة الدخول داخل مجلد mm لتجنب خطأ 404
+            console.warn("تنبيه: لم يتم تسجيل الدخول، جاري التحويل للمسار الصحيح...");
+            window.location.href = 'mm/login.html'; 
         }
     });
 }
@@ -42,10 +42,10 @@ function checkUserAuth() {
  * تحديث عناصر الواجهة بناءً على بيانات المستخدم
  */
 function updateUIForUser(user) {
-    // يمكن هنا إرسال اسم المستخدم للهيدر إذا كان متوفراً في ملفات mm
+    // تحديث الاسم في الهيدر (أبا صالح الشمري)
     const userNameElement = document.getElementById('user-display-name');
     if (userNameElement) {
-        userNameElement.innerText = "أبا صالح الشمري"; // تخصيص ثابت حسب رغبتك
+        userNameElement.innerText = "أبا صالح الشمري"; 
     }
 }
 
@@ -53,13 +53,12 @@ function updateUIForUser(user) {
  * إعداد وظائف التحكم العامة في المنصة
  */
 function setupGlobalListeners() {
-    // هنا يمكن إضافة مستمعات للأحداث التي تؤثر على المنصة ككل
     window.addEventListener('offline', () => {
         alert("انقطع الاتصال بالإنترنت! قد لا يتم حفظ بيانات العملاء في حائل.");
     });
 }
 
-// تصدير وظائف إضافية لاستخدامها في الصفحات الفرعية إذا لزم الأمر
+// تصدير إعدادات النظام للنسخة الحالية
 export const systemConfig = {
     version: "12.12.12",
     region: "Hail",
