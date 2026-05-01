@@ -1,0 +1,10 @@
+.itqan-sidebar {
+    width: 260px; background: #001f3f; color: white; height: 100vh;
+    position: fixed; right: 0; top: 0; padding: 20px; border-left: 2px solid #c5a059;
+}
+.sidebar-brand h2 { color: #c5a059; margin: 0; font-size: 1.5rem; }
+.nav-btn {
+    display: block; padding: 12px; color: white; text-decoration: none;
+    margin-top: 10px; border-radius: 8px; transition: 0.3s; cursor: pointer;
+}
+.nav-btn:hover { background: #c5a059; color: #001f3f; }
