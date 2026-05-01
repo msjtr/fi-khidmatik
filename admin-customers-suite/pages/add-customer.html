@@ -1,21 +1,55 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <link rel="stylesheet" href="../css-styles/add-cust-style.css">
-    <link rel="stylesheet" href="../css-styles/buttons-theme.css">
+    <meta charset="UTF-8">
+    <!-- الربط المباشر لضمان تحميل التنسيق الفاخر (بدون ../) -->
+    <link rel="stylesheet" href="css-styles/add-cust-style.css">
+    <link rel="stylesheet" href="css-styles/buttons-theme.css">
 </head>
 <body>
-    <div class="form-container">
-        <h3>تسجيل طلب جديد</h3>
+    <div class="add-cust-container">
+        <div class="form-header">
+            <h3>تسجيل طلب جديد - مؤسسة الإتقان بلس</h3>
+            <span class="system-tag" style="color: #c5a059; font-size: 12px;">نظام Tera V12</span>
+        </div>
+
         <form id="addCustomerForm">
-            <input type="text" id="custName" placeholder="الاسم الرباعي" required>
-            <input type="number" id="custId" placeholder="رقم الهوية" required>
-            <input type="tel" id="custPhone" placeholder="05xxxxxxxx" required>
-            <button type="button" id="btnSave" class="btn-main">حفظ في الإتقان بلس</button>
+            <!-- استخدام شبكة الحقول (Grid) المبرمجة في ملف CSS -->
+            <div class="cust-form-grid">
+                <div class="form-group">
+                    <label for="custName">الاسم الرباعي للعميل</label>
+                    <input type="text" id="custName" placeholder="أدخل الاسم الكامل" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="custId">رقم الهوية الوطنية</label>
+                    <input type="number" id="custId" placeholder="10xxxxxxxx" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="custPhone">رقم الجوال (سوا)</label>
+                    <input type="tel" id="custPhone" placeholder="05xxxxxxxx" required>
+                </div>
+
+                <!-- إضافة حقل مبلغ التمويل ليتناسب مع نشاطك في الأقساط -->
+                <div class="form-group">
+                    <label for="amount">مبلغ التمويل / الأقساط</label>
+                    <input type="number" id="amount" placeholder="0.00" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <!-- استخدام كلاسات الأزرار الموحدة (btn-itqan btn-add) -->
+                <button type="button" id="btnSave" class="btn-itqan btn-add">
+                    <span>💾</span> حفظ في قاعدة بيانات حائل
+                </button>
+            </div>
         </form>
     </div>
-    <script src="../js-logic/api-connector.js"></script>
-    <script src="../js-logic/add-cust-logic.js"></script>
-    <script src="../js-logic/btn-actions-controller.js"></script>
+
+    <!-- ربط الملفات البرمجية بمسار مباشر لضمان الاتصال بـ Firebase -->
+    <script src="js-logic/api-connector.js"></script>
+    <script src="js-logic/add-cust-logic.js"></script>
+    <script src="js-logic/btn-actions-controller.js"></script>
 </body>
 </html>
