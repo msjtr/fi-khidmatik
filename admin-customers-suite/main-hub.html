@@ -2,14 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة في خدمتك | الإتقان بلس</title>
     
-    <!-- 1. الأيقونة (Favicon) - المسار الصحيح للخروج للمجلد الرئيسي -->
+    <!-- 1. ربط الأيقونة (يخرج من مجلد الإدارة للوصول لـ images) -->
     <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
 
-    <!-- 2. ربط ملفات التنسيق الـ 11 من مجلد css-styles -->
+    <!-- 2. ربط ملفات التنسيق الـ 11 بالمسارات المباشرة -->
     <link rel="stylesheet" href="css-styles/hub-style.css">
     <link rel="stylesheet" href="css-styles/sidebar-style.css">
     <link rel="stylesheet" href="css-styles/header-style.css">
@@ -23,81 +22,83 @@
     <link rel="stylesheet" href="css-styles/print-layout.css">
 
     <style>
-        /* تنسيق هيكلي سريع لضمان استقرار الواجهة */
-        body { margin: 0; padding: 0; display: flex; height: 100vh; background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
+        body { margin: 0; display: flex; height: 100vh; background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
         .app-container { display: flex; width: 100%; height: 100%; }
-        #sidebar-area { width: 260px; flex-shrink: 0; background: #001f3f; }
+        #sidebar-area { width: 280px; flex-shrink: 0; background: #001f3f; z-index: 1000; }
         .content-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        #header-area { height: 70px; background: #fff; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid #ddd; }
-        .page-display { flex-grow: 1; position: relative; background: #fff; }
+        #header-area { height: 75px; background: #ffffff; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .page-display { flex-grow: 1; position: relative; background: #ffffff; }
         iframe { width: 100%; height: 100%; border: none; }
-        .main-logo { height: 45px; margin-left: 15px; }
+        .brand-logo { height: 50px; margin-left: 20px; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <!-- القائمة الجانبية -->
         <aside id="sidebar-area"></aside>
+
         <section class="content-area">
+            <!-- الهيدر مع شعار الإتقان بلس -->
             <header id="header-area">
-                <img src="../images/logo.svg" alt="الإتقان بلس" class="main-logo">
+                <img src="../images/logo.svg" alt="Logo" class="brand-logo">
                 <div id="header-content" style="flex-grow: 1;"></div>
             </header>
+
+            <!-- عرض الصفحات الـ 12 -->
             <main class="page-display">
                 <iframe name="main-viewport" src="pages/customers-list.html" id="frame-engine"></iframe>
             </main>
+
+            <!-- التذييل -->
             <footer id="footer-area"></footer>
         </section>
     </div>
 
-    <!-- 3. المحرك البرمجي لإدارة منصة Tera -->
+    <!-- 3. المحرك البرمجي V12.12.12 -->
     <script type="module">
         import { initApp } from './js-logic/main.js';
 
-        // وظيفة التنقل العالمي بين الـ 12 صفحة
-        window.handleSidebarClick = function(page) {
+        // وظيفة التنقل العالمي (Global) لحل مشكلة handleSidebarClick
+        window.handleSidebarClick = (page) => {
             const frame = document.getElementById('frame-engine');
             if (frame) frame.src = `pages/${page}.html`;
         };
 
-        // المصحح الآلي للمسارات لمنع خطأ 404
+        // مصحح المسارات الذكي لإيقاف أخطاء 404
         async function loadPart(id, file) {
             try {
                 const res = await fetch(file);
                 if (!res.ok) throw new Error("404");
                 let html = await res.text();
                 
-                // تنظيف الروابط من ../ لضمان بقائها داخل admin-customers-suite
+                // تصحيح فوري لأي رابط يحاول الخروج من المجلد الخاطئ
                 html = html.replace(/href="\.\.\//g, 'href="');
                 html = html.replace(/src="\.\.\//g, 'src="');
 
                 const target = document.getElementById(id);
                 target.innerHTML = html;
 
-                // تفعيل السكريبتات الملحقة بالمكونات (مثل ساعة الهيدر)
+                // إعادة تفعيل سكريبتات المكونات (مثل ساعة حائل في الهيدر)
                 target.querySelectorAll('script').forEach(oldScript => {
                     const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => {
-                        let val = attr.value;
-                        if (attr.name === 'src') val = val.replace('../', '');
-                        newScript.setAttribute(attr.name, val);
+                    Array.from(oldScript.attributes).forEach(a => {
+                        let val = a.value;
+                        if (a.name === 'src') val = val.replace('../', '');
+                        newScript.setAttribute(a.name, val);
                     });
                     newScript.appendChild(document.createTextNode(oldScript.innerHTML));
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
-            } catch (e) {
-                console.error("فشل في ربط المكون:", file);
-            }
+            } catch (e) { console.error("خطأ في تحميل: " + file); }
         }
 
+        // تشغيل المنصة
         document.addEventListener('DOMContentLoaded', async () => {
-            // تحميل أجزاء النظام من مجلد mm
             await loadPart('sidebar-area', 'mm/sidebar.html');
             await loadPart('header-content', 'mm/header.html');
             await loadPart('footer-area', 'mm/footer.html');
-            
-            // تشغيل تهيئة Firebase والمنصة
-            if (typeof initApp === 'function') initApp();
+            initApp(); // تشغيل Firebase ومنطق العمل
         });
     </script>
 </body>
