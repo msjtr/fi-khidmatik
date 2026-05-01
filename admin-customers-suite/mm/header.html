@@ -1,32 +1,15 @@
-<!-- 1. ربط التنسيق (المعالج المركزي سيتعرف على هذا المسار المباشر) -->
+<!-- 🎨 ربط التنسيق الخاص بالهيدر -->
 <link rel="stylesheet" href="css-styles/header-style.css">
 
 <header class="itqan-header">
     <div class="user-info">
-        <!-- تم تثبيت الاسم بناءً على هويتك المهنية المعتمدة في النظام -->
-        <span>مرحباً بك: أبا صالح الشمري</span>
+        <!-- تم ربط المعرف (user-display-name) بملف main.js لتحديثه آلياً -->
+        <span>مرحباً بك: <b id="user-display-name">أبا صالح الشمري</b></span>
     </div>
+    
     <div class="live-meta">
-        <!-- المعرفات h-clock و h-date يجب أن تتطابق مع ملف header-logic.js -->
+        <!-- المعرفات h-clock و h-date مطابقة تماماً لملف clock-logic.js -->
         <span id="h-clock" class="digital-clock">00:00:00</span>
         <span id="h-date" class="digital-date">--/--/----</span>
     </div>
 </header>
-
-<!-- 2. تشغيل سكريبت الساعة الذكي -->
-<script type="module">
-    /**
-     * ملاحظة: استخدام المسار 'js-logic/header-logic.js' بدون النقاط (./) 
-     * هو الأضمن عندما يتم حقن الكود بواسطة المعالج المركزي في ملف main-hub.html
-     */
-    import { initClock } from 'js-logic/header-logic.js';
-    
-    // تشغيل وظيفة الساعة الخاصة بنظام Tera
-    try {
-        if (typeof initClock === 'function') {
-            initClock();
-        }
-    } catch (error) {
-        console.error("خطأ في تشغيل ساعة الإتقان بلس:", error);
-    }
-</script>
