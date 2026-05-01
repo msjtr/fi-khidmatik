@@ -1,99 +1,74 @@
-<!-- 🎨 ربط التنسيقات من مجلد css-styles المخصص (الرجوع خطوة للخلف من مجلد mm) -->
+<!-- 🎨 ربط التنسيق الموحد عبر الرجوع خطوة للمجلد الرئيسي ثم الدخول لمجلد css-styles -->
 <link rel="stylesheet" href="../css-styles/hub-style.css">
-<link rel="stylesheet" href="../css-styles/sidebar-style.css">
 
-<style>
-    /* ✨ تحسينات بصرية لهوية Tera V12 المتميزة */
-    .itqan-sidebar {
-        background-color: #001f3f; /* الكحلي الفخم لمؤسسة الإتقان بلس */
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .sidebar-brand h2 span {
-        color: #c5a059; /* اللون الذهبي لهوية حائل */
-    }
-
-    .nav-btn {
-        transition: all 0.3s ease;
-        border-right: 4px solid transparent;
-    }
-
-    .nav-btn.active, .nav-btn:hover {
-        background: rgba(197, 160, 89, 0.15);
-        border-right: 4px solid #c5a059;
-        color: #c5a059;
-    }
-
-    .status-online {
-        width: 10px;
-        height: 10px;
-        background-color: #2ecc71;
-        border-radius: 50%;
-        display: inline-block;
-        margin-left: 8px;
-        box-shadow: 0 0 8px #2ecc71;
-    }
-</style>
-
-<div class="itqan-sidebar">
-    <!-- قسم الشعار والهوية (مؤسسة الإتقان بلس - حائل) -->
-    <div class="sidebar-brand" style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <img src="../images/logo.svg" alt="Tera Logo" class="brand-logo" style="width: 60px; margin-bottom: 10px;"
-             onerror="this.src='https://ui-avatars.com/api/?name=Tera+V12&background=001f3f&color=c5a059'">
-        <h2 style="margin: 0; font-size: 1.5rem;">TERA <span style="color: #c5a059;">V12</span></h2>
+<div class="itqan-sidebar-container" style="display: flex; flex-direction: column; height: 100vh; background: #001f3f; border-left: 2px solid #c5a059; font-family: 'Segoe UI', Tahoma, sans-serif;">
+    
+    <!-- القسم العلوي: هوية النظام وشعار المؤسسة -->
+    <div class="sidebar-identity" style="padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(197, 160, 89, 0.2);">
+        <img src="../images/logo.svg" alt="Tera Logo" style="width: 70px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(197, 160, 89, 0.3));" 
+             onerror="this.src='https://ui-avatars.com/api/?name=Tera+V12&background=c5a059&color=001f3f'">
+        <h2 style="margin: 0; color: #c5a059; font-size: 1.6rem; font-weight: 800; letter-spacing: 1px;">TERA <span style="color: #fff; font-weight: 300;">V12</span></h2>
+        <p style="margin: 5px 0 0; color: rgba(255,255,255,0.6); font-size: 0.75rem; font-weight: 600;">مؤسسة الإتقان بلس - حائل</p>
     </div>
 
-    <!-- قائمة التنقل الرئيسية -->
-    <nav class="sidebar-nav" style="flex-grow: 1; padding: 20px 0;">
-        <div class="nav-section-title" style="padding: 10px 20px; font-size: 0.75rem; color: #888; text-transform: uppercase;">الإدارة العامة</div>
-        
-        <button class="nav-btn active" id="btn-customers-list" style="width: 100%; text-align: right; padding: 12px 20px; background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center;">
-            <span class="nav-icon" style="margin-left: 15px;">👥</span>
-            <span class="nav-text">قائمة العملاء</span>
-        </button>
+    <!-- القسم الأوسط: روابط التنقل الرئيسية -->
+    <nav class="sidebar-navigation" style="flex-grow: 1; padding: 25px 15px;">
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+            
+            <li class="nav-item">
+                <a href="#" class="nav-link active" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #c5a059; text-decoration: none; background: rgba(197, 160, 89, 0.1); border-radius: 10px; border-right: 4px solid #c5a059; font-weight: 700;">
+                    <span style="font-size: 1.2rem;">📊</span> لوحة التحكم
+                </a>
+            </li>
 
-        <button class="nav-btn" id="btn-add-customer" style="width: 100%; text-align: right; padding: 12px 20px; background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center;">
-            <span class="nav-icon" style="margin-left: 15px;">👤+</span>
-            <span class="nav-text">إضافة عميل جديد</span>
-        </button>
+            <li class="nav-item">
+                <a href="#" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #fff; text-decoration: none; transition: 0.3s; font-weight: 500; opacity: 0.8;">
+                    <span style="font-size: 1.2rem;">👥</span> إدارة العملاء
+                </a>
+            </li>
 
-        <div class="nav-section-title" style="padding: 20px 20px 10px; font-size: 0.75rem; color: #888; text-transform: uppercase;">العمليات المالية</div>
+            <li class="nav-item">
+                <a href="#" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #fff; text-decoration: none; transition: 0.3s; font-weight: 500; opacity: 0.8;">
+                    <span style="font-size: 1.2rem;">💰</span> الأقساط والتمويل
+                </a>
+            </li>
 
-        <button class="nav-btn" id="btn-installments" style="width: 100%; text-align: right; padding: 12px 20px; background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center;">
-            <span class="nav-icon" style="margin-left: 15px;">💰</span>
-            <span class="nav-text">متابعة الأقساط</span>
-        </button>
+            <li class="nav-item">
+                <a href="#" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #fff; text-decoration: none; transition: 0.3s; font-weight: 500; opacity: 0.8;">
+                    <span style="font-size: 1.2rem;">📱</span> بطاقات سوا (STC)
+                </a>
+            </li>
 
-        <button class="nav-btn" id="btn-sawa-cards" style="width: 100%; text-align: right; padding: 12px 20px; background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center;">
-            <span class="nav-icon" style="margin-left: 15px;">📱</span>
-            <span class="nav-text">بطاقات سوا</span>
-        </button>
-
-        <div class="nav-section-title" style="padding: 20px 20px 10px; font-size: 0.75rem; color: #888; text-transform: uppercase;">التقارير والإحصائيات</div>
-
-        <button class="nav-btn" id="btn-reports" style="width: 100%; text-align: right; padding: 12px 20px; background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center;">
-            <span class="nav-icon" style="margin-left: 15px;">📊</span>
-            <span class="nav-text">التقارير الختامية</span>
-        </button>
-
-        <button class="nav-btn" id="btn-stats" style="width: 100%; text-align: right; padding: 12px 20px; background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center;">
-            <span class="nav-icon" style="margin-left: 15px;">📈</span>
-            <span class="nav-text">الإحصائيات الحية</span>
-        </button>
+            <li class="nav-item" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                <a href="#" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #fff; text-decoration: none; transition: 0.3s; font-weight: 500; opacity: 0.8;">
+                    <span style="font-size: 1.2rem;">🕒</span> عرض الساعة
+                </a>
+            </li>
+        </ul>
     </nav>
 
-    <!-- تذييل السايدبار (معلومات المدير) -->
-    <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-        <div class="admin-badge" style="display: flex; align-items: center; margin-bottom: 15px;">
-            <span class="status-online"></span>
-            <span class="admin-name" style="font-weight: bold; font-size: 0.9rem;">م. الشمري</span>
+    <!-- القسم السفلي: معلومات النسخة والخروج -->
+    <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(197, 160, 89, 0.2); background: rgba(0,0,0,0.2);">
+        <button id="btn-logout" style="width: 100%; padding: 12px; background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid #e74c3c; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+            تسجيل الخروج
+        </button>
+        <div style="text-align: center; margin-top: 15px;">
+            <span style="font-size: 0.65rem; color: rgba(255,255,255,0.4);">TERA V12.0.4 | HAIL PROVINCE</span>
         </div>
-        <button class="logout-link" id="btn-logout" style="width: 100%; padding: 10px; background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; border-radius: 8px; cursor: pointer; transition: 0.3s;">تسجيل الخروج</button>
     </div>
 </div>
 
-<!-- 🧠 ربط المنطق البرمجي الخاص بالسايدبار كـ Module -->
-<script type="module" src="../js-logic/sidebar-logic.js"></script>
+<style>
+    /* تأثيرات التمرير على الروابط */
+    .nav-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #c5a059 ! aspirations;
+        opacity: 1 !important;
+        transform: translateX(-5px);
+    }
+    
+    #btn-logout:hover {
+        background: #e74c3c;
+        color: #fff;
+    }
+</style>
