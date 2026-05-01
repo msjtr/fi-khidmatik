@@ -3,112 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام Tera | مؤسسة الإتقان بلس</title>
+    <title>نظام Tera V12 | مؤسسة الإتقان بلس</title>
 
-    <!-- 🖼️ التبويمة -->
-    <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+    <!-- 🖼️ التبويمة والشعار (تأكد من مسار الصورة) -->
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
 
-    <!-- 🎨 ربط ملفات التنسيق (11 ملف) -->
+    <!-- 🎨 ربط ملفات التنسيق الأساسية -->
     <link rel="stylesheet" href="css-styles/hub-style.css">
-    <link rel="stylesheet" href="css-styles/buttons-theme.css">
     <link rel="stylesheet" href="css-styles/header-style.css">
     <link rel="stylesheet" href="css-styles/sidebar-style.css">
     <link rel="stylesheet" href="css-styles/footer-style.css">
-    <link rel="stylesheet" href="css-styles/clock-style.css">
-    <link rel="stylesheet" href="css-styles/add-cust-style.css">
-    <link rel="stylesheet" href="css-styles/list-table-style.css">
     <link rel="stylesheet" href="css-styles/stats-visuals.css">
-    <link rel="stylesheet" href="css-styles/auth-style.css">
-    <link rel="stylesheet" href="css-styles/print-layout.css">
 
     <style>
-        /* 🛠️ تنسيق الطوارئ لضمان استقرار الواجهة الظاهرة في الصورة */
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        .tera-admin-layout { display: flex; flex-direction: column; height: 100vh; }
-        
-        #header-mount { min-height: 70px; background: #1a237e; width: 100%; }
-        
-        .tera-main-content { display: flex; flex: 1; overflow: hidden; }
-        
-        #sidebar-mount { width: 260px; min-width: 260px; background: #283593; height: 100%; }
-        
-        .tera-view-window { flex: 1; height: 100%; background: #fff; position: relative; }
-        
-        #tera-iframe { width: 100%; height: 100%; border: none; }
-        
-        #footer-mount { min-height: 40px; background: #f1f1f1; width: 100%; }
+        /* 💎 تنسيق الحاويات الرئيسي (Layout Controller) */
+        :root {
+            --sidebar-width: 260px;
+            --header-height: 70px;
+            --footer-height: 45px;
+        }
+
+        body, html { 
+            margin: 0; padding: 0; height: 100%; 
+            overflow: hidden; font-family: 'Segoe UI', sans-serif;
+            background: #f8f9fa; 
+        }
+
+        .tera-admin-layout { 
+            display: grid;
+            /* تقسيم الشاشة: هيدر فوق، ثم (سايدبار + محتوى)، ثم فوتر تحت */
+            grid-template-rows: var(--header-height) 1fr var(--footer-height);
+            grid-template-columns: 1fr var(--sidebar-width);
+            grid-template-areas: 
+                "header header"
+                "main sidebar"
+                "footer footer";
+            height: 100vh; 
+        }
+
+        #header-mount { 
+            grid-area: header; 
+            z-index: 1000; 
+            background: #fff;
+        }
+
+        #sidebar-mount { 
+            grid-area: sidebar; 
+            z-index: 900; 
+            background: #001f3f; 
+        }
+
+        .tera-view-window { 
+            grid-area: main; 
+            overflow: hidden; 
+            background: #f4f7f6;
+            position: relative;
+        }
+
+        #footer-mount { 
+            grid-area: footer; 
+            z-index: 1000; 
+            background: #fff;
+        }
+
+        #tera-iframe { 
+            width: 100%; height: 100%; border: none; 
+            transition: all 0.3s ease;
+        }
+
+        /* إصلاح ظهور الشعار */
+        .sidebar-brand img {
+            max-width: 150px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
 
     <div class="tera-admin-layout">
-        <!-- 1. الهيدر (يظهر في الأعلى دائماً) -->
+        <!-- 1. الهيدر -->
         <header id="header-mount"></header>
 
-        <!-- 2. المحتوى الأوسط (سايدبار بجانب الصفحة) -->
-        <div class="tera-main-content">
-            <aside id="sidebar-mount"></aside>
+        <!-- 2. السايدبار (الجهة اليمنى) -->
+        <aside id="sidebar-mount"></aside>
 
-            <main class="tera-view-window">
-                <iframe id="tera-iframe" name="tera-iframe" src="pages/customers-list.html"></iframe>
-            </main>
-        </div>
+        <!-- 3. نافذة العرض الرئيسية -->
+        <main class="tera-view-window">
+            <iframe id="tera-iframe" name="tera-iframe" src="pages/customers-list.html"></iframe>
+        </main>
 
-        <!-- 3. الفوتر (في الأسفل) -->
+        <!-- 4. التذييل -->
         <footer id="footer-mount"></footer>
     </div>
 
-    <!-- 🧠 الربط البرمجي بنظام Modules -->
-    <script src="js-logic/firebase.js" type="module"></script> 
-    <script src="js-logic/api-connector.js" type="module"></script>
-    <script src="js-logic/auth-logic.js" type="module"></script>
+    <!-- 🧠 الربط البرمجي -->
     <script src="js-logic/main.js" type="module"></script>
-    <script src="js-logic/header-logic.js" type="module"></script>
-    <script src="js-logic/sidebar-logic.js" type="module"></script>
-    <script src="js-logic/clock-logic.js" type="module"></script>
-    <script src="js-logic/add-cust-logic.js" type="module"></script>
-    <script src="js-logic/list-table-logic.js" type="module"></script>
-    <script src="js-logic/btn-actions-controller.js" type="module"></script>
-    <script src="js-logic/stats-engine.js" type="module"></script>
-    <script src="js-logic/log-tracker.js" type="module"></script>
-    <script src="js-logic/pdf-generator.js" type="module"></script>
-    <script src="js-logic/map-logic.js" type="module"></script>
-
+    
     <script>
-        async function initTeraSystem() {
-            const components = [
+        // دالة تحميل المكونات مع معالجة الأخطاء وإصلاح الشعار
+        async function loadTeraComponents() {
+            const sections = [
                 { id: 'header-mount', url: 'mm/header.html' },
                 { id: 'sidebar-mount', url: 'mm/sidebar.html' },
                 { id: 'footer-mount', url: 'mm/footer.html' }
             ];
 
-            for (const item of components) {
+            for (const section of sections) {
                 try {
-                    const response = await fetch(item.url);
-                    if (response.ok) {
-                        const html = await response.text();
-                        const target = document.getElementById(item.id);
-                        if (target) target.innerHTML = html;
+                    const res = await fetch(section.url);
+                    if (res.ok) {
+                        const html = await res.text();
+                        document.getElementById(section.id).innerHTML = html;
                     }
-                } catch (err) { 
-                    console.error(`خطأ في تحميل مكونات حائل: ${item.url}`); 
+                } catch (e) {
+                    console.error("فشل تحميل المكون:", section.id);
                 }
             }
-            
-            // إرسال إشارة جاهزية الواجهة لتشغيل الساعة واسم المستخدم
+            // إبلاغ النظام بأن الواجهة جاهزة لتشغيل الساعة والـ Auth
             document.dispatchEvent(new Event('TeraLayoutReady'));
         }
 
-        window.teraNavigate = function(targetPage) {
-            const frame = document.getElementById('tera-iframe');
-            if (frame) {
-                frame.style.opacity = '0.5';
-                frame.src = `pages/${targetPage}.html`;
-                frame.onload = () => frame.style.opacity = '1';
-            }
-        };
+        window.addEventListener('DOMContentLoaded', loadTeraComponents);
 
-        window.addEventListener('load', initTeraSystem);
+        // نظام التنقل السلس
+        window.teraNavigate = function(page) {
+            const frame = document.getElementById('tera-iframe');
+            frame.style.opacity = '0';
+            setTimeout(() => {
+                frame.src = `pages/${page}.html`;
+                frame.onload = () => frame.style.opacity = '1';
+            }, 200);
+        };
     </script>
 </body>
 </html>
