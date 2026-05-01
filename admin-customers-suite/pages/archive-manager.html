@@ -1,1 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- الربط المباشر بملفات التنسيق (بدون ../ لضمان استقرار الإطار الرئيسي) -->
+    <link rel="stylesheet" href="css-styles/list-table-style.css">
+    <link rel="stylesheet" href="css-styles/buttons-theme.css">
+    <style>
+        .archive-header {
+            background: #f1f3f4;
+            padding: 20px;
+            border-radius: 10px;
+            border-right: 5px solid #6c757d; /* لون رمادي للأرشفة */
+            margin-bottom: 25px;
+        }
+        .status-badge-closed {
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="archive-container" style="padding: 20px;">
+        <!-- رأس صفحة الأرشيف -->
+        <div class="archive-header">
+            <h2 style="color: #001f3f; margin: 0;">📦 أرشيف المعاملات المغلقة</h2>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">
+                مؤسسة الإتقان بلس | إدارة السجلات التاريخية لمنصة Tera
+            </p>
+        </div>
 
+        <!-- شريط البحث المتقدم في الأرشيف -->
+        <div class="search-bar" style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <input type="text" id="archiveSearch" placeholder="ابحث برقم الهوية أو اسم العميل..." 
+                   style="flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+            <button class="btn-itqan btn-primary" onclick="searchArchive()">🔍 بحث</button>
+        </div>
+
+        <!-- جدول البيانات المؤرشفة -->
+        <div class="table-responsive">
+            <table class="itqan-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #001f3f; color: white;">
+                        <th>التاريخ</th>
+                        <th>العميل</th>
+                        <th>رقم الهوية</th>
+                        <th>المبلغ المكتمل</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="archiveTableBody">
+                    <!-- البيانات تُحقن هنا برمجياً من Firestore عبر archive-logic.js -->
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                            جاري تحميل السجلات المؤرشفة...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ربط الملفات البرمجية المسؤولة عن جلب البيانات المؤرشفة من Firebase -->
+    <script src="js-logic/api-connector.js"></script>
+    <script src="js-logic/archive-logic.js"></script>
+</body>
+</html>
