@@ -1,57 +1,95 @@
-/* تنسيق القائمة الجانبية لمنصة في خدمتك */
-.itqan-sidebar {
-    width: 280px; /* التوسعة لتناسب الشاشات المتوسطة */
-    background: #001f3f; 
-    color: white; 
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 25px 15px; 
-    border-left: 3px solid #c5a059; /* تقوية الخط الذهبي */
-    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-    /* حذف position: fixed لأن الحاوية الرئيسية في main-hub هي flex */
+:root {
+    --itqan-blue: #001f3f;
+    --itqan-gold: #c5a059;
+    --itqan-gold-light: #ecd08c;
+    --nav-hover-bg: rgba(197, 160, 89, 0.1);
 }
 
+.itqan-sidebar {
+    width: clamp(240px, 18vw, 280px); /* عرض مرن يتكيف مع حجم الشاشة */
+    background: linear-gradient(180deg, var(--itqan-blue) 0%, #001529 100%);
+    color: white; 
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 15px; 
+    border-left: 4px solid var(--itqan-gold); /* تعزيز الهوية البصرية لفرع حائل */
+    box-shadow: -8px 0 25px rgba(0,0,0,0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 950;
+}
+
+/* شعار المنصة */
 .sidebar-brand {
     text-align: center;
-    padding-bottom: 30px;
-    border-bottom: 1px solid rgba(197, 160, 89, 0.2);
-    margin-bottom: 20px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(197, 160, 89, 0.15);
+    margin-bottom: 25px;
 }
 
 .sidebar-brand h2 { 
-    color: #c5a059; 
+    color: var(--itqan-gold); 
     margin: 0; 
-    font-size: 1.4rem; 
-    letter-spacing: 1px;
-    font-weight: bold;
+    font-size: clamp(1.1rem, 1.5vw, 1.4rem); 
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
+/* أزرار التنقل */
 .nav-btn {
     display: flex;
     align-items: center;
-    padding: 14px 18px; 
-    color: #ecf0f1; 
+    gap: 12px; /* مسافة بين الأيقونة والنص */
+    padding: 12px 20px; 
+    color: rgba(236, 240, 241, 0.8); 
     text-decoration: none;
-    margin-top: 8px; 
-    border-radius: 10px; 
-    transition: all 0.3s ease; 
+    margin-bottom: 10px; 
+    border-radius: 12px; 
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
     cursor: pointer;
     font-size: 0.95rem;
     border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
 }
 
-/* تأثير التفاعل عند مرور الماوس */
+/* تأثير التفاعل الاحترافي */
 .nav-btn:hover { 
-    background: #c5a059; 
-    color: #001f3f; 
-    transform: translateX(-5px); /* تحريك بسيط لليمين يعطي طابعاً عصرياً */
-    font-weight: bold;
+    background: var(--nav-hover-bg); 
+    color: var(--itqan-gold); 
+    transform: translateX(-8px); /* تحريك لليسار (باتجاه المحتوى) */
+    border-color: rgba(197, 160, 89, 0.3);
 }
 
-/* تمييز الزر النشط */
+/* تمييز الزر النشط بنمط "Tera Active" */
 .nav-btn.active {
-    background: rgba(197, 160, 89, 0.15);
-    border: 1px solid #c5a059;
-    color: #c5a059;
+    background: var(--itqan-gold);
+    color: var(--itqan-blue);
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(197, 160, 89, 0.4);
+}
+
+/* أيقونات الأزرار (في حال أردت إضافة FontAwesome مستقبلاً) */
+.nav-btn i {
+    font-size: 1.1rem;
+    min-width: 25px;
+    text-align: center;
+}
+
+/* 📱 التوافق مع الشاشات الصغيرة (Responsive) */
+@media (max-width: 1024px) {
+    .itqan-sidebar {
+        width: 80px;
+        padding: 20px 10px;
+    }
+    
+    .sidebar-brand h2, .nav-btn span {
+        display: none; /* إخفاء النصوص لإظهار الأيقونات فقط */
+    }
+    
+    .nav-btn {
+        justify-content: center;
+        padding: 15px;
+    }
 }
