@@ -3,114 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>في خدمتك | لوحة الإدارة الرئيسية</title>
     
-    <!-- الاسم الرسمي للمنصة في التبويب بالعربي والإنجليزي -->
-    <title>في خدمتك من الإتقان بلس | Fi Khidmatik by Al-Itqan Plus</title>
-    
-    <!-- أيقونة التبويب (Favicon) من مسار الصور المعتمد -->
-    <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
-    
-    <!-- ربط ملفات التنسيق CSS -->
+    <!-- ربط التنسيق الأساسي للهيكل -->
     <link rel="stylesheet" href="css-styles/hub-style.css">
     <link rel="stylesheet" href="css-styles/buttons-theme.css">
     
-    <!-- مكتبة الأيقونات -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
-        .brand-section {
-            text-align: center;
-            padding: 25px 15px;
-            border-bottom: 1px solid rgba(197, 160, 89, 0.2);
-        }
-        .app-logo {
-            width: 100px;
-            height: auto;
-            margin-bottom: 15px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.3));
-        }
-        .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #003366;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999; color: #c5a059; font-family: 'Tajawal', sans-serif;
-        }
-        .platform-name-ar { color: #c5a059; margin: 5px 0 0 0; font-size: 1.3rem; font-weight: 900; }
-        .platform-name-en { color: #fff; margin: 0; font-size: 0.8rem; opacity: 0.9; letter-spacing: 0.5px; }
+        /* تنظيم توزيع الواجهة */
+        body { margin: 0; display: flex; background-color: #f4f7f6; overflow: hidden; height: 100vh; }
+        .main-wrapper { display: flex; width: 100%; height: 100%; }
+        
+        /* حاوية السايدبار */
+        #sidebar-placeholder { width: 260px; height: 100%; flex-shrink: 0; }
+        
+        /* حاوية المحتوى المتغير */
+        .page-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* منطقة العرض الديناميكي */
+        .dynamic-view { flex-grow: 1; padding: 20px; overflow-y: auto; background: #fafafa; }
+        iframe { width: 100%; height: 100%; border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-    <!-- شاشة التحميل الذكية -->
-    <div id="loader" class="loading-overlay">
-        <img src="../images/logo.svg" alt="Logo" class="app-logo animate-pulse">
-        <div class="spinner-border text-warning mb-3"></div>
-        <h2 class="platform-name-ar">في خدمتك من الإتقان بلس</h2>
-        <p class="platform-name-en">Fi Khidmatik by Al-Itqan Plus</p>
+    <div class="main-wrapper">
+        
+        <!-- 1. استدعاء القائمة الجانبية من مجلد mm -->
+        <div id="sidebar-placeholder"></div>
+
+        <div class="page-container">
+            
+            <!-- 2. استدعاء الهيدر (الساعة والترحيب) من مجلد mm -->
+            <div id="header-placeholder"></div>
+
+            <!-- 3. منطقة عرض الصفحات (المحتوى المتغير) -->
+            <main class="dynamic-view">
+                <!-- الصفحة الافتراضية عند الفتح هي قائمة العملاء -->
+                <iframe name="content-frame" src="pages/customers-list.html" id="main-iframe"></iframe>
+            </main>
+
+            <!-- 4. استدعاء التذييل من مجلد mm -->
+            <div id="footer-placeholder"></div>
+
+        </div>
     </div>
 
-    <div class="hub-container">
-        <!-- القائمة الجانبية (Sidebar) -->
-        <aside class="sidebar" id="sidebarMenu">
-            <div class="brand-section">
-                <!-- الشعار الرسمي -->
-                <img src="../images/logo.svg" alt="Logo" class="app-logo">
+    <!-- محرك الربط الذكي -->
+    <script type="module">
+        // استدعاء الأوامر المركزية
+        import { initApp } from './js-logic/main.js';
+
+        async function loadComponent(id, path) {
+            try {
+                const response = await fetch(path);
+                const html = await response.text();
+                document.getElementById(id).innerHTML = html;
                 
-                <!-- مسمى المنصة المعتمد -->
-                <h1 class="platform-name-ar">في خدمتك</h1>
-                <p class="platform-name-en">Al-Itqan Plus</p>
-                <small style="color: rgba(255,255,255,0.5); font-size: 0.6rem; display: block; margin-top: 5px;">Fi Khidmatik by Al-Itqan Plus</small>
-                
-                <hr style="border: 0; border-top: 1px solid rgba(197, 160, 89, 0.2); margin: 15px 0;">
-            </div>
+                // تفعيل السكريبتات داخل المكونات المحملة (مثل الساعة في الهيدر)
+                const scripts = document.getElementById(id).querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            } catch (err) {
+                console.error(`خطأ في تحميل المكون ${path}:`, err);
+            }
+        }
 
-            <nav class="nav-menu">
-                <button class="nav-link active" onclick="handleSidebarClick(this, 'dashboard')">
-                    <i class="fas fa-chart-pie me-2"></i> لوحة التحكم
-                </button>
-                <button class="nav-link" onclick="handleSidebarClick(this, 'customers')">
-                    <i class="fas fa-user-friends me-2"></i> إدارة العملاء
-                </button>
-                <button class="nav-link" onclick="handleSidebarClick(this, 'orders')">
-                    <i class="fas fa-file-contract me-2"></i> محرك العقود
-                </button>
-                <button class="nav-link" onclick="handleSidebarClick(this, 'map-bridge')">
-                    <i class="fas fa-map-marker-alt me-2"></i> تتبع المواقع
-                </button>
-            </nav>
-
-            <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; text-align: center;">
-                <small style="color: #c5a059; font-size: 0.7rem;">فرع حائل | V12.12.12</small>
-            </div>
-        </aside>
-
-        <!-- منطقة العرض الرئيسية -->
-        <main class="main-viewport">
-            <div id="main-content-area">
-                <!-- المحتوى يتم حقنه عبر main.js -->
-            </div>
-        </main>
-    </div>
-
-    <!-- ربط محركات النظام -->
-    <script type="module" src="js-logic/main.js"></script>
-    <script src="js-logic/btn-actions-controller.js"></script>
-
-    <script>
-        // إخفاء شاشة التحميل بعد استقرار النظام
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const loader = document.getElementById('loader');
-                if(loader) {
-                    loader.style.opacity = '0';
-                    setTimeout(() => loader.style.display = 'none', 500);
-                }
-            }, 1000);
+        // تشغيل المنصة وتحميل الأجزاء عند البدء
+        document.addEventListener('DOMContentLoaded', () => {
+            loadComponent('sidebar-placeholder', 'mm/sidebar.html');
+            loadComponent('header-placeholder', 'mm/header.html');
+            loadComponent('footer-placeholder', 'mm/footer.html');
+            initApp(); // تشغيل منطق Firebase والتحقق من الجلسة
         });
+
+        /**
+         * وظيفة التنقل المركزي بين الصفحات
+         * تستخدمها القائمة الجانبية (Sidebar) لتغيير محتوى الـ Iframe
+         */
+        window.navigateTo = function(pageName) {
+            const frame = document.getElementById('main-iframe');
+            const pagesMap = {
+                'list': 'pages/customers-list.html',
+                'add': 'pages/add-customer.html',
+                'stats': 'pages/customers-stats.html',
+                'logs': 'pages/system-logs.html',
+                'archive': 'pages/archive-manager.html'
+            };
+            
+            if (pagesMap[pageName]) {
+                frame.src = pagesMap[pageName];
+            }
+        };
     </script>
+
 </body>
 </html>
