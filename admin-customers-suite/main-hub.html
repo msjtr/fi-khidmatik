@@ -1,21 +1,28 @@
 <!-- 1. ربط التنسيق -->
 <link rel="stylesheet" href="css-styles/header-style.css">
 
-<header class="itqan-header">
-    <div class="user-info">
-        <span>مرحباً بك: أبا صالح الشمري</span>
+<header class="itqan-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+    <div class="header-right-section" style="display: flex; align-items: center; gap: 15px;">
+        <!-- إضافة الشعار الرسمي لمنصة في خدمتك V12 -->
+        <img src="images/logo.svg" alt="الإتقان بلس" style="height: 45px; width: auto;">
+        
+        <div class="user-info">
+            <span style="font-weight: bold; color: #001f3f;">مرحباً بك: أبا صالح الشمري</span>
+        </div>
     </div>
-    <div class="live-meta">
-        <span id="h-clock" class="digital-clock">00:00:00</span>
-        <span id="h-date" class="digital-date">--/--/----</span>
+
+    <div class="live-meta" style="text-align: left;">
+        <!-- المعرفات h-clock و h-date مرتبطة بملف header-logic.js -->
+        <span id="h-clock" class="digital-clock" style="display: block; font-family: monospace; font-size: 1.2rem; color: #c5a059;">00:00:00</span>
+        <span id="h-date" class="digital-date" style="font-size: 0.85rem; color: #666;">--/--/----</span>
     </div>
 </header>
 
-<!-- 2. تشغيل سكريبت الساعة الذكي مع تصحيح المسار النسبي -->
+<!-- 2. تشغيل سكريبت الساعة الذكي مع المرجع النسبي الصحيح -->
 <script type="module">
     /**
-     * الحل النهائي: إضافة ./ لتعريف المسار كمرجع نسبي
-     * هذا سيحل خطأ (Uncaught TypeError: Failed to resolve module specifier)
+     * تم استخدام './' لضمان توافق المسار مع معايير المتصفح الحديثة
+     * ولتجنب خطأ Module Specifier
      */
     import { initClock } from './js-logic/header-logic.js';
     
