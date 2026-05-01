@@ -1,23 +1,73 @@
-<!-- ربط التنسيقات من مجلد css-styles المخصص -->
+<!-- 🎨 ربط التنسيقات من مجلد css-styles (تصحيح المسار للعودة من mm إلى admin-customers-suite) -->
 <link rel="stylesheet" href="../css-styles/hub-style.css">
 <link rel="stylesheet" href="../css-styles/footer-style.css">
 
+<style>
+    /* ✨ تنسيق تذييل النظام ليتماشى مع معايير الإتقان بلس */
+    .itqan-footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 25px;
+        background: #001529; /* كحلي غامق فخم */
+        border-top: 1px solid rgba(197, 160, 89, 0.2); /* إطار ذهبي نحيف */
+        color: #e0e0e0;
+        font-size: 0.85rem;
+    }
+
+    .status-dot {
+        height: 8px;
+        width: 8px;
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        margin-left: 8px;
+    }
+
+    .status-dot.active {
+        background-color: #2ecc71; /* أخضر للاتصال النشط */
+        box-shadow: 0 0 8px #2ecc71;
+    }
+
+    .system-status {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+    }
+
+    .version-tag {
+        background: rgba(197, 160, 89, 0.1);
+        color: #c5a059;
+        padding: 2px 10px;
+        border-radius: 20px;
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        font-family: 'Courier New', Courier, monospace;
+    }
+
+    .footer-center strong {
+        color: #c5a059;
+    }
+</style>
+
 <div class="itqan-footer-content">
+    <!-- القسم الأيمن: حالة الاتصال بسحابة Firebase -->
     <div class="footer-right">
         <span class="system-status">
-            <span class="status-dot active"></span>
+            <span class="status-dot active" id="db-status-dot"></span>
             نظام Tera متصل (Firebase Cloud)
         </span>
     </div>
 
+    <!-- القسم الأوسط: حقوق الملكية والهوية المحلية -->
     <div class="footer-center">
         <p>© 2026 جميع الحقوق محفوظة لـ <strong>مؤسسة الإتقان بلس - حائل</strong></p>
     </div>
 
+    <!-- القسم الأيسر: رقم الإصدار الحالي -->
     <div class="footer-left">
-        <span class="version-tag">الإصدار 12.12.12</span>
+        <span class="version-tag">V 12.12.12</span>
     </div>
 </div>
 
-<!-- ربط ملف المنطق البرمجي لمراقبة السجلات والحالة -->
+<!-- 🧠 ربط ملف مراقبة السجلات (Log Tracker) من المسار المصلح -->
 <script type="module" src="../js-logic/log-tracker.js"></script>
