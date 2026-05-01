@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>دخول النظام | في خدمتك</title>
+    <!-- سحب التنسيق المخصص -->
+    <link rel="stylesheet" href="../css-styles/auth-style.css">
+</head>
+<body class="itqan-auth-bg">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>دخول الإدارة</h1>
+            <p>منصة الإتقان بلس - حائل</p>
+        </div>
+        <div class="login-fields">
+            <input type="email" id="userEmail" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="userPass" placeholder="كلمة المرور" required>
+            <button id="loginBtn" class="btn-auth">دخول</button>
+        </div>
+    </div>
+
+    <!-- سحب الأوامر والربط مع Firebase -->
+    <script type="module" src="../js-logic/auth-logic.js"></script>
+</body>
+</html>
