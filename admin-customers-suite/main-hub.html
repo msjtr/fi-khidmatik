@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tera V12 | مؤسسة الإتقان بلس</title>
     
-    <!-- 🖼️ تصحيح مسار الشعار بناءً على طلبك -->
+    <!-- 🖼️ أيقونة النظام (تم تصحيح المسار ليكون مباشراً من المجلد الرئيسي) -->
     <link rel="icon" type="image/svg+xml" href="images/logo.svg">
 
-    <!-- 🎨 ربط التنسيق الموحد (تم إزالة التكرار من المسار) -->
+    <!-- 🎨 ربط التنسيق الموحد (تم إزالة التكرار admin-customers-suite من المسار) -->
     <link rel="stylesheet" href="admin-customers-suite/css-styles/hub-style.css">
 
     <style>
@@ -16,6 +16,8 @@
             --sidebar-width: 280px;
             --header-height: 70px;
             --main-bg: #f4f7f9;
+            --primary-navy: #001f3f;
+            --itqan-gold: #c5a059;
         }
 
         body {
@@ -37,35 +39,53 @@
             height: 100vh;
         }
 
-        #sidebar-mount { grid-area: sidebar; z-index: 100; }
-        #header-mount { grid-area: header; z-index: 90; }
+        #sidebar-mount { grid-area: sidebar; z-index: 100; background: var(--primary-navy); }
+        #header-mount { grid-area: header; z-index: 90; background: #fff; }
+        #footer-mount { grid-area: footer; z-index: 80; }
+
         #main-viewport { 
             grid-area: main; 
             overflow-y: auto; 
             padding: 20px;
             display: flex;
             flex-direction: column;
+            background: radial-gradient(circle at top right, #ffffff, #f1f1f1);
         }
-        #footer-mount { grid-area: footer; z-index: 80; }
 
         .loader-hub {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100%;
-            color: #001f3f;
+            height: 60vh;
+            color: var(--primary-navy);
             font-weight: bold;
+            opacity: 0.7;
         }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(197, 160, 89, 0.1);
+            border-left-color: var(--itqan-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div class="tera-container">
+        <!-- تحميل المكونات الديناميكية -->
         <aside id="sidebar-mount"></aside>
         <header id="header-mount"></header>
         <main id="main-viewport">
             <div id="dynamic-content-area" class="loader-hub">
-                جاري مزامنة بيانات "الإتقان بلس" عبر Tera V12...
+                <div class="spinner"></div>
+                <p>جاري مزامنة بيانات "الإتقان بلس" عبر نظام Tera V12...</p>
             </div>
         </main>
         <footer id="footer-mount"></footer>
@@ -73,32 +93,37 @@
 
     <script>
         /**
-         * 🛠️ تم تصحيح الدالة لإزالة تكرار المجلد في المسار
+         * 🛠️ دالة استدعاء المكونات المصلحة
+         * تم إزالة تكرار المسار admin-customers-suite لضمان عمل الروابط
          */
         async function injectComponent(elementId, fileName) {
             try {
-                // ✅ المسار المصلح ليتوافق مع هيكلية GitHub
+                // ✅ المسار الصحيح والمباشر للمكونات
                 const response = await fetch(`admin-customers-suite/mm/${fileName}`);
                 if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                
                 const htmlContent = await response.text();
                 document.getElementById(elementId).innerHTML = htmlContent;
-                console.log(`✅ تم تحميل المكون: ${fileName}`);
+                console.log(`✅ تم تحميل المكون بنجاح: ${fileName}`);
             } catch (error) {
                 console.error(`❌ خطأ في تحميل المكون ${fileName}:`, error);
-                document.getElementById(elementId).innerHTML = `<p style="color:red; padding:10px;">فشل تحميل ${fileName}</p>`;
+                document.getElementById(elementId).innerHTML = 
+                    `<p style="color:red; padding:20px; text-align:center;">خطأ 404: لم يتم العثور على ملف ${fileName}</p>`;
             }
         }
 
+        // تشغيل التحميل عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', () => {
-            // استدعاء المكونات بالمسارات المصلحة
             injectComponent('sidebar-mount', 'sidebar.html');
             injectComponent('header-mount', 'header.html');
             injectComponent('footer-mount', 'footer.html');
             
+            // تحميل واجهة الساعة الافتراضية بعد قليل من الوقت
             setTimeout(() => {
                 injectComponent('dynamic-content-area', 'clock-view.html');
             }, 500);
         });
     </script>
+
 </body>
 </html>
