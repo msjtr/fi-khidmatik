@@ -1,3 +1,25 @@
+<!-- الربط بملفات التنسيق من مجلد css-styles المخصص -->
+<link rel="stylesheet" href="../css-styles/hub-style.css">
+<link rel="stylesheet" href="../css-styles/stats-visuals.css">
+
+<style>
+    /* تنسيق سريع لضمان ظهور الساعة بشكل "Modern Premium" كما تفضل */
+    .tera-clock-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px); /* تأثير الزجاج Glassmorphism */
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        color: #fff;
+        max-width: 300px;
+        margin: auto;
+    }
+    .time-section { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
+    .date-section { font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); pt: 10px; }
+    .separator { color: #c5a059; } /* لون ذهبي للإتقان بلس */
+</style>
+
 <div class="tera-clock-container">
     <!-- عرض الوقت -->
     <div class="time-section">
@@ -11,7 +33,10 @@
 
     <!-- عرض التاريخ (هجري وميلادي) -->
     <div class="date-section">
-        <div id="hijri-date" class="date-item">.. / .. / .... هـ</div>
-        <div id="gregorian-date" class="date-item">.. / .. / .... م</div>
+        <div id="hijri-date" class="date-item">جاري التحميل.. هـ</div>
+        <div id="gregorian-date" class="date-item">جاري التحميل.. م</div>
     </div>
 </div>
+
+<!-- ربط ملف المنطق البرمجي الخاص بالساعة من مجلد js-logic -->
+<script type="module" src="../js-logic/clock-logic.js"></script>
