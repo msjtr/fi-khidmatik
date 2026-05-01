@@ -3,111 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام Tera | مؤسسة الإتقان بلس</title>
-
-    <!-- 🎨 استدعاء ملفات التنسيق المحدثة -->
+    <title>Tera V12 | مؤسسة الإتقان بلس</title>
+    
+    <!-- 🎨 استدعاء ملفات التنسيق -->
     <link rel="stylesheet" href="css-styles/hub-style.css">
     <link rel="stylesheet" href="css-styles/header-style.css">
     <link rel="stylesheet" href="css-styles/sidebar-style.css">
     <link rel="stylesheet" href="css-styles/footer-style.css">
-
-    <style>
-        /* 🛠️ هندسة الواجهة المتقدمة لمنع التداخل */
-        :root {
-            --sidebar-width: 260px;
-            --header-height: 70px;
-            --footer-height: 45px;
-        }
-
-        * { box-sizing: border-box; } /* لمنع تضخم العناصر وتداخلها */
-
-        body, html { 
-            margin: 0; padding: 0; height: 100vh; 
-            overflow: hidden; /* منع شريط التمرير المزدوج */
-            background: #f4f7f6;
-        }
-
-        /* تقسيم الشاشة بنظام الشبكة (Grid) لضمان العزل التام */
-        .tera-admin-layout { 
-            display: grid;
-            grid-template-rows: var(--header-height) 1fr var(--footer-height);
-            grid-template-columns: var(--sidebar-width) 1fr; /* السايدبار يمين والمحتوى يسار */
-            grid-template-areas: 
-                "header header"
-                "sidebar main"
-                "footer footer";
-            height: 100vh;
-            width: 100vw;
-        }
-
-        /* توزيع المناطق */
-        #header-mount { grid-area: header; z-index: 1000; position: relative; }
-        #sidebar-mount { grid-area: sidebar; z-index: 900; overflow-y: auto; }
-        .tera-view-window { grid-area: main; position: relative; overflow: hidden; }
-        #footer-mount { grid-area: footer; z-index: 1000; }
-
-        /* إعدادات الإطار (Iframe) ليكون نظيفاً */
-        #tera-iframe { 
-            width: 100%; height: 100%; border: none; 
-            display: block; transition: opacity 0.3s ease;
-        }
-
-        /* 🖼️ إصلاح ظهور الشعار (Logo Fix) */
-        .logo-container img {
-            max-width: 180px;
-            height: auto;
-            object-fit: contain;
-        }
-    </style>
+    <link rel="stylesheet" href="css-styles/stats-visuals.css">
 </head>
 <body>
 
-    <div class="tera-admin-layout">
-        <!-- 1. الهيدر (يتمدد على كامل العرض في الأعلى) -->
-        <header id="header-mount"></header>
+    <div class="tera-grid-container">
+        <!-- الهيدر -->
+        <header id="header-mount" class="header-area"></header>
 
-        <!-- 2. السايدبار (ثابت في جهة اليمين) -->
-        <aside id="sidebar-mount"></aside>
+        <!-- السايدبار (جهة اليمين) -->
+        <aside id="sidebar-mount" class="sidebar-area"></aside>
 
-        <!-- 3. نافذة العرض (تأخذ المساحة المتبقية) -->
-        <main class="tera-view-window">
-            <iframe id="tera-iframe" name="tera-iframe" src="pages/customers-list.html"></iframe>
+        <!-- نافذة العرض الرئيسية -->
+        <main class="main-content-area">
+            <iframe id="tera-iframe" name="tera-iframe" src="pages/customers-list.html" frameborder="0"></iframe>
         </main>
 
-        <!-- 4. الفوتر (ثابت في الأسفل) -->
-        <footer id="footer-mount"></footer>
+        <!-- التذييل -->
+        <footer id="footer-mount" class="footer-area"></footer>
     </div>
 
-    <!-- 🧠 المنطق البرمجي للتحميل الآمن -->
+    <!-- 🧠 منطق التشغيل -->
     <script type="module">
-        async function loadComponent(id, url) {
+        const loadPart = async (id, path) => {
             try {
-                const response = await fetch(url);
-                if (response.ok) {
-                    const html = await response.text();
-                    const target = document.getElementById(id);
-                    if (target) {
-                        target.innerHTML = html;
-                        return true;
-                    }
-                }
-            } catch (err) {
-                console.error(`خطأ في تحميل: ${url}`);
-            }
-            return false;
-        }
+                const r = await fetch(path);
+                if(r.ok) document.getElementById(id).innerHTML = await r.text();
+            } catch(e) { console.error("Error loading component"); }
+        };
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // تحميل المكونات بالتوازي لسرعة العرض
             await Promise.all([
-                loadComponent('header-mount', 'mm/header.html'),
-                loadComponent('sidebar-mount', 'mm/sidebar.html'),
-                loadComponent('footer-mount', 'mm/footer.html')
+                loadPart('header-mount', 'mm/header.html'),
+                loadPart('sidebar-mount', 'mm/sidebar.html'),
+                loadPart('footer-mount', 'mm/footer.html')
             ]);
-
-            // إطلاق حدث الجاهزية لتفعيل الساعة والـ Firebase
             document.dispatchEvent(new Event('TeraLayoutReady'));
         });
+
+        window.teraNavigate = (p) => {
+            const f = document.getElementById('tera-iframe');
+            f.style.opacity = '0.4';
+            f.src = `pages/${p}.html`;
+            f.onload = () => f.style.opacity = '1';
+        };
     </script>
 </body>
 </html>
