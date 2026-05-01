@@ -3,82 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tera V12 | الإتقان بلس</title>
+    <title>Tera V12 | الإتقان بلس - حائل</title>
 
-    <!-- 1. ربط شعار التبويب (Favicon) - المسار: images/logo.svg -->
+    <!-- 1. الأيقونة الرسمية -->
     <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
 
-    <!-- 2. ربط ملفات التنسيق الـ 10 (CSS) من مجلد css-styles -->
-    <link rel="stylesheet" href="css-styles/hub-style.css">
-    <link rel="stylesheet" href="css-styles/auth-style.css">
-    <link rel="stylesheet" href="css-styles/buttons-theme.css">
-    <link rel="stylesheet" href="css-styles/add-cust-style.css">
-    <link rel="stylesheet" href="css-styles/list-table-style.css">
-    <link rel="stylesheet" href="css-styles/stats-visuals.css">
-    <link rel="stylesheet" href="css-styles/print-layout.css">
-    
+    <!-- 2. إصلاح المسارات بناءً على المجلد الجديد (admin-customers-suite) -->
+    <!-- تأكد أن هذا الملف موجود في الجذر أو بجانب مجلد admin-customers-suite -->
+    <link rel="stylesheet" href="admin-customers-suite/css-styles/hub-style.css">
+    <link rel="stylesheet" href="admin-customers-suite/css-styles/header-style.css">
+    <link rel="stylesheet" href="admin-customers-suite/css-styles/sidebar-style.css">
+    <link rel="stylesheet" href="admin-customers-suite/css-styles/footer-style.css">
+    <link rel="stylesheet" href="admin-customers-suite/css-styles/list-table-style.css">
+
+    <style>
+        /* تنسيق الهيكل لضمان تجربة Modern Premium */
+        body { margin: 0; background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        .tera-container {
+            display: grid;
+            grid-template-areas: 
+                "sidebar header"
+                "sidebar main"
+                "sidebar footer";
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+        }
+        #sidebar-mount { grid-area: sidebar; background: #001f3f; }
+        #header-mount { grid-area: header; }
+        #main-view { grid-area: main; overflow-y: auto; padding: 25px; background: #f8f9fa; }
+        #footer-mount { grid-area: footer; }
+    </style>
 </head>
 <body>
 
-    <div class="tera-main-wrapper">
-        <!-- منطقة الشعار الأساسي للنظام -->
-        <div class="brand-container">
-            <img src="../images/logo.svg" alt="شعار الإتقان بلس" id="main-brand-logo" style="width: 150px;">
-        </div>
-
-        <!-- 3. تحميل المكونات الفرعية من مجلد mm -->
-        <header id="header-mount"></header>
+    <div class="tera-container">
         <aside id="sidebar-mount"></aside>
-        
+        <header id="header-mount"></header>
         <main id="main-view">
-            <!-- نافذة عرض المحتوى المتغيرة -->
-            <iframe id="content-frame" name="content-frame" src="mm/clock-view.html" frameborder="0" style="width: 100%; height: 80vh;"></iframe>
+            <div id="content-area">
+                <!-- شاشة ترحيبية تليق بمؤسسة الإتقان بلس -->
+                <div style="text-align: center; margin-top: 15vh; opacity: 0.8;">
+                    <h2 style="color: #001f3f;">نظام Tera لإدارة العمليات</h2>
+                    <p style="color: #c5a059;">جاري مزامنة البيانات مع Firebase Cloud...</p>
+                </div>
+            </div>
         </main>
-
         <footer id="footer-mount"></footer>
     </div>
 
-    <!-- 4. ربط جميع أوامر JS الـ 14 (بصيغة module لإصلاح أخطاء SyntaxError) -->
-    
-    <!-- الربط مع Firebase و API -->
-    <script type="module" src="js-logic/firebase.js"></script>
-    <script type="module" src="js-logic/api-connector.js"></script>
-    
-    <!-- التحكم والمصادقة -->
-    <script type="module" src="js-logic/auth-logic.js"></script>
-    <script type="module" src="js-logic/main.js"></script>
-    
-    <!-- واجهة المستخدم والساعة -->
-    <script type="module" src="js-logic/header-logic.js"></script>
-    <script type="module" src="js-logic/sidebar-logic.js"></script>
-    <script type="module" src="js-logic/btn-actions-controller.js"></script>
-    <script type="module" src="js-logic/clock-logic.js"></script>
-    
-    <!-- إدارة العمليات والبيانات -->
-    <script type="module" src="js-logic/add-cust-logic.js"></script>
-    <script type="module" src="js-logic/list-table-logic.js"></script>
-    <script type="module" src="js-logic/stats-engine.js"></script>
-    
-    <!-- الأدوات المتقدمة -->
-    <script type="module" src="js-logic/map-logic.js"></script>
-    <script type="module" src="js-logic/pdf-generator.js"></script>
-    <script type="module" src="js-logic/log-tracker.js"></script>
+    <!-- 3. الربط البرمجي مع مراعاة مسار admin-customers-suite -->
+    <script type="module" src="admin-customers-suite/js-logic/firebase.js"></script>
+    <script type="module" src="admin-customers-suite/js-logic/main.js"></script>
+    <script type="module" src="admin-customers-suite/js-logic/clock-logic.js"></script>
 
-    <!-- دالة جلب الملفات من مجلد mm -->
+    <!-- 4. محرك تحميل المكونات من مجلد mm -->
     <script>
-        async function loadMMComponent(id, file) {
+        async function loadComponent(id, file) {
+            const mount = document.getElementById(id);
             try {
-                const response = await fetch(`mm/${file}`);
-                if (response.ok) {
-                    const content = await response.text();
-                    document.getElementById(id).innerHTML = content;
-                }
-            } catch (err) { console.error("Error loading component:", file); }
+                // محاولة الجلب من المسار الفرعي المخصص للمكونات
+                const response = await fetch(`admin-customers-suite/mm/${file}`);
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+                mount.innerHTML = await response.text();
+                console.log(`✅ ${file} تم التحميل بنجاح`);
+            } catch (err) {
+                console.error(`❌ خطأ في تحميل ${file}:`, err);
+                mount.innerHTML = `<div style="color:red; padding:20px;">تعذر تحميل ${file} - تأكد من المسار</div>`;
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadMMComponent('header-mount', 'header.html');
-            loadMMComponent('footer-mount', 'footer.html');
+            loadComponent('sidebar-mount', 'sidebar.html');
+            loadComponent('header-mount', 'header.html');
+            loadComponent('footer-mount', 'footer.html');
         });
     </script>
 </body>
