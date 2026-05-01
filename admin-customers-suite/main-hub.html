@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tera V12 | مؤسسة الإتقان بلس</title>
     
-    <!-- 🖼️ أيقونة النظام (تم تصحيح المسار ليكون مباشراً من المجلد الرئيسي) -->
+    <!-- 🖼️ أيقونة النظام - تأكد أن المجلد اسمه images وليس Images -->
     <link rel="icon" type="image/svg+xml" href="images/logo.svg">
 
-    <!-- 🎨 ربط التنسيق الموحد (تم إزالة التكرار admin-customers-suite من المسار) -->
+    <!-- 🎨 رابط التنسيق الموحد - تأكد من مطابقة حالة الأحرف تماماً -->
     <link rel="stylesheet" href="admin-customers-suite/css-styles/hub-style.css">
 
     <style>
@@ -16,114 +16,74 @@
             --sidebar-width: 280px;
             --header-height: 70px;
             --main-bg: #f4f7f9;
-            --primary-navy: #001f3f;
-            --itqan-gold: #c5a059;
         }
-
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background: var(--main-bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; 
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow: hidden;
         }
-
         .tera-container {
             display: grid;
-            grid-template-areas: 
-                "sidebar header"
-                "sidebar main"
-                "sidebar footer";
+            grid-template-areas: "sidebar header" "sidebar main" "sidebar footer";
             grid-template-columns: var(--sidebar-width) 1fr;
             grid-template-rows: var(--header-height) 1fr auto;
             height: 100vh;
         }
-
-        #sidebar-mount { grid-area: sidebar; z-index: 100; background: var(--primary-navy); }
-        #header-mount { grid-area: header; z-index: 90; background: #fff; }
+        #sidebar-mount { grid-area: sidebar; z-index: 100; }
+        #header-mount { grid-area: header; z-index: 90; }
+        #main-viewport { grid-area: main; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
         #footer-mount { grid-area: footer; z-index: 80; }
-
-        #main-viewport { 
-            grid-area: main; 
-            overflow-y: auto; 
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            background: radial-gradient(circle at top right, #ffffff, #f1f1f1);
-        }
-
-        .loader-hub {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 60vh;
-            color: var(--primary-navy);
-            font-weight: bold;
-            opacity: 0.7;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(197, 160, 89, 0.1);
-            border-left-color: var(--itqan-gold);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-hub { display: flex; justify-content: center; align-items: center; height: 100%; color: #001f3f; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="tera-container">
-        <!-- تحميل المكونات الديناميكية -->
         <aside id="sidebar-mount"></aside>
         <header id="header-mount"></header>
         <main id="main-viewport">
-            <div id="dynamic-content-area" class="loader-hub">
-                <div class="spinner"></div>
-                <p>جاري مزامنة بيانات "الإتقان بلس" عبر نظام Tera V12...</p>
-            </div>
+            <div id="dynamic-content-area" class="loader-hub">جاري مزامنة بيانات "الإتقان بلس"...</div>
         </main>
         <footer id="footer-mount"></footer>
     </div>
 
     <script>
         /**
-         * 🛠️ دالة استدعاء المكونات المصلحة
-         * تم إزالة تكرار المسار admin-customers-suite لضمان عمل الروابط
+         * دالة جلب المكونات مع تصحيح المسار التلقائي
          */
         async function injectComponent(elementId, fileName) {
+            // استخدام مسار نسبي مباشر لضمان التوافق مع GitHub Pages
+            const path = `admin-customers-suite/mm/${fileName}`;
+            
             try {
-                // ✅ المسار الصحيح والمباشر للمكونات
-                const response = await fetch(`admin-customers-suite/mm/${fileName}`);
-                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const response = await fetch(path);
+                if (!response.ok) throw new Error(`فشل تحميل ${fileName} (Status: ${response.status})`);
                 
                 const htmlContent = await response.text();
                 document.getElementById(elementId).innerHTML = htmlContent;
-                console.log(`✅ تم تحميل المكون بنجاح: ${fileName}`);
+                console.log(`✅ تم تحميل: ${fileName}`);
             } catch (error) {
-                console.error(`❌ خطأ في تحميل المكون ${fileName}:`, error);
+                console.error(`❌ خطأ: ${error.message}`);
                 document.getElementById(elementId).innerHTML = 
-                    `<p style="color:red; padding:20px; text-align:center;">خطأ 404: لم يتم العثور على ملف ${fileName}</p>`;
+                    `<div style="color:red; padding:10px; border:1px solid red; margin:5px;">
+                        تعذر العثور على المكون: ${fileName} <br>
+                        المسار المطلوب: ${path}
+                    </div>`;
             }
         }
 
-        // تشغيل التحميل عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', () => {
+            // تحميل الأجزاء الرئيسية
             injectComponent('sidebar-mount', 'sidebar.html');
             injectComponent('header-mount', 'header.html');
             injectComponent('footer-mount', 'footer.html');
             
-            // تحميل واجهة الساعة الافتراضية بعد قليل من الوقت
+            // تحميل واجهة الساعة (clock-view)
             setTimeout(() => {
                 injectComponent('dynamic-content-area', 'clock-view.html');
-            }, 500);
+            }, 600);
         });
     </script>
-
 </body>
 </html>
