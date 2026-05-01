@@ -1,6 +1,7 @@
 :root {
     --itqan-blue: #001f3f;
     --itqan-gold: #c5a059;
+    --glass-bg: rgba(255, 255, 255, 0.85); /* زيادة التباين للوضوح */
 }
 
 body {
@@ -9,38 +10,50 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: transparent; /* لتتمكن من دمجها كإطار */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: transparent; 
+    font-family: 'Segoe UI', Tahoma, sans-serif;
 }
 
 .glass-box {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px); /* تعميق التمويه */
+    -webkit-backdrop-filter: blur(15px);
     border: 2px solid var(--itqan-gold);
-    padding: 30px 60px;
-    border-radius: 20px;
+    padding: 25px 50px;
+    border-radius: 25px; /* حواف أكثر نعومة */
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.glass-box:hover {
+    transform: scale(1.02); /* تفاعل بسيط عند مرور الماوس */
 }
 
 .clock-text {
-    font-size: 4rem;
-    font-weight: bold;
+    font-size: 5rem; /* تكبير الخط ليناسب شاشات العرض */
+    font-weight: 800;
     color: var(--itqan-blue);
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 10px;
+    text-shadow: 2px 4px 8px rgba(0, 31, 63, 0.1);
+    margin: 0;
+    line-height: 1;
 }
 
 .date-text {
-    font-size: 1.5rem;
-    color: #555;
-    letter-spacing: 1px;
+    font-size: 1.4rem;
+    color: #444;
+    margin-top: 10px;
+    display: block;
+    font-weight: 500;
 }
 
 .location-tag {
-    margin-top: 15px;
+    margin-top: 20px;
     color: var(--itqan-gold);
     font-weight: bold;
-    font-size: 0.9rem;
-    letter-spacing: 2px;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(197, 160, 89, 0.3);
+    padding-top: 10px;
 }
