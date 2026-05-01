@@ -1,8 +1,4 @@
-<!-- 🎨 الربط بملفات التنسيق من المسار الصحيح داخل admin-customers-suite -->
-<link rel="stylesheet" href="../css-styles/hub-style.css">
-<link rel="stylesheet" href="../css-styles/stats-visuals.css">
-
-<style><!-- 🎨 استدعاء ملف التنسيق الموحد من المسار الصحيح -->
+<!-- 🎨 استدعاء ملف التنسيق الموحد من المسار الصحيح -->
 <link rel="stylesheet" href="../css-styles/hub-style.css">
 
 <div class="clock-display-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
@@ -92,64 +88,3 @@
     // بدء العمل فور التحميل
     startTeraClock();
 </script>
-    /* ✨ تنسيق "Modern Premium" بلمسة زجاجية (Glassmorphism) */
-    .tera-clock-container {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(12px); 
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 25px;
-        border-radius: 20px;
-        text-align: center;
-        color: #ffffff;
-        max-width: 320px;
-        margin: 20px auto;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    }
-    
-    .time-section { 
-        font-size: 2.2rem; 
-        font-weight: 800; 
-        margin-bottom: 15px;
-        letter-spacing: 1px;
-    }
-    
-    .date-section { 
-        font-size: 0.95rem; 
-        border-top: 1px solid rgba(197, 160, 89, 0.3); /* ذهبي خفيف */
-        padding-top: 12px;
-        line-height: 1.6;
-    }
-    
-    .separator { 
-        color: #c5a059; /* لون ذهبي خاص بهوية مؤسسة الإتقان */
-        animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-        50% { opacity: 0.3; }
-    }
-    
-    .date-item { color: #e0e0e0; }
-</style>
-
-<div class="tera-clock-container">
-    <!-- عرض الوقت بنظام Tera V12 -->
-    <div class="time-section">
-        <span id="tera-hours">00</span>
-        <span class="separator">:</span>
-        <span id="tera-minutes">00</span>
-        <span class="separator">:</span>
-        <span id="tera-seconds">00</span>
-        <span id="time-period" style="font-size: 1rem; margin-right: 5px;">--</span>
-    </div>
-
-    <!-- عرض التاريخ (دعم كامل للتاريخ الهجري والميلادي في حائل) -->
-    <div class="date-section">
-        <div id="hijri-date" class="date-item">جاري جلب التاريخ الهجري..</div>
-        <div id="gregorian-date" class="date-item">جاري جلب التاريخ الميلادي..</div>
-    </div>
-</div>
-
-<!-- 🧠 ربط ملف المنطق البرمجي من المسار المصلح داخل admin-customers-suite/js-logic -->
-<script type="module" src="../js-logic/clock-logic.js"></script>
