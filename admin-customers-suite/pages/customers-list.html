@@ -16,14 +16,18 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .table-responsive-container { background: white; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .tera-table { width: 100%; border-collapse: collapse; min-width: 1500px; }
-        .tera-table th, .tera-table td { padding: 12px 15px; text-align: right; border-bottom: 1px solid #eee; }
-        .tera-table th { background-color: #f8f9fa; color: var(--primary-color); font-weight: 600; }
-        .sticky-col { position: sticky; right: 0; background: #f8f9fa; z-index: 1; }
-        .sticky-col-right { position: sticky; left: 0; background: #f8f9fa; z-index: 1; border-right: 1px solid #ddd; }
+        
+        /* تحديث عرض الجدول ليتسع لـ 18 عمود */
+        .tera-table { width: 100%; border-collapse: collapse; min-width: 2200px; } 
+        .tera-table th, .tera-table td { padding: 12px 10px; text-align: right; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .tera-table th { background-color: #f8f9fa; color: var(--primary-color); font-weight: 600; white-space: nowrap; }
+        
+        /* تثبيت الأعمدة المهمة */
+        .sticky-col { position: sticky; right: 0; background: #f8f9fa; z-index: 2; border-left: 1px solid #ddd; }
+        .sticky-col-right { position: sticky; left: 0; background: #f8f9fa; z-index: 2; border-right: 1px solid #ddd; }
         
         /* Badges */
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; white-space: nowrap; }
         .status-active { background: #d4edda; color: #155724; }
         .status-paused { background: #fff3cd; color: #856404; }
         .status-blocked { background: #f8d7da; color: #721c24; }
@@ -31,18 +35,18 @@
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: white; width: 90%; max-width: 1000px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 25px; position: relative; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .modal-content { background: white; width: 95%; max-width: 1100px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 25px; position: relative; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; }
-        .input-group label { font-weight: bold; font-size: 0.9em; color: #555; }
-        .input-group input, .input-group select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
+        .input-group label { font-weight: bold; font-size: 0.85em; color: #555; }
+        .input-group input, .input-group select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9em; }
         
         /* Editor & Attachments */
-        .editor-container { height: 200px; margin-bottom: 15px; }
+        .editor-container { height: 180px; margin-bottom: 15px; background: white; }
         .attachments-section { border-top: 2px solid #eee; padding-top: 15px; margin-top: 20px; }
-        .attachment-item { display: flex; justify-content: space-between; background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e1e4e8; }
+        .attachment-item { display: flex; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e1e4e8; font-size: 0.9em; }
         
-        .action-btn { border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; margin-left: 5px; transition: 0.3s; }
+        .action-btn { border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: 0.3s; font-size: 1.1em; }
         .edit { background: #3498db; color: white; }
         .print { background: #95a5a6; color: white; }
         .delete { background: #e74c3c; color: white; }
@@ -54,7 +58,7 @@
     <div class="page-header">
         <div class="header-titles">
             <h1>قائمة العملاء - Tera V12</h1>
-            <p>إدارة الحالات، التصنيفات، الملاحظات المنسقة، والمرفقات</p>
+            <p>إدارة شاملة لبيانات العملاء، الملاحظات المنسقة، والمرفقات</p>
         </div>
         <div class="stats">إجمالي العملاء: <span id="customers-count">0</span></div>
     </div>
@@ -63,20 +67,28 @@
         <table class="tera-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th class="sticky-col">الاسم</th>
-                    <th>الجوال</th>
-                    <th>البريد</th>
-                    <th>الدولة/المدينة</th>
-                    <th>حالة الحساب</th>
-                    <th>التصنيف</th>
-                    <th>سلوك العميل</th>
-                    <th>تاريخ الإضافة</th>
-                    <th class="sticky-col-right">الإجراءات</th>
+                    <th>#</th> <!-- 1 -->
+                    <th class="sticky-col">اسم العميل</th> <!-- 2 -->
+                    <th>الجوال</th> <!-- 3 -->
+                    <th>مفتاح الدولة</th> <!-- 4 -->
+                    <th>البريد الإلكتروني</th> <!-- 5 -->
+                    <th>الدولة</th> <!-- 6 -->
+                    <th>المدينة</th> <!-- 7 -->
+                    <th>الحي</th> <!-- 8 -->
+                    <th>الشارع</th> <!-- 9 -->
+                    <th>المبنى</th> <!-- 10 -->
+                    <th>الإضافي</th> <!-- 11 -->
+                    <th>الرمز البريدي</th> <!-- 12 -->
+                    <th>صندوق البريد</th> <!-- 13 -->
+                    <th>تاريخ الإضافة</th> <!-- 14 -->
+                    <th>الحالة</th> <!-- 15 -->
+                    <th>التصنيف</th> <!-- 16 -->
+                    <th>سلوك العميل</th> <!-- 17 -->
+                    <th class="sticky-col-right">الإجراءات</th> <!-- 18 -->
                 </tr>
             </thead>
             <tbody id="customers-tbody">
-                <tr><td colspan="10" style="text-align:center;">جارِ تحميل البيانات...</td></tr>
+                <tr><td colspan="18" style="text-align:center; padding: 40px;">جارِ تحميل قاعدة البيانات...</td></tr>
             </tbody>
         </table>
     </div>
@@ -84,17 +96,29 @@
     <!-- مودال التعديل الشامل -->
     <div id="edit-customer-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header" style="display:flex; justify-content:space-between;">
-                <h2>تعديل ملف العميل</h2>
-                <button onclick="closeEditModal()" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="margin:0;">تعديل الملف الشخصي للعميل</h2>
+                <button onclick="closeEditModal()" style="border:none; background:none; font-size:28px; cursor:pointer; color:#999;">&times;</button>
             </div>
             
             <form id="edit-customer-form">
                 <input type="hidden" id="edit-doc-id">
                 
+                <!-- شبكة المدخلات لـ 13 حقل أساسي -->
                 <div class="form-grid">
-                    <div class="input-group"><label>الاسم</label><input type="text" id="edit-name"></div>
-                    <div class="input-group"><label>الجوال</label><input type="text" id="edit-phone"></div>
+                    <div class="input-group"><label>اسم العميل</label><input type="text" id="edit-name"></div>
+                    <div class="input-group"><label>رقم الجوال</label><input type="text" id="edit-phone"></div>
+                    <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode"></div>
+                    <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
+                    <div class="input-group"><label>الدولة</label><input type="text" id="edit-country"></div>
+                    <div class="input-group"><label>المدينة</label><input type="text" id="edit-city"></div>
+                    <div class="input-group"><label>الحي</label><input type="text" id="edit-district"></div>
+                    <div class="input-group"><label>الشارع</label><input type="text" id="edit-street"></div>
+                    <div class="input-group"><label>رقم المبنى</label><input type="text" id="edit-buildingNo"></div>
+                    <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="edit-additionalNo"></div>
+                    <div class="input-group"><label>الرمز البريدي</label><input type="text" id="edit-postalCode"></div>
+                    <div class="input-group"><label>صندوق البريد</label><input type="text" id="edit-poBox"></div>
+                    
                     <div class="input-group"><label>حالة الحساب</label>
                         <select id="edit-accountStatus">
                             <option value="جديد">جديد</option>
@@ -111,7 +135,7 @@
                             <option value="محتمل">محتمل</option>
                         </select>
                     </div>
-                    <div class="input-group"><label>ملاحظة سريعة</label>
+                    <div class="input-group"><label>سلوك العميل</label>
                         <select id="edit-quickNote">
                             <option value="سريع التجاوب">سريع التجاوب</option>
                             <option value="يتأخر في الرد">يتأخر في الرد</option>
@@ -121,37 +145,40 @@
                     </div>
                 </div>
 
-                <!-- الملاحظات المتقدمة -->
-                <div class="input-group">
-                    <label>الملاحظات التفصيلية (تنسيق Word)</label>
+                <!-- الملاحظات المتقدمة (نمط Word) -->
+                <div class="input-group" style="margin-bottom: 25px;">
+                    <label>الملاحظات الإدارية المنسقة</label>
                     <div id="editor" class="editor-container"></div>
                 </div>
 
                 <!-- قسم المرفقات -->
                 <div class="attachments-section">
-                    <h3>📎 المرفقات (غير محدود)</h3>
-                    <div style="display:flex; gap:10px; margin-bottom:15px; background:#f0f2f5; padding:10px; border-radius:8px;">
-                        <input type="text" id="new-file-name" placeholder="اسم المرفق" style="flex:1; padding:8px;">
-                        <input type="file" id="new-file-input" style="flex:1;">
-                        <button type="button" id="upload-btn" class="edit" style="padding:8px 20px; border-radius:5px; border:none; cursor:pointer;">رفع الملف</button>
+                    <h3 style="font-size:1.1em; color:var(--primary-color);">📎 إدارة الوثائق والمرفقات</h3>
+                    <div style="display:flex; flex-wrap: wrap; gap:10px; margin-bottom:15px; background:#f0f2f5; padding:15px; border-radius:8px;">
+                        <input type="text" id="new-file-name" placeholder="اسم الوثيقة (مثال: صورة الهوية)" style="flex:2; min-width:200px;">
+                        <input type="file" id="new-file-input" style="flex:2; min-width:200px;">
+                        <button type="button" id="upload-btn" class="edit" style="flex:1; min-width:120px; padding:8px; border:none; cursor:pointer; font-weight:bold;">إضافة مرفق</button>
                     </div>
                     <div id="files-list"></div>
                 </div>
 
-                <div style="margin-top:20px; text-align:left;">
-                    <button type="button" onclick="closeEditModal()" style="padding:10px 20px; border-radius:5px; border:1px solid #ccc; cursor:pointer;">إلغاء</button>
-                    <button type="submit" class="edit" style="padding:10px 30px; border-radius:5px; border:none; cursor:pointer; font-weight:bold;">حفظ كافة البيانات</button>
+                <div style="margin-top:30px; border-top:1px solid #eee; padding-top:20px; text-align:left;">
+                    <button type="button" onclick="closeEditModal()" style="padding:10px 25px; border-radius:6px; border:1px solid #ccc; cursor:pointer; background:white;">إلغاء</button>
+                    <button type="submit" class="edit" style="padding:10px 40px; border-radius:6px; border:none; cursor:pointer; font-weight:bold; margin-right:10px;">حفظ كافة البيانات</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- مودال عرض المرفقات فقط -->
+    <!-- مودال سريع لعرض المرفقات فقط -->
     <div id="view-files-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width:500px;">
-            <h3>المرفقات الحالية</h3>
-            <div id="only-files-list"></div>
-            <button onclick="document.getElementById('view-files-modal').classList.remove('active')" style="margin-top:15px; width:100%; padding:10px; cursor:pointer;">إغلاق</button>
+        <div class="modal-content" style="max-width:550px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0;">عرض الوثائق المرفقة</h3>
+                <button onclick="document.getElementById('view-files-modal').classList.remove('active')" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div id="only-files-list" style="min-height: 100px;"></div>
+            <button onclick="document.getElementById('view-files-modal').classList.remove('active')" style="margin-top:20px; width:100%; padding:12px; cursor:pointer; border-radius:6px; border:1px solid #ddd; background:#f9f9f9;">إغلاق</button>
         </div>
     </div>
 
