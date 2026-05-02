@@ -1,103 +1,73 @@
-/* 
-   إطار العمل الرئيسي - منصة في خدمتك V12.12.12 
-   الهوية البصرية المعتمدة لمؤسسة الإتقان بلس - حائل
-*/
+/* =========================================
+   تنسيقات صفحة قائمة العملاء - Tera V12
+========================================= */
+body { font-family: 'Segoe UI', sans-serif; background: #FFF; margin: 0; padding: 20px; direction: rtl; }
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-titles h2 { margin: 0; color: #0A192F; font-size: 1.5rem; font-weight: 800; }
+.header-titles p { margin: 5px 0 0 0; color: #6A7B9C; font-size: 0.85rem; }
 
-:root { 
-    --main-blue: #001f3f; /* تم تحديثه للكحلي الرسمي */
-    --gold: #c5a059; 
-    --bg-light: #f4f7f6;
-    --sidebar-width: 280px;
+.primary-btn { background: #D4AF37; color: #FFF; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+.primary-btn:hover { background: #112240; }
+
+/* --- تصميم الجدول العملاق --- */
+.table-responsive-container {
+    width: 100%; overflow-x: auto; overflow-y: visible;
+    border-radius: 15px; border: 1px solid #EEE; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    padding-bottom: 10px;
 }
+.table-responsive-container::-webkit-scrollbar { height: 10px; }
+.table-responsive-container::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
 
-* { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
-}
+.tera-table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.85rem; }
+.tera-table th { background: #0A192F; color: #FFF; padding: 12px 15px; text-align: right; font-weight: 600; border-left: 1px solid rgba(255,255,255,0.1); }
+.tera-table td { padding: 12px 15px; border-bottom: 1px solid #EEE; color: #333; }
+.tera-table tr:hover { background: #F8F9FA; }
 
-body { 
-    font-family: 'Tajawal', sans-serif; 
-    direction: rtl; 
-    background-color: var(--bg-light);
-    height: 100vh;
-    overflow: hidden; /* لمنع السكرول المزدوج مع الإطارات */
-}
+/* تثبيت عمود الاسم (يمين) وعمود الإجراءات (يسار) عند التمرير */
+.sticky-col { position: sticky; right: 0; background: #FFF; box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 2; font-weight: bold; }
+.tera-table th.sticky-col { background: #0A192F; }
+.sticky-col-right { position: sticky; left: 0; background: #FFF; box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 2; text-align: center; }
+.tera-table th.sticky-col-right { background: #0A192F; text-align: center; }
 
-/* حاوية النظام الرئيسية */
-.app-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100vh;
-}
+/* الصورة الرمزية في الجدول */
+.avatar-cell { display: flex; align-items: center; gap: 10px; }
+.avatar-circle { width: 35px; height: 35px; border-radius: 50%; background: #E8EEF2; color: #0A192F; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; overflow: hidden; border: 1px solid #D4AF37; }
+.avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
 
-/* القائمة الجانبية المحدثة */
-.sidebar { 
-    width: var(--sidebar-width); 
-    background: var(--main-blue); 
-    color: white; 
-    height: 100vh; 
-    padding: 25px 15px; 
-    flex-shrink: 0;
-    border-left: 2px solid var(--gold);
-    box-shadow: -4px 0 10px rgba(0,0,0,0.1);
-    z-index: 1000;
-}
+/* شارات التصنيف (Tags) */
+.tag-badge { background: rgba(212, 175, 55, 0.15); color: #D4AF37; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; }
 
-.brand-identity {
-    text-align: center;
-    padding-bottom: 20px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(197, 160, 89, 0.2);
-}
+/* أزرار الإجراءات */
+.action-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; margin: 0 4px; transition: 0.2s; }
+.action-btn.edit { color: #2980b9; }
+.action-btn.print { color: #27ae60; }
+.action-btn.delete { color: #e74c3c; }
+.action-btn:hover { transform: scale(1.2); }
 
-.brand-identity h1 { 
-    color: var(--gold); 
-    font-size: 1.3rem; 
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
+/* زر الخريطة */
+.map-link { color: #2980b9; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold; }
+.map-link:hover { text-decoration: underline; color: #D4AF37; }
 
-/* عناصر القائمة */
-.menu-item { 
-    display: flex; 
-    align-items: center;
-    padding: 12px 15px; 
-    color: rgba(255, 255, 255, 0.8); 
-    text-decoration: none; 
-    border-radius: 8px; 
-    margin-top: 8px; 
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
+/* --- تصميم نافذة التعديل (Modal) --- */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 25, 47, 0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+.modal-overlay.active { display: flex; }
+.modal-content { background: #FFF; width: 90%; max-width: 800px; border-radius: 20px; padding: 25px; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EEE; padding-bottom: 15px; margin-bottom: 20px; }
+.modal-header h3 { margin: 0; color: #0A192F; }
+.close-btn { background: none; border: none; font-size: 1.5rem; color: #e74c3c; cursor: pointer; }
 
-.menu-item:hover { 
-    background: var(--gold); 
-    color: var(--main-blue); 
-    transform: translateX(-5px); /* تأثير انزلاق بسيط */
-}
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+.input-group { display: flex; flex-direction: column; gap: 5px; }
+.input-group label { font-size: 0.8rem; font-weight: bold; color: #6A7B9C; }
+.input-group input, .input-group select { padding: 10px; border: 1px solid #DDD; border-radius: 8px; font-family: inherit; }
+.input-group input:focus { border-color: #D4AF37; outline: none; }
 
-.menu-item.active {
-    background: rgba(197, 160, 89, 0.1);
-    border: 1px solid var(--gold);
-    color: var(--gold);
-}
+.avatar-upload-section { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background: #F8F9FA; border-radius: 15px; }
+.current-avatar { width: 60px; height: 60px; border-radius: 50%; background: #0A192F; color: #D4AF37; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; overflow: hidden; }
+.current-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.upload-btn { background: #FFF; border: 1px solid #D4AF37; color: #D4AF37; padding: 6px 15px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
 
-/* منطقة عرض المحتوى (Iframe Container) */
-.content-viewport { 
-    flex-grow: 1;
-    height: 100vh; 
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-}
-
-iframe { 
-    width: 100%; 
-    height: 100%; 
-    border: none; 
-    display: block;
-}
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #EEE; }
+.cancel-btn { background: #F8F9FA; border: 1px solid #DDD; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+.save-btn { background: #D4AF37; color: #FFF; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
