@@ -25,7 +25,7 @@
 <body>
 
     <!-- ========================================== -->
-    <!-- 3. الهيكل الرئيسي المعتمد على Grid           -->
+    <!-- 3. الهيكل الرئيسي المعتمد على Grid         -->
     <!-- ========================================== -->
     <div class="tera-layout">
         
@@ -46,41 +46,41 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 4. ربط جميع ملفات الأوامر (JS) مع تصريح Module -->
+    <!-- 4. ربط جميع ملفات الأوامر (JS) بالمجلد الجديد -->
     <!-- ========================================== -->
     
     <!-- الأساسيات وقواعد البيانات -->
-    <script type="module" src="js-logic/firebase.js"></script>
-    <script type="module" src="js-logic/api-connector.js"></script>
+    <script type="module" src="js/firebase.js"></script>
+    <script type="module" src="js/api-connector.js"></script>
     
     <!-- المصادقة والتحكم الرئيسي -->
-    <script type="module" src="js-logic/auth-logic.js"></script>
-    <script type="module" src="js-logic/main.js"></script>
+    <script type="module" src="js/auth-logic.js"></script>
+    <script type="module" src="js/main.js"></script>
     
     <!-- واجهة المستخدم والتنقل -->
-    <script type="module" src="js-logic/header-logic.js"></script>
-    <script type="module" src="js-logic/sidebar-logic.js"></script>
-    <script type="module" src="js-logic/btn-actions-controller.js"></script>
-    <script type="module" src="js-logic/clock-logic.js"></script>
+    <script type="module" src="js/header-logic.js"></script>
+    <script type="module" src="js/sidebar-logic.js"></script>
+    <script type="module" src="js/btn-actions-controller.js"></script>
+    <script type="module" src="js/clock-logic.js"></script>
     
     <!-- العمليات والجداول والإحصائيات -->
-    <script type="module" src="js-logic/add-cust-logic.js"></script>
-    <script type="module" src="js-logic/list-table-logic.js"></script>
-    <script type="module" src="js-logic/stats-engine.js"></script>
+    <script type="module" src="js/add-cust-logic.js"></script>
+    <script type="module" src="js/list-table-logic.js"></script>
+    <script type="module" src="js/stats-engine.js"></script>
     
     <!-- الميزات المتقدمة (الخرائط، الطباعة، السجلات) -->
-    <script type="module" src="js-logic/map-logic.js"></script>
-    <script type="module" src="js-logic/pdf-generator.js"></script>
-    <script type="module" src="js-logic/log-tracker.js"></script>
+    <script type="module" src="js/map-logic.js"></script>
+    <script type="module" src="js/pdf-generator.js"></script>
+    <script type="module" src="js/log-tracker.js"></script>
 
     <!-- ========================================== -->
     <!-- 5. سكربت التشغيل الداخلي والمزامنة الذكية    -->
     <!-- ========================================== -->
     <script type="module">
-        // 1. استيراد جميع الدوال الحيوية للنظام
-        import { initHeaderLogic } from './js-logic/header-logic.js';
-        import { initSidebarLogic } from './js-logic/sidebar-logic.js';
-        import { startTeraClock } from './js-logic/clock-logic.js';
+        // 1. استيراد جميع الدوال الحيوية للنظام (تم التحديث للمسار الجديد)
+        import { initHeaderLogic } from './js/header-logic.js';
+        import { initSidebarLogic } from './js/sidebar-logic.js';
+        import { startTeraClock } from './js/clock-logic.js';
 
         async function mountTeraComponents() {
             // 2. جلب الهيكل الأساسي (هيدر، فوتر، قائمة)
