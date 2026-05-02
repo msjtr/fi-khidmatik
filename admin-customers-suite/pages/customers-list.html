@@ -3,19 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>قائمة العملاء - Tera V12</title>
-    <!-- ربط ملف التنسيق الخاص بالصفحة -->
     <link rel="stylesheet" href="../css-styles/customers-list.css">
     
-    <!-- 🌍 إضافة مكتبة الخرائط المجانية (Leaflet) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- 🌍 استدعاء مكتبة خرائط جوجل الرسمية (ضع مفتاح الـ API الخاص بك هنا) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
 
     <style>
-        /* تنسيقات إضافية للخريطة داخل النافذة */
         .map-section { grid-column: 1 / -1; margin-top: 10px; margin-bottom: 15px; }
         .map-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         #modal-map { height: 250px; width: 100%; border-radius: 8px; border: 1px solid #cdd4e0; z-index: 1; }
-        .location-btn { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-family: inherit; font-weight: bold; transition: 0.3s; }
+        .location-btn { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .location-btn:hover { background: #bbdefb; }
     </style>
 </head>
@@ -31,10 +28,11 @@
         </button>
     </div>
 
-    <!-- حاوية الجدول القابلة للتمرير الأفقي -->
+    <!-- حاوية الجدول -->
     <div class="table-responsive-container">
         <table class="tera-table" id="customers-table">
             <thead>
+                <!-- ... (نفس الترويسة السابقة بدون تغيير) ... -->
                 <tr>
                     <th>#</th>
                     <th class="sticky-col">اسم العميل</th>
@@ -62,7 +60,7 @@
         </table>
     </div>
 
-    <!-- نافذة تعديل بيانات العميل (Modal) -->
+    <!-- نافذة تعديل بيانات العميل -->
     <div id="edit-customer-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -72,8 +70,8 @@
             
             <form id="edit-customer-form">
                 <input type="hidden" id="edit-doc-id">
-                <input type="hidden" id="edit-lat"> <!-- لحفظ خط العرض -->
-                <input type="hidden" id="edit-lng"> <!-- لحفظ خط الطول -->
+                <input type="hidden" id="edit-lat"> 
+                <input type="hidden" id="edit-lng"> 
                 
                 <div class="avatar-upload-section">
                     <div class="current-avatar" id="edit-avatar-preview">م</div>
@@ -85,17 +83,15 @@
                     <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode" dir="ltr"></div>
                     <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
                     
-                    <!-- 🌍 الخريطة التفاعلية -->
+                    <!-- 🌍 الخريطة المربوطة بمحرك GeoEngine -->
                     <div class="map-section">
                         <div class="map-header">
-                            <label>📍 الموقع على الخريطة (انقر لتحديد أو اسحب الدبوس)</label>
+                            <label>📍 الموقع على الخريطة (انقر أو اسحب الدبوس للتحديث التلقائي)</label>
                             <button type="button" class="location-btn" onclick="autoDetectLocation()">🎯 تحديد موقعي الحالي</button>
                         </div>
                         <div id="modal-map"></div>
-                        <small style="color:#64748b; font-size: 0.8rem; display:block; margin-top:5px;">* الكتابة في الحقول بالأسفل ستحدث الخريطة، والنقر على الخريطة سيحدث الحقول تلقائياً.</small>
                     </div>
 
-                    <!-- أضفنا كلاس 'address-input' للحقول التي تتفاعل مع الخريطة -->
                     <div class="input-group"><label>الدولة</label><input type="text" id="edit-country" class="address-input"></div>
                     <div class="input-group"><label>المدينة</label><input type="text" id="edit-city" class="address-input"></div>
                     <div class="input-group"><label>الحي</label><input type="text" id="edit-district" class="address-input"></div>
@@ -106,7 +102,7 @@
                     <div class="input-group"><label>الرمز البريدي</label><input type="text" id="edit-postalCode"></div>
                     <div class="input-group"><label>صندوق البريد</label><input type="text" id="edit-poBox"></div>
                     
-                    <div class="input-group"><label>التصنيف (Tag)</label><input type="text" id="edit-tag"></div>
+                    <div class="input-group"><label>التصنيف</label><input type="text" id="edit-tag"></div>
                     <div class="input-group"><label>الحالة</label>
                         <select id="edit-status">
                             <option value="نشط">نشط</option>
@@ -123,6 +119,7 @@
         </div>
     </div>
 
+    <!-- استدعاء ملف العملاء -->
     <script type="module" src="../js-logic/customers-list.js"></script>
 </body>
 </html>
