@@ -1,16 +1,12 @@
 <div class="sidebar-header">
-    <!-- زر فتح وإغلاق القائمة -->
     <button class="collapse-btn" id="toggle-sidebar-btn" title="طي/توسيع القائمة">
         <svg class="chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
     
-    <!-- الشعار -->
     <div class="brand-logo-container">
-        <!-- مسار الشعار الجذري كما حددته -->
         <img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="الإتقان بلس" class="main-logo">
     </div>
     
-    <!-- اسم المنصة المزدوج -->
     <div class="brand-titles">
         <div class="brand-title-ar">في خدمتك من الإتقان بلس</div>
         <div class="brand-title-en">Fi Khidmatik by Al-Itqan Plus</div>
@@ -18,24 +14,24 @@
 </div>
 
 <nav class="sidebar-nav">
-    <!-- الأزرار مع أيقونات SVG إبداعية بدلاً من الإيموجي -->
-    <button class="nav-btn active" onclick="teraNavigate('customers-list')">
+    <!-- استخدام دالة التنقل المنظمة -->
+    <button class="nav-btn active" onclick="handleSidebarClick('dashboard')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         <span class="nav-text">قائمة العملاء</span>
     </button>
     
-    <button class="nav-btn" onclick="teraNavigate('add-customer')">
+    <button class="nav-btn" onclick="handleSidebarClick('customers')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
         <span class="nav-text">إضافة عميل</span>
     </button>
     
-    <button class="nav-btn" onclick="teraNavigate('installments')">
+    <button class="nav-btn" onclick="handleSidebarClick('installments')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line><path d="M7 15h.01"></path><path d="M11 15h2"></path></svg>
         <span class="nav-text">متابعة الأقساط</span>
     </button>
-    
-    <button class="nav-btn" onclick="teraNavigate('reports')">
+
+    <button class="nav-btn" onclick="handleSidebarClick('stats')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        <span class="nav-text">التقارير</span>
+        <span class="nav-text">الإحصائيات</span>
     </button>
 </nav>
