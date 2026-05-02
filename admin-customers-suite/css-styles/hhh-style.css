@@ -319,3 +319,35 @@ body, html {
 .sidebar-collapsed .dropdown-arrow-icon, .sidebar-collapsed .submenu-container { 
     opacity: 0; height: 0; margin: 0; display: none; 
 }
+
+
+/* تنسيقات الجوال لشاشة الهب الرئيسية */
+@media (max-width: 768px) {
+    .tera-layout {
+        grid-template-columns: 1fr; /* إلغاء تقسيم الأعمدة */
+        grid-template-areas: 
+            "header"
+            "main"
+            "footer";
+    }
+
+    aside#sidebar-mount {
+        position: fixed;
+        right: -100%; /* إخفاء القائمة الجانبية خارج الشاشة */
+        top: 60px;
+        bottom: 0;
+        width: 250px;
+        z-index: 999;
+        transition: 0.3s;
+        background: #fff;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    }
+
+    aside#sidebar-mount.active {
+        right: 0; /* إظهارها عند الضغط على زر القائمة */
+    }
+
+    main#main-view {
+        padding: 10px;
+    }
+}
