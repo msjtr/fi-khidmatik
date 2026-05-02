@@ -1,12 +1,16 @@
 /**
  * نظام Tera V12 - محرك إضافة العملاء
+ * الملف: add-cust-logic.js
  * مؤسسة الإتقان بلس - حائل
  */
 
-// 1. استيراد الدوال اللازمة من Firebase (تأكد من استيرادها في firebase.js)
-// يتم الوصول لـ db المعرف عالمياً في ملف firebase.js
+// 1. استيراد الدوال اللازمة من Firebase الإصدار 9+ 
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// تأكد من أن ملف firebase.js موجود في نفس المجلد (js-logic)
+import { db } from './firebase.js'; 
 
 document.addEventListener('DOMContentLoaded', () => {
+    // جلب النموذج وزر الحفظ
     const addForm = document.getElementById('addCustomerForm');
     const saveBtn = document.getElementById('btnSave');
 
@@ -14,50 +18,62 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBtn.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            // 2. جمع البيانات من الحقول (تأكد من مطابقة الـ IDs في HTML)
+            // 2. جمع البيانات من الحقول المطابقة لهيكل قاعدة البيانات الجديد (18 حقل)
             const customerData = {
-                fullName: document.getElementById('custName').value.trim(),
-                nationalId: document.getElementById('custId').value.trim(),
-                phone: document.getElementById('custPhone').value.trim(),
-                installmentAmount: parseFloat(document.getElementById('amount').value),
-                createdAt: new Date(), // تاريخ التسجيل
-                status: "نشط", // حالة العميل الافتراضية
+                name: document.getElementById('add-name')?.value.trim() || "",
+                phone: document.getElementById('add-phone')?.value.trim() || "",
+                countryCode: document.getElementById('add-countryCode')?.value.trim() || "+966",
+                email: document.getElementById('add-email')?.value.trim() || "",
+                country: document.getElementById('add-country')?.value.trim() || "المملكة العربية السعودية",
+                city: document.getElementById('add-city')?.value.trim() || "",
+                district: document.getElementById('add-district')?.value.trim() || "",
+                street: document.getElementById('add-street')?.value.trim() || "",
+                buildingNo: document.getElementById('add-buildingNo')?.value.trim() || "",
+                additionalNo: document.getElementById('add-additionalNo')?.value.trim() || "",
+                postalCode: document.getElementById('add-postalCode')?.value.trim() || "",
+                poBox: document.getElementById('add-poBox')?.value.trim() || "",
+                tag: document.getElementById('add-tag')?.value.trim() || "vip", // كمثال افتراضي
+                status: document.getElementById('add-status')?.value || "نشط",
+                notes: document.getElementById('add-notes')?.value.trim() || "",
+                
+                // بيانات النظام التلقائية والتوقيت الدقيق
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
                 addedBy: "أبا صالح الشمري" // الموظف المسؤول
             };
 
-            // 3. التحقق من صحة البيانات قبل الإرسال
-            if (!customerData.fullName || !customerData.nationalId || isNaN(customerData.installmentAmount)) {
-                alert("يا أبا صالح، يرجى التأكد من تعبئة جميع الحقول الأساسية.");
+            // 3. التحقق من صحة البيانات الأساسية
+            if (!customerData.name || !customerData.phone) {
+                alert("يا أبا صالح، يرجى التأكد من تعبئة (اسم العميل) و (رقم الجوال) على الأقل.");
                 return;
             }
 
             try {
-                // 4. تعطيل الزر لمنع التكرار أثناء الحفظ
+                // 4. تعطيل الزر لمنع الإرسال المزدوج
                 saveBtn.disabled = true;
-                saveBtn.innerText = "جاري الحفظ في Tera...";
+                saveBtn.innerText = "جارِ الحفظ في Tera...";
 
-                // 5. حفظ البيانات في مجموعة "customers" داخل Firestore
-                // ملاحظة: db معرف في ملف firebase.js
-                await db.collection("customers").add(customerData);
+                // 5. حفظ البيانات في مجموعة "customers"
+                const customersRef = collection(db, "customers");
+                await addDoc(customersRef, customerData);
 
-                // 6. نجاح العملية
+                // 6. إشعار النجاح وتفريغ الحقول
                 alert("تم إضافة العميل بنجاح إلى قاعدة بيانات الإتقان بلس.");
-                addForm.reset(); // تفريغ الحقول
+                if (addForm) addForm.reset(); 
+
+                // تحويل المستخدم إلى قائمة العملاء بعد الإضافة (اختياري)
+                if (typeof window.parent.teraNavigate === "function") {
+                    window.parent.teraNavigate('customers-list');
+                }
 
             } catch (error) {
                 console.error("خطأ أثناء الحفظ:", error);
                 alert("حدث خطأ في الاتصال، يرجى التحقق من إعدادات Firebase.");
             } finally {
+                // إعادة تفعيل الزر
                 saveBtn.disabled = false;
-                saveBtn.innerText = "حفظ في Tera";
+                saveBtn.innerText = "حفظ العميل في Tera";
             }
         });
     }
 });
-
-/**
- * دالة إضافية لتنسيق الأرقام (اختياري)
- */
-function formatCurrency(num) {
-    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(num);
-}
