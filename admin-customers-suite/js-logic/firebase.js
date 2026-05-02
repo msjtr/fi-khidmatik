@@ -1,38 +1,23 @@
-/**
- * المحرك الأساسي لنظام Tera - مؤسسة الإتقان بلس
- * إصدار Firebase 10.7.1
- */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+// ملف: js-logic/firebase.js
 
-// ⚠️ تأكد من تعبئة هذه البيانات من لوحة تحكم Firebase الخاصة بك
+// 1. استيراد الدوال الأساسية للإصدار 9+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+// 2. إعدادات مشروعك في فايربيس (استبدلها بمفاتيحك الخاصة)
 const firebaseConfig = {
-    apiKey: "AIzaSy...", 
-    authDomain: "tera-system-xxxx.firebaseapp.com",
-    projectId: "tera-system-xxxx", // هذا هو الحقل الذي يسبب الخطأ الأول
-    storageBucket: "tera-system-xxxx.appspot.com",
-    messagingSenderId: "xxxx",
-    appId: "1:xxxx:web:xxxx"
+  apiKey: "AIzaSyBxxxxxxx-xxxxxxxxxxxx",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcdef123456"
 };
 
-// تهيئة التطبيق
+// 3. تشغيل النظام (initializeApp)
 const app = initializeApp(firebaseConfig);
 
-// تعريف الخدمات
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app); // تعريف خدمة التخزين لحل الخطأ الثاني
-
-// تعريف المجموعات (Collections) لضمان المركزية
-export const COLLECTIONS = {
-    customers: 'customers',
-    orders: 'orders',
-    logs: 'audit_logs',
-    payments: 'payments',
-    inventory: 'inventory_cards'
-};
-
-// تصدير الخدمات والمجموعات لاستخدامها في api-connector.js
-export { app, db, auth, storage };
+// 4. تجهيز وتصدير خدمات قاعدة البيانات والمصادقة للواجهات الأخرى
+export const db = getFirestore(app);
+export const auth = getAuth(app);
