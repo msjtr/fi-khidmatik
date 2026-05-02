@@ -3,19 +3,17 @@ import { db } from '../js/firebase.js';
 
 const customersRef = collection(db, "customers");
 let customersDataList = [];
-let quill; // متغير المحرر
+let quill;
 
-// تهيئة محرر Quill
 function initQuill() {
     if (!quill) {
         quill = new Quill('#editor', {
             theme: 'snow',
-            placeholder: 'اكتب الملاحظات التفصيلية هنا...',
             modules: {
                 toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['bold', 'italic', 'underline', 'strike'],
                     [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                     ['clean']
                 ]
             }
@@ -40,15 +38,25 @@ async function loadCustomers() {
                 <td>${tbody.children.length + 1}</td>
                 <td class="sticky-col"><strong>${data.name || '-'}</strong></td>
                 <td>${data.phone || '-'}</td>
-                <td>${data.city || 'حائل'}</td>
-                <td><span class="status-badge">${data.accountStatus || 'جديد'}</span></td>
-                <td><span class="category-badge">${data.customerCategory || 'عادي'}</span></td>
-                <td>${data.quickNote || '-'}</td>
+                <td>${data.countryCode || '+966'}</td>
+                <td>${data.email || '-'}</td>
+                <td>${data.country || '-'}</td>
+                <td>${data.city || '-'}</td>
+                <td>${data.district || '-'}</td>
+                <td>${data.street || '-'}</td>
+                <td>${data.buildingNo || '-'}</td>
+                <td>${data.additionalNo || '-'}</td>
+                <td>${data.postalCode || '-'}</td>
+                <td>${data.poBox || '-'}</td>
                 <td>${data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-SA') : '-'}</td>
+                <td><span class="badge-status">${data.accountStatus || 'جديد'}</span></td>
+                <td><span class="badge-cat">${data.customerCategory || 'عادي'}</span></td>
+                <td>${data.quickNote || '-'}</td>
                 <td class="sticky-col-right">
-                    <button class="action-btn edit" onclick="openEditModal('${data.id}')">✏️</button>
-                    <button class="action-btn print" onclick="window.print()">🖨️</button>
-                    <button class="action-btn delete" onclick="deleteCustomer('${data.id}')">🗑️</button>
+                    <button class="btn-action edit" onclick="openEditModal('${data.id}')" title="تعديل">✏️</button>
+                    <button class="btn-action print" onclick="window.print()" title="طباعة">🖨️</button>
+                    <button class="btn-action account" onclick="openEditModal('${data.id}')" title="إجراء على الحساب">⚙️</button>
+                    <button class="btn-action delete" onclick="deleteCustomer('${data.id}')" title="حذف">🗑️</button>
                 </td>`;
             tbody.appendChild(row);
         });
@@ -60,16 +68,25 @@ window.openEditModal = (id) => {
     const c = customersDataList.find(item => item.id === id);
     if (!c) return;
     
-    initQuill(); // تشغيل المحرر عند الفتح
+    initQuill();
     
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('edit-name').value = c.name || '';
     document.getElementById('edit-phone').value = c.phone || '';
+    document.getElementById('edit-countryCode').value = c.countryCode || '';
+    document.getElementById('edit-email').value = c.email || '';
+    document.getElementById('edit-country').value = c.country || '';
+    document.getElementById('edit-city').value = c.city || '';
+    document.getElementById('edit-district').value = c.district || '';
+    document.getElementById('edit-street').value = c.street || '';
+    document.getElementById('edit-buildingNo').value = c.buildingNo || '';
+    document.getElementById('edit-additionalNo').value = c.additionalNo || '';
+    document.getElementById('edit-postalCode').value = c.postalCode || '';
+    document.getElementById('edit-poBox').value = c.poBox || '';
     document.getElementById('edit-accountStatus').value = c.accountStatus || 'جديد';
     document.getElementById('edit-customerCategory').value = c.customerCategory || 'عادي';
     document.getElementById('edit-quickNote').value = c.quickNote || 'سريع التجاوب';
     
-    // تحميل المحتوى للمحرر المتقدم
     quill.root.innerHTML = c.detailedNotes || '';
     
     document.getElementById('edit-customer-modal').classList.add('active');
@@ -79,26 +96,34 @@ document.getElementById('edit-customer-form').onsubmit = async (e) => {
     e.preventDefault();
     const id = document.getElementById('edit-doc-id').value;
     
-    // سحب المحتوى من محرر Quill
-    const detailedNotes = quill.root.innerHTML;
-
     try {
         await updateDoc(doc(db, "customers", id), {
             name: document.getElementById('edit-name').value,
+            phone: document.getElementById('edit-phone').value,
+            countryCode: document.getElementById('edit-countryCode').value,
+            email: document.getElementById('edit-email').value,
+            country: document.getElementById('edit-country').value,
+            city: document.getElementById('edit-city').value,
+            district: document.getElementById('edit-district').value,
+            street: document.getElementById('edit-street').value,
+            buildingNo: document.getElementById('edit-buildingNo').value,
+            additionalNo: document.getElementById('edit-additionalNo').value,
+            postalCode: document.getElementById('edit-postalCode').value,
+            poBox: document.getElementById('edit-poBox').value,
             accountStatus: document.getElementById('edit-accountStatus').value,
             customerCategory: document.getElementById('edit-customerCategory').value,
             quickNote: document.getElementById('edit-quickNote').value,
-            detailedNotes: detailedNotes, // حفظ الملاحظات المنسقة
+            detailedNotes: quill.root.innerHTML,
             updatedAt: new Date().toISOString()
         });
-        alert("تم تحديث ملف العميل بنجاح");
+        alert("تم تحديث الحساب والبيانات");
         window.closeEditModal();
         loadCustomers();
     } catch (err) { console.error(err); }
 };
 
 window.deleteCustomer = async (id) => {
-    if (confirm("حذف العميل؟")) {
+    if (confirm("هل تريد حذف العميل نهائياً؟")) {
         await deleteDoc(doc(db, "customers", id));
         loadCustomers();
     }
