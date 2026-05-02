@@ -1,5 +1,6 @@
 /**
- * نظام Tera V12 - محرك الساعة الذكي (مضاد للفشل)
+ * نظام Tera V12 - محرك الساعة الذكي 
+ * مؤسسة الإتقان بلس - حائل
  */
 export function startTeraClock() {
     function updateClock() {
@@ -11,7 +12,7 @@ export function startTeraClock() {
         const hijriEl = document.getElementById('c-hijri');
         const gregEl = document.getElementById('c-greg');
 
-        // 2. الحماية: إذا لم يتم جلب ملف HTML للساعة بعد، توقف وحاول في الثانية القادمة
+        // 2. الحماية
         if (!hoursEl || !minEl || !secEl || !ampmEl) {
             return; 
         }
@@ -24,7 +25,7 @@ export function startTeraClock() {
         let s = now.getSeconds();
         let ampm = h >= 12 ? 'م' : 'ص';
         
-        h = h % 12 || 12; // تحويل الصفر إلى 12
+        h = h % 12 || 12;
 
         // 4. حقن الوقت في الشاشة
         hoursEl.innerText = String(h).padStart(2, '0');
@@ -32,14 +33,21 @@ export function startTeraClock() {
         secEl.innerText = String(s).padStart(2, '0');
         ampmEl.innerText = ampm;
 
-        // 5. حقن التاريخ
+        // 5. حقن التاريخ بالصيغة الرقمية الموحدة (يوم/شهر/سنة)
         if (hijriEl && gregEl) {
-            hijriEl.innerText = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-uma', { 
-                day: 'numeric', month: 'long', year: 'numeric' 
+            
+            // إجبار المتصفح على التقويم الهجري (أم القرى) بصيغة DD/MM/YYYY
+            hijriEl.innerText = new Intl.DateTimeFormat('en-GB-u-ca-islamic-uma', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
             }).format(now);
 
-            gregEl.innerText = new Intl.DateTimeFormat('ar-SA', { 
-                day: '2-digit', month: 'long', year: 'numeric' 
+            // إجبار المتصفح على التقويم الميلادي بصيغة DD/MM/YYYY
+            gregEl.innerText = new Intl.DateTimeFormat('en-GB', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
             }).format(now);
         }
     }
@@ -47,6 +55,6 @@ export function startTeraClock() {
     // تشغيل التحديث فوراً
     updateClock();
     
-    // استمرار التحديث كل ثانية (1000 ملي ثانية)
+    // استمرار التحديث كل ثانية
     setInterval(updateClock, 1000);
 }
