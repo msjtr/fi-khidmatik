@@ -3,8 +3,8 @@
  * مؤسسة الإتقان بلس - حائل
  */
 
-// 1. استيراد دوال فايربيس اللازمة (الإصدار 9+)
-import { collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// 1. استيراد دوال فايربيس اللازمة (تم التحديث للإصدار 12.12.1 الموحد)
+import { collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 // 2. استيراد الاتصال الجاهز بقاعدة البيانات من ملف الإعدادات المركزي
 import { db } from './firebase.js'; 
