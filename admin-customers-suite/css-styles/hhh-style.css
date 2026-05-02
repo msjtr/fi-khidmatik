@@ -1,237 +1,187 @@
 /* =========================================
-   ملف التنسيق الشامل - hhh-style.css
-   النمط: Clean & Flat Light Mode (مطابق للصورة)
-   النظام: Tera V12 - مؤسسة الإتقان بلس (حائل)
+   التصميم الإبداعي (Tera V12 - Floating Islands)
+   النمط: Bento Box UI / Apple-like SaaS
 ========================================= */
 
-/* --- 1. متغيرات الألوان (الثيم الفاتح) --- */
+/* --- 1. باليت الألوان الملكية المتطورة --- */
 :root {
-    --bg-main: #f4f6f9;          /* لون خلفية النظام (رمادي مزرق فاتح جداً) */
-    --bg-sidebar: #ffffff;       /* لون القائمة الجانبية (أبيض نقي) */
+    --itqan-navy-bg: #0A192F;      /* كحلي ليلي عميق جداً للقائمة */
+    --itqan-navy-light: #112240;   /* تأثيرات التمرير */
+    --itqan-gold-primary: #D4AF37; 
+    --itqan-gold-glow: rgba(212, 175, 55, 0.4);
     
-    --text-dark: #2c3e50;        /* لون النصوص الرئيسية (كحلي رمادي داكن) */
-    --text-muted: #7f8c8d;       /* لون النصوص الفرعية (رمادي) */
+    --app-bg: #E8EEF2;             /* خلفية النظام (رمادي لؤلؤي مريح للعين) */
+    --card-bg: #FFFFFF;            
     
-    --tera-orange: #e86e1c;      /* البرتقالي الخاص بالزر النشط وإضافة عميل */
-    --tera-orange-light: #fef0e8;/* الخلفية الباهتة للزر النشط في القائمة */
-    
-    --tera-blue: #347eb4;        /* لون العناوين والبطاقات الزرقاء */
-    --tera-green: #3ab071;       /* الأخضر لزر التصدير وبطاقة حائل */
-    
-    --border-color: #e1e5eb;     /* خطوط الفواصل الخفيفة */
-    
-    --sidebar-w: 260px;
-    --header-h: 75px;
+    --shadow-float: 0 12px 35px rgba(10, 25, 47, 0.05);
+    --shadow-glow: 0 8px 25px rgba(212, 175, 55, 0.15);
 }
 
-/* --- 2. الإعدادات الأساسية --- */
+/* --- 2. الإعدادات الأساسية لمنع التكرار والازدحام --- */
 body, html {
     margin: 0; padding: 0; height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    background: var(--bg-main);
-    color: var(--text-dark);
-    direction: rtl; 
-    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--app-bg);
+    direction: rtl; overflow: hidden;
+    box-sizing: border-box;
 }
 
-/* --- 3. الهيكل الرئيسي (بدون تداخل) --- */
+/* --- 3. توزيع (الجزر العائمة) المبتكر --- */
 .tera-layout {
     display: grid; 
     height: 100vh; width: 100vw;
-    grid-template-columns: var(--sidebar-w) 1fr;
-    grid-template-rows: var(--header-h) 1fr;
+    padding: 20px; /* مسافة محيطية تبعد النظام عن حواف الشاشة */
+    gap: 20px;     /* مسافة موحدة بين جميع الأجزاء لمنع التلاصق */
+    
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: 80px 1fr;
+    
+    /* الفوتر تم إخفاؤه من التوزيع لعدم التكرار، وتم توفير مساحته للشاشة */
     grid-template-areas: 
         "sidebar header"
         "sidebar main";
 }
 
-/* --- 4. القائمة الجانبية (Sidebar) --- */
+/* --- 4. الجزيرة الأولى: القائمة الجانبية (Sidebar) --- */
 #sidebar-mount { 
     grid-area: sidebar; 
-    background: var(--bg-sidebar);
-    border-left: 1px solid var(--border-color); 
-    padding: 20px 0; 
-    z-index: 1000; 
-    display: flex;
-    flex-direction: column;
+    background: var(--itqan-navy-bg);
+    border-radius: 24px; /* حواف دائرية قوية */
+    padding: 30px 15px; 
+    box-shadow: var(--shadow-float);
+    display: flex; flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* تأثير إضاءة خلفية خفيفة داخل القائمة */
+#sidebar-mount::before {
+    content: ''; position: absolute; top: -50px; right: -50px;
+    width: 150px; height: 150px; background: var(--itqan-gold-glow);
+    filter: blur(80px); border-radius: 50%; pointer-events: none;
 }
 
 .brand-title { 
-    text-align: right; 
-    color: var(--text-dark);
-    font-size: 1.4rem; 
-    font-weight: bold; 
-    padding: 0 25px;
-    margin-bottom: 40px; 
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    text-align: center; color: #FFF;
+    font-size: 1.8rem; margin-bottom: 40px; font-weight: 900; 
+    letter-spacing: 2px; position: relative; z-index: 1;
 }
+.brand-title span { color: var(--itqan-gold-primary); }
 
+/* أزرار القائمة - تصميم ذكي بدون صناديق مزعجة */
 .nav-btn { 
     display: flex; align-items: center; gap: 15px; width: 100%; 
-    background: transparent; 
-    border: none; 
-    border-right: 4px solid transparent; 
-    color: var(--text-muted); 
-    padding: 14px 25px; 
-    cursor: pointer; 
-    transition: 0.2s ease-in-out; 
-    text-align: right; 
-    font-size: 1.05rem; 
-    font-weight: bold;
+    background: transparent; border: none; 
+    color: #8892B0; padding: 14px 20px; margin-bottom: 8px; 
+    border-radius: 14px; cursor: pointer; 
+    transition: all 0.3s ease; text-align: right; 
+    font-size: 0.95rem; font-weight: 600; position: relative; z-index: 1;
 }
 
-.nav-btn:hover { 
-    background: #f8f9fa; 
-    color: var(--text-dark); 
-}
+.nav-btn:hover { color: var(--itqan-gold-primary); transform: translateX(-5px); }
 
+/* النقطة الذهبية للزر النشط (بدلاً من تلوين الزر بالكامل) */
 .nav-btn.active { 
-    background: var(--tera-orange-light); 
-    color: var(--tera-orange); 
-    border-right: 4px solid var(--tera-orange); 
+    color: #FFF; background: var(--itqan-navy-light);
+    box-shadow: inset -4px 0 0 var(--itqan-gold-primary);
 }
 
-/* أيقونة داخل الزر النشط لتطابق المربع البرتقالي */
-.nav-btn.active i, .nav-btn.active .icon {
-    background: var(--tera-orange);
-    color: #fff;
-    padding: 5px;
-    border-radius: 6px;
-}
-
-.sidebar-divider {
-    height: 1px; background: var(--border-color); margin: 15px 25px;
-}
-
-/* --- 5. الهيدر (Header) الأساسي --- */
+/* --- 5. الجزيرة الثانية: الهيدر الذكي (Smart Header) --- */
 #header-mount { 
     grid-area: header; 
-    background: var(--bg-main); 
+    background: rgba(255, 255, 255, 0.7); 
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
     display: flex; align-items: center; justify-content: space-between; 
     padding: 0 30px; 
-    z-index: 900;
+    box-shadow: var(--shadow-float);
 }
 
-/* --- 6. تنسيقات الهيدر المتقدم (Header & Dropdown) --- */
-.header-container {
-    display: flex; justify-content: space-between; align-items: center;
-    width: 100%; height: 100%;
+/* --- 6. الجزيرة الثالثة: شاشة العرض الرئيسية (Main View) --- */
+#main-view { 
+    grid-area: main; 
+    background: var(--card-bg); 
+    border-radius: 24px; 
+    box-shadow: var(--shadow-float);
+    position: relative; overflow: hidden; 
 }
 
-.header-greeting { display: flex; flex-direction: column; gap: 5px; }
-.greeting-main { font-size: 1.1rem; font-weight: bold; color: var(--text-dark); }
-.motivate-text { 
-    font-size: 0.85rem; color: var(--tera-blue); font-weight: 600; 
-    transition: opacity 0.5s ease-in-out; 
+#tera-iframe { 
+    width: 100%; height: 100%; border: none; border-radius: 24px;
 }
 
-.header-actions { display: flex; align-items: center; gap: 20px; }
+/* إخفاء الفوتر لمنع التكرار (يمكن دمج حقوق النشر داخل شاشة تسجيل الدخول فقط) */
+#footer-mount { display: none; }
+
+/* =========================================
+   التنسيقات التفاعلية داخل الهيدر
+========================================= */
+.header-container { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+
+/* الترحيب */
+.header-greeting { display: flex; flex-direction: column; }
+.greeting-main { font-size: 1.1rem; font-weight: 800; color: var(--itqan-navy-bg); }
+.motivate-text { font-size: 0.8rem; color: var(--itqan-gold-primary); font-weight: 600; }
+
+/* الساعة - تصميم كبسولة أنيقة (Pill Design) */
+.clock-container { 
+    background: #FFF; padding: 6px 20px; border-radius: 30px; 
+    border: 1px solid rgba(10, 25, 47, 0.05); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    display: flex; align-items: center; gap: 15px;
+}
+.time-display { font-size: 1.2rem; font-weight: 900; color: var(--itqan-navy-bg); font-family: monospace; }
+.time-display .sep { color: var(--itqan-gold-primary); animation: blink 1s infinite; }
+.date-display { font-size: 0.75rem; color: #8892B0; font-weight: bold; border-right: 1px solid #eee; padding-right: 15px; }
+
+/* الإشعارات والملف الشخصي */
+.header-actions { display: flex; align-items: center; gap: 15px; }
 .icon-btn {
-    background: #fff; border: 1px solid var(--border-color); border-radius: 50%;
-    width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);
-    position: relative; transition: all 0.3s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    background: #FFF; border: none; border-radius: 50%;
+    width: 42px; height: 42px; font-size: 1.2rem; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: 0.3s; position: relative;
 }
-.icon-btn:hover { 
-    transform: translateY(-2px); 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-    color: var(--tera-orange);
-    border-color: var(--tera-orange-light);
-}
+.icon-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-glow); }
 .badge {
-    position: absolute; top: -2px; right: -2px; background: #e74c3c; color: #fff;
-    font-size: 0.7rem; font-weight: bold; width: 18px; height: 18px; 
+    position: absolute; top: -2px; right: -2px; background: #E74C3C; color: #FFF;
+    font-size: 0.65rem; font-weight: bold; width: 18px; height: 18px; 
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    border: 2px solid var(--bg-main);
 }
 
+/* الملف الشخصي */
 .user-profile-dropdown { position: relative; }
 .profile-trigger {
-    display: flex; align-items: center; gap: 12px; cursor: pointer;
-    padding: 8px 15px; border-radius: 30px; background: #fff;
-    border: 1px solid var(--border-color); transition: 0.3s;
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 6px 6px 6px 15px; border-radius: 30px; background: #FFF;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: 0.3s; border: 1px solid transparent;
 }
-.profile-trigger:hover { background: #f8f9fa; border-color: #d1d8e0; }
+.profile-trigger:hover { border-color: rgba(212, 175, 55, 0.3); }
 
 .user-info { display: flex; flex-direction: column; text-align: left; }
-.user-name { font-size: 0.95rem; font-weight: bold; color: var(--text-dark); }
-.user-role { font-size: 0.75rem; color: var(--text-muted); }
+.user-name { font-size: 0.85rem; font-weight: 800; color: var(--itqan-navy-bg); }
+.user-role { font-size: 0.7rem; color: var(--itqan-gold-primary); font-weight: bold; }
 
 .user-avatar {
-    width: 40px; height: 40px; border-radius: 50%; 
-    background: var(--tera-orange-light);
-    color: var(--tera-orange); font-weight: bold; font-size: 1.2rem;
+    width: 36px; height: 36px; border-radius: 50%; background: var(--itqan-navy-bg);
+    color: var(--itqan-gold-primary); font-weight: 900; font-size: 1.1rem;
     display: flex; align-items: center; justify-content: center;
 }
 
-.dropdown-arrow { font-size: 0.7rem; color: var(--text-muted); transition: 0.3s; }
-.profile-trigger.active .dropdown-arrow { transform: rotate(180deg); }
-
+/* القائمة المنسدلة */
 .dropdown-menu {
-    position: absolute; top: 120%; left: 0; width: 220px;
-    background: #ffffff; 
-    border: 1px solid var(--border-color); border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    position: absolute; top: 130%; left: 0; width: 220px;
+    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+    border-radius: 16px; box-shadow: var(--shadow-float);
     opacity: 0; visibility: hidden; transform: translateY(-10px);
-    transition: all 0.2s ease-in-out; z-index: 2000;
-    padding: 10px 0;
+    transition: all 0.3s ease; z-index: 2000; padding: 10px 0; border: 1px solid #eee;
 }
 .dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
-
-.dropdown-header { padding: 10px 20px; font-size: 0.8rem; color: var(--text-muted); font-weight: bold; }
 .dropdown-item {
     display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: none;
-    padding: 12px 20px; font-size: 0.9rem; color: var(--text-dark); font-weight: 600;
+    padding: 10px 20px; font-size: 0.85rem; color: var(--itqan-navy-bg); font-weight: 700;
     cursor: pointer; text-align: right; transition: 0.2s;
 }
-.dropdown-item:hover { background: #f8f9fa; color: var(--tera-orange); }
-.dropdown-divider { height: 1px; background: var(--border-color); margin: 5px 0; }
-.logout-item { color: #e74c3c; }
-.logout-item:hover { background: #fdf0ef; color: #c0392b; }
+.dropdown-item:hover { background: rgba(212, 175, 55, 0.08); color: var(--itqan-gold-primary); padding-right: 25px; }
 
-/* --- 7. الساعة الرقمية (Clock Widget) في الهيدر --- */
-.header-clock-wrapper {
-    display: flex; flex-direction: column; align-items: center;
-}
-.clock-container { 
-    background: transparent; 
-    padding: 0; text-align: center;
-}
-.time-display { 
-    font-size: 1.4rem; font-weight: 900; 
-    color: var(--text-dark); font-family: 'Courier New', monospace; 
-    letter-spacing: 1px;
-}
-.time-display .sep { 
-    animation: blink 1.2s infinite ease-in-out; 
-    color: var(--tera-orange); 
-}
-.date-display { 
-    font-size: 0.75rem; color: var(--text-muted); font-weight: 700; 
-    margin-top: 2px; display: flex; gap: 8px; justify-content: center; align-items: center;
-}
-@keyframes blink { 
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; } 
-}
-
-/* --- 8. منطقة العرض (Main View) --- */
-#main-view { 
-    grid-area: main; 
-    background: var(--bg-main); 
-    position: relative; 
-    overflow: hidden; 
-}
-#tera-iframe { 
-    width: 100%; height: 100%; 
-    border: none; 
-    background: transparent;
-}
-
-/* --- 9. شريط التمرير (Scrollbar) --- */
-::-webkit-scrollbar { width: 8px; height: 8px;}
-::-webkit-scrollbar-track { background: var(--bg-main); }
-::-webkit-scrollbar-thumb { background: #c1c9d2; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #a0abb6; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
