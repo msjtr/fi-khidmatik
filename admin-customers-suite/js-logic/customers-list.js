@@ -1,5 +1,6 @@
 /**
  * نظام Tera V12 - محرك قائمة العملاء (مربوط بالخرائط المجانية)
+ * التحديث: دمج كافة حقول العنوان في رابط البحث عند غياب الإحداثيات
  */
 
 import { collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
@@ -28,13 +29,33 @@ async function loadCustomers() {
             const firstLetter = data.name ? data.name.charAt(0).toUpperCase() : '?';
             const avatarHtml = data.avatarUrl ? `<img src="${data.avatarUrl}">` : firstLetter;
 
-            // توجيه الخريطة بناءً على الإحداثيات أو النص
+            // 🌟 التحديث: منطق توليد الرابط الذكي
             let mapSearchUrl = "";
             if (data.latitude && data.longitude) {
+                // الخيار الأول: التوجيه عبر الإحداثيات الدقيقة
                 mapSearchUrl = `https://www.google.com/maps/?q=${data.latitude},${data.longitude}`;
             } else {
-                const fullAddress = `${data.country || ''} ${data.city || ''} ${data.district || ''} ${data.street || ''} ${data.buildingNo || ''}`.trim();
-                mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+                // الخيار الثاني: دمج كافة الحقول الـ 8 في حال عدم وجود إحداثيات
+                const addressParts = [
+                    data.country,        // الدولة
+                    data.city,           // المدينة
+                    data.district,       // الحي
+                    data.street,         // الشارع
+                    data.buildingNo,     // المبنى
+                    data.additionalNo,   // الرقم الإضافي
+                    data.postalCode,     // الرمز البريدي
+                    data.poBox           // صندوق البريد
+                ];
+
+                // تصفية الحقول الفارغة ودمجها بفاصل " / "
+                const fullAddressText = addressParts
+                    .filter(part => part && part.toString().trim() !== "")
+                    .join(" / ");
+
+                // إذا كانت الحقول فارغة تماماً، نبحث عن اسم العميل أو حائل كافتراضي
+                const searchQuery = fullAddressText.length > 0 ? fullAddressText : (data.name || "حائل، السعودية");
+                
+                mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`;
             }
 
             const dateAdded = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-SA') : '-';
@@ -76,7 +97,7 @@ async function loadCustomers() {
         if (countElement) countElement.innerText = customersDataList.length;
 
     } catch (error) {
-        console.error(error);
+        console.error("خطأ في تحميل البيانات:", error);
     }
 }
 
@@ -182,13 +203,11 @@ window.openEditModal = async (id) => {
     setTimeout(async () => {
         await GeoEngine.initMap('modal-map', lat, lng);
         
-        // عند سحب الدبوس وإفلاته
         GeoEngine.marker.on('dragend', function (e) {
             const pos = e.target.getLatLng();
             updateFieldsFromGeoEngine(pos.lat, pos.lng);
         });
 
-        // عند النقر على الخريطة
         GeoEngine.map.on('click', function(e) {
             GeoEngine.marker.setLatLng(e.latlng);
             updateFieldsFromGeoEngine(e.latlng.lat, e.latlng.lng);
