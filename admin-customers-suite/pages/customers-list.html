@@ -9,7 +9,9 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <style>
         .editor-container { height: 200px; background: white; margin-bottom: 10px; border-radius: 8px; }
-        .tag-select { padding: 5px; border-radius: 4px; border: 1px solid #ddd; }
+        /* لتنسيق الجدول الطويل */
+        .table-responsive-container { overflow-x: auto; max-width: 100%; }
+        .tera-table { width: 100%; border-collapse: collapse; min-width: 1800px; }
     </style>
 </head>
 <body>
@@ -17,7 +19,7 @@
     <div class="page-header">
         <div class="header-titles">
             <h2>قائمة العملاء</h2>
-            <p>إدارة البيانات المتقدمة وتصنيفات الحسابات</p>
+            <p>إدارة البيانات الشاملة وتصنيفات الحسابات (العدد: <span id="customers-count">0</span>)</p>
         </div>
     </div>
 
@@ -28,56 +30,75 @@
                     <th>#</th>
                     <th class="sticky-col">اسم العميل</th>
                     <th>الجوال</th>
-                    <th>الدولة/المدينة</th>
-                    <th>حالة الحساب</th> <!-- جديد -->
-                    <th>تصنيف العميل</th> <!-- جديد -->
-                    <th>ملاحظة سريعة</th> <!-- جديد -->
+                    <th>مفتاح الدولة</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الدولة</th>
+                    <th>المدينة</th>
+                    <th>الحي</th>
+                    <th>الشارع</th>
+                    <th>المبنى</th>
+                    <th>الإضافي</th>
+                    <th>الرمز البريدي</th>
+                    <th>صندوق البريد</th>
                     <th>تاريخ الإضافة</th>
+                    <th>حالة الحساب</th>
+                    <th>تصنيف العميل</th>
+                    <th>سلوك العميل</th>
                     <th class="sticky-col-right">الإجراءات</th>
                 </tr>
             </thead>
             <tbody id="customers-tbody">
-                <tr><td colspan="9" class="loading-msg">جارِ جلب البيانات...</td></tr>
+                <tr><td colspan="18" class="loading-msg">جارِ جلب البيانات...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <!-- نافذة التعديل المتقدمة -->
+    <!-- نافذة التعديل وإجراءات الحساب -->
     <div id="edit-customer-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content" style="max-width: 950px;">
             <div class="modal-header">
-                <h3>تعديل الملف الشخصي والتقييم</h3>
+                <h3>إدارة ملف العميل والتحكم بالحساب</h3>
                 <button class="close-btn" onclick="closeEditModal()">✖</button>
             </div>
             <form id="edit-customer-form">
                 <input type="hidden" id="edit-doc-id">
+                
                 <div class="form-grid">
-                    <div class="input-group"><label>الاسم</label><input type="text" id="edit-name" required></div>
+                    <!-- البيانات الأساسية -->
+                    <div class="input-group"><label>اسم العميل</label><input type="text" id="edit-name" required></div>
                     <div class="input-group"><label>الجوال</label><input type="text" id="edit-phone" required></div>
+                    <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode"></div>
+                    <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
                     
-                    <!-- حالة الحساب -->
+                    <!-- العناوين -->
+                    <div class="input-group"><label>الدولة</label><input type="text" id="edit-country"></div>
+                    <div class="input-group"><label>المدينة</label><input type="text" id="edit-city"></div>
+                    <div class="input-group"><label>الحي</label><input type="text" id="edit-district"></div>
+                    <div class="input-group"><label>الشارع</label><input type="text" id="edit-street"></div>
+                    <div class="input-group"><label>المبنى</label><input type="text" id="edit-buildingNo"></div>
+                    <div class="input-group"><label>الإضافي</label><input type="text" id="edit-additionalNo"></div>
+                    <div class="input-group"><label>الرمز البريدي</label><input type="text" id="edit-postalCode"></div>
+                    <div class="input-group"><label>صندوق البريد</label><input type="text" id="edit-poBox"></div>
+
+                    <!-- إحصائيات وإجراءات الحساب -->
                     <div class="input-group"><label>حالة الحساب</label>
-                        <select id="edit-accountStatus" class="tag-select">
+                        <select id="edit-accountStatus">
                             <option value="جديد">جديد</option>
                             <option value="نشط">نشط</option>
                             <option value="موقوف">موقوف</option>
                             <option value="محظور">محظور</option>
                         </select>
                     </div>
-
-                    <!-- تصنيف العميل -->
                     <div class="input-group"><label>تصنيف العميل</label>
-                        <select id="edit-customerCategory" class="tag-select">
+                        <select id="edit-customerCategory">
                             <option value="VIP">VIP</option>
                             <option value="مميز">مميز</option>
                             <option value="عادي">عادي</option>
                             <option value="محتمل">محتمل</option>
                         </select>
                     </div>
-
-                    <!-- الملاحظات السريعة -->
-                    <div class="input-group"><label>سلوك العميل</label>
-                        <select id="edit-quickNote" class="tag-select">
+                    <div class="input-group"><label>ملاحظة سلوكية</label>
+                        <select id="edit-quickNote">
                             <option value="سريع التجاوب">سريع التجاوب</option>
                             <option value="يتأخر في الرد">يتأخر في الرد</option>
                             <option value="كثير الطلبات">كثير الطلبات</option>
@@ -86,16 +107,15 @@
                     </div>
                 </div>
 
-                <!-- محرر النصوص المتقدم (Word Style) -->
+                <!-- ملاحظات Word المتقدمة -->
                 <div class="input-group" style="margin-top:20px;">
                     <label>الملاحظات التفصيلية (محرر متقدم)</label>
                     <div id="editor" class="editor-container"></div>
-                    <input type="hidden" id="edit-detailedNotes">
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="cancel-btn" onclick="closeEditModal()">إلغاء</button>
-                    <button type="submit" class="save-btn">حفظ وتحديث</button>
+                    <button type="submit" class="save-btn">حفظ وتحديث الحساب</button>
                 </div>
             </form>
         </div>
