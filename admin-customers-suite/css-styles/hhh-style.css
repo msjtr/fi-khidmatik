@@ -1,131 +1,78 @@
-/* =========================================
-   نظام Tera V12 - ملف التنسيق الإبداعي الموحد (نسخة الحصانة الشاملة)
-   المؤسسة: الإتقان بلس - حائل
-========================================= */
+<div class="sidebar-header">
+    <button class="collapse-btn" id="toggle-sidebar-btn" title="طي/توسيع القائمة">
+        <svg class="chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="brand-logo-container">
+        <img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="الإتقان بلس" class="main-logo">
+    </div>
+    <div class="brand-titles">
+        <div class="brand-title-ar">في خدمتك من الإتقان بلس</div>
+        <div class="brand-title-en">Fi Khidmatik by Al-Itqan Plus</div>
+    </div>
+</div>
 
-:root {
-    --itqan-navy-bg: #0A192F;
-    --itqan-navy-light: #112240;
-    --itqan-gold-primary: #D4AF37;
-    --itqan-gold-glow: rgba(212, 175, 55, 0.4);
-    --metal-gray: #6A7B9C;
-    --app-bg: #E8EEF2;
-    --card-bg: #FFFFFF;
-    --shadow-float: 0 8px 30px rgba(10, 25, 47, 0.06);
-    --shadow-glow: 0 8px 25px rgba(212, 175, 55, 0.15);
-}
+<nav class="sidebar-nav" id="sidebar-nav-menu">
+    
+    <!-- القسم المعزول والمميز (الرئيسية) -->
+    <button class="nav-btn special-btn active" onclick="teraNavigate('dashboard')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span class="nav-text">الرئيسية</span>
+    </button>
 
-/* --- الضبط الأساسي ومنع انهيار الطبقات --- */
-* { box-sizing: border-box; }
+    <!-- فاصل أقسام -->
+    <div class="nav-section-title">إدارة المتجر</div>
 
-body, html {
-    margin: 0; padding: 0; 
-    height: 100vh; width: 100%;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--app-bg);
-    direction: rtl; overflow: hidden;
-}
+    <button class="nav-btn" onclick="teraNavigate('products')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <span class="nav-text">المنتجات</span>
+    </button>
 
-/* --- توزيع الجزر العائمة (Grid) --- */
-.tera-layout {
-    display: grid; 
-    height: 100vh; width: 100%;
-    padding: 12px; gap: 12px;     
-    grid-template-columns: 240px 1fr;
-    grid-template-rows: 75px 1fr 35px;
-    grid-template-areas: 
-        "sidebar header"
-        "sidebar main"
-        "sidebar footer";
-    transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
+    <button class="nav-btn" onclick="teraNavigate('orders')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span class="nav-text">الطلبات</span>
+    </button>
 
-.tera-layout.sidebar-collapsed { grid-template-columns: 85px 1fr; }
+    <!-- قائمة العملاء المنسدلة -->
+    <div class="nav-item-wrapper">
+        <button class="nav-btn has-submenu" data-target="customers-submenu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span class="nav-text">العملاء</span>
+            <svg class="dropdown-arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="submenu-container" id="customers-submenu">
+            <div class="submenu-inner">
+                <button class="submenu-item" onclick="teraNavigate('customers-list')">قائمة العملاء</button>
+                <button class="submenu-item" onclick="teraNavigate('add-customer')">إضافة عميل جديد</button>
+                <button class="submenu-item" onclick="teraNavigate('customers-report')">تقرير العملاء</button>
+                <button class="submenu-item" onclick="teraNavigate('export-import')">تصدير واستيراد</button>
+            </div>
+        </div>
+    </div>
 
-/* --- 1. القائمة الجانبية (Sidebar) --- */
-#sidebar-mount { 
-    grid-area: sidebar; 
-    background: var(--itqan-navy-bg);
-    border-radius: 20px; 
-    padding: 25px 10px; 
-    box-shadow: var(--shadow-float);
-    display: flex; flex-direction: column;
-    position: relative; overflow: hidden;
-    z-index: 100;
-}
+    <!-- فاصل قسم الإعدادات -->
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">النظام والتحكم</div>
 
-.sidebar-header { flex-shrink: 0; text-align: center; margin-bottom: 20px; position: relative; }
-.main-logo { width: 90px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); transition: 0.4s; }
-
-.sidebar-nav {
-    flex: 1; overflow-y: auto; overflow-x: hidden;
-    padding-left: 5px; /* مساحة لشريط التمرير */
-}
-
-/* شريط التمرير المعدني العريض */
-.sidebar-nav::-webkit-scrollbar { width: 8px; }
-.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-.sidebar-nav::-webkit-scrollbar-thumb { 
-    background: var(--metal-gray); border-radius: 10px;
-    border: 2px solid var(--itqan-navy-bg);
-}
-
-.nav-btn { 
-    display: flex; align-items: center; gap: 12px; width: 100%; 
-    background: transparent; border: none; color: #8892B0; 
-    padding: 12px 15px; margin-bottom: 5px; border-radius: 12px; 
-    cursor: pointer; transition: 0.3s; font-size: 0.9rem; font-weight: 600;
-}
-.nav-btn:hover, .nav-btn.active { color: #FFF; background: var(--itqan-navy-light); }
-.nav-btn.active { box-shadow: inset -4px 0 0 var(--itqan-gold-primary); }
-
-/* --- 2. الهيدر الذكي (حصانة القوائم) --- */
-#header-mount { 
-    grid-area: header; 
-    background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 18px;
-    display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 20px; box-shadow: var(--shadow-float);
-    position: relative; 
-    z-index: 9999; /* الأولوية القصوى للقوائم المنسدلة */
-}
-
-/* حل تداخل القائمة المنسدلة لبيانات العميل */
-.dropdown-menu {
-    position: absolute; top: calc(100% + 10px); left: 20px;
-    background: #FFF; border-radius: 15px; min-width: 220px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-    border: 1px solid rgba(212, 175, 55, 0.2);
-    z-index: 10000; display: none; /* تظهر فقط عند الكلاس .show */
-}
-.dropdown-menu.show { display: block; animation: slideDown 0.3s ease; }
-
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* --- 3. شاشة العرض (Main View) --- */
-#main-view { 
-    grid-area: main; background: var(--card-bg); 
-    border-radius: 20px; box-shadow: var(--shadow-float);
-    position: relative; overflow: hidden;
-    z-index: 10;
-}
-
-/* --- 4. الفوتر (Footer) --- */
-#footer-mount { grid-area: footer; display: flex; align-items: center; z-index: 50; }
-
-/* --- 5. الساعة المدمجة --- */
-.clock-container { 
-    background: #FFF; padding: 5px 15px; border-radius: 30px; 
-    border: 1px solid rgba(10, 25, 47, 0.05); display: flex; align-items: center; gap: 10px;
-}
-.time-display { font-size: 1.1rem; font-weight: 800; color: var(--itqan-navy-bg); font-family: monospace; }
-.sep { color: var(--itqan-gold-primary); animation: blink 1s infinite; }
-
-@keyframes blink { 50% { opacity: 0.3; } }
-
-/* --- إعدادات الطي (Collapsed) --- */
-.sidebar-collapsed .brand-titles, 
-.sidebar-collapsed .nav-text, 
-.sidebar-collapsed .dropdown-arrow-icon { display: none; }
-.sidebar-collapsed .main-logo { width: 45px; }
-.sidebar-collapsed .nav-btn { justify-content: center; padding: 12px 0; }
+    <!-- قائمة إعدادات النظام المنسدلة -->
+    <div class="nav-item-wrapper">
+        <button class="nav-btn has-submenu" data-target="settings-submenu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span class="nav-text">إعدادات النظام</span>
+            <svg class="dropdown-arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="submenu-container" id="settings-submenu">
+            <div class="submenu-inner">
+                <button class="submenu-item" onclick="teraNavigate('add-employee')">إضافة موظف</button>
+                <button class="submenu-item" onclick="teraNavigate('employees-log')">سجل العمليات للموظفين</button>
+                <button class="submenu-item" onclick="teraNavigate('change-credentials')">كلمة المرور واسم المستخدم</button>
+                <button class="submenu-item" onclick="teraNavigate('employees-report')">تقرير عن الموظفين</button>
+                <button class="submenu-item" onclick="teraNavigate('backup')">النسخ الاحتياطي</button>
+                <button class="submenu-item" onclick="teraNavigate('store-info')">المعلومات عن المتجر</button>
+                <button class="submenu-item" onclick="teraNavigate('clear-cache')">تفريغ الذاكرة المؤقتة</button>
+                <button class="submenu-item" onclick="teraNavigate('shipping-settings')">إعدادات الشحن</button>
+                <button class="submenu-item" onclick="teraNavigate('payment-gateway')">إعدادات بوابة الدفع</button>
+                <button class="submenu-item" onclick="teraNavigate('ui-design')">إعدادات تصميم الواجهة</button>
+            </div>
+        </div>
+    </div>
+</nav>
