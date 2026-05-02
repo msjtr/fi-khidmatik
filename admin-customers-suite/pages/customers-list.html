@@ -10,35 +10,42 @@
     <div class="page-header">
         <div class="header-titles">
             <h2>قائمة العملاء</h2>
-            <p>إدارة البيانات (عدد العملاء: <span id="customers-count">0</span>)</p>
+            <p>إدارة بيانات العملاء وتفاصيل العناوين (عدد العملاء: <span id="customers-count">0</span>)</p>
         </div>
-        <button class="primary-btn" onclick="window.parent.teraNavigate('add-customer')">➕ إضافة عميل جديد</button>
+        <!-- تم حذف زر إضافة عميل بناءً على طلبك -->
     </div>
 
     <div class="table-responsive-container">
         <table class="tera-table" id="customers-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th class="sticky-col">الاسم</th>
-                    <th>الجوال</th>
-                    <th>الدولة</th>
-                    <th>المدينة</th>
-                    <th>الحي</th>
-                    <th>الشارع</th>
-                    <th>المبنى</th>
-                    <th>📍 الموقع</th>
-                    <th>الحالة</th>
-                    <th class="sticky-col-right">الإجراءات</th>
+                    <th>#</th> <!-- 1 -->
+                    <th class="sticky-col">اسم العميل</th> <!-- 2 -->
+                    <th>الجوال</th> <!-- 3 -->
+                    <th>مفتاح الدولة</th> <!-- 4 -->
+                    <th>البريد الإلكتروني</th> <!-- 5 -->
+                    <th>الدولة</th> <!-- 6 -->
+                    <th>المدينة</th> <!-- 7 -->
+                    <th>الحي</th> <!-- 8 -->
+                    <th>الشارع</th> <!-- 9 -->
+                    <th>المبنى</th> <!-- 10 -->
+                    <th>الإضافي</th> <!-- 11 -->
+                    <th>الرمز البريدي</th> <!-- 12 -->
+                    <th>صندوق البريد</th> <!-- 13 -->
+                    <th>📍 الموقع</th> <!-- 14 -->
+                    <th>تاريخ الإضافة</th> <!-- 15 -->
+                    <th>الحالة</th> <!-- 16 -->
+                    <th>التصنيف</th> <!-- 17 -->
+                    <th class="sticky-col-right">الإجراءات</th> <!-- 18 -->
                 </tr>
             </thead>
             <tbody id="customers-tbody">
-                <tr><td colspan="11" class="loading-msg">جارِ جلب البيانات...</td></tr>
+                <tr><td colspan="18" class="loading-msg">جارِ جلب البيانات...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <!-- نافذة التعديل المبسطة -->
+    <!-- نافذة التعديل (Modal) -->
     <div id="edit-customer-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -50,18 +57,27 @@
                 <div class="form-grid">
                     <div class="input-group"><label>الاسم</label><input type="text" id="edit-name" required></div>
                     <div class="input-group"><label>الجوال</label><input type="text" id="edit-phone" required></div>
+                    <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode"></div>
+                    <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
                     <div class="input-group"><label>الدولة</label><input type="text" id="edit-country"></div>
                     <div class="input-group"><label>المدينة</label><input type="text" id="edit-city"></div>
                     <div class="input-group"><label>الحي</label><input type="text" id="edit-district"></div>
                     <div class="input-group"><label>الشارع</label><input type="text" id="edit-street"></div>
-                    <div class="input-group"><label>رقم المبنى</label><input type="text" id="edit-buildingNo"></div>
-                    <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="edit-additionalNo"></div>
+                    <div class="input-group"><label>المبنى</label><input type="text" id="edit-buildingNo"></div>
+                    <div class="input-group"><label>الإضافي</label><input type="text" id="edit-additionalNo"></div>
                     <div class="input-group"><label>الرمز البريدي</label><input type="text" id="edit-postalCode"></div>
                     <div class="input-group"><label>صندوق البريد</label><input type="text" id="edit-poBox"></div>
+                    <div class="input-group"><label>التصنيف</label><input type="text" id="edit-tag"></div>
+                    <div class="input-group"><label>الحالة</label>
+                        <select id="edit-status">
+                            <option value="نشط">نشط</option>
+                            <option value="غير نشط">غير نشط</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="cancel-btn" onclick="closeEditModal()">إلغاء</button>
-                    <button type="submit" class="save-btn">حفظ التغييرات</button>
+                    <button type="submit" class="save-btn">حفظ التعديلات</button>
                 </div>
             </form>
         </div>
