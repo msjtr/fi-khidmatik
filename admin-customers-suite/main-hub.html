@@ -5,91 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tera V12 | إدارة الإتقان بلس</title>
 
-    <!-- ========================================== -->
-    <!-- 1. ربط الشعار والتبويبة بالمسار الجذري الصحيح -->
-    <!-- ========================================== -->
     <link rel="icon" type="image/svg+xml" href="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg">
     <link rel="shortcut icon" href="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg">
 
-    <!-- ========================================== -->
-    <!-- 2. ربط جميع ملفات التنسيق (CSS)            -->
-    <!-- ========================================== -->
+    <!-- ملفات التنسيق الأساسية الموجودة لديك -->
     <link rel="stylesheet" href="css-styles/hhh-style.css">
-    <link rel="stylesheet" href="css-styles/auth-style.css">
-    <link rel="stylesheet" href="css-styles/buttons-theme.css">
-    <link rel="stylesheet" href="css-styles/add-cust-style.css">
-    <link rel="stylesheet" href="css-styles/list-table-style.css">
-    <link rel="stylesheet" href="css-styles/stats-visuals.css">
-    <link rel="stylesheet" href="css-styles/print-layout.css">
+    
+    <!-- (تم إيقاف الملفات غير الموجودة حالياً لمنع الخطأ 404 حتى تقوم بإنشائها لاحقاً) -->
+    <!-- <link rel="stylesheet" href="css-styles/auth-style.css"> -->
+    <!-- <link rel="stylesheet" href="css-styles/list-table-style.css"> -->
 </head>
 <body>
 
-    <!-- ========================================== -->
-    <!-- 3. الهيكل الرئيسي المعتمد على Grid         -->
-    <!-- ========================================== -->
     <div class="tera-layout">
-        
         <header id="header-mount"></header>
         <aside id="sidebar-mount"></aside>
         
         <main id="main-view">
-            <!-- الشعار المائي كخلفية شفافة بالمسار المحدث -->
             <div style="position: absolute; bottom: -50px; left: -50px; opacity: 0.05; pointer-events: none; z-index: 0;">
                 <img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="إتقان بلس" style="width: 400px;">
             </div>
-            
             <iframe id="tera-iframe" name="tera-frame" src="pages/customers-list.html" style="position: relative; z-index: 1; width: 100%; height: 100%; border: none; transition: opacity 0.3s ease;"></iframe>
         </main>
         
         <footer id="footer-mount"></footer>
-
     </div>
 
-    <!-- ========================================== -->
-    <!-- 4. ربط جميع ملفات الأوامر (JS) بالمجلد الجديد -->
-    <!-- ========================================== -->
-    
-    <!-- الأساسيات وقواعد البيانات -->
+    <!-- 1. ربط قاعدة البيانات والمحرك الأساسي فقط (باقي الوظائف مدمجة هنا) -->
     <script type="module" src="js/firebase.js"></script>
-    <script type="module" src="js/api-connector.js"></script>
-    
-    <!-- المصادقة والتحكم الرئيسي -->
-    <script type="module" src="js/auth-logic.js"></script>
     <script type="module" src="js/main.js"></script>
-    
-    <!-- واجهة المستخدم والتنقل -->
-    <script type="module" src="js/header-logic.js"></script>
-    <script type="module" src="js/sidebar-logic.js"></script>
-    <script type="module" src="js/btn-actions-controller.js"></script>
-    <script type="module" src="js/clock-logic.js"></script>
-    
-    <!-- العمليات والجداول والإحصائيات -->
-    <script type="module" src="js/add-cust-logic.js"></script>
-    <script type="module" src="js/list-table-logic.js"></script>
-    <script type="module" src="js/stats-engine.js"></script>
-    
-    <!-- الميزات المتقدمة (الخرائط، الطباعة، السجلات) -->
-    <script type="module" src="js/map-logic.js"></script>
-    <script type="module" src="js/pdf-generator.js"></script>
-    <script type="module" src="js/log-tracker.js"></script>
 
-    <!-- ========================================== -->
-    <!-- 5. سكربت التشغيل الداخلي والمزامنة الذكية    -->
-    <!-- ========================================== -->
+    <!-- 2. سكربت جلب الهيكل وتفعيل النظام -->
     <script type="module">
-        // 1. استيراد جميع الدوال الحيوية للنظام (تم التحديث للمسار الجديد)
-        import { initHeaderLogic } from './js/header-logic.js';
-        import { initSidebarLogic } from './js/sidebar-logic.js';
-        import { startTeraClock } from './js/clock-logic.js';
-
         async function mountTeraComponents() {
-            // 2. جلب الهيكل الأساسي (هيدر، فوتر، قائمة)
             const components = [
                 { id: 'header-mount', path: 'mm/header.html' },
                 { id: 'sidebar-mount', path: 'mm/sidebar.html' },
                 { id: 'footer-mount', path: 'mm/footer.html' }
             ];
 
+            // جلب القوائم والهيدر
             for (const comp of components) {
                 try {
                     const res = await fetch(comp.path);
@@ -101,28 +56,13 @@
                 }
             }
 
-            // 3. جلب الساعة الرقمية وتركيبها داخل الهيدر
-            try {
-                const clockRes = await fetch('mm/clock-view.html');
-                if (clockRes.ok) {
-                    const clockPoint = document.getElementById('clock-mount-point');
-                    if (clockPoint) {
-                        clockPoint.innerHTML = await clockRes.text();
-                    }
-                }
-            } catch (e) {
-                console.error("لم يتم العثور على مكان الساعة أو الملف", e);
-            }
-
-            // 4. تشغيل الأوامر البرمجية (بعد) ضمان استقرار الواجهة تماماً
+            // إطلاق إشارة لملف main.js بأن الواجهة جاهزة لتركيب الساعة واسم المستخدم
             setTimeout(() => {
-                try { initHeaderLogic(); } catch(e) { console.error("خطأ هيدر", e); }
-                try { initSidebarLogic(); } catch(e) { console.error("خطأ قائمة", e); }
-                try { startTeraClock(); } catch(e) { console.error("خطأ ساعة", e); }
-            }, 200); // 200 ملي ثانية هي السر السحري لمنع أي خلل في تحميل الأزرار
+                document.dispatchEvent(new Event('TeraLayoutReady'));
+            }, 100);
         }
 
-        // إبقاء دالة التنقل العامة (في حال كان هناك أزرار قديمة تعتمد عليها)
+        // دالة التنقل للقائمة الجانبية
         window.teraNavigate = function(pageName) {
             const iframe = document.getElementById('tera-iframe');
             if (iframe) {
