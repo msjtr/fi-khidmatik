@@ -74,15 +74,16 @@
     <script type="module" src="js-logic/log-tracker.js"></script>
 
     <!-- ========================================== -->
-    <!-- 5. سكربت التشغيل الداخلي للواجهة             -->
+    <!-- 5. سكربت التشغيل الداخلي والمزامنة الذكية    -->
     <!-- ========================================== -->
-    
-    <!-- تم إضافة type="module" لكي نتمكن من استيراد الدوال -->
     <script type="module">
-        // استيراد دالة تفعيل الهيدر
+        // 1. استيراد جميع الدوال الحيوية للنظام
         import { initHeaderLogic } from './js-logic/header-logic.js';
+        import { initSidebarLogic } from './js-logic/sidebar-logic.js';
+        import { startTeraClock } from './js-logic/clock-logic.js';
 
         async function mountTeraComponents() {
+            // 2. جلب الهيكل الأساسي (هيدر، فوتر، قائمة)
             const components = [
                 { id: 'header-mount', path: 'mm/header.html' },
                 { id: 'sidebar-mount', path: 'mm/sidebar.html' },
@@ -100,29 +101,28 @@
                 }
             }
 
-            // --- التحديث هنا: تفعيل الهيدر بعد تحميله ---
-            try {
-                initHeaderLogic();
-            } catch (e) {
-                console.error("حدث خطأ في تشغيل الهيدر:", e);
-            }
-
-            // تحميل الساعة
+            // 3. جلب الساعة الرقمية وتركيبها داخل الهيدر
             try {
                 const clockRes = await fetch('mm/clock-view.html');
                 if (clockRes.ok) {
                     const clockPoint = document.getElementById('clock-mount-point');
                     if (clockPoint) {
                         clockPoint.innerHTML = await clockRes.text();
-                        if(typeof startTeraClock === 'function') startTeraClock();
                     }
                 }
             } catch (e) {
                 console.error("لم يتم العثور على مكان الساعة أو الملف", e);
             }
+
+            // 4. تشغيل الأوامر البرمجية (بعد) ضمان استقرار الواجهة تماماً
+            setTimeout(() => {
+                try { initHeaderLogic(); } catch(e) { console.error("خطأ هيدر", e); }
+                try { initSidebarLogic(); } catch(e) { console.error("خطأ قائمة", e); }
+                try { startTeraClock(); } catch(e) { console.error("خطأ ساعة", e); }
+            }, 200); // 200 ملي ثانية هي السر السحري لمنع أي خلل في تحميل الأزرار
         }
 
-        // جعل دالة التنقل مرئية على مستوى المتصفح (Global)
+        // إبقاء دالة التنقل العامة (في حال كان هناك أزرار قديمة تعتمد عليها)
         window.teraNavigate = function(pageName) {
             const iframe = document.getElementById('tera-iframe');
             if (iframe) {
