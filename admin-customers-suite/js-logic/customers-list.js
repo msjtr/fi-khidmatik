@@ -1,17 +1,17 @@
 /**
- * نظام Tera V12 - محرك قائمة العملاء
+ * نظام Tera V12 - محرك قائمة العملاء (مربوط بالخرائط المجانية)
  */
 
 import { collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { db } from '../js/firebase.js'; 
-
-// 🌟 استدعاء محرك الخرائط الخاص بك
 import { GeoEngine } from './map-logic.js';
 
 const customersRef = collection(db, "customers");
 let customersDataList = [];
 
-// ... (دالة loadCustomers تبقى كما هي تماماً لجلب الجدول) ...
+// ----------------------------------------------------
+// جلب وعرض بيانات العملاء
+// ----------------------------------------------------
 async function loadCustomers() {
     const tbody = document.getElementById('customers-tbody');
     try {
@@ -28,7 +28,7 @@ async function loadCustomers() {
             const firstLetter = data.name ? data.name.charAt(0).toUpperCase() : '?';
             const avatarHtml = data.avatarUrl ? `<img src="${data.avatarUrl}">` : firstLetter;
 
-            // استخدام الإحداثيات إذا توفرت
+            // توجيه الخريطة بناءً على الإحداثيات أو النص
             let mapSearchUrl = "";
             if (data.latitude && data.longitude) {
                 mapSearchUrl = `https://www.google.com/maps/?q=${data.latitude},${data.longitude}`;
@@ -81,32 +81,26 @@ async function loadCustomers() {
 }
 
 // ----------------------------------------------------
-// التعبئة التلقائية من الخريطة إلى الحقول
+// تحديث الحقول التلقائي عند تحريك الدبوس
 // ----------------------------------------------------
 async function updateFieldsFromGeoEngine(lat, lng) {
     document.getElementById('edit-lat').value = lat;
     document.getElementById('edit-lng').value = lng;
     
-    // استخدام دالتك الذكية لجلب العنوان
     const addr = await GeoEngine.getAddressFromCoords(lat, lng);
     if(addr) {
         document.getElementById('edit-city').value = addr.city || '';
         document.getElementById('edit-district').value = addr.district || '';
         document.getElementById('edit-postalCode').value = addr.postalCode || '';
-        
-        // استخراج تفاصيل أدق إذا لزم الأمر
-        if (addr.fullAddress) {
-            const parts = addr.fullAddress.split('،');
-            if(parts.length > 0) document.getElementById('edit-street').value = parts[0].trim();
-        }
+        document.getElementById('edit-street').value = addr.street || '';
     }
 }
 
 // ----------------------------------------------------
-// التحديث من الحقول إلى الخريطة (عكسي)
+// تحديث الدبوس التلقائي عند الكتابة في الحقول
 // ----------------------------------------------------
-function updateMapFromText() {
-    if (!GeoEngine.geocoder || !GeoEngine.map) return;
+async function updateMapFromText() {
+    if (!GeoEngine.map || !GeoEngine.marker) return;
     
     const country = document.getElementById('edit-country').value;
     const city = document.getElementById('edit-city').value;
@@ -116,20 +110,17 @@ function updateMapFromText() {
     const fullAddress = `${street} ${district} ${city} ${country}`.trim();
     if(fullAddress.length < 4) return;
 
-    GeoEngine.geocoder.geocode({ address: fullAddress }, (results, status) => {
-        if (status === "OK" && results[0]) {
-            const location = results[0].geometry.location;
-            GeoEngine.map.setCenter(location);
-            GeoEngine.marker.setPosition(location);
-            
-            document.getElementById('edit-lat').value = location.lat();
-            document.getElementById('edit-lng').value = location.lng();
-        }
-    });
+    const coords = await GeoEngine.getCoordsFromAddress(fullAddress);
+    if(coords) {
+        GeoEngine.map.setView([coords.lat, coords.lng], 15);
+        GeoEngine.marker.setLatLng([coords.lat, coords.lng]);
+        document.getElementById('edit-lat').value = coords.lat;
+        document.getElementById('edit-lng').value = coords.lng;
+    }
 }
 
 // ----------------------------------------------------
-// زر تحديد موقعي (GPS)
+// زر تحديد موقعي
 // ----------------------------------------------------
 window.autoDetectLocation = () => {
     if (navigator.geolocation) {
@@ -138,16 +129,17 @@ window.autoDetectLocation = () => {
             const lng = position.coords.longitude;
             
             if(GeoEngine.map && GeoEngine.marker) {
-                const pos = new google.maps.LatLng(lat, lng);
-                GeoEngine.map.setCenter(pos);
-                GeoEngine.marker.setPosition(pos);
+                GeoEngine.map.setView([lat, lng], 16);
+                GeoEngine.marker.setLatLng([lat, lng]);
             }
             updateFieldsFromGeoEngine(lat, lng);
         }, () => { alert("يرجى تفعيل الموقع في المتصفح."); });
     }
 };
 
-// مراقبة الحقول لتحديث الخريطة تلقائياً عند الكتابة
+// ----------------------------------------------------
+// تهيئة التفاعلات
+// ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     loadCustomers();
     document.querySelectorAll('.address-input').forEach(input => {
@@ -156,13 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ----------------------------------------------------
-// نظام التعديل (المودال) والربط مع محركك
+// فتح نافذة التعديل وتشغيل الخريطة
 // ----------------------------------------------------
 window.openEditModal = async (id) => {
     const customer = customersDataList.find(c => c.id === id);
     if (!customer) return;
 
-    // تعبئة البيانات...
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('edit-name').value = customer.name || '';
     document.getElementById('edit-phone').value = customer.phone || '';
@@ -179,7 +170,7 @@ window.openEditModal = async (id) => {
     document.getElementById('edit-tag').value = customer.tag || '';
     document.getElementById('edit-status').value = customer.status || 'نشط';
 
-    const lat = parseFloat(customer.latitude) || 27.5236; // حائل افتراضياً
+    const lat = parseFloat(customer.latitude) || 27.5236; 
     const lng = parseFloat(customer.longitude) || 41.6966;
     
     document.getElementById('edit-lat').value = lat;
@@ -187,29 +178,34 @@ window.openEditModal = async (id) => {
 
     document.getElementById('edit-customer-modal').classList.add('active');
 
-    // 🚀 تشغيل محركك (GeoEngine)
+    // تشغيل الخريطة المجانية
     setTimeout(async () => {
         await GeoEngine.initMap('modal-map', lat, lng);
         
-        // عند سحب الدبوس
-        GeoEngine.marker.addListener('dragend', () => {
-            const pos = GeoEngine.marker.getPosition();
-            updateFieldsFromGeoEngine(pos.lat(), pos.lng());
+        // عند سحب الدبوس وإفلاته
+        GeoEngine.marker.on('dragend', function (e) {
+            const pos = e.target.getLatLng();
+            updateFieldsFromGeoEngine(pos.lat, pos.lng);
         });
 
         // عند النقر على الخريطة
-        GeoEngine.map.addListener('click', (e) => {
-            GeoEngine.marker.setPosition(e.latLng);
-            updateFieldsFromGeoEngine(e.latLng.lat(), e.latLng.lng());
+        GeoEngine.map.on('click', function(e) {
+            GeoEngine.marker.setLatLng(e.latlng);
+            updateFieldsFromGeoEngine(e.latlng.lat, e.latlng.lng);
         });
-    }, 300); // تأخير بسيط لضمان ظهور النافذة قبل رسم الخريطة
+    }, 300); 
 };
 
+// ----------------------------------------------------
+// إغلاق النافذة
+// ----------------------------------------------------
 window.closeEditModal = () => {
     document.getElementById('edit-customer-modal').classList.remove('active');
 };
 
-// حفظ البيانات في فايربيس
+// ----------------------------------------------------
+// حفظ التعديلات
+// ----------------------------------------------------
 const editForm = document.getElementById('edit-customer-form');
 if(editForm) {
     editForm.addEventListener('submit', async (e) => {
@@ -251,6 +247,9 @@ if(editForm) {
     });
 }
 
+// ----------------------------------------------------
+// الحذف
+// ----------------------------------------------------
 window.deleteCustomer = async (id) => {
     if(confirm('هل أنت متأكد من الحذف؟')) {
         try { await deleteDoc(doc(db, "customers", id)); loadCustomers(); } catch (e) {}
