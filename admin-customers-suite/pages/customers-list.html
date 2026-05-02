@@ -5,6 +5,19 @@
     <title>قائمة العملاء - Tera V12</title>
     <!-- ربط ملف التنسيق الخاص بالصفحة -->
     <link rel="stylesheet" href="../css-styles/customers-list.css">
+    
+    <!-- 🌍 إضافة مكتبة الخرائط المجانية (Leaflet) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        /* تنسيقات إضافية للخريطة داخل النافذة */
+        .map-section { grid-column: 1 / -1; margin-top: 10px; margin-bottom: 15px; }
+        .map-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        #modal-map { height: 250px; width: 100%; border-radius: 8px; border: 1px solid #cdd4e0; z-index: 1; }
+        .location-btn { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-family: inherit; font-weight: bold; transition: 0.3s; }
+        .location-btn:hover { background: #bbdefb; }
+    </style>
 </head>
 <body>
 
@@ -44,7 +57,6 @@
                 </tr>
             </thead>
             <tbody id="customers-tbody">
-                <!-- سيتم حقن البيانات هنا عبر الجافاسكريبت -->
                 <tr><td colspan="18" class="loading-msg">جارِ جلب بيانات العملاء...</td></tr>
             </tbody>
         </table>
@@ -54,20 +66,17 @@
     <div id="edit-customer-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>تعديل بيانات العميل</h3>
+                <h3>تعديل بيانات وموقع العميل</h3>
                 <button class="close-btn" onclick="closeEditModal()">✖</button>
             </div>
             
             <form id="edit-customer-form">
                 <input type="hidden" id="edit-doc-id">
+                <input type="hidden" id="edit-lat"> <!-- لحفظ خط العرض -->
+                <input type="hidden" id="edit-lng"> <!-- لحفظ خط الطول -->
                 
-                <!-- صورة العميل المرفقة -->
                 <div class="avatar-upload-section">
                     <div class="current-avatar" id="edit-avatar-preview">م</div>
-                    <label class="upload-btn">
-                        تغيير الصورة
-                        <input type="file" id="edit-avatar-file" accept="image/*" hidden>
-                    </label>
                 </div>
 
                 <div class="form-grid">
@@ -76,10 +85,21 @@
                     <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode" dir="ltr"></div>
                     <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
                     
-                    <div class="input-group"><label>الدولة</label><input type="text" id="edit-country"></div>
-                    <div class="input-group"><label>المدينة</label><input type="text" id="edit-city"></div>
-                    <div class="input-group"><label>الحي</label><input type="text" id="edit-district"></div>
-                    <div class="input-group"><label>الشارع</label><input type="text" id="edit-street"></div>
+                    <!-- 🌍 الخريطة التفاعلية -->
+                    <div class="map-section">
+                        <div class="map-header">
+                            <label>📍 الموقع على الخريطة (انقر لتحديد أو اسحب الدبوس)</label>
+                            <button type="button" class="location-btn" onclick="autoDetectLocation()">🎯 تحديد موقعي الحالي</button>
+                        </div>
+                        <div id="modal-map"></div>
+                        <small style="color:#64748b; font-size: 0.8rem; display:block; margin-top:5px;">* الكتابة في الحقول بالأسفل ستحدث الخريطة، والنقر على الخريطة سيحدث الحقول تلقائياً.</small>
+                    </div>
+
+                    <!-- أضفنا كلاس 'address-input' للحقول التي تتفاعل مع الخريطة -->
+                    <div class="input-group"><label>الدولة</label><input type="text" id="edit-country" class="address-input"></div>
+                    <div class="input-group"><label>المدينة</label><input type="text" id="edit-city" class="address-input"></div>
+                    <div class="input-group"><label>الحي</label><input type="text" id="edit-district" class="address-input"></div>
+                    <div class="input-group"><label>الشارع</label><input type="text" id="edit-street" class="address-input"></div>
                     
                     <div class="input-group"><label>رقم المبنى</label><input type="text" id="edit-buildingNo"></div>
                     <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="edit-additionalNo"></div>
@@ -103,7 +123,6 @@
         </div>
     </div>
 
-    <!-- تم التحديث هنا: إعادة توجيه المسار إلى المجلد الفعلي js-logic -->
     <script type="module" src="../js-logic/customers-list.js"></script>
 </body>
 </html>
