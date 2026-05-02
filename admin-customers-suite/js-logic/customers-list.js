@@ -6,8 +6,8 @@
 // 1. استيراد دوال فايربيس اللازمة (تم التحديث للإصدار 12.12.1 الموحد)
 import { collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-// 2. استيراد الاتصال الجاهز بقاعدة البيانات من ملف الإعدادات المركزي
-import { db } from './firebase.js'; 
+// 2. استيراد الاتصال الجاهز بقاعدة البيانات من مجلد js الجديد
+import { db } from '../js/firebase.js'; 
 
 // 3. تحديد مسار مجموعة العملاء في قاعدة البيانات
 const customersRef = collection(db, "customers");
