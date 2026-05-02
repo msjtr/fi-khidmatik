@@ -1,15 +1,23 @@
-// استيراد دوال فايربيس (تأكد من تعديل مسار الاستيراد بناءً على ملف إعداداتك)
-import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-// افتراض أن لديك ملف تهيئة firebase-config.js جاهز يصدّر الـ app
-// import { app } from './firebase-config.js'; 
+/**
+ * نظام Tera V12 - محرك قائمة العملاء
+ * مؤسسة الإتقان بلس - حائل
+ */
 
-const db = getFirestore(); // مرر app هنا إذا لزم الأمر
+// 1. استيراد دوال فايربيس اللازمة (الإصدار 9+)
+import { collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// 2. استيراد الاتصال الجاهز بقاعدة البيانات من ملف الإعدادات المركزي
+import { db } from './firebase.js'; 
+
+// 3. تحديد مسار مجموعة العملاء في قاعدة البيانات
 const customersRef = collection(db, "customers");
 
-// متغير عالمي لحفظ بيانات العملاء لتسهيل التعديل
+// متغير عالمي لحفظ بيانات العملاء لتسهيل التعديل والبحث
 let customersDataList = [];
 
-// 1. جلب وعرض البيانات
+// ----------------------------------------------------
+// الدالة الأولى: جلب وعرض بيانات العملاء في الجدول
+// ----------------------------------------------------
 async function loadCustomers() {
     const tbody = document.getElementById('customers-tbody');
     try {
@@ -23,20 +31,20 @@ async function loadCustomers() {
             data.id = docSnap.id; // حفظ معرف الوثيقة للحذف والتعديل
             customersDataList.push(data);
 
-            // تجهيز الصورة الرمزية (الحرف الأول أو صورة)
+            // تجهيز الصورة الرمزية (الحرف الأول من الاسم إذا لم توجد صورة)
             const firstLetter = data.name ? data.name.charAt(0).toUpperCase() : '?';
             const avatarHtml = data.avatarUrl 
                 ? `<img src="${data.avatarUrl}" alt="${data.name}">` 
                 : firstLetter;
 
-            // تجهيز رابط الخريطة (بحث جوجل مابس باستخدام العنوان)
-            const fullAddress = `${data.country} ${data.city} ${data.district} ${data.street} ${data.buildingNo}`;
+            // تجهيز رابط الخريطة (بحث جوجل مابس باستخدام العناوين المدخلة)
+            const fullAddress = `${data.country || ''} ${data.city || ''} ${data.district || ''} ${data.street || ''} ${data.buildingNo || ''}`.trim();
             const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
 
-            // تنسيق التاريخ
+            // تنسيق التاريخ ليناسب التوقيت السعودي
             const dateAdded = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-SA') : 'غير متوفر';
 
-            // حالة افتراضية إذا لم تكن موجودة بالقاعدة
+            // حالة العميل الافتراضية إذا لم تكن موجودة بالقاعدة
             const status = data.status || "نشط";
 
             const row = document.createElement('tr');
@@ -45,16 +53,16 @@ async function loadCustomers() {
                 <td class="sticky-col">
                     <div class="avatar-cell">
                         <div class="avatar-circle">${avatarHtml}</div>
-                        <strong>${data.name}</strong>
+                        <strong>${data.name || 'بدون اسم'}</strong>
                     </div>
                 </td>
-                <td dir="ltr">${data.phone}</td>
-                <td dir="ltr">${data.countryCode}</td>
+                <td dir="ltr">${data.phone || '-'}</td>
+                <td dir="ltr">${data.countryCode || '+966'}</td>
                 <td>${data.email || '-'}</td>
-                <td>${data.country}</td>
-                <td>${data.city}</td>
-                <td>${data.district}</td>
-                <td>${data.street}</td>
+                <td>${data.country || '-'}</td>
+                <td>${data.city || '-'}</td>
+                <td>${data.district || '-'}</td>
+                <td>${data.street || '-'}</td>
                 <td>${data.buildingNo || '-'}</td>
                 <td>${data.additionalNo || '-'}</td>
                 <td>${data.postalCode || '-'}</td>
@@ -76,23 +84,33 @@ async function loadCustomers() {
             tbody.appendChild(row);
         });
 
-        document.getElementById('customers-count').innerText = customersDataList.length;
+        // تحديث عداد العملاء في أعلى الصفحة
+        const countElement = document.getElementById('customers-count');
+        if (countElement) {
+            countElement.innerText = customersDataList.length;
+        }
 
+        // في حال كانت قاعدة البيانات فارغة
         if (customersDataList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="18" style="text-align:center;">لا يوجد عملاء في النظام</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="18" style="text-align:center; padding:20px;">لا يوجد عملاء مضافين في النظام حتى الآن</td></tr>`;
         }
 
     } catch (error) {
         console.error("خطأ في جلب العملاء:", error);
-        tbody.innerHTML = `<tr><td colspan="18" style="color:red; text-align:center;">خطأ في الاتصال بقاعدة البيانات</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="18" style="color:red; text-align:center; padding:20px;">خطأ في الاتصال بقاعدة البيانات. تأكد من إعدادات Firebase.</td></tr>`;
     }
 }
 
-// 2. نظام التعديل (فتح النافذة وجلب البيانات القديمة)
+// ----------------------------------------------------
+// الدالة الثانية: نظام التعديل (نافذة المودال)
+// ----------------------------------------------------
+// تم استخدام window لربط الدوال مع أزرار HTML المباشرة
 window.openEditModal = (id) => {
+    // جلب بيانات العميل من المصفوفة المخزنة بالذاكرة
     const customer = customersDataList.find(c => c.id === id);
     if (!customer) return;
 
+    // تعبئة الحقول بالبيانات القديمة
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('edit-name').value = customer.name || '';
     document.getElementById('edit-phone').value = customer.phone || '';
@@ -109,10 +127,11 @@ window.openEditModal = (id) => {
     document.getElementById('edit-tag').value = customer.tag || '';
     document.getElementById('edit-status').value = customer.status || 'نشط';
 
-    // تحديث صورة العرض في المودال
+    // تحديث صورة العرض في النافذة المنبثقة
     const preview = document.getElementById('edit-avatar-preview');
     preview.innerHTML = customer.avatarUrl ? `<img src="${customer.avatarUrl}">` : (customer.name ? customer.name.charAt(0) : 'م');
 
+    // إظهار النافذة
     document.getElementById('edit-customer-modal').classList.add('active');
 };
 
@@ -120,71 +139,83 @@ window.closeEditModal = () => {
     document.getElementById('edit-customer-modal').classList.remove('active');
 };
 
-// 3. حفظ التعديلات الجديدة في القاعدة
-document.getElementById('edit-customer-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('edit-doc-id').value;
-    const saveBtn = document.querySelector('.save-btn');
-    saveBtn.innerText = 'جارِ الحفظ...';
-    saveBtn.disabled = true;
-
-    try {
-        const docRef = doc(db, "customers", id);
-        // البيانات الجديدة
-        await updateDoc(docRef, {
-            name: document.getElementById('edit-name').value,
-            phone: document.getElementById('edit-phone').value,
-            countryCode: document.getElementById('edit-countryCode').value,
-            email: document.getElementById('edit-email').value,
-            country: document.getElementById('edit-country').value,
-            city: document.getElementById('edit-city').value,
-            district: document.getElementById('edit-district').value,
-            street: document.getElementById('edit-street').value,
-            buildingNo: document.getElementById('edit-buildingNo').value,
-            additionalNo: document.getElementById('edit-additionalNo').value,
-            postalCode: document.getElementById('edit-postalCode').value,
-            poBox: document.getElementById('edit-poBox').value,
-            tag: document.getElementById('edit-tag').value,
-            status: document.getElementById('edit-status').value,
-            updatedAt: new Date().toISOString()
-        });
+// ----------------------------------------------------
+// الدالة الثالثة: حفظ التعديلات في قاعدة البيانات
+// ----------------------------------------------------
+const editForm = document.getElementById('edit-customer-form');
+if(editForm) {
+    editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        /* 
-         ملاحظة: إذا تم رفع صورة جديدة عبر id="edit-avatar-file"، 
-         يجب رفعها أولاً لـ Firebase Storage ثم جلب الرابط وتحديث avatarUrl 
-         (هذا يتطلب إعداد Storage)
-        */
+        const id = document.getElementById('edit-doc-id').value;
+        const saveBtn = document.querySelector('.save-btn');
+        
+        // تعطيل الزر مؤقتاً أثناء التحميل
+        saveBtn.innerText = 'جارِ الحفظ...';
+        saveBtn.disabled = true;
 
-        alert('تم تحديث البيانات بنجاح!');
-        closeEditModal();
-        loadCustomers(); // إعادة تحميل الجدول لإظهار التعديلات
-    } catch (error) {
-        console.error("خطأ أثناء التعديل:", error);
-        alert('حدث خطأ أثناء الحفظ');
-    } finally {
-        saveBtn.innerText = 'حفظ التعديلات';
-        saveBtn.disabled = false;
-    }
-});
+        try {
+            const docRef = doc(db, "customers", id);
+            
+            // حقن البيانات الجديدة فوق القديمة
+            await updateDoc(docRef, {
+                name: document.getElementById('edit-name').value,
+                phone: document.getElementById('edit-phone').value,
+                countryCode: document.getElementById('edit-countryCode').value,
+                email: document.getElementById('edit-email').value,
+                country: document.getElementById('edit-country').value,
+                city: document.getElementById('edit-city').value,
+                district: document.getElementById('edit-district').value,
+                street: document.getElementById('edit-street').value,
+                buildingNo: document.getElementById('edit-buildingNo').value,
+                additionalNo: document.getElementById('edit-additionalNo').value,
+                postalCode: document.getElementById('edit-postalCode').value,
+                poBox: document.getElementById('edit-poBox').value,
+                tag: document.getElementById('edit-tag').value,
+                status: document.getElementById('edit-status').value,
+                updatedAt: new Date().toISOString() // توقيت آخر تعديل
+            });
+            
+            alert('تم تحديث بيانات العميل بنجاح!');
+            closeEditModal();
+            loadCustomers(); // إعادة تحميل الجدول لإظهار التعديلات فوراً
+            
+        } catch (error) {
+            console.error("خطأ أثناء التعديل:", error);
+            alert('حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.');
+        } finally {
+            saveBtn.innerText = 'حفظ التعديلات';
+            saveBtn.disabled = false;
+        }
+    });
+}
 
-// 4. نظام الحذف
+// ----------------------------------------------------
+// الدالة الرابعة: نظام الحذف الآمن
+// ----------------------------------------------------
 window.deleteCustomer = async (id) => {
-    if(confirm('هل أنت متأكد من حذف هذا العميل نهائياً؟')) {
+    if(confirm('هل أنت متأكد من حذف هذا العميل نهائياً من قاعدة البيانات؟ لا يمكن التراجع عن هذا الإجراء.')) {
         try {
             await deleteDoc(doc(db, "customers", id));
             alert('تم الحذف بنجاح');
-            loadCustomers();
+            loadCustomers(); // تحديث الجدول بعد الحذف
         } catch (error) {
             console.error("خطأ أثناء الحذف:", error);
+            alert('حدث خطأ أثناء محاولة الحذف.');
         }
     }
 };
 
-// 5. نظام الطباعة البسيط
+// ----------------------------------------------------
+// الدالة الخامسة: نظام الطباعة
+// ----------------------------------------------------
 window.printCustomer = (id) => {
-    // يمكنك لاحقاً تصميم فاتورة/بطاقة مخصصة للطباعة
+    // كإجراء مبدئي، سنقوم بطباعة الشاشة الحالية. 
+    // يمكنك لاحقاً تخصيص فاتورة أو بطاقة عميل لطباعتها.
     window.print(); 
 };
 
-// تشغيل جلب البيانات عند تحميل الصفحة
+// ----------------------------------------------------
+// تشغيل جلب البيانات تلقائياً بمجرد تحميل الصفحة
+// ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', loadCustomers);
