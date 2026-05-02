@@ -23,13 +23,26 @@ export function initApp() {
 function updateUIForUser() {
     console.log("الدخول المباشر بصلاحيات مدير النظام...");
     
-    // نستخدم Event Listener للتأكد من وجود العنصر بعد حقن الهيدر
-    document.addEventListener('TeraLayoutReady', () => {
-        const userNameElement = document.getElementById('user-display-name');
+    // دالة مجمعة لتحديث بيانات الهيدر
+    const applyUserData = () => {
+        // 1. تحديث اسم المستخدم (تم تصحيح الـ ID ليتطابق مع الهيدر الجديد)
+        const userNameElement = document.getElementById('display-user-name');
         if (userNameElement) {
             userNameElement.innerText = "أبا صالح الشمري (وضع الإدارة)"; 
         }
-    });
+
+        // 2. تحديث الصورة الرمزية لتكون حرف "أ"
+        const avatarElement = document.getElementById('user-avatar-icon');
+        if (avatarElement) {
+            avatarElement.innerText = "أ"; 
+        }
+    };
+
+    // نستخدم Event Listener للتأكد من وجود العنصر بعد حقن الهيدر
+    document.addEventListener('TeraLayoutReady', applyUserData);
+
+    // صمام أمان (Fallback): محاولة التحديث بعد نصف ثانية لضمان أن الهيدر قد تم رسمه في الشاشة
+    setTimeout(applyUserData, 500);
 }
 
 /**
