@@ -17,40 +17,43 @@
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .table-responsive-container { background: white; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        /* تحديث عرض الجدول ليتسع لـ 18 عمود */
-        .tera-table { width: 100%; border-collapse: collapse; min-width: 2200px; } 
-        .tera-table th, .tera-table td { padding: 12px 10px; text-align: right; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        /* تحسين عرض الجدول ليتسع لـ 18 عمود بدقة */
+        .tera-table { width: 100%; border-collapse: collapse; min-width: 2400px; } 
+        .tera-table th, .tera-table td { padding: 12px 10px; text-align: right; border-bottom: 1px solid #eee; font-size: 0.88em; }
         .tera-table th { background-color: #f8f9fa; color: var(--primary-color); font-weight: 600; white-space: nowrap; }
         
-        /* تثبيت الأعمدة المهمة */
+        /* تثبيت الأعمدة المهمة للتصفح السهل */
         .sticky-col { position: sticky; right: 0; background: #f8f9fa; z-index: 2; border-left: 1px solid #ddd; }
         .sticky-col-right { position: sticky; left: 0; background: #f8f9fa; z-index: 2; border-right: 1px solid #ddd; }
         
-        /* Badges */
+        /* Badges للحالات */
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; white-space: nowrap; }
         .status-active { background: #d4edda; color: #155724; }
         .status-paused { background: #fff3cd; color: #856404; }
         .status-blocked { background: #f8d7da; color: #721c24; }
         
-        /* Modal */
+        /* تنسيق المودال (نافذة التعديل) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: white; width: 95%; max-width: 1100px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 25px; position: relative; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .modal-content { background: white; width: 95%; max-width: 1150px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 25px; position: relative; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; }
         .input-group label { font-weight: bold; font-size: 0.85em; color: #555; }
-        .input-group input, .input-group select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9em; }
+        .input-group input, .input-group select { padding: 9px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9em; outline: none; }
+        .input-group input:focus { border-color: var(--accent-color); }
         
-        /* Editor & Attachments */
-        .editor-container { height: 180px; margin-bottom: 15px; background: white; }
-        .attachments-section { border-top: 2px solid #eee; padding-top: 15px; margin-top: 20px; }
-        .attachment-item { display: flex; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e1e4e8; font-size: 0.9em; }
+        /* الملاحظات المنسقة والمرفقات */
+        .editor-container { height: 200px; margin-bottom: 15px; background: white; border-radius: 6px; }
+        .attachments-section { border-top: 2px solid #eee; padding-top: 20px; margin-top: 25px; }
+        .attachment-item { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e1e4e8; }
         
-        .action-btn { border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: 0.3s; font-size: 1.1em; }
+        /* أزرار الإجراءات */
+        .action-btn { border: none; padding: 7px 10px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 1.1em; margin-left: 3px; }
         .edit { background: #3498db; color: white; }
         .print { background: #95a5a6; color: white; }
         .delete { background: #e74c3c; color: white; }
         .attach { background: #607d8b; color: white; }
+        .action-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -58,67 +61,70 @@
     <div class="page-header">
         <div class="header-titles">
             <h1>قائمة العملاء - Tera V12</h1>
-            <p>إدارة شاملة لبيانات العملاء، الملاحظات المنسقة، والمرفقات</p>
+            <p>النظام الشامل لإدارة بيانات العملاء، المرفقات السحابية، والتقارير المنسقة</p>
         </div>
-        <div class="stats">إجمالي العملاء: <span id="customers-count">0</span></div>
+        <div class="stats" style="font-weight: bold; color: var(--primary-color);">إجمالي سجلات العملاء: <span id="customers-count">0</span></div>
     </div>
 
     <div class="table-responsive-container">
         <table class="tera-table">
             <thead>
                 <tr>
-                    <th>#</th> <!-- 1 -->
-                    <th class="sticky-col">اسم العميل</th> <!-- 2 -->
-                    <th>الجوال</th> <!-- 3 -->
-                    <th>مفتاح الدولة</th> <!-- 4 -->
-                    <th>البريد الإلكتروني</th> <!-- 5 -->
-                    <th>الدولة</th> <!-- 6 -->
-                    <th>المدينة</th> <!-- 7 -->
-                    <th>الحي</th> <!-- 8 -->
-                    <th>الشارع</th> <!-- 9 -->
-                    <th>المبنى</th> <!-- 10 -->
-                    <th>الإضافي</th> <!-- 11 -->
-                    <th>الرمز البريدي</th> <!-- 12 -->
-                    <th>صندوق البريد</th> <!-- 13 -->
-                    <th>تاريخ الإضافة</th> <!-- 14 -->
-                    <th>الحالة</th> <!-- 15 -->
-                    <th>التصنيف</th> <!-- 16 -->
-                    <th>سلوك العميل</th> <!-- 17 -->
-                    <th class="sticky-col-right">الإجراءات</th> <!-- 18 -->
+                    <th>#</th> <!-- 1. التسلسل -->
+                    <th class="sticky-col">اسم العميل</th> <!-- 2. الاسم -->
+                    <th>الجوال</th> <!-- 3. الجوال -->
+                    <th>مفتاح الدولة</th> <!-- 4. الرمز -->
+                    <th>البريد الإلكتروني</th> <!-- 5. البريد -->
+                    <th>الدولة</th> <!-- 6. الدولة -->
+                    <th>المدينة</th> <!-- 7. المدينة -->
+                    <th>الحي</th> <!-- 8. الحي -->
+                    <th>الشارع</th> <!-- 9. الشارع -->
+                    <th>المبنى</th> <!-- 10. المبنى -->
+                    <th>الإضافي</th> <!-- 11. الإضافي -->
+                    <th>الرمز البريدي</th> <!-- 12. الرمز البريدي -->
+                    <th>صندوق البريد</th> <!-- 13. ص.ب -->
+                    <th>تاريخ الإضافة</th> <!-- 14. تاريخ الإضافة -->
+                    <th>حالة الحساب</th> <!-- 15. الحالة -->
+                    <th>تصنيف العميل</th> <!-- 16. التصنيف -->
+                    <th>سلوك العميل</th> <!-- 17. السلوك -->
+                    <th class="sticky-col-right">الإجراءات</th> <!-- 18. الإجراءات -->
                 </tr>
             </thead>
             <tbody id="customers-tbody">
-                <tr><td colspan="18" style="text-align:center; padding: 40px;">جارِ تحميل قاعدة البيانات...</td></tr>
+                <tr><td colspan="18" style="text-align:center; padding: 50px; font-weight: bold; color: #7f8c8d;">جارِ استدعاء البيانات من السحابة...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <!-- مودال التعديل الشامل -->
+    <!-- نافذة تعديل الملف الشخصي -->
     <div id="edit-customer-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header" style="display:flex; justify-content:space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
-                <h2 style="margin:0;">تعديل الملف الشخصي للعميل</h2>
-                <button onclick="closeEditModal()" style="border:none; background:none; font-size:28px; cursor:pointer; color:#999;">&times;</button>
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items: center; border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; margin-bottom: 25px;">
+                <h2 style="margin:0; color: var(--primary-color);">✏️ تحديث الملف الشخصي والتقييم الإداري</h2>
+                <button onclick="closeEditModal()" style="border:none; background:none; font-size:32px; cursor:pointer; color:#bdc3c7;">&times;</button>
             </div>
             
             <form id="edit-customer-form">
                 <input type="hidden" id="edit-doc-id">
                 
-                <!-- شبكة المدخلات لـ 13 حقل أساسي -->
                 <div class="form-grid">
-                    <div class="input-group"><label>اسم العميل</label><input type="text" id="edit-name"></div>
+                    <!-- البيانات الأساسية -->
+                    <div class="input-group"><label>الاسم الكامل</label><input type="text" id="edit-name"></div>
                     <div class="input-group"><label>رقم الجوال</label><input type="text" id="edit-phone"></div>
                     <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode"></div>
                     <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
+                    
+                    <!-- البيانات الجغرافية -->
                     <div class="input-group"><label>الدولة</label><input type="text" id="edit-country"></div>
                     <div class="input-group"><label>المدينة</label><input type="text" id="edit-city"></div>
                     <div class="input-group"><label>الحي</label><input type="text" id="edit-district"></div>
-                    <div class="input-group"><label>الشارع</label><input type="text" id="edit-street"></div>
+                    <div class="input-group"><label>اسم الشارع</label><input type="text" id="edit-street"></div>
                     <div class="input-group"><label>رقم المبنى</label><input type="text" id="edit-buildingNo"></div>
                     <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="edit-additionalNo"></div>
                     <div class="input-group"><label>الرمز البريدي</label><input type="text" id="edit-postalCode"></div>
                     <div class="input-group"><label>صندوق البريد</label><input type="text" id="edit-poBox"></div>
                     
+                    <!-- الحالة والتقييم -->
                     <div class="input-group"><label>حالة الحساب</label>
                         <select id="edit-accountStatus">
                             <option value="جديد">جديد</option>
@@ -145,43 +151,57 @@
                     </div>
                 </div>
 
-                <!-- الملاحظات المتقدمة (نمط Word) -->
-                <div class="input-group" style="margin-bottom: 25px;">
-                    <label>الملاحظات الإدارية المنسقة</label>
+                <!-- الملاحظات المنسقة (Quill Editor) -->
+                <div class="input-group" style="margin-bottom: 30px;">
+                    <label>الملاحظات الإدارية المنسقة (يدعم تنسيق Word)</label>
                     <div id="editor" class="editor-container"></div>
                 </div>
 
-                <!-- قسم المرفقات -->
+                <!-- إدارة الوثائق والمرفقات السحابية -->
                 <div class="attachments-section">
-                    <h3 style="font-size:1.1em; color:var(--primary-color);">📎 إدارة الوثائق والمرفقات</h3>
-                    <div style="display:flex; flex-wrap: wrap; gap:10px; margin-bottom:15px; background:#f0f2f5; padding:15px; border-radius:8px;">
-                        <input type="text" id="new-file-name" placeholder="اسم الوثيقة (مثال: صورة الهوية)" style="flex:2; min-width:200px;">
-                        <input type="file" id="new-file-input" style="flex:2; min-width:200px;">
-                        <button type="button" id="upload-btn" class="edit" style="flex:1; min-width:120px; padding:8px; border:none; cursor:pointer; font-weight:bold;">إضافة مرفق</button>
+                    <h3 style="font-size:1.15em; color:var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        📎 إدارة الأرشيف والوثائق المرفقة
+                    </h3>
+                    <div style="display:flex; flex-wrap: wrap; gap:12px; margin-bottom:20px; background:#f9fbff; padding:18px; border-radius:10px; border: 1px dashed #d1d9e6;">
+                        <div style="flex:2; min-width:250px;">
+                            <label style="display:block; margin-bottom:5px; font-size:0.85em; font-weight:bold;">مسمى الوثيقة</label>
+                            <input type="text" id="new-file-name" placeholder="مثلاً: صورة السجل التجاري" style="width:100%; box-sizing: border-box;">
+                        </div>
+                        <div style="flex:2; min-width:250px;">
+                            <label style="display:block; margin-bottom:5px; font-size:0.85em; font-weight:bold;">اختيار الملف</label>
+                            <input type="file" id="new-file-input" style="width:100%;">
+                        </div>
+                        <div style="flex:1; min-width:140px; align-self: flex-end;">
+                            <button type="button" id="upload-btn" class="edit" style="width:100%; padding:10px; border:none; cursor:pointer; font-weight:bold; border-radius:6px;">رفع الوثيقة</button>
+                        </div>
                     </div>
                     <div id="files-list"></div>
                 </div>
 
-                <div style="margin-top:30px; border-top:1px solid #eee; padding-top:20px; text-align:left;">
-                    <button type="button" onclick="closeEditModal()" style="padding:10px 25px; border-radius:6px; border:1px solid #ccc; cursor:pointer; background:white;">إلغاء</button>
-                    <button type="submit" class="edit" style="padding:10px 40px; border-radius:6px; border:none; cursor:pointer; font-weight:bold; margin-right:10px;">حفظ كافة البيانات</button>
+                <!-- أزرار التحكم في النموذج -->
+                <div style="margin-top:40px; border-top:2px solid #f1f1f1; padding-top:25px; text-align:left;">
+                    <button type="button" onclick="closeEditModal()" style="padding:11px 30px; border-radius:8px; border:1px solid #dcdde1; cursor:pointer; background:#f5f6fa; color:#2f3640; font-weight:bold;">إغلاق</button>
+                    <button type="submit" class="edit" style="padding:11px 50px; border-radius:8px; border:none; cursor:pointer; font-weight:bold; margin-right:12px; font-size:1em;">تحديث كافة البيانات</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- مودال سريع لعرض المرفقات فقط -->
+    <!-- نافذة العرض السريع للوثائق -->
     <div id="view-files-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width:550px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0;">عرض الوثائق المرفقة</h3>
-                <button onclick="document.getElementById('view-files-modal').classList.remove('active')" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+        <div class="modal-content" style="max-width:600px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <h3 style="margin:0; color:var(--primary-color);">📋 أرشيف مستندات العميل</h3>
+                <button onclick="document.getElementById('view-files-modal').classList.remove('active')" style="border:none; background:none; font-size:26px; cursor:pointer; color:#ccc;">&times;</button>
             </div>
-            <div id="only-files-list" style="min-height: 100px;"></div>
-            <button onclick="document.getElementById('view-files-modal').classList.remove('active')" style="margin-top:20px; width:100%; padding:12px; cursor:pointer; border-radius:6px; border:1px solid #ddd; background:#f9f9f9;">إغلاق</button>
+            <div id="only-files-list" style="min-height: 120px;"></div>
+            <div style="text-align: center; margin-top: 25px;">
+                <button onclick="document.getElementById('view-files-modal').classList.remove('active')" style="padding:10px 40px; cursor:pointer; border-radius:6px; border: 1px solid #ddd; background:#fff; font-weight:bold;">تم</button>
+            </div>
         </div>
     </div>
 
+    <!-- استدعاء المكتبات البرمجية -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script type="module" src="../js-logic/customers-list.js"></script>
 </body>
