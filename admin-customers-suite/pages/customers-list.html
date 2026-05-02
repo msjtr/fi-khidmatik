@@ -1,21 +1,109 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <link rel="stylesheet" href="../css-styles/list-table-style.css">
+    <meta charset="UTF-8">
+    <title>قائمة العملاء - Tera V12</title>
+    <!-- ربط ملف التنسيق الخاص بالصفحة -->
+    <link rel="stylesheet" href="../css-styles/customers-list.css">
 </head>
 <body>
-    <div class="table-card">
-        <div class="table-header">
-            <h4>جدول العملاء</h4>
-            <input type="text" id="search" placeholder="بحث...">
+
+    <div class="page-header">
+        <div class="header-titles">
+            <h2>قائمة العملاء</h2>
+            <p>إدارة بيانات العملاء، العناوين، والتصنيفات (عدد العملاء: <span id="customers-count">0</span>)</p>
         </div>
-        <table>
+        <button class="primary-btn" onclick="window.parent.teraNavigate('add-customer')">
+            ➕ إضافة عميل جديد
+        </button>
+    </div>
+
+    <!-- حاوية الجدول القابلة للتمرير الأفقي -->
+    <div class="table-responsive-container">
+        <table class="tera-table" id="customers-table">
             <thead>
-                <tr><th>الاسم</th><th>الهوية</th><th>الحالة</th><th>إجراء</th></tr>
+                <tr>
+                    <th>#</th>
+                    <th class="sticky-col">اسم العميل</th>
+                    <th>الجوال</th>
+                    <th>مفتاح الدولة</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الدولة</th>
+                    <th>المدينة</th>
+                    <th>الحي</th>
+                    <th>الشارع</th>
+                    <th>المبنى</th>
+                    <th>الإضافي</th>
+                    <th>الرمز البريدي</th>
+                    <th>صندوق البريد</th>
+                    <th>الموقع (الخريطة)</th>
+                    <th>تاريخ الإضافة</th>
+                    <th>الحالة</th>
+                    <th>التصنيف</th>
+                    <th class="sticky-col-right">الإجراءات</th>
+                </tr>
             </thead>
-            <tbody id="customerData"></tbody>
+            <tbody id="customers-tbody">
+                <!-- سيتم حقن البيانات هنا عبر الجافاسكريبت -->
+                <tr><td colspan="18" class="loading-msg">جارِ جلب بيانات العملاء...</td></tr>
+            </tbody>
         </table>
     </div>
-    <script src="../js-logic/list-table-logic.js"></script>
+
+    <!-- نافذة تعديل بيانات العميل (Modal) -->
+    <div id="edit-customer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تعديل بيانات العميل</h3>
+                <button class="close-btn" onclick="closeEditModal()">✖</button>
+            </div>
+            
+            <form id="edit-customer-form">
+                <input type="hidden" id="edit-doc-id">
+                
+                <!-- صورة العميل المرفقة -->
+                <div class="avatar-upload-section">
+                    <div class="current-avatar" id="edit-avatar-preview">م</div>
+                    <label class="upload-btn">
+                        تغيير الصورة
+                        <input type="file" id="edit-avatar-file" accept="image/*" hidden>
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <div class="input-group"><label>اسم العميل</label><input type="text" id="edit-name" required></div>
+                    <div class="input-group"><label>رقم الجوال</label><input type="text" id="edit-phone" required></div>
+                    <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode" dir="ltr"></div>
+                    <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
+                    
+                    <div class="input-group"><label>الدولة</label><input type="text" id="edit-country"></div>
+                    <div class="input-group"><label>المدينة</label><input type="text" id="edit-city"></div>
+                    <div class="input-group"><label>الحي</label><input type="text" id="edit-district"></div>
+                    <div class="input-group"><label>الشارع</label><input type="text" id="edit-street"></div>
+                    
+                    <div class="input-group"><label>رقم المبنى</label><input type="text" id="edit-buildingNo"></div>
+                    <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="edit-additionalNo"></div>
+                    <div class="input-group"><label>الرمز البريدي</label><input type="text" id="edit-postalCode"></div>
+                    <div class="input-group"><label>صندوق البريد</label><input type="text" id="edit-poBox"></div>
+                    
+                    <div class="input-group"><label>التصنيف (Tag)</label><input type="text" id="edit-tag"></div>
+                    <div class="input-group"><label>الحالة</label>
+                        <select id="edit-status">
+                            <option value="نشط">نشط</option>
+                            <option value="غير نشط">غير نشط</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="cancel-btn" onclick="closeEditModal()">إلغاء</button>
+                    <button type="submit" class="save-btn">حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ربط محرك الجافاسكريبت -->
+    <script type="module" src="../js-logic/customers-list.js"></script>
 </body>
 </html>
