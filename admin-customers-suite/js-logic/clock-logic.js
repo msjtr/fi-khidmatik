@@ -36,19 +36,24 @@ export function startTeraClock() {
         // 5. حقن التاريخ بالصيغة الرقمية الموحدة (يوم/شهر/سنة)
         if (hijriEl && gregEl) {
             
-            // إجبار المتصفح على التقويم الهجري (أم القرى) بصيغة DD/MM/YYYY
-            hijriEl.innerText = new Intl.DateTimeFormat('en-GB-u-ca-islamic-uma', { 
+            // الكلمة الصحيحة للتقويم هي "islamic-umalqura"
+            let hijriFormat = new Intl.DateTimeFormat('en-GB-u-ca-islamic-umalqura', { 
                 day: '2-digit', 
                 month: '2-digit', 
                 year: 'numeric' 
             }).format(now);
 
+            // مسح أي نصوص زائدة (مثل AH أو هـ) ليبقى التاريخ أرقاماً فقط (01/01/1447)
+            hijriEl.innerText = hijriFormat.replace(/[a-zA-Z\sهـ]/g, '').trim();
+
             // إجبار المتصفح على التقويم الميلادي بصيغة DD/MM/YYYY
-            gregEl.innerText = new Intl.DateTimeFormat('en-GB', { 
+            let gregFormat = new Intl.DateTimeFormat('en-GB', { 
                 day: '2-digit', 
                 month: '2-digit', 
                 year: 'numeric' 
             }).format(now);
+            
+            gregEl.innerText = gregFormat;
         }
     }
 
