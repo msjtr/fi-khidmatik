@@ -1,64 +1,56 @@
 /**
  * منصة في خدمتك من الإتقان بلس | V12.12.12
  * وضع التطوير: تم تعطيل صفحة الدخول مؤقتاً لضمان سرعة الإدارة
+ * المستخدم: محمد بن صالح بن جميعان الشمري (أبا صالح)
  * الملف: js/main.js
  */
 
-// استيراد قاعدة البيانات والصلاحيات من ملف firebase.js الأساسي
 import { auth, db } from './firebase.js';
 
-let sessionSeconds = 0; // متغير لحساب مدة الجلسة
+let sessionSeconds = 0; 
 
 /**
  * دالة تشغيل النظام الرئيسية
  */
 export function initApp() {
-    console.log("%c 🛠️ وضع التطوير: تم تعطيل نظام الحماية والدخول مؤقتاً ", "color: #fff; background: #ff0000; padding: 5px;");
+    console.log("%c 🛠️ وضع التطوير لـ (أبا صالح الشمري): نظام الإدارة مفعل مباشرة ", "color: #fff; background: #2c3e50; padding: 5px; border-radius: 5px;");
 
-    // السماح بالدخول المباشر لواجهة أبا صالح الشمري
-    updateUIForUser();
+    // تشغيل الواجهة بصلاحيات المشغل الرئيسي لمنصة Tera
+    updateUIForOwner();
     setupGlobalListeners();
 }
 
 /**
- * تحديث الواجهة مباشرة بصلاحيات مدير النظام وتشغيل العناصر التفاعلية
+ * تحديث الواجهة بصلاحيات محمد بن صالح الشمري
  */
-function updateUIForUser() {
-    console.log("الدخول المباشر بصلاحيات مدير النظام...");
-    
-    // دالة مجمعة لتحديث بيانات الهيدر وتشغيل الوظائف
+function updateUIForOwner() {
     const applyUserData = () => {
-        // 1. تحديث اسم المستخدم
+        // 1. تحديث الاسم الكامل للمدير (محمد بن صالح الشمري)
         const userNameElement = document.getElementById('display-user-name');
         if (userNameElement) {
-            userNameElement.innerText = "أبا صالح الشمري"; 
+            userNameElement.innerText = "محمد بن صالح الشمري"; 
         }
 
-        // 2. تحديث الصورة الرمزية لتكون حرف "م"
+        // 2. تحديث الصورة الرمزية (Avatar) لتشمل الحرفين الأولين "م.ص"[cite: 1]
         const avatarElement = document.getElementById('user-avatar-icon');
         if (avatarElement) {
-            avatarElement.innerText = "م"; 
+            avatarElement.innerText = "م.ص"; 
         }
 
-        // 3. تشغيل الساعة الرقمية الحية في الهيدر
         startClock();
-
-        // 4. تشغيل عداد الجلسة في القائمة المنسدلة
         startSessionTimer();
-
-        // 5. تفعيل حركة القائمة المنسدلة للملف الشخصي (الفتح والإغلاق)
         setupProfileDropdown();
     };
 
-    // نستخدم Event Listener للتأكد من وجود العنصر بعد حقن الهيدر
+    // مزامنة التحديث مع محرك توزيع القوالب (TeraLayout)
     document.addEventListener('TeraLayoutReady', applyUserData);
 
-    // صمام أمان (Fallback): محاولة التحديث بعد نصف ثانية لضمان أن الهيدر قد تم رسمه في الشاشة
-    setTimeout(applyUserData, 500);
+    // صمام أمان لضمان التنفيذ في حال تأخر تحميل القالب
+    setTimeout(applyUserData, 400);
 }
 
 /**
- * دالة تشغيل الساعة الرقمية والتاريخ
+ * دالة تشغيل الساعة الرقمية (منطقة حائل)
  */
 function startClock() {
     const clockMount = document.getElementById('clock-mount-point');
@@ -66,29 +58,25 @@ function startClock() {
 
     setInterval(() => {
         const now = new Date();
-        let hours = now.getHours();
-        let minutes = now.getMinutes();
-        const ampm = hours >= 12 ? 'م' : 'ص';
+        const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        const timeString = now.toLocaleTimeString('ar-SA', options);
+        const dateString = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         
-        hours = hours % 12;
-        hours = hours ? hours : 12; // الساعة 0 تصبح 12
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        
-        // رسم الساعة داخل الحاوية المخصصة لها
         clockMount.innerHTML = `
-            <div class="clock-container">
-                <div class="date-display">${now.toLocaleDateString('ar-SA')}</div>
-                <div class="time-display">
-                    ${hours}<span class="sep">:</span>${minutes} 
-                    <span style="font-size:0.75rem; color:#8892B0; margin-right:4px;">${ampm}</span>
+            <div class="clock-container" style="text-align: left; direction: ltr;">
+                <div class="time-display" style="font-weight: bold; color: var(--accent);">
+                    ${timeString}
+                </div>
+                <div class="date-display" style="font-size: 0.75rem; color: #8892B0;">
+                    ${dateString}
                 </div>
             </div>
         `;
-    }, 1000); // تحديث كل ثانية
+    }, 1000);
 }
 
 /**
- * دالة حساب مدة الجلسة (تظهر داخل قائمة الملف الشخصي)
+ * عداد مدة الجلسة النشطة
  */
 function startSessionTimer() {
     const sessionCounter = document.getElementById('session-time-counter');
@@ -100,27 +88,24 @@ function startSessionTimer() {
         const mins = Math.floor((sessionSeconds % 3600) / 60);
         const secs = sessionSeconds % 60;
         
-        // تنسيق الوقت ليظهر بشكل 00:00:00
         sessionCounter.innerText = 
             `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }, 1000);
 }
 
 /**
- * دالة التحكم بالقائمة المنسدلة للملف الشخصي
+ * التحكم بالقائمة المنسدلة (Profile Dropdown)
  */
 function setupProfileDropdown() {
     const triggerBtn = document.getElementById('profile-trigger-btn');
     const dropdownMenu = document.getElementById('user-dropdown-menu');
 
     if (triggerBtn && dropdownMenu) {
-        // عند الضغط على الصورة أو السهم
         triggerBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // منع الحدث من الوصول للشاشة وإغلاق القائمة فوراً
+            e.stopPropagation();
             dropdownMenu.classList.toggle('show');
         });
 
-        // إغلاق القائمة عند الضغط في أي مكان آخر في الشاشة
         document.addEventListener('click', (e) => {
             if (!triggerBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
                 dropdownMenu.classList.remove('show');
@@ -130,23 +115,26 @@ function setupProfileDropdown() {
 }
 
 /**
- * مراقبة حالة الاتصال بالإنترنت
+ * مراقبة استقرار الاتصال في مكتب حائل[cite: 1]
  */
 function setupGlobalListeners() {
     window.addEventListener('offline', () => {
-        alert("تنبيه يا أبا صالح: انقطع الاتصال بالإنترنت، تأكد من الشبكة في مكتب حائل!");
+        // رسالة مخصصة لك يا أبا صالح[cite: 1]
+        console.warn("انقطع الاتصال بالشبكة في منطقة حائل.");
+        alert("تنبيه أبا صالح: تأكد من اتصال الإنترنت لمتابعة إدارة منصة Tera!");
     });
     
     window.addEventListener('online', () => {
-        console.log("تم استعادة الاتصال بنجاح.");
+        console.log("تم استعادة الاتصال.. عودة العمليات لمنصة تيرا.");
     });
 }
 
-// تشغيل النظام تلقائياً عند تحميل الملف
+// تشغيل محرك النظام
 initApp();
 
 export const systemConfig = {
     version: "12.12.12",
-    region: "Hail",
-    platform: "Tera Gateway - Dev Mode"
+    owner: "Mohammad Bin Saleh Al-Shammari", //[cite: 1]
+    region: "Hail, KSA", //[cite: 1]
+    mode: "Enterprise Admin"
 };
