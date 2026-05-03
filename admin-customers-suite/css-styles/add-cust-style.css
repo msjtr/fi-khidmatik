@@ -139,6 +139,54 @@ body {
     border-top: 2px solid #f7fafc;
 }
 
+/* --- تنسيقات سجل العمليات الجديد (بدون حذف القديم) --- */
+.operations-log-section {
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 3px solid #f1f5f9;
+}
+
+.operations-log-section h3 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.log-table th, .log-table td {
+    padding: 15px;
+    border-bottom: 1px solid #edf2f7;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.log-table th {
+    background: #2c3e50;
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.log-table tr:last-child td {
+    border-bottom: none;
+}
+
+.log-table tr:hover {
+    background-color: #f8fafc;
+}
+
 .save-btn {
     background-color: var(--success-color);
     color: white;
@@ -192,5 +240,10 @@ body {
     
     .save-btn, .cancel-btn {
         width: 100%;
+    }
+
+    .log-table {
+        display: block;
+        overflow-x: auto;
     }
 }
