@@ -1,31 +1,20 @@
-// الملف: js-logic/firebase.js
-// منصة الإتقان بلس - إعدادات الاتصال بقاعدة البيانات والتخزين السحابي
-
-// 1. استيراد الدوال الأساسية للإصدار 12.12.1
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
-// إضافة استيراد خدمة التخزين السحابي اللازمة للمرفقات
 import { getStorage } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
-// 2. إعدادات مشروعك الحقيقية (msjt301-974bb)
 const firebaseConfig = {
-    apiKey: "AIzaSyBWYW6Qqlhh904pBeuJ29wY7Cyjm2uklBA",
-    authDomain: "msjt301-974bb.firebaseapp.com",
-    projectId: "msjt301-974bb",
-    storageBucket: "msjt301-974bb.firebasestorage.app",
-    messagingSenderId: "186209858482",
-    appId: "1:186209858482:web:186ca610780799ef562aab",
-    measurementId: "G-NDVGC9GPQZ"
+    apiKey: "AIzaSyCikh505fV7E7mLjrxQLjvhMnFTJET5mNA",
+    authDomain: "fi-khidmatik-admin.firebaseapp.com",
+    projectId: "fi-khidmatik-admin",
+    storageBucket: "fi-khidmatik-admin.firebasestorage.app",
+    messagingSenderId: "814533039644",
+    appId: "1:814533039644:web:9e068dd1efcea9089731d9",
+    measurementId: "G-91D78EXWXK"
 };
 
-// 3. تهيئة التطبيق وتشغيل الإحصائيات
+// تهيئة المشروع
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-// 4. تصدير خدمات قاعدة البيانات، المصادقة، والتخزين السحابي لاستخدامها في باقي الملفات
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-// تصدير خدمة التخزين لتعمل مع نظام المرفقات الجديد
-export const storage = getStorage(app);
+export { db, storage };
