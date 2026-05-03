@@ -1,48 +1,55 @@
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-// استخدام المسار المباشر بناءً على هيكلة المجلدات التي اعتمدناها
 import { db } from '../js/firebase.js'; 
 
 /**
- * تهيئة محرر Quill ليدعم تنسيقات Word[cite: 1]
+ * تهيئة محرر Quill المتقدم لدعم العربية والجداول والألوان
  */
 const quill = new Quill('#editor-container', {
     theme: 'snow',
-    placeholder: 'اكتب ملاحظات العميل هنا بخصائص Word...',
+    placeholder: 'اكتب ملاحظات العميل هنا بخصائص Word المتقدمة...',
     modules: {
         toolbar: [
-            ['bold', 'italic', 'underline'],
+            [{ 'header': [1, 2, 3, false] }],
+            [{ 'font': [] }],
+            ['bold', 'italic', 'underline', 'strike'],        
+            [{ 'color': [] }, { 'background': [] }],          
+            [{ 'script': 'sub'}, { 'script': 'super' }],      
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'color': [] }, { 'background': [] }],
-            ['clean']
+            [{ 'direction': 'rtl' }, { 'align': [] }],        
+            ['link', 'image', 'video', 'blockquote', 'code-block'],
+            ['clean']                                         
         ]
     }
 });
 
-const addForm = document.getElementById('add-customer-form');
+// تعيين الاتجاه الافتراضي للمحرر ليكون من اليمين لليسار (عربي)
+quill.format('direction', 'rtl');
+quill.format('align', 'right');
 
 /**
- * معالجة إرسال النموذج وحفظ البيانات في Firebase
+ * معالجة إرسال النموذج
  */
+const addForm = document.getElementById('add-customer-form');
+
 addForm.onsubmit = async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submit-btn');
     
-    // 1. التحقق من أن رقم الجوال يبدأ بـ 5
+    // التحقق من رقم الجوال (يجب أن يبدأ بـ 5)
     const phoneInput = document.getElementById('cust-phone').value;
     if (!phoneInput.startsWith('5')) {
         alert("تنبيه أبا صالح: يجب أن يبدأ رقم الجوال بالرقم 5 (مثال: 5xxxxxxxx)");
-        return; // إيقاف العملية إذا كان الرقم غير صحيح
+        return; 
     }
 
     btn.innerText = "جاري الحفظ...";
     btn.disabled = true;
 
     try {
-        // جمع البيانات من الحقول الـ 16 المطلوبة[cite: 1, 2]
         const customerData = {
             name: document.getElementById('cust-name').value,
             phone: phoneInput,
-            countryCode: document.getElementById('cust-countryCode').value,
+            countryCode: document.getElementById('cust-countryCode').value, // القيمة المختارة من قائمة البحث[cite: 1]
             email: document.getElementById('cust-email').value,
             country: document.getElementById('cust-country').value,
             city: document.getElementById('cust-city').value,
@@ -54,26 +61,22 @@ addForm.onsubmit = async (e) => {
             poBox: document.getElementById('cust-poBox').value,
             accountStatus: document.getElementById('cust-accountStatus').value,
             customerCategory: document.getElementById('cust-customerCategory').value,
-            detailedNotes: quill.root.innerHTML, // جلب المحتوى المنسق من المحرر[cite: 1]
-            createdAt: new Date().toISOString(), // تسجيل تاريخ الإضافة آلياً
-            attachments: [] // مصفوفة فارغة للمرفقات المستقبلية[cite: 1]
+            detailedNotes: quill.root.innerHTML, 
+            createdAt: new Date().toISOString(), 
+            attachments: [] 
         };
 
-        // إضافة العميل لقاعدة بيانات fi-khidmatik-admin[cite: 1]
         await addDoc(collection(db, "customers"), customerData);
 
         alert("تم إضافة العميل بنجاح للقاعدة");
 
-        // 2. تفريغ جميع الحقول بعد النجاح لضمان واجهة فارغة[cite: 2]
         addForm.reset(); 
-        quill.setContents([]); // تفريغ محرر النصوص المتقدم
-
-        // التوجيه التلقائي للقائمة لمشاهدة النتيجة (اختياري، يمكنك تعطيله إذا أردت البقاء في الصفحة)[cite: 2]
+        quill.setContents([]); 
         window.location.href = "customers-list.html"; 
 
     } catch (error) {
         console.error("خطأ في الإضافة:", error);
-        alert("فشلت عملية الإضافة، يرجى التأكد من استقرار الإنترنت في مكتب حائل");
+        alert("فشلت عملية الإضافة، يرجى التأكد من استقرار الإنترنت");
     } finally {
         btn.innerText = "إضافة العميل للقاعدة";
         btn.disabled = false;
