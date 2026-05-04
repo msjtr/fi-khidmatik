@@ -1,195 +1,38 @@
-/* ============================================================
-   نظام Tera V12 - ملف التنسيق الموحد النهائي (المصلح والمطور)
-   المؤسسة: الإتقان بلس - حائل (مكتب أبا صالح الشمري)
-============================================================ */
-
 :root {
     --itqan-navy-bg: #0A192F;
     --itqan-navy-light: #112240;
     --itqan-gold-primary: #D4AF37;
-    --itqan-gold-glow: rgba(212, 175, 55, 0.4);
     --metal-gray: #6A7B9C;
     --app-bg: #E8EEF2;
     --card-bg: #FFFFFF;
     --shadow-float: 0 10px 30px rgba(10, 25, 47, 0.08);
-    --z-sidebar: 1100;
-    --z-header: 1000;
-    --z-dropdown: 1200;
 }
+* { box-sizing: border-box; outline: none; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+body { height: 100vh; width: 100vw; background: var(--app-bg); direction: rtl; overflow: hidden; }
 
-/* --- الضبط العام ومنع السكرول المزدوج --- */
-* { box-sizing: border-box; outline: none; margin: 0; padding: 0; }
-
-body, html {
-    height: 100vh; 
-    width: 100vw;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--app-bg);
-    direction: rtl; 
-    overflow: hidden; /* منع السكرول الخارجي لضمان ثبات الهيدر والفوتر */
-}
-
-/* --- توزيع الـ Grid المصلح (Tera Layout) --- */
+/* شبكة تيرا الموحدة */
 .tera-layout {
-    display: grid;
-    height: 100vh;
-    width: 100vw;
-    padding: 15px;
-    gap: 15px;
+    display: grid; height: 100vh; width: 100vw; padding: 15px; gap: 15px;
     grid-template-columns: 260px 1fr;
     grid-template-rows: 75px 1fr 50px;
-    grid-template-areas:
-        "sidebar header"
-        "sidebar main"
-        "sidebar footer";
+    grid-template-areas: "sidebar header" "sidebar main" "sidebar footer";
 }
 
-/* --- 1. القائمة الجانبية (Sidebar) --- */
-#sidebar-mount {
-    grid-area: sidebar;
-    background: var(--itqan-navy-bg);
-    border-radius: 25px;
-    padding: 25px 12px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-float);
-    z-index: var(--z-sidebar);
-    overflow-y: auto; 
-    border-left: 2px solid var(--itqan-gold-primary);
-    transition: transform 0.3s ease;
-}
+#sidebar-mount { grid-area: sidebar; background: var(--itqan-navy-bg); border-radius: 25px; padding: 25px 15px; color: white; border-left: 2px solid var(--itqan-gold-primary); z-index: 1100; overflow-y: auto;}
+#header-mount { grid-area: header; background: #FFF; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; box-shadow: var(--shadow-float); z-index: 1000; position: relative;}
+#main-view { grid-area: main; background: #FFF; border-radius: 25px; box-shadow: var(--shadow-float); overflow: hidden; display: flex; flex-direction: column; z-index: 1;}
+#footer-mount { grid-area: footer; background: #FFF; border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 -2px 15px rgba(0,0,0,0.03); z-index: 900;}
 
-/* --- 2. الهيدر (Header) - إصلاح تداخل القوائم --- */
-#header-mount {
-    grid-area: header;
-    background: #FFFFFF;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 25px;
-    box-shadow: var(--shadow-float);
-    position: relative; 
-    z-index: var(--z-header); /* يضمن بقاء الهيدر تحت القوائم المنسدلة وفوق المحتوى */
-}
+#tera-iframe { flex: 1; width: 100%; height: 100%; border: none; }
 
-/* --- 3. المحتوى الرئيسي (Main/Table Area) --- */
-#main-view {
-    grid-area: main;
-    background: var(--card-bg);
-    border-radius: 25px;
-    box-shadow: var(--shadow-float);
-    overflow: hidden; /* يمنع خروج الجدول عن الحاوية المستديرة */
-    display: flex;
-    flex-direction: column;
-    z-index: 1; 
-}
-
-/* التمرير داخل الجدول أو الـ iFrame فقط */
-#tera-iframe, .table-wrapper {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    border: none;
-    overflow: auto; /* يسمح بالتمرير داخل مساحة الجدول فقط لضمان ثبات القوائم */
-}
-
-/* --- 4. التذليل (Footer) --- */
-#footer-mount {
-    grid-area: footer;
-    background: #FFFFFF;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.03);
-    z-index: 900;
-}
-
-/* --- 5. إصلاح قائمة المستخدم المنسدلة (Dropdown) --- */
-.user-profile-wrapper { position: relative; }
-
-.dropdown-menu {
-    position: absolute;
-    top: calc(100% + 15px); /* تم التعديل ليكون متجاوباً دائماً أسفل الهيدر */
-    left: 0; 
-    background: white;
-    border-radius: 15px;
-    padding: 10px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-    min-width: 250px;
-    display: none; 
-    z-index: var(--z-dropdown); /* أعلى طبقة لضمان عدم التداخل مع الساعة أو الجدول */
-    border: 1px solid #edf2f7;
-}
-
+/* تنسيقات القائمة المنسدلة والساعة */
+.user-profile-wrapper { position: relative; cursor: pointer; }
+.dropdown-menu { position: absolute; top: 120%; left: 0; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); min-width: 220px; display: none; z-index: 1200; border: 1px solid #eee; }
 .dropdown-menu.active { display: block !important; }
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 15px;
-    border-radius: 10px;
-    transition: 0.3s;
-    cursor: pointer;
-    color: var(--itqan-navy-bg);
-    text-decoration: none;
-}
-
+.dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px; color: var(--itqan-navy-bg); text-decoration: none; border-radius: 10px; }
 .dropdown-item:hover { background: #f8fafc; color: var(--itqan-gold-primary); }
+.session-clock { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 15px; border-radius: 12px; font-weight: bold; color: var(--itqan-navy-bg); }
 
-/* --- 6. ساعة الجلسة والوقت --- */
-.session-clock {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #f1f5f9;
-    padding: 8px 15px;
-    border-radius: 12px;
-}
-
-.time-display { 
-    font-size: 1.1rem; 
-    font-weight: 800; 
-    color: var(--itqan-navy-bg); 
-    font-family: 'Courier New', Courier, monospace; 
-}
-
-/* --- السكرول الموحد للهوية البصرية --- */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb {
-    background: var(--metal-gray);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-track { background: transparent; }
-
-/* ============================================================
-   7. التوافق مع الجوال والآيباد (Responsive Design)
-============================================================ */
-@media (max-width: 992px) {
-    .tera-layout {
-        grid-template-columns: 1fr; /* إلغاء تقسيم الشاشة */
-        grid-template-areas:
-            "header"
-            "main"
-            "footer";
-    }
-    
-    #sidebar-mount {
-        position: fixed;
-        right: -300px; /* إخفاء القائمة الجانبية افتراضياً على الجوال */
-        height: calc(100vh - 30px);
-        z-index: 2000;
-    }
-    
-    /* عند تفعيل القائمة الجانبية برمجياً على الجوال */
-    #sidebar-mount.active {
-        right: 15px;
-    }
-    
-    #header-mount {
-        padding: 0 15px;
-    }
-}
+/* القائمة الجانبية الروابط */
+.sidebar-link { display: flex; align-items: center; gap: 10px; padding: 12px 15px; color: #cbd5e1; text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; }
+.sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.1); color: #fff; border-right: 4px solid var(--itqan-gold-primary); }
