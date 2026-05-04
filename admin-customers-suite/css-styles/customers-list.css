@@ -19,11 +19,13 @@ body {
     background: #fff; border-radius: 15px; padding: 20px;
     display: flex; align-items: center; gap: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+.stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
 .stat-icon { font-size: 45px; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); }
 .stat-content h4 { margin: 0 0 10px 0; color: #2c3e50; font-weight: 800; }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-size: 0.95rem; }
-.stat-item b, .stat-grid b { color: #3498db; }
+.stat-item b, .stat-grid b { color: #3498db; font-size: 1.05rem; }
 
 .stat-card.main { border-right: 6px solid #d4af37; }
 .stat-card.status { border-right: 6px solid #3498db; }
@@ -41,9 +43,9 @@ body {
 .filter-group label { font-size: 0.9rem; font-weight: 800; color: #64748B; }
 .filter-group select, .filter-group input { 
     padding: 12px 15px; border: 2px solid #E2E8F0; 
-    border-radius: 12px; font-size: 1rem; outline: none;
+    border-radius: 12px; font-size: 1rem; outline: none; transition: border-color 0.3s;
 }
-.filter-group select:focus, .filter-group input:focus { border-color: #3498db; }
+.filter-group select:focus, .filter-group input:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
 
 /* --- الجداول --- */
 .table-responsive-container {
@@ -55,44 +57,65 @@ body {
 .tera-table td { padding: 15px; border-bottom: 1px solid #F1F5F9; text-align: center; background: #FFF; }
 .tera-table tr:hover td { background-color: #F8FAFC; }
 
+/* إصلاح تداخل الأعمدة المثبتة مع الترويسة العلوية */
 .sticky-col { position: sticky; right: 0; z-index: 5; font-weight: 800; box-shadow: -3px 0 10px rgba(0,0,0,0.05); }
 .sticky-actions { position: sticky; left: 0; z-index: 5; box-shadow: 3px 0 10px rgba(0,0,0,0.05); }
+th.sticky-col, th.sticky-actions { z-index: 15; } /* أهم سطر لمنع اختلاط زوايا الجدول أثناء التمرير */
 
 .status-tag { background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 6px 14px; border-radius: 8px; font-weight: 800; }
 .action-btn { cursor: pointer; font-size: 1.2rem; padding: 8px; border-radius: 8px; border: none; background: transparent; transition: 0.2s; }
-.action-btn:hover { background: #F1F5F9; transform: scale(1.1); }
+.action-btn:hover { background: #E2E8F0; transform: scale(1.1); }
 
 /* --- النوافذ المنبثقة (Modals) --- */
 .modal-overlay { 
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: rgba(10, 25, 47, 0.7); z-index: 2000; justify-content: center; align-items: center; 
+    background: rgba(10, 25, 47, 0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(3px);
 }
-.modal-overlay.active { display: flex; }
+.modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 .modal-content { 
     background: #fff; padding: 30px; border-radius: 20px; 
     width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; 
 }
 .view-content { max-width: 700px; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-.close-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #e74c3c; line-height: 1; }
+.close-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #e74c3c; line-height: 1; transition: transform 0.2s; }
+.close-btn:hover { transform: scale(1.2); }
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
 .input-group { display: flex; flex-direction: column; gap: 5px; }
 .input-group label { font-weight: 700; color: #4A5568; font-size: 0.9rem; }
-.input-group input, .input-group select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+.input-group input, .input-group select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: border-color 0.3s; }
+.input-group input:focus, .input-group select:focus { border-color: #3498db; }
 
 .editor-container { margin-top: 20px; }
 .editor-container label { font-weight: bold; display: block; margin-bottom: 10px; }
 #editor { height: 150px; background: white; border-radius: 0 0 8px 8px; }
-.ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; text-align: right; }
+.ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; text-align: right; direction: ltr; } /* تم ضبط اتجاه أدوات التحرير */
 
 .attachments-section { margin-top: 25px; border-top: 2px solid #f1f5f9; padding-top: 20px; }
 .upload-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 .upload-controls input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-.upload-btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.upload-btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+.upload-btn:hover { background: #2980b9; }
 .files-table th, .files-table td { padding: 10px; font-size: 0.85rem; }
 
 .modal-footer { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; }
-.save-btn { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.cancel-btn { background: #e74c3c; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.close-view-btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+.save-btn { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+.save-btn:hover { background: #219150; }
+.cancel-btn { background: #e74c3c; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+.cancel-btn:hover { background: #c0392b; }
+.close-view-btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: background 0.3s; }
+.close-view-btn:hover { background: #2980b9; }
+
+/* --- الاستجابة للشاشات الصغيرة (Responsive Design) --- */
+@media (max-width: 768px) {
+    body { padding: 15px; }
+    .stats-row { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; align-items: stretch; }
+    .filter-group.search { width: 100%; }
+    .form-grid { grid-template-columns: 1fr; }
+    .upload-controls { flex-direction: column; align-items: stretch; }
+    .upload-btn { width: 100%; }
+}
