@@ -1,8 +1,17 @@
-<div class="clock-container">
-    <div class="time-display" dir="ltr">
-        <span id="c-hours">00</span><span class="sep">:</span><span id="c-minutes">00</span><span class="sep">:</span><span id="c-seconds">00</span> <span id="c-ampm">ص</span>
-    </div>
-    <div class="date-display">
-        <span id="c-hijri">تاريخ هجري</span> | <span id="c-greg">تاريخ ميلادي</span>
-    </div>
+<div class="session-clock">
+    <span>⏱️ مدة الجلسة:</span>
+    <span class="time-display" id="session-timer">00:00:00</span>
 </div>
+
+<script>
+    // كود بسيط لتشغيل مؤقت الجلسة
+    let seconds = 0;
+    setInterval(() => {
+        seconds++;
+        const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const secs = String(seconds % 60).padStart(2, '0');
+        const timerElement = document.getElementById('session-timer');
+        if(timerElement) timerElement.innerText = `${hrs}:${mins}:${secs}`;
+    }, 1000);
+</script>
