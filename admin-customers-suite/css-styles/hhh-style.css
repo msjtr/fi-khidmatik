@@ -1,22 +1,21 @@
 /* ============================================================
-   نظام Tera V12 - ملف التنسيق الإبداعي الموحد (النسخة المصلحة)
-   النمط: Bento Box UI / Apple-like SaaS + Metal Scrollbar
+   نظام Tera V12 - ملف التنسيق الموحد (hhh-style.css)
    المؤسسة: الإتقان بلس - حائل (مكتب أبا صالح الشمري)
+   الوظيفة: الهيدر + القائمة الجانبية + التذليل + الساعة
 ============================================================ */
 
 :root {
     --itqan-navy-bg: #0A192F;      /* كحلي ليلي عميق للقائمة */
     --itqan-navy-light: #112240;   /* تأثيرات التمرير */
-    --itqan-gold-primary: #D4AF37; /* ذهبي الهوية */
+    --itqan-gold-primary: #D4AF37; /* ذهبي الهوية الملكي */
     --itqan-gold-glow: rgba(212, 175, 55, 0.4);
-    --metal-gray: #6A7B9C;         /* رصاصي معدني */
-    --app-bg: #E8EEF2;             /* خلفية لؤلؤية */
+    --metal-gray: #6A7B9C;         /* رصاصي معدني للساعة والسكرول */
+    --app-bg: #E8EEF2;             /* خلفية لؤلؤية عامة */
     --card-bg: #FFFFFF;
     --shadow-float: 0 10px 30px rgba(10, 25, 47, 0.08);
-    --shadow-glow: 0 12px 25px rgba(212, 175, 55, 0.2);
 }
 
-/* --- الضبط العام والحماية من التداخل --- */
+/* --- الضبط العام --- */
 * { box-sizing: border-box; outline: none; }
 
 body, html {
@@ -27,21 +26,21 @@ body, html {
     direction: rtl; overflow: hidden;
 }
 
-/* --- توزيع الجزر العائمة (Grid System) المصلح --- */
+/* --- توزيع الجزر العائمة (Grid System) --- */
 .tera-layout {
     display: grid; 
     height: 100vh; width: 100%;
     padding: 12px; 
     gap: 15px;      
     grid-template-columns: 260px 1fr;
-    grid-template-rows: 75px 1fr 50px; /* زيادة مساحة الفوتر */
+    grid-template-rows: 75px 1fr 50px;
     grid-template-areas: 
         "sidebar header"
         "sidebar main"
         "sidebar footer";
 }
 
-/* --- 1. إصلاح الهيدر (Header) لضمان ظهور القوائم المنسدلة --- */
+/* --- 1. الهيدر المطور (Header) --- */
 #header-mount { 
     grid-area: header; 
     background: #FFFFFF;
@@ -50,10 +49,24 @@ body, html {
     padding: 0 30px; 
     box-shadow: var(--shadow-float);
     position: relative;
-    z-index: 1100; /* أعلى طبقة لضمان ظهور قائمة مدير النظام فوق الجدول */
+    z-index: 1100; /* لضمان ظهور قوائم المستخدم فوق كل شيء */
 }
 
-/* --- 2. إصلاح القائمة الجانبية (Sidebar) --- */
+/* --- 2. الساعة الرقمية (Clock) --- */
+.clock-container {
+    display: flex; flex-direction: column; align-items: center;
+}
+.time-display {
+    font-size: 1.4rem; font-weight: 800; color: var(--itqan-navy-bg);
+    font-family: 'Courier New', monospace;
+}
+.date-display {
+    font-size: 0.75rem; color: var(--metal-gray); font-weight: 600;
+}
+.sep { animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* --- 3. القائمة الجانبية (Sidebar) --- */
 #sidebar-mount { 
     grid-area: sidebar; 
     background: var(--itqan-navy-bg);
@@ -61,71 +74,59 @@ body, html {
     padding: 25px 12px 10px 12px; 
     box-shadow: var(--shadow-float);
     display: flex; flex-direction: column;
-    position: relative;
     z-index: 1000;
 }
 
-/* --- 3. إصلاح الشاشة الرئيسية (Main View) --- */
-#main-view { 
-    grid-area: main; 
-    background: var(--card-bg); 
-    border-radius: 25px; 
-    box-shadow: var(--shadow-float);
-    overflow: auto; /* يسمح بالتمرير الداخلي فقط */
-    position: relative;
-    z-index: 1; /* أقل طبقة لضمان بقاء الهيدر والسيدبار فوقها */
+.nav-btn {
+    display: flex; align-items: center; gap: 15px; width: 100%;
+    background: transparent; border: none; color: #8892B0;
+    padding: 14px 18px; margin-bottom: 10px; border-radius: 15px;
+    cursor: pointer; transition: 0.3s; font-weight: 600;
+}
+.nav-btn:hover, .nav-btn.active {
+    color: #FFF; background: var(--itqan-navy-light);
+    box-shadow: inset -5px 0 0 var(--itqan-gold-primary);
 }
 
-/* --- 4. إصلاح التذليل (Footer) ومنع التداخل --- */
+/* القوائم المنسدلة داخل السيدبار */
+.submenu-container {
+    max-height: 0; overflow: hidden; transition: 0.4s;
+    background: rgba(255, 255, 255, 0.03); border-radius: 10px;
+}
+.submenu-container.active { max-height: 500px; margin-bottom: 10px; }
+
+/* --- 4. التذليل وشريط الحالة (Footer) --- */
 #footer-mount { 
     grid-area: footer; 
-    display: flex; align-items: center; justify-content: center;
-    background: #FFFFFF; 
-    border-radius: 15px;
-    padding: 0 20px; 
+    display: flex; align-items: center; justify-content: space-between;
+    background: #FFFFFF; border-radius: 15px; padding: 0 20px; 
     box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.03);
-    font-size: 0.85rem;
-    color: var(--metal-gray);
-    font-weight: 600;
+    font-size: 0.8rem; color: var(--metal-gray);
     z-index: 900;
-    clear: both;
 }
 
-/* --- 5. لوحة الإحصائيات (السطرين وأيقونات 3D) --- */
-.dashboard-stats {
-    display: flex; flex-direction: column; gap: 20px; padding: 20px;
+.status-dot.online {
+    width: 8px; height: 8px; background: #22c55e;
+    border-radius: 50%; display: inline-block;
+    animation: pulse-green 2s infinite;
+}
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
 }
 
-.stats-row {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+/* --- 5. قوائم المستخدم المنسدلة (Dropdown) --- */
+.dropdown-menu {
+    position: absolute; top: 70px; left: 20px;
+    background: white; border-radius: 15px; padding: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    min-width: 220px; display: none; z-index: 1200;
 }
-
-.stat-card {
-    background: #fff; padding: 20px; border-radius: 20px;
-    border-right: 6px solid var(--itqan-gold-primary);
-    transition: all 0.3s ease; display: flex; align-items: center; gap: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-}
-
-.stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-glow); }
-
-.stat-icon-3d {
-    font-size: 40px; filter: drop-shadow(2px 5px 8px rgba(0,0,0,0.15));
-}
+.dropdown-menu.active { display: block; }
 
 /* --- 6. السكرول المعدني (Metal Scrollbar) --- */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--app-bg); }
-::-webkit-scrollbar-thumb { 
-    background: linear-gradient(180deg, var(--metal-gray), #4a5568); 
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--metal-gray), #4a5568);
     border-radius: 10px;
-}
-
-/* --- استجابة الشاشة للموبايل --- */
-@media (max-width: 768px) {
-    .tera-layout {
-        grid-template-columns: 1fr;
-        grid-template-areas: "header" "main" "footer";
-    }
-    #sidebar-mount { display: none; } /* يمكن إضافة زر لفتحه لاحقاً */
 }
