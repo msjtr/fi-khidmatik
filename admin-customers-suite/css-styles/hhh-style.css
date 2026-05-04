@@ -17,6 +17,12 @@
     
     --shadow-float: 0 8px 30px rgba(10, 25, 47, 0.06);
     --shadow-glow: 0 8px 25px rgba(212, 175, 55, 0.15);
+    
+    /* ألوان الحالة الجديدة للرقابة الإدارية */
+    --status-new: #3498db;
+    --status-active: #27ae60;
+    --status-suspended: #e67e22;
+    --status-blocked: #e74c3c;
 }
 
 /* --- الحماية الشاملة وضبط القياسات --- */
@@ -58,7 +64,7 @@ body, html {
     box-shadow: var(--shadow-float);
     display: flex; flex-direction: column;
     position: relative;
-    overflow: hidden; /* الشعار ثابت، التمرير بالداخل فقط */
+    overflow: hidden; 
     transition: all 0.4s ease;
     z-index: 100;
 }
@@ -70,13 +76,12 @@ body, html {
     filter: blur(80px); border-radius: 50%; pointer-events: none;
 }
 
-/* --- الشعار وزر الطي (ثابت في الأعلى) --- */
+/* --- الشعار وزر الطي --- */
 .sidebar-header {
     display: flex; flex-direction: column; align-items: center; 
     position: relative; margin-bottom: 20px; flex-shrink: 0;
 }
 
-/* إصلاح زر الطي: الإبعاد عن الحافة */
 .collapse-btn {
     position: absolute; left: 15px; top: 15px; 
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); 
@@ -84,100 +89,49 @@ body, html {
     width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; 
     cursor: pointer; transition: all 0.3s ease; z-index: 10;
 }
-.collapse-btn:hover { background: rgba(212, 175, 55, 0.3); transform: scale(1.1); }
 
 .main-logo { width: 100px; transition: 0.4s ease; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
 .brand-titles { text-align: center; margin-top: 12px; overflow: hidden; white-space: nowrap; transition: 0.4s ease; }
 .brand-title-ar { color: #FFF; font-size: 0.95rem; font-weight: 800; }
 .brand-title-en { color: var(--itqan-gold-primary); font-size: 0.65rem; font-family: monospace; letter-spacing: 0.5px; margin-top: 2px; }
 
-/* --- حاوية التنقل (التي تحتوي على سكرول التمرير) --- */
+/* --- حاوية التنقل مع سكرول معدني --- */
 .sidebar-nav {
     flex: 1;
-    overflow-y: auto; /* التمرير هنا فقط */
+    overflow-y: auto;
     overflow-x: hidden;
     padding-right: 2px;
 }
 
-/* --- إصلاح شريط التمرير: جعله عريضاً ومعدنياً --- */
 .sidebar-nav::-webkit-scrollbar { width: 14px; }
-.sidebar-nav::-webkit-scrollbar-track { 
-    background: rgba(0, 0, 0, 0.15); 
-    border-radius: 10px;
-    margin-block: 10px;
-}
+.sidebar-nav::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
 .sidebar-nav::-webkit-scrollbar-thumb { 
     background: var(--metal-gray); 
     border-radius: 10px; 
-    border: 3px solid var(--itqan-navy-bg); /* إطار يمنح بريقاً معدنياً 3D */
+    border: 3px solid var(--itqan-navy-bg); 
 }
-.sidebar-nav::-webkit-scrollbar-thumb:hover { background: var(--itqan-gold-primary); }
 
-/* --- تنسيق أزرار القائمة الأساسية --- */
+/* --- أزرار القائمة والقوائم المنسدلة --- */
 .nav-btn { 
     display: flex; align-items: center; gap: 12px; width: 100%; 
     background: transparent; border: none; 
     color: #8892B0; padding: 12px 15px; margin-bottom: 8px; 
     border-radius: 12px; cursor: pointer; 
     transition: all 0.3s ease; text-align: right; 
-    font-size: 0.9rem; font-weight: 600; position: relative; z-index: 1;
+    font-size: 0.9rem; font-weight: 600;
 }
-.nav-btn svg { flex-shrink: 0; color: #8892B0; transition: 0.3s ease; }
-.nav-btn:hover { color: var(--itqan-gold-primary); transform: translateX(-4px); }
-.nav-btn.active { 
-    color: #FFF; background: var(--itqan-navy-light);
-    box-shadow: inset -4px 0 0 var(--itqan-gold-primary);
-}
+.nav-btn.active { color: #FFF; background: var(--itqan-navy-light); box-shadow: inset -4px 0 0 var(--itqan-gold-primary); }
 
-/* الزر المميز (الرئيسية) */
-.nav-btn.special-btn {
-    background: linear-gradient(90deg, rgba(212, 175, 55, 0.15) 0%, transparent 100%);
-    border-right: 3px solid var(--itqan-gold-primary);
-    color: #FFF; margin-bottom: 20px;
-}
-
-/* --- تنسيق القوائم المنسدلة (Submenus) --- */
-.nav-item-wrapper { width: 100%; display: flex; flex-direction: column; }
-.dropdown-arrow-icon { margin-right: auto; transition: transform 0.3s ease; }
-.nav-btn.has-submenu.open .dropdown-arrow-icon { transform: rotate(180deg); color: var(--itqan-gold-primary); }
-
-.submenu-container {
-    display: grid; grid-template-rows: 0fr;
-    transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.submenu-container.open { grid-template-rows: 1fr; }
-.submenu-inner { overflow: hidden; display: flex; flex-direction: column; padding-right: 40px; }
-
-.submenu-item {
-    background: transparent; border: none; color: #6A7B9C;
-    text-align: right; padding: 10px 10px 10px 0; cursor: pointer;
-    font-size: 0.8rem; font-weight: 600; transition: all 0.3s ease;
-    display: flex; align-items: center; position: relative;
-}
-.submenu-item::before {
-    content: ''; width: 5px; height: 5px; border-radius: 50%;
-    background: #6A7B9C; position: absolute; right: -12px; transition: 0.3s;
-}
-.submenu-item.active { color: var(--itqan-gold-primary); font-weight: 800; }
-.submenu-item.active::before { background: var(--itqan-gold-primary); box-shadow: 0 0 6px var(--itqan-gold-primary); }
-
-/* الفواصل وعناوين الأقسام */
-.nav-section-title {
-    font-size: 0.7rem; font-weight: 800; color: rgba(255, 255, 255, 0.3);
-    margin: 15px 20px 8px 0; padding-right: 10px; letter-spacing: 0.5px;
-}
-.nav-divider { height: 1px; background: rgba(255, 255, 255, 0.05); margin: 15px 15px; }
-
-/* --- 5. الجزيرة الثانية: الهيدر الذكي (إصلاح الخلفية البيضاء الصلبة) --- */
+/* --- 5. الجزيرة الثانية: الهيدر الذكي --- */
 #header-mount { 
     grid-area: header; 
-    background: #FFFFFF; /* لون صلب يمنع الشفافية والتداخل */
+    background: #FFFFFF;
     border-radius: 18px;
     display: flex; align-items: center; justify-content: space-between; 
     padding: 0 25px; 
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* ظل قوي ومميز */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     position: relative; 
-    z-index: 9999; /* لضمان ظهور القوائم المنسدلة فوق المحتوى دائمًا */
+    z-index: 999;
 }
 
 /* --- 6. الجزيرة الثالثة: شاشة العرض الرئيسية (Main) --- */
@@ -192,7 +146,7 @@ body, html {
 }
 #tera-iframe { flex: 1; width: 100%; height: 100%; border: none; border-radius: 20px; }
 
-/* --- 7. الجزيرة الرابعة: شريط حالة النظام (إصلاح الخلفية البيضاء للفوتر) --- */
+/* --- 7. الجزيرة الرابعة: شريط حالة النظام (الفوتر) --- */
 #footer-mount { 
     grid-area: footer; 
     display: flex; align-items: center; 
@@ -203,151 +157,51 @@ body, html {
     z-index: 50; 
 }
 
-/* =========================================
-   التنسيقات التفاعلية (الساعة، الهيدر، والقائمة المنسدلة)
-========================================= */
-
-.header-container { width: 100%; display: flex; justify-content: space-between; align-items: center; }
-.header-greeting { display: flex; flex-direction: column; }
-.greeting-main { font-size: 1.05rem; font-weight: 800; color: var(--itqan-navy-bg); }
-.motivate-text { font-size: 0.75rem; color: var(--itqan-gold-primary); font-weight: 600; }
-
-.clock-container { 
-    background: #FFF; padding: 5px 18px; border-radius: 30px; 
-    border: 1px solid rgba(10, 25, 47, 0.05); display: flex; align-items: center; gap: 12px;
-}
-.time-display { font-size: 1.15rem; font-weight: 900; color: var(--itqan-navy-bg); font-family: monospace; }
-.time-display .sep { color: var(--itqan-gold-primary); animation: blink 1s infinite; }
-.date-display { font-size: 0.7rem; color: #8892B0; font-weight: bold; border-right: 1px solid #eee; padding-right: 12px; }
-
-.header-actions { display: flex; align-items: center; gap: 12px; }
-.icon-btn {
-    background: #FFF; border: none; border-radius: 50%; width: 40px; height: 40px; 
-    cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: 0.3s; position: relative;
-    display: flex; align-items: center; justify-content: center;
-}
-.icon-btn svg { color: var(--itqan-navy-bg); transition: 0.3s; }
-.icon-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
-.icon-btn:hover svg { color: var(--itqan-gold-primary); }
-.badge {
-    position: absolute; top: -2px; right: -2px; background: #E74C3C; color: #FFF;
-    font-size: 0.6rem; font-weight: bold; width: 16px; height: 16px; 
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+/* --- 8. تنسيقات الملخص الإحصائي والرقابة (Dashboard) --- */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    background: rgba(10, 25, 47, 0.02);
+    border-radius: 15px;
+    margin-bottom: 20px;
 }
 
-/* --- تنسيقات القائمة المنسدلة للملف الشخصي (المفقودة سابقاً) --- */
-.user-profile-dropdown { position: relative; }
-.profile-trigger {
-    display: flex; align-items: center; gap: 8px; cursor: pointer;
-    padding: 4px 8px 4px 4px; border-radius: 30px; background: #FFF;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: 0.3s; border: 1px solid transparent;
-}
-.profile-trigger:hover { border-color: rgba(212, 175, 55, 0.3); }
-
-.user-avatar {
-    width: 34px; height: 34px; border-radius: 50%; background: var(--itqan-navy-bg);
-    color: var(--itqan-gold-primary); font-weight: 900; font-size: 1rem;
-    display: flex; align-items: center; justify-content: center;
+.stat-card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    border-right: 4px solid var(--itqan-gold-primary);
 }
 
-.dropdown-menu {
-    position: absolute; top: calc(100% + 15px); left: 0; width: 230px;
-    background: #FFFFFF; 
-    border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-    opacity: 0; visibility: hidden; transform: translateY(-10px);
-    transition: all 0.3s ease; z-index: 10000; padding-bottom: 10px; border: 1px solid #eee;
-}
-.dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.stat-card.status-new { border-right-color: var(--status-new); }
+.stat-card.status-active { border-right-color: var(--status-active); }
+.stat-card.status-suspended { border-right-color: var(--status-suspended); }
+.stat-card.status-blocked { border-right-color: var(--status-blocked); }
 
-.dropdown-header-card {
-    padding: 15px 20px;
-    background: linear-gradient(135deg, rgba(10, 25, 47, 0.02) 0%, rgba(212, 175, 55, 0.05) 100%);
-    border-radius: 16px 16px 0 0; margin-bottom: 5px; text-align: right; border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-}
-.card-role { font-size: 0.9rem; font-weight: 900; color: var(--itqan-navy-bg); margin-bottom: 8px; }
-.session-timer {
-    display: inline-flex; align-items: center; gap: 6px; background: #FFF; padding: 5px 10px; border-radius: 20px;
-    font-size: 0.7rem; color: #555; font-weight: bold; border: 1px solid rgba(0,0,0,0.05);
-}
-.session-timer svg { color: #2ecc71; }
-.session-timer strong { font-family: monospace; font-size: 0.8rem; color: var(--itqan-navy-bg); letter-spacing: 1px; }
-
-.dropdown-item {
-    display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: none;
-    padding: 10px 20px; font-size: 0.85rem; color: var(--itqan-navy-bg); font-weight: 700; cursor: pointer; text-align: right; transition: 0.2s;
-}
-.dropdown-item svg { color: #8892B0; transition: 0.3s ease; }
-.dropdown-item:hover { background: rgba(212, 175, 55, 0.08); color: var(--itqan-gold-primary); padding-right: 25px; }
-.dropdown-item:hover svg { color: var(--itqan-gold-primary); transform: scale(1.1); }
-
-.dropdown-divider { height: 1px; background: #eee; margin: 5px 0; }
-.logout-item svg { color: #E74C3C; }
-.logout-item:hover svg { color: #c0392b; transform: translateX(-3px); }
-
-/* تنسيقات الفوتر الذكي الداخلية */
-.footer-status-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.75rem; color: #8892B0; font-weight: 600; }
-.version-badge { background: rgba(212, 175, 55, 0.1); color: var(--itqan-gold-primary); padding: 3px 8px; border-radius: 6px; margin-right: 12px; font-family: monospace; font-weight: 800; letter-spacing: 0.5px; border: 1px solid rgba(212, 175, 55, 0.2); }
-.footer-alerts { display: flex; align-items: center; justify-content: center; flex: 1; }
-.alert-msg { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; }
-.alert-msg.success-msg { background: rgba(46, 204, 113, 0.05); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.2); }
-.footer-connection { display: flex; align-items: center; gap: 8px; background: #F8F9FA; padding: 4px 12px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; }
-.status-dot.online { background-color: #2ecc71; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); animation: pulse-green 2s infinite; }
-
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-@keyframes pulse-green { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.5); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
-
-/* --- إصلاحات ذكية عند طي القائمة الجانبية --- */
-.sidebar-collapsed #sidebar-mount { padding: 25px 8px; }
-
-/* توسيط الزر عند الطي */
-.sidebar-collapsed .collapse-btn {
-    left: 50%;
-    transform: translateX(-50%);
-    top: 10px;
-}
-.sidebar-collapsed .collapse-btn .chevron-icon { transform: rotate(180deg); }
-
-/* دفع الشعار للأسفل عند الطي لكي لا يتصادم مع الزر */
-.sidebar-collapsed .main-logo { 
-    width: 45px; 
-    margin-top: 45px; 
-} 
-
-.sidebar-collapsed .brand-titles, .sidebar-collapsed .nav-text, 
-.sidebar-collapsed .nav-section-title, .sidebar-collapsed .nav-divider, 
-.sidebar-collapsed .dropdown-arrow-icon, .sidebar-collapsed .submenu-container { 
-    opacity: 0; height: 0; margin: 0; display: none; 
-}
-
-
-/* تنسيقات الجوال لشاشة الهب الرئيسية */
+/* --- 9. تحسينات الجوال واستجابة الشاشة --- */
 @media (max-width: 768px) {
     .tera-layout {
-        grid-template-columns: 1fr; /* إلغاء تقسيم الأعمدة */
+        grid-template-columns: 1fr;
         grid-template-areas: 
             "header"
             "main"
             "footer";
+        padding: 8px;
     }
 
     aside#sidebar-mount {
         position: fixed;
-        right: -100%; /* إخفاء القائمة الجانبية خارج الشاشة */
+        right: -100%; 
         top: 60px;
         bottom: 0;
         width: 250px;
-        z-index: 999;
+        z-index: 9999;
         transition: 0.3s;
-        background: #fff;
-        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        background: var(--itqan-navy-bg);
     }
 
-    aside#sidebar-mount.active {
-        right: 0; /* إظهارها عند الضغط على زر القائمة */
-    }
-
-    main#main-view {
-        padding: 10px;
-    }
+    aside#sidebar-mount.active { right: 12px; bottom: 12px; }
 }
