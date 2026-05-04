@@ -1,10 +1,8 @@
 /* =========================================
-   تنسيقات صفحة قائمة العملاء المصلحة - Tera V12
-   التحديث: أيقونات 3D + ملخص على سطرين + رقابة إدارية
-   المؤسسة: الإتقان بلس - حائل (مكتب أبا صالح الشمري)
+   تنسيقات صفحة قائمة العملاء المتوافقة 100%
+   نظام Tera V12 - الإتقان بلس (حائل)
 ========================================= */
 
-/* --- 1. الإعدادات العامة والخطوط --- */
 body { 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
     background: #F0F4F8; 
@@ -12,203 +10,89 @@ body {
     padding: 30px; 
     direction: rtl; 
     color: #2D3748;
-    line-height: 1.6;
 }
 
-/* --- 2. لوحة الإحصائيات (السطرين وأيقونات 3D) --- */
-.dashboard-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
+/* --- الإحصائيات (Dashboard) --- */
+.dashboard-stats { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .stat-card {
-    background: #FFFFFF;
-    padding: 25px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    box-shadow: 0 10px 25px rgba(10, 25, 47, 0.05);
-    border-right: 6px solid #D4AF37; /* الهوية الذهبية للمكتب */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #fff; border-radius: 15px; padding: 20px;
+    display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
+.stat-icon { font-size: 45px; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); }
+.stat-content h4 { margin: 0 0 10px 0; color: #2c3e50; font-weight: 800; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-size: 0.95rem; }
+.stat-item b, .stat-grid b { color: #3498db; }
 
-.stat-card:hover { 
-    transform: translateY(-5px); 
-    box-shadow: 0 15px 35px rgba(10, 25, 47, 0.1);
-}
+.stat-card.main { border-right: 6px solid #d4af37; }
+.stat-card.status { border-right: 6px solid #3498db; }
+.stat-card.categories { border-right: 6px solid #9b59b6; }
+.stat-card.notes { border-right: 6px solid #e67e22; }
 
-/* أيقونات 3D مع تأثير الظل المطور */
-.stat-icon {
-    font-size: 45px;
-    filter: drop-shadow(2px 5px 8px rgba(0,0,0,0.15));
-    min-width: 60px;
-    text-align: center;
-}
-
-.stat-content { flex: 1; }
-
-.stat-content h4 { 
-    margin: 0 0 12px 0; 
-    color: #0A192F; 
-    font-size: 1.1rem; 
-    font-weight: 800;
-    border-bottom: 2px solid #F1F5F9;
-    padding-bottom: 8px;
-}
-
-/* شبكة الإحصائيات المصلحة */
-.stat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 25px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #4A5568;
-}
-
-.stat-grid b { color: #3498db; font-weight: 900; font-size: 1.1rem; }
-
-/* ألوان الرقابة المعتمدة للبطاقات */
-.stat-card.main { border-right-color: #D4AF37; }      /* ذهبي: نظرة عامة */
-.stat-card.status { border-right-color: #3498db; }    /* أزرق: حالات الحساب */
-.stat-card.categories { border-right-color: #9b59b6; } /* بنفسجي: التصنيفات */
-.stat-card.notes { border-right-color: #e67e22; }      /* برتقالي: الملاحظات السريعة */
-
-/* --- 3. شريط الفلتر والبحث المطور --- */
+/* --- الفلاتر --- */
 .filter-bar {
-    background: #FFFFFF;
-    padding: 25px;
-    border-radius: 18px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 30px;
-    align-items: flex-end;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+    background: #fff; padding: 25px; border-radius: 18px;
+    display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px;
+    align-items: flex-end; box-shadow: 0 5px 15px rgba(0,0,0,0.04);
 }
-
-.filter-group { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-    flex: 1; 
-    min-width: 200px; 
-}
-
-.filter-group.search { flex: 2; } /* حقل البحث بالمنطقة يأخذ مساحة أكبر */
-
-.filter-group label { 
-    font-size: 0.9rem; 
-    font-weight: 800; 
-    color: #64748B; 
-}
-
+.filter-group { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 200px; }
+.filter-group.search { flex: 2; }
+.filter-group label { font-size: 0.9rem; font-weight: 800; color: #64748B; }
 .filter-group select, .filter-group input { 
-    padding: 12px 15px; 
-    border: 2px solid #E2E8F0; 
-    border-radius: 12px; 
-    font-size: 1rem;
-    color: #1E293B;
-    background-color: #F8FAFC;
-    transition: 0.3s all;
+    padding: 12px 15px; border: 2px solid #E2E8F0; 
+    border-radius: 12px; font-size: 1rem; outline: none;
 }
+.filter-group select:focus, .filter-group input:focus { border-color: #3498db; }
 
-.filter-group select:focus, .filter-group input:focus { 
-    border-color: #3498db; 
-    background-color: #FFF;
-    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
-}
-
-/* --- 4. تصميم الجدول الاحترافي (الـ 18 عموداً) --- */
+/* --- الجداول --- */
 .table-responsive-container {
-    width: 100%; 
-    overflow-x: auto; 
-    border-radius: 18px; 
-    background: #FFF;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    width: 100%; overflow-x: auto; border-radius: 18px; 
+    background: #FFF; box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 }
-
-.tera-table { 
-    width: 100%; 
-    border-collapse: separate; /* ضروري لعمل Sticky بشكل صحيح */
-    border-spacing: 0;
-    white-space: nowrap; 
-}
-
-.tera-table th { 
-    background: #0A192F; 
-    color: #FFF; 
-    padding: 20px 15px; 
-    text-align: center; 
-    font-weight: 600; 
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.tera-table td { 
-    padding: 18px 15px; 
-    border-bottom: 1px solid #F1F5F9; 
-    text-align: center;
-    color: #334155; 
-    background: #FFF;
-}
-
+.tera-table { width: 100%; border-collapse: separate; border-spacing: 0; white-space: nowrap; }
+.tera-table th { background: #0A192F; color: #FFF; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 10; }
+.tera-table td { padding: 15px; border-bottom: 1px solid #F1F5F9; text-align: center; background: #FFF; }
 .tera-table tr:hover td { background-color: #F8FAFC; }
 
-/* إصلاح وتثبيت الأعمدة المهمة (الاسم والإجراءات) */
-.sticky-col { 
-    position: sticky; 
-    right: 0; 
-    z-index: 5; 
-    font-weight: 800; 
-    box-shadow: -3px 0 10px rgba(0,0,0,0.05);
-    border-left: 2px solid #F1F5F9;
-}
+.sticky-col { position: sticky; right: 0; z-index: 5; font-weight: 800; box-shadow: -3px 0 10px rgba(0,0,0,0.05); }
+.sticky-actions { position: sticky; left: 0; z-index: 5; box-shadow: 3px 0 10px rgba(0,0,0,0.05); }
 
-.sticky-actions { 
-    position: sticky; 
-    left: 0; 
-    z-index: 5; 
-    box-shadow: 3px 0 10px rgba(0,0,0,0.05);
-    border-right: 2px solid #F1F5F9;
-}
-
-/* --- 5. الوشوم والأزرار الذكية --- */
-.status-tag {
-    background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-weight: 800;
-    font-size: 0.85rem;
-    display: inline-block;
-}
-
-.action-btn { 
-    cursor: pointer; 
-    font-size: 1.2rem;
-    padding: 10px;
-    border-radius: 10px;
-    transition: 0.2s;
-    background: none;
-    border: none;
-}
-
+.status-tag { background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 6px 14px; border-radius: 8px; font-weight: 800; }
+.action-btn { cursor: pointer; font-size: 1.2rem; padding: 8px; border-radius: 8px; border: none; background: transparent; transition: 0.2s; }
 .action-btn:hover { background: #F1F5F9; transform: scale(1.1); }
 
-/* --- 6. استجابة الشاشات --- */
-@media (max-width: 1024px) {
-    .stats-row { grid-template-columns: 1fr; }
-    .filter-bar { flex-direction: column; }
-    .filter-group { min-width: 100%; }
+/* --- النوافذ المنبثقة (Modals) --- */
+.modal-overlay { 
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(10, 25, 47, 0.7); z-index: 2000; justify-content: center; align-items: center; 
 }
+.modal-overlay.active { display: flex; }
+.modal-content { 
+    background: #fff; padding: 30px; border-radius: 20px; 
+    width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; 
+}
+.view-content { max-width: 700px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+.close-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #e74c3c; line-height: 1; }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+.input-group { display: flex; flex-direction: column; gap: 5px; }
+.input-group label { font-weight: 700; color: #4A5568; font-size: 0.9rem; }
+.input-group input, .input-group select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+
+.editor-container { margin-top: 20px; }
+.editor-container label { font-weight: bold; display: block; margin-bottom: 10px; }
+#editor { height: 150px; background: white; border-radius: 0 0 8px 8px; }
+.ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; text-align: right; }
+
+.attachments-section { margin-top: 25px; border-top: 2px solid #f1f5f9; padding-top: 20px; }
+.upload-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+.upload-controls input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+.upload-btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.files-table th, .files-table td { padding: 10px; font-size: 0.85rem; }
+
+.modal-footer { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; }
+.save-btn { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.cancel-btn { background: #e74c3c; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.close-view-btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
