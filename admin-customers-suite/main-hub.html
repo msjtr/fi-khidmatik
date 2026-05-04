@@ -72,12 +72,63 @@
                 console.warn('لم يتم العثور على ملف الساعة المنفصل، سيتم الاعتماد على الساعة المدمجة بالهيدر.');
             }
 
-            // إطلاق إشارة بأن الواجهة جاهزة لتركيب التفاعلات وتشغيل الساعة
+            // إطلاق إشارة بأن الواجهة جاهزة لتركيب التفاعلات وتشغيل الساعة والمتغيرات
             setTimeout(() => {
                 document.dispatchEvent(new Event('TeraLayoutReady'));
                 setupSidebarInteractions(); 
                 startInternalClock(); // ⏱️ تشغيل محرك الساعة فوراً
+                startHeaderLogic();   // 🚀 تشغيل العبارات التحفيزية وعداد الجلسة
             }, 300);
+        }
+
+        // --- 🚀 محرك الهيدر الداخلي (العبارات التحفيزية والعداد) ---
+        function startHeaderLogic() {
+            // 1. العبارات التحفيزية
+            const phrases = [
+                "يوم مليء بالنجاح والإنجازات! 🚀",
+                "الإتقان بلس.. طريقك للتميز 🌟",
+                "بداية موفقة لعمل عظيم 💼",
+                "نحو أهداف جديدة اليوم 🎯",
+                "خدمة العملاء بشغف واحترافية 🤝"
+            ];
+            
+            const phraseElement = document.getElementById('motivational-phrase');
+            let currentPhraseIndex = 0;
+
+            if (phraseElement) {
+                phraseElement.style.transition = 'opacity 0.5s ease-in-out';
+                setInterval(() => {
+                    phraseElement.style.opacity = '0';
+                    setTimeout(() => {
+                        currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+                        phraseElement.innerText = phrases[currentPhraseIndex];
+                        phraseElement.style.opacity = '1';
+                    }, 500); 
+                }, 7000); 
+            }
+
+            // 2. توليد الحرف الأول للصورة الرمزية
+            const fullNameElement = document.getElementById('display-user-name');
+            const avatarElement = document.getElementById('user-avatar-icon');
+            if (fullNameElement && avatarElement) {
+                const fullName = fullNameElement.innerText.trim();
+                if (fullName) {
+                    avatarElement.innerText = fullName.charAt(0).toUpperCase();
+                }
+            }
+
+            // 3. عداد وقت الجلسة
+            const sessionCounterEl = document.getElementById('session-time-counter');
+            let sessionSeconds = 0;
+            if (sessionCounterEl) {
+                setInterval(() => {
+                    sessionSeconds++;
+                    const h = Math.floor(sessionSeconds / 3600).toString().padStart(2, '0');
+                    const m = Math.floor((sessionSeconds % 3600) / 60).toString().padStart(2, '0');
+                    const s = (sessionSeconds % 60).toString().padStart(2, '0');
+                    sessionCounterEl.innerText = `${h}:${m}:${s}`;
+                }, 1000);
+            }
         }
 
         // --- محرك الساعة الداخلي لحل مشكلة الأصفار ---
