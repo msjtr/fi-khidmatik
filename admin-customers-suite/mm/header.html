@@ -1,20 +1,24 @@
-<div class="header-right" style="display: flex; align-items: center; gap: 20px;">
-    <h3 style="color: var(--itqan-navy-bg); margin: 0; font-weight: 800;">لوحة التحكم - Tera V12</h3>
-    <!-- الحاوية التي سيتم وضع الساعة بداخلها -->
-    <div id="clock-mount"></div>
-</div>
-
-<div class="header-left user-profile-wrapper" onclick="toggleDropdown(event)">
-    <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-        <div style="text-align: left;">
-            <div style="font-weight: 800; color: var(--itqan-navy-bg);">محمد بن صالح الشمري</div>
-            <div style="font-size: 0.8rem; color: #7f8c8d;">مدير النظام</div>
-        </div>
-        <div style="width: 45px; height: 45px; background: var(--itqan-gold-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);">م</div>
+<!-- القسم الأيمن: بيانات المستخدم، العبارات التحفيزية، والقائمة المنسدلة -->
+<div class="header-right user-profile-wrapper" onclick="toggleDropdown(event)" style="display: flex; align-items: center; gap: 15px; cursor: pointer; position: relative;">
+    
+    <!-- الأيقونة الرمزية (Avatar) -->
+    <div id="user-avatar-icon" style="width: 48px; height: 48px; background: var(--itqan-gold-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.4rem; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);">م</div>
+    
+    <!-- الاسم والعبارات التحفيزية -->
+    <div style="text-align: right;">
+        <div id="display-user-name" style="font-weight: 900; color: var(--itqan-navy-bg); font-size: 1.05rem;">محمد بن صالح الشمري</div>
+        <div id="motivational-phrase" style="font-size: 0.8rem; color: #D4AF37; font-weight: bold; margin-top: 2px;">يوم مليء بالنجاح والإنجازات! 🚀</div>
     </div>
     
-    <!-- القائمة المنسدلة المكتملة بخدمات مدير النظام -->
-    <div id="user-dropdown" class="dropdown-menu">
+    <!-- القائمة المنسدلة (تحتوي على مدة الجلسة والخدمات) -->
+    <div id="user-dropdown" class="dropdown-menu" style="right: 0; left: auto; top: calc(100% + 15px); min-width: 240px;">
+        
+        <!-- عداد مدة الجلسة (داخل القائمة) -->
+        <div style="padding: 12px; background: #f8fafc; border-radius: 10px; margin-bottom: 10px; text-align: center; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.75rem; color: #64748b; font-weight: bold; margin-bottom: 5px;">⏱️ مدة الجلسة الحالية</div>
+            <div id="session-time-counter" style="font-size: 1.2rem; font-weight: 900; color: var(--itqan-navy-bg); font-family: monospace, sans-serif; direction: ltr;">00:00:00</div>
+        </div>
+
         <a href="javascript:void(0);" class="dropdown-item" onclick="teraNavigate('edit-profile')">
             <span style="font-size: 1.1rem;">📝</span> تعديل البيانات
         </a>
@@ -25,12 +29,34 @@
             <span style="font-size: 1.1rem;">🔒</span> تغيير كلمة المرور
         </a>
         
-        <!-- خط فاصل تنظيمي -->
         <div style="height: 1px; background: #e2e8f0; margin: 8px 0;"></div>
         
-        <!-- يمكن ربط زر تسجيل الخروج لاحقاً بدالة مسح الجلسة -->
         <a href="javascript:void(0);" class="dropdown-item" style="color: #e74c3c; font-weight: bold;">
             <span style="font-size: 1.1rem;">🚪</span> تسجيل الخروج
         </a>
     </div>
+</div>
+
+<!-- القسم الأيسر: الساعة الذكية وعنوان النظام -->
+<div class="header-left" style="display: flex; align-items: center; gap: 20px;">
+    
+    <!-- الساعة والتاريخ -->
+    <div style="display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 8px 18px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <div style="font-weight: 900; color: var(--itqan-navy-bg); direction: ltr; font-family: monospace, sans-serif; font-size: 1.15rem; display: flex; align-items: baseline; gap: 4px;">
+            <span id="c-hours">00</span>:<span id="c-minutes">00</span>:<span id="c-seconds">00</span> 
+            <span id="c-ampm" style="font-size: 0.8rem; font-family: 'Segoe UI', Tahoma, sans-serif; font-weight: bold; color: #D4AF37;">ص</span>
+        </div>
+        
+        <!-- فاصل طولي -->
+        <div style="width: 2px; height: 25px; background: #cbd5e1; border-radius: 2px;"></div>
+        
+        <!-- التاريخ الرقمي -->
+        <div style="font-size: 0.85rem; font-weight: 800; color: #64748b; text-align: center; line-height: 1.2;">
+            <div id="c-hijri" style="color: var(--itqan-navy-bg);">00/00/0000</div>
+            <div id="c-greg" style="font-size: 0.7rem;">00/00/0000</div>
+        </div>
+    </div>
+
+    <!-- عنوان النظام -->
+    <h3 style="color: var(--itqan-navy-bg); margin: 0; font-weight: 900; border-right: 3px solid var(--itqan-gold-primary); padding-right: 15px;">لوحة التحكم</h3>
 </div>
