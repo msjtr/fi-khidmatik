@@ -23,7 +23,7 @@ function initQuill() {
                 ]
             }
         }); 
-        quill.format('direction', 'rtl'); // تفعيل الكتابة من اليمين لليسار
+        quill.format('direction', 'rtl'); 
     }
 }
 
@@ -78,7 +78,7 @@ function updateDashboard(data) {
         needFollow: data.filter(c => c.quickNote === 'حاجة لمتابعة').length
     };
 
-    // تحديث الأرقام المرتبطة بأيقونات الـ 3D
+    // تحديث الأرقام المرتبطة بأيقونات الـ 3D والملخص ذو السطرين
     document.getElementById('stat-total').innerText = stats.total;
     document.getElementById('stat-complete').innerText = stats.completeAddress;
     document.getElementById('stat-month').innerText = stats.thisMonth;
@@ -112,12 +112,13 @@ window.filterCustomers = () => {
         return (statusVal === '' || c.accountStatus === statusVal) &&
                (categoryVal === '' || c.customerCategory === categoryVal) &&
                (noteVal === '' || c.quickNote === noteVal) &&
-               (regionVal === '' || (c.city && c.city.toLowerCase().includes(regionVal)) || 
-                                   (c.district && c.district.toLowerCase().includes(regionVal)));
+               (regionVal === '' || 
+                    (c.city && c.city.toLowerCase().includes(regionVal)) || 
+                    (c.district && c.district.toLowerCase().includes(regionVal)));
     });
 
     renderTable(filtered);
-    updateDashboard(filtered); // الملخص يرتبط بالجدول فورياً
+    updateDashboard(filtered); // الملخص يرتبط بالجدول فورياً لضمان دقة الرقابة
 };
 
 /**
@@ -148,9 +149,9 @@ function renderTable(data) {
             <td>${c.customerCategory || 'عادي'}</td>
             <td>${c.quickNote || '-'}</td>
             <td class="sticky-actions">
-                <span class="action-btn" onclick="openEditModal('${c.id}')">⚙️</span>
-                <span class="action-btn" onclick="viewCustomerDetails('${c.id}')">👁️</span>
-                <span class="action-btn" onclick="deleteCustomer('${c.id}')">🗑️</span>
+                <span class="action-btn" title="تعديل" onclick="openEditModal('${c.id}')">⚙️</span>
+                <span class="action-btn" title="عرض" onclick="viewCustomerDetails('${c.id}')">👁️</span>
+                <span class="action-btn" title="حذف" onclick="deleteCustomer('${c.id}')">🗑️</span>
             </td>
         `;
         tbody.appendChild(row);
@@ -159,12 +160,12 @@ function renderTable(data) {
 
 document.addEventListener('DOMContentLoaded', loadCustomers);
 
-// تصدير الدوال للنافذة العالمية لضمان عمل أزرار onclick في مكتب حائل
+// تصدير الدوال للنافذة العالمية لضمان عمل أزرار onclick
 window.closeEditModal = () => document.getElementById('edit-customer-modal').classList.remove('active');
+
 window.openEditModal = (id) => {
     const c = customersDataList.find(i => i.id === id);
     initQuill();
-    // تعبئة البيانات في المودال (يمكن استكمال باقي الحقول هنا)
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('edit-name').value = c.name || '';
     quill.root.innerHTML = c.detailedNotes || '';
