@@ -1,5 +1,6 @@
 /**
  * نظام Tera V12 - محرك القائمة الجانبية (Sidebar Logic) - النسخة المحسنة
+ * المؤسسة: الإتقان بلس - حائل
  */
 
 export function initSidebarLogic() {
@@ -103,7 +104,7 @@ export function initSidebarLogic() {
 window.teraNavigate = window.handleSidebarClick = function(moduleName) {
     const frame = document.getElementById('tera-iframe'); 
     
-    // قاموس مسارات الصفحات المنظم (تمت إزالة مجلد pages/ ليتوافق مع هيكلتك الحالية)
+    // قاموس مسارات الصفحات المنظم
     const pages = {
         'dashboard': 'customers-list.html', 
         'products': 'products.html',
