@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg">
     <link rel="shortcut icon" href="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg">
 
-    <!-- ملفات التنسيق الأساسية الموجودة لديك -->
+    <!-- ملفات التنسيق الأساسية -->
     <link rel="stylesheet" href="css-styles/hhh-style.css">
     
     <!-- (تم إيقاف الملفات غير الموجودة حالياً لمنع الخطأ 404 حتى تقوم بإنشائها لاحقاً) -->
@@ -22,16 +22,19 @@
         <aside id="sidebar-mount"></aside>
         
         <main id="main-view">
+            <!-- الشعار المائي كخلفية جمالية للنظام -->
             <div style="position: absolute; bottom: -50px; left: -50px; opacity: 0.05; pointer-events: none; z-index: 0;">
-                <img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="إتقان بلس" style="width: 400px;">
+                <img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="إتقان بلس" style="width: 400px;" onerror="this.style.display='none'">
             </div>
+            
+            <!-- إطار العرض المركزي -->
             <iframe id="tera-iframe" name="tera-frame" src="pages/customers-list.html" style="position: relative; z-index: 1; width: 100%; height: 100%; border: none; transition: opacity 0.3s ease;"></iframe>
         </main>
         
         <footer id="footer-mount"></footer>
     </div>
 
-    <!-- 1. ربط قاعدة البيانات والمحرك الأساسي فقط (باقي الوظائف مدمجة هنا) -->
+    <!-- 1. ربط قاعدة البيانات والمحرك الأساسي -->
     <script type="module" src="js/firebase.js"></script>
     <script type="module" src="js/main.js"></script>
 
@@ -44,41 +47,63 @@
                 { id: 'footer-mount', path: 'mm/footer.html' }
             ];
 
-            // جلب القوائم والهيدر
+            // جلب القوائم والهيدر والفوتر
             for (const comp of components) {
                 try {
                     const res = await fetch(comp.path);
                     if (res.ok) {
                         document.getElementById(comp.id).innerHTML = await res.text();
+                    } else {
+                        console.warn(`الملف غير موجود (404): ${comp.path}`);
                     }
                 } catch (e) {
                     console.error(`خطأ في تحميل المكون: ${comp.path}`, e);
                 }
             }
 
-            // إطلاق إشارة لملف main.js بأن الواجهة جاهزة لتركيب الساعة واسم المستخدم
+            // بعد تحميل الهيدر، نقوم بجلب الساعة وتركيبها بداخله
+            try {
+                const clockRes = await fetch('mm/clock-view.html');
+                if (clockRes.ok) {
+                    const clockMount = document.getElementById('clock-mount');
+                    if (clockMount) clockMount.innerHTML = await clockRes.text();
+                }
+            } catch (e) {
+                console.error('تعذر تحميل الساعة', e);
+            }
+
+            // إطلاق إشارة بأن الواجهة جاهزة لتركيب التفاعلات
             setTimeout(() => {
                 document.dispatchEvent(new Event('TeraLayoutReady'));
-                
-                // ⚠️ هذا هو السطر السحري الذي كان مفقوداً لتشغيل الأزرار!
                 setupSidebarInteractions(); 
             }, 200);
         }
 
-        // دالة التنقل للقائمة الجانبية وفتح الصفحات في الإطار
+        // دالة التنقل للقائمة الجانبية وفتح الصفحات في الإطار (iFrame)
         window.teraNavigate = function(pageName) {
             const iframe = document.getElementById('tera-iframe');
             if (iframe) {
                 iframe.style.opacity = '0.3';
-                iframe.src = `pages/${pageName}.html`;
+                // التأكد من إضافة .html إذا لم تكن موجودة
+                const targetPage = pageName.endsWith('.html') ? pageName : `${pageName}.html`;
+                iframe.src = `pages/${targetPage}`;
+                
                 iframe.onload = () => { iframe.style.opacity = '1'; };
             }
+        };
+
+        // دالة القائمة المنسدلة لمدير النظام (الهيدر)
+        window.toggleDropdown = function(event) {
+            const dropdown = document.getElementById('user-dropdown');
+            if (dropdown) dropdown.classList.toggle('active');
+            if (event) event.stopPropagation();
         };
 
         // 🛠️ محرك تفاعلات القائمة الجانبية (الألوان والقوائم المنسدلة)
         function setupSidebarInteractions() {
             document.addEventListener('click', function(e) {
-                // أ) نقل اللون للزر النشط
+                
+                // 1) نقل اللون للزر النشط (Active State)
                 const clickedLink = e.target.closest('.tera-nav-link');
                 if (clickedLink) {
                     document.querySelectorAll('.tera-nav-link').forEach(btn => {
@@ -87,26 +112,51 @@
                     clickedLink.classList.add('active');
                 }
 
-                // ب) فتح وإغلاق القوائم المنسدلة (مثل قائمة العملاء)
+                // 2) فتح وإغلاق القوائم المنسدلة للجانبية بانسيابية (Accordion)
                 const submenuBtn = e.target.closest('.has-submenu');
                 if (submenuBtn) {
                     const targetId = submenuBtn.getAttribute('data-target');
                     const submenu = document.getElementById(targetId);
+                    const arrow = submenuBtn.querySelector('.dropdown-arrow-icon');
+                    
                     if (submenu) {
-                        // تبديل ظهور القائمة
-                        submenu.style.display = (submenu.style.display === 'block') ? 'none' : 'block';
+                        submenuBtn.classList.toggle('active');
+                        if (submenu.style.maxHeight) {
+                            submenu.style.maxHeight = null;
+                            if (arrow) arrow.style.transform = 'rotate(0deg)';
+                        } else {
+                            submenu.style.maxHeight = submenu.scrollHeight + "px";
+                            if (arrow) arrow.style.transform = 'rotate(180deg)';
+                        }
                     }
                 }
 
-                // ج) زر طي القائمة الجانبية
+                // 3) زر طي القائمة الجانبية بالكامل وتوسيعها
                 const toggleBtn = e.target.closest('#toggle-sidebar-btn');
                 if (toggleBtn) {
-                    const sidebar = document.querySelector('.sidebar-nav');
-                    if(sidebar) sidebar.classList.toggle('collapsed');
+                    // التعديل يتناسب مع الجوال وسطح المكتب
+                    const sidebar = document.getElementById('sidebar-mount');
+                    const layout = document.querySelector('.tera-layout');
+                    
+                    if (window.innerWidth <= 992) {
+                        // إظهارها في الجوال
+                        if (sidebar) sidebar.classList.toggle('mobile-active');
+                    } else {
+                        // طيها في سطح المكتب
+                        if (layout) layout.classList.toggle('sidebar-collapsed');
+                    }
+                }
+
+                // 4) إغلاق قائمة الهيدر المنسدلة عند النقر بالخارج
+                const userProfileWrapper = e.target.closest('.user-profile-wrapper');
+                const userDropdown = document.getElementById('user-dropdown');
+                if (!userProfileWrapper && userDropdown && userDropdown.classList.contains('active')) {
+                    userDropdown.classList.remove('active');
                 }
             });
         }
 
+        // بدء التشغيل عند اكتمال تحميل هيكل الصفحة
         window.addEventListener('DOMContentLoaded', mountTeraComponents);
     </script>
 </body>
