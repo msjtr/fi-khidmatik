@@ -1,27 +1,27 @@
-<!-- تنسيقات القائمة الجانبية (مدمجة لتعمل فور الاستدعاء) -->
+<!-- تنسيقات القائمة الجانبية المدمجة -->
 <style>
     .sidebar-header { display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; position: relative; }
     .collapse-btn { position: absolute; left: 0; top: 0; background: none; border: none; color: #6A7B9C; cursor: pointer; transition: 0.3s; padding: 5px; }
-    .collapse-btn:hover { color: #D4AF37; transform: scale(1.1); }
+    .collapse-btn:hover { color: var(--itqan-gold-primary); transform: scale(1.1); }
     .brand-logo-container img { max-width: 75px; margin-bottom: 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
     .brand-titles { text-align: center; }
-    .brand-title-ar { font-weight: 800; font-size: 1.1rem; color: #D4AF37; }
-    .brand-title-en { font-size: 0.7rem; color: #6A7B9C; margin-top: 3px; letter-spacing: 0.5px; }
+    .brand-title-ar { font-weight: 900; font-size: 1.15rem; color: var(--itqan-gold-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .brand-title-en { font-size: 0.7rem; color: #cbd5e1; margin-top: 3px; letter-spacing: 0.5px; }
     
-    .sidebar-nav { display: flex; flex-direction: column; gap: 5px; }
-    .nav-section-title { font-size: 0.8rem; color: #6A7B9C; margin: 15px 15px 5px 15px; font-weight: bold; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
+    .nav-section-title { font-size: 0.8rem; color: #6A7B9C; margin: 15px 15px 5px 15px; font-weight: bold; letter-spacing: 0.5px; }
     .nav-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 10px 0; }
     
     .nav-btn { display: flex; align-items: center; width: 100%; padding: 12px 15px; background: transparent; border: none; color: #cbd5e1; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-align: right; font-family: inherit; font-size: 0.95rem; font-weight: 600; }
-    .nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,0.08); color: #FFF; }
-    .nav-btn.active { border-right: 4px solid #D4AF37; color: #D4AF37; }
+    .nav-btn:hover { background: rgba(255,255,255,0.08); color: #FFF; transform: translateX(-5px); }
+    .nav-btn.active { background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--itqan-gold-primary); color: var(--itqan-gold-primary); font-weight: 800; }
     .nav-btn svg { margin-left: 12px; }
-    .dropdown-arrow-icon { margin-left: 0 !important; margin-right: auto; transition: transform 0.3s; }
+    .dropdown-arrow-icon { margin-left: 0 !important; margin-right: auto; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     
-    .submenu-container { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: rgba(0,0,0,0.15); border-radius: 10px; margin-top: 5px; }
-    .submenu-inner { display: flex; flex-direction: column; padding: 8px 15px 8px 0; gap: 2px; }
-    .submenu-item { background: transparent; border: none; color: #94a3b8; padding: 10px 20px 10px 10px; text-align: right; cursor: pointer; transition: 0.3s; font-family: inherit; border-radius: 8px; font-size: 0.85rem; }
-    .submenu-item:hover, .submenu-item.active { color: #FFF; background: rgba(255,255,255,0.05); padding-right: 25px; /* تأثير حركة عند التأشير */ }
+    .submenu-container { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(0,0,0,0.2); border-radius: 10px; margin-top: 5px; }
+    .submenu-inner { display: flex; flex-direction: column; padding: 8px 15px 8px 0; gap: 4px; }
+    .submenu-item { background: transparent; border: none; color: #94a3b8; padding: 10px 20px 10px 10px; text-align: right; cursor: pointer; transition: 0.3s; font-family: inherit; border-radius: 8px; font-size: 0.85rem; font-weight: 500; }
+    .submenu-item:hover, .submenu-item.active { color: #FFF; background: rgba(255,255,255,0.05); padding-right: 25px; color: var(--itqan-gold-primary); }
 </style>
 
 <div class="sidebar-header">
@@ -41,7 +41,7 @@
 <nav class="sidebar-nav" id="sidebar-nav-menu">
     
     <!-- القسم المعزول والمميز (الرئيسية) -->
-    <button class="nav-btn special-btn active tera-nav-link" onclick="teraNavigate('dashboard', this)">
+    <button class="nav-btn special-btn active tera-nav-link" onclick="teraNavigate('dashboard')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         <span class="nav-text">الرئيسية</span>
     </button>
@@ -49,12 +49,12 @@
     <!-- فاصل أقسام -->
     <div class="nav-section-title">إدارة المتجر</div>
 
-    <button class="nav-btn tera-nav-link" onclick="teraNavigate('products', this)">
+    <button class="nav-btn tera-nav-link" onclick="teraNavigate('products')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
         <span class="nav-text">المنتجات</span>
     </button>
 
-    <button class="nav-btn tera-nav-link" onclick="teraNavigate('orders', this)">
+    <button class="nav-btn tera-nav-link" onclick="teraNavigate('orders')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
         <span class="nav-text">الطلبات</span>
     </button>
@@ -68,10 +68,10 @@
         </button>
         <div class="submenu-container" id="customers-submenu">
             <div class="submenu-inner">
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('customers-list', this)">قائمة العملاء</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('add-customer', this)">إضافة عميل جديد</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('customers-report', this)">تقرير العملاء</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('export-import', this)">تصدير واستيراد</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('customers-list')">قائمة العملاء</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('add-customer')">إضافة عميل جديد</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('customers-report')">تقرير العملاء</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('export-import')">تصدير واستيراد</button>
             </div>
         </div>
     </div>
@@ -89,58 +89,17 @@
         </button>
         <div class="submenu-container" id="settings-submenu">
             <div class="submenu-inner">
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('add-employee', this)">إضافة موظف</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('employees-log', this)">سجل العمليات للموظفين</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('change-credentials', this)">كلمة المرور واسم المستخدم</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('employees-report', this)">تقرير عن الموظفين</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('backup', this)">النسخ الاحتياطي</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('store-info', this)">المعلومات عن المتجر</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('clear-cache', this)">تفريغ الذاكرة المؤقتة</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('shipping-settings', this)">إعدادات الشحن</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('payment-gateway', this)">إعدادات بوابة الدفع</button>
-                <button class="submenu-item tera-nav-link" onclick="teraNavigate('ui-design', this)">إعدادات تصميم الواجهة</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('add-employee')">إضافة موظف</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('employees-log')">سجل العمليات للموظفين</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('change-credentials')">كلمة المرور واسم المستخدم</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('employees-report')">تقرير عن الموظفين</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('backup')">النسخ الاحتياطي</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('store-info')">المعلومات عن المتجر</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('clear-cache')">تفريغ الذاكرة المؤقتة</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('shipping-settings')">إعدادات الشحن</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('payment-gateway')">إعدادات بوابة الدفع</button>
+                <button class="submenu-item tera-nav-link" onclick="teraNavigate('ui-design')">إعدادات تصميم الواجهة</button>
             </div>
         </div>
     </div>
 </nav>
-
-<!-- منطق تشغيل القائمة الجانبية (JS) -->
-<script>
-    // 1. تشغيل القوائم المنسدلة (Accordion)
-    document.querySelectorAll('.has-submenu').forEach(button => {
-        button.addEventListener('click', function() {
-            this.classList.toggle('active');
-            const targetId = this.getAttribute('data-target');
-            const submenu = document.getElementById(targetId);
-            const arrow = this.querySelector('.dropdown-arrow-icon');
-            
-            if (submenu.style.maxHeight) {
-                submenu.style.maxHeight = null;
-                arrow.style.transform = 'rotate(0deg)';
-            } else {
-                submenu.style.maxHeight = submenu.scrollHeight + "px";
-                arrow.style.transform = 'rotate(180deg)';
-            }
-        });
-    });
-
-    // 2. دالة التنقل بين الصفحات داخل الإطار (iframe)
-    function teraNavigate(pageName, clickedElement) {
-        const iframe = document.getElementById('tera-iframe');
-        if (iframe) {
-            // إضافة صيغة html إذا لم تكن موجودة
-            const targetUrl = pageName.endsWith('.html') ? pageName : pageName + '.html';
-            iframe.src = targetUrl;
-        }
-
-        // إزالة حالة "النشط" من جميع الأزرار
-        document.querySelectorAll('.tera-nav-link').forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        // تفعيل حالة "النشط" للزر الذي تم النقر عليه
-        if (clickedElement) {
-            clickedElement.classList.add('active');
-        }
-    }
-</script>
