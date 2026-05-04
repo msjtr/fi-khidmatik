@@ -1,144 +1,110 @@
 <!-- ==========================================
-    تصميم الشريط الجانبي الفاخر الثابت - Tera V12
+    تصميم الشريط الجانبي الكامل والثابت - Tera V12
 =========================================== -->
 <style>
-    /* 1. هيكلة الحاوية لضمان ثبات الترويسة */
+    /* تخصيص شريط التمرير الذهبي النحيف */
+    .sidebar-scrollable-content::-webkit-scrollbar {
+        width: 4px;
+    }
+    .sidebar-scrollable-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .sidebar-scrollable-content::-webkit-scrollbar-thumb {
+        background: rgba(212, 175, 55, 0.2);
+        border-radius: 10px;
+    }
+    .sidebar-scrollable-content::-webkit-scrollbar-thumb:hover {
+        background: var(--itqan-gold-primary);
+    }
+
+    /* هيكلة الحاوية لضمان ثبات الترويسة */
     #sidebar-mount {
         display: flex;
         flex-direction: column;
         height: 100%;
-        padding: 0 !important; /* إلغاء البادينج الخارجي للتحكم الداخلي */
-        overflow: hidden; /* منع التمرير في الحاوية الأم */
+        padding: 0 !important;
+        overflow: hidden;
     }
 
-    /* 2. الترويسة الثابتة (الشعار والعناوين) */
+    /* الترويسة الثابتة */
     .sidebar-fixed-header {
         padding: 25px 15px 15px 15px;
         background: var(--itqan-navy-bg);
-        z-index: 10;
         border-bottom: 1px solid rgba(255,255,255,0.05);
-        flex-shrink: 0; /* منع انكماش الرأس */
-    }
-
-    .sidebar-header-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        flex-shrink: 0;
         position: relative;
     }
 
-    /* 3. منطقة الأزرار المتحركة (Scrollable Area) */
+    /* منطقة الأزرار القابلة للتمرير */
     .sidebar-scrollable-content {
         flex-grow: 1;
-        overflow-y: auto; /* التمرير هنا فقط */
-        padding: 15px;
-        scrollbar-gutter: stable;
+        overflow-y: auto;
+        padding: 10px 15px 25px 15px;
     }
 
-    /* 4. تخصيص شريط التمرير الذهبي المربوط بالقائمة */
-    .sidebar-scrollable-content::-webkit-scrollbar {
-        width: 5px;
-    }
-    .sidebar-scrollable-content::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.1);
-    }
-    .sidebar-scrollable-content::-webkit-scrollbar-thumb {
-        background: rgba(106, 123, 156, 0.3);
-        border-radius: 10px;
-    }
-    .sidebar-scrollable-content::-webkit-scrollbar-thumb:hover {
-        background: var(--itqan-gold-primary); /* يضيء بالذهبي عند التمرير */
-    }
-
-    /* 5. تنسيقات العناصر الجمالية */
-    .brand-logo-container img { 
-        max-width: 75px; 
-        margin-bottom: 12px; 
-        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); 
-    }
+    .brand-logo-container img { max-width: 75px; margin-bottom: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
     .brand-title-ar { font-weight: 900; font-size: 1.1rem; color: var(--itqan-gold-primary); text-align: center; }
-    .brand-title-en { font-size: 0.7rem; color: #8ba1b5; text-align: center; margin-top: 4px; letter-spacing: 1px; }
+    .brand-title-en { font-size: 0.65rem; color: #8ba1b5; text-align: center; letter-spacing: 1px; }
 
+    /* تنسيق الأزرار */
     .nav-btn { 
-        display: flex; 
-        align-items: center; 
-        width: 100%; 
-        padding: 12px 15px; 
-        background: transparent; 
-        border: none; 
-        color: #cbd5e1; 
-        border-radius: 12px; 
-        cursor: pointer; 
-        transition: 0.3s; 
-        margin-bottom: 4px;
-        font-weight: 600;
+        display: flex; align-items: center; width: 100%; padding: 12px 14px; 
+        background: transparent; border: none; color: #cbd5e1; border-radius: 12px; 
+        cursor: pointer; transition: 0.3s; margin-bottom: 4px; font-weight: 600; 
+        font-family: inherit; font-size: 0.95rem;
     }
-    .nav-btn:hover { background: rgba(255,255,255,0.08); color: #FFF; }
+    .nav-btn:hover { background: rgba(255,255,255,0.06); color: #FFF; }
     .nav-btn.active { background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--itqan-gold-primary); color: var(--itqan-gold-primary); }
-    
-    .submenu-container { 
-        max-height: 0; 
-        overflow: hidden; 
-        transition: max-height 0.4s ease; 
-        background: rgba(0,0,0,0.2); 
-        border-radius: 10px; 
-    }
+    .nav-btn svg { margin-left: 12px; }
+
+    /* تنسيق القوائم الفرعية */
+    .submenu-container { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: rgba(0,0,0,0.2); border-radius: 10px; }
     .submenu-inner { display: flex; flex-direction: column; padding: 5px 0; }
     .submenu-item { 
-        padding: 10px 20px; 
-        color: #94a3b8; 
-        background: transparent; 
-        border: none; 
-        text-align: right; 
-        cursor: pointer; 
-        font-size: 0.85rem;
+        padding: 10px 20px; color: #94a3b8; background: transparent; border: none; 
+        text-align: right; cursor: pointer; font-size: 0.85rem; font-family: inherit;
+        transition: 0.3s;
     }
-    .submenu-item:hover, .submenu-item.active { color: var(--itqan-gold-primary); }
+    .submenu-item:hover, .submenu-item.active { color: var(--itqan-gold-primary); padding-right: 25px; }
 
-    /* زر القائمة الجانبية (ثابت لا يختفي) */
-    .collapse-btn { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        background: none; 
-        border: none; 
-        color: #6A7B9C; 
-        cursor: pointer; 
-        z-index: 100;
-    }
+    .nav-section-title { font-size: 0.7rem; color: #5a718f; margin: 20px 10px 8px 0; font-weight: 800; text-transform: uppercase; }
+    .collapse-btn { position: absolute; left: 10px; top: 10px; background: none; border: none; color: #6A7B9C; cursor: pointer; }
 </style>
 
-<!-- الترويسة الثابتة -->
+<!-- 1. الترويسة الثابتة (لا تتحرك عند التمرير) -->
 <div class="sidebar-fixed-header">
-    <div class="sidebar-header-content">
-        <button class="collapse-btn" id="toggle-sidebar-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <div class="brand-logo-container">
-            <img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="إتقان بلس">
-        </div>
-        <div class="brand-titles">
-            <div class="brand-title-ar">في خدمتك من الإتقان بلس</div>
-            <div class="brand-title-en">Fi Khidmatik by Al-Itqan Plus</div>
-        </div>
+    <button class="collapse-btn" id="toggle-sidebar-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="brand-logo-container"><img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="Tera Logo"></div>
+        <div class="brand-title-ar">في خدمتك من الإتقان بلس</div>
+        <div class="brand-title-en">Fi Khidmatik by Al-Itqan Plus</div>
     </div>
 </div>
 
-<!-- المحتوى القابل للتمرير -->
+<!-- 2. المحتوى المتحرك (القائمة الكاملة) -->
 <div class="sidebar-scrollable-content">
     <nav class="sidebar-nav">
-        <button class="nav-btn active" onclick="window.teraNavigate('dashboard')">
+        
+        <!-- الرئيسية -->
+        <button class="nav-btn active tera-nav-link" onclick="window.teraNavigate('dashboard')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
             <span>الرئيسية</span>
         </button>
 
-        <div style="font-size: 0.7rem; color: #5a718f; margin: 15px 10px 5px 0; font-weight: 800;">إدارة المتجر</div>
-
-        <button class="nav-btn" onclick="window.teraNavigate('products')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8l-7-4-7 4v8l7 4 7-4z"/></svg>
+        <!-- قسم إدارة المتجر -->
+        <div class="nav-section-title">إدارة المتجر</div>
+        
+        <button class="nav-btn tera-nav-link" onclick="window.teraNavigate('products')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8l-7-4-7 4v8l7 4 7-4z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
             <span>المنتجات</span>
         </button>
 
+        <button class="nav-btn tera-nav-link" onclick="window.teraNavigate('orders')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>الطلبات</span>
+        </button>
+
+        <!-- قائمة العملاء -->
         <div class="nav-item-wrapper">
             <button class="nav-btn has-submenu" data-target="customers-submenu">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
@@ -147,17 +113,38 @@
             </button>
             <div class="submenu-container" id="customers-submenu">
                 <div class="submenu-inner">
-                    <button class="submenu-item" onclick="window.teraNavigate('customers-list')">قائمة العملاء</button>
-                    <button class="submenu-item" onclick="window.teraNavigate('add-customer')">إضافة عميل</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('customers-list')">قائمة العملاء</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('add-customer')">إضافة عميل جديد</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('customers-report')">تقرير العملاء</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('export-import')">تصدير واستيراد</button>
                 </div>
             </div>
         </div>
 
-        <div style="font-size: 0.7rem; color: #5a718f; margin: 15px 10px 5px 0; font-weight: 800;">الإعدادات</div>
-        <!-- أضف باقي الأزرار هنا لتجربة التمرير -->
-        <button class="nav-btn" onclick="window.teraNavigate('settings')">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg>
-            <span>إعدادات النظام</span>
-        </button>
+        <!-- قسم النظام والتحكم -->
+        <div class="nav-section-title">النظام والتحكم</div>
+
+        <div class="nav-item-wrapper">
+            <button class="nav-btn has-submenu" data-target="settings-submenu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg>
+                <span>إعدادات النظام</span>
+                <svg style="margin-right: auto;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="submenu-container" id="settings-submenu">
+                <div class="submenu-inner">
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('add-employee')">إضافة موظف</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('employees-log')">سجل العمليات</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('change-credentials')">تعديل الدخول</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('employees-report')">تقرير الموظفين</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('backup')">النسخ الاحتياطي</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('store-info')">بيانات المتجر</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('shipping-settings')">إعدادات الشحن</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('payment-gateway')">بوابة الدفع</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('ui-design')">تصميم الواجهة</button>
+                    <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('clear-cache')">مسح الكاش</button>
+                </div>
+            </div>
+        </div>
+
     </nav>
 </div>
