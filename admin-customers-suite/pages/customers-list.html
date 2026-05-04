@@ -25,6 +25,13 @@
         .stat-card.status { border-right: 6px solid #3498db; } /* أزرق للحالات */
         .stat-card.categories { border-right: 6px solid #9b59b6; } /* بنفسجي للتصنيف */
         .stat-card.notes { border-right: 6px solid #e67e22; } /* برتقالي للملاحظات */
+        
+        /* تنسيقات إضافية للنوافذ المنبثقة (Modals) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 25, 47, 0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #fff; padding: 30px; border-radius: 20px; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #e74c3c; }
     </style>
 </head>
 <body>
@@ -85,7 +92,7 @@
             </div>
         </div>
 
-        <!-- 2. شريط البحث والفلترة المطور -->
+        <!-- 2. شريط البحث والفلترة المطور (تم استكمال النواقص) -->
         <div class="filter-bar">
             <div class="filter-group search">
                 <label>🔍 بحث بالمنطقة/المدينة:</label>
@@ -95,14 +102,30 @@
                 <label>تصفية بالحالة:</label>
                 <select id="filter-status" onchange="filterCustomers()">
                     <option value="">الكل</option>
-                    <option value="جديد">جديد</option><option value="نشط">نشط</option>
+                    <option value="جديد">جديد</option>
+                    <option value="نشط">نشط</option>
+                    <option value="موقوف">موقوف</option>
+                    <option value="محظور">محظور</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label>تصفية بالتصنيف:</label>
                 <select id="filter-category" onchange="filterCustomers()">
                     <option value="">الكل</option>
-                    <option value="VIP">VIP</option><option value="عادي">عادي</option>
+                    <option value="VIP">VIP</option>
+                    <option value="مميز">مميز</option>
+                    <option value="عادي">عادي</option>
+                    <option value="محتمل">محتمل</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>تصفية بالملاحظة:</label>
+                <select id="filter-note" onchange="filterCustomers()">
+                    <option value="">الكل</option>
+                    <option value="سريع التجاوب">سريع التجاوب</option>
+                    <option value="يتاخر في الرد">يتأخر في الرد</option>
+                    <option value="كثير الطلبات">كثير الطلبات</option>
+                    <option value="حاجة لمتابعة">حاجة لمتابعة</option>
                 </select>
             </div>
         </div>
@@ -142,7 +165,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>تعديل بيانات العميل والمرفقات 📎</h3>
-                <button class="close-btn" onclick="closeEditModal()">×</button>
+                <button type="button" class="close-btn" onclick="closeEditModal()">×</button>
             </div>
             <form id="edit-customer-form">
                 <input type="hidden" id="edit-doc-id">
@@ -162,40 +185,46 @@
                     <div class="input-group">
                         <label>الحالة</label>
                         <select id="edit-accountStatus">
-                            <option value="جديد">جديد</option><option value="نشط">نشط</option>
-                            <option value="موقوف">موقوف</option><option value="محظور">محظور</option>
+                            <option value="جديد">جديد</option>
+                            <option value="نشط">نشط</option>
+                            <option value="موقوف">موقوف</option>
+                            <option value="محظور">محظور</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label>التصنيف</label>
                         <select id="edit-customerCategory">
-                            <option value="عادي">عادي</option><option value="VIP">VIP</option>
-                            <option value="مميز">مميز</option><option value="محتمل">محتمل</option>
+                            <option value="عادي">عادي</option>
+                            <option value="VIP">VIP</option>
+                            <option value="مميز">مميز</option>
+                            <option value="محتمل">محتمل</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label>ملاحظة سريعة</label>
                         <select id="edit-quickNote">
-                            <option value="سريع التجاوب">سريع التجاوب</option><option value="يتأخر في الرد">يتأخر في الرد</option>
-                            <option value="كثير الطلبات">كثير الطلبات</option><option value="حاجة لمتابعة">حاجة لمتابعة</option>
+                            <option value="سريع التجاوب">سريع التجاوب</option>
+                            <option value="يتاخر في الرد">يتأخر في الرد</option>
+                            <option value="كثير الطلبات">كثير الطلبات</option>
+                            <option value="حاجة لمتابعة">حاجة لمتابعة</option>
                         </select>
                     </div>
                 </div>
 
                 <div style="margin-top:20px;">
-                    <label>الملاحظات التفصيلية (Word Style)</label>
+                    <label style="font-weight: bold; display: block; margin-bottom: 10px;">الملاحظات التفصيلية (Word Style)</label>
                     <div id="editor" style="height: 150px; background: white;"></div>
                 </div>
 
                 <!-- سجل المرفقات الإداري -->
                 <div class="attachments-section" style="margin-top:25px; border-top:1px solid #eee; padding-top:15px;">
-                    <h4>📎 إدارة المرفقات وسجل العمليات</h4>
+                    <h4 style="margin-bottom: 15px;">📎 إدارة المرفقات وسجل العمليات</h4>
                     <div style="display:flex; gap:10px; margin-bottom:15px;">
-                        <input type="text" id="new-file-name" placeholder="اسم الملف">
-                        <input type="file" id="new-file-input">
-                        <button type="button" id="upload-btn" class="primary-btn">رفع المرفق</button>
+                        <input type="text" id="new-file-name" placeholder="اسم الملف" style="flex:1; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <input type="file" id="new-file-input" style="flex:1; padding: 10px;">
+                        <button type="button" id="upload-btn" class="action-btn" style="background: #3498db; color: white; border-radius: 8px;">رفع المرفق</button>
                     </div>
-                    <table class="tera-table" style="font-size: 0.8rem;">
+                    <table class="tera-table" style="font-size: 0.85rem;">
                         <thead>
                             <tr style="background:#f8fafc;">
                                 <th>الملف</th>
@@ -209,9 +238,9 @@
                     </table>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="cancel-btn" onclick="closeEditModal()">إلغاء</button>
-                    <button type="submit" class="save-btn">حفظ كافة التعديلات</button>
+                <div class="modal-footer" style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="action-btn" style="background: #e74c3c; color: white; border-radius: 8px;" onclick="closeEditModal()">إلغاء</button>
+                    <button type="submit" class="action-btn" style="background: #27ae60; color: white; border-radius: 8px;">حفظ كافة التعديلات</button>
                 </div>
             </form>
         </div>
@@ -220,9 +249,12 @@
     <!-- نافذة عرض البيانات (View Modal) -->
     <div id="view-customer-modal" class="modal-overlay">
         <div class="modal-content" style="max-width:750px;">
-            <h3>🔎 تفاصيل العميل الكاملة</h3>
+            <div class="modal-header">
+                <h3>🔎 تفاصيل العميل الكاملة</h3>
+                <button type="button" class="close-btn" onclick="document.getElementById('view-customer-modal').classList.remove('active')">×</button>
+            </div>
             <div id="view-details-body"></div>
-            <button class="primary-btn" onclick="document.getElementById('view-customer-modal').classList.remove('active')" style="width:100%; margin-top:20px;">إغلاق النافذة</button>
+            <button type="button" class="action-btn" onclick="document.getElementById('view-customer-modal').classList.remove('active')" style="width:100%; margin-top:20px; background: #3498db; color: white; border-radius: 8px;">إغلاق النافذة</button>
         </div>
     </div>
 
