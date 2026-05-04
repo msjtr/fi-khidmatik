@@ -1,5 +1,5 @@
 /* ============================================================
-   نظام Tera V12 - ملف التنسيق الموحد النهائي (المصلح)
+   نظام Tera V12 - ملف التنسيق الموحد النهائي (المصلح والمطور)
    المؤسسة: الإتقان بلس - حائل (مكتب أبا صالح الشمري)
 ============================================================ */
 
@@ -21,7 +21,8 @@
 * { box-sizing: border-box; outline: none; margin: 0; padding: 0; }
 
 body, html {
-    height: 100vh; width: 100vw;
+    height: 100vh; 
+    width: 100vw;
     font-family: 'Segoe UI', system-ui, sans-serif;
     background: var(--app-bg);
     direction: rtl; 
@@ -55,6 +56,7 @@ body, html {
     z-index: var(--z-sidebar);
     overflow-y: auto; 
     border-left: 2px solid var(--itqan-gold-primary);
+    transition: transform 0.3s ease;
 }
 
 /* --- 2. الهيدر (Header) - إصلاح تداخل القوائم --- */
@@ -110,7 +112,7 @@ body, html {
 
 .dropdown-menu {
     position: absolute;
-    top: 65px; 
+    top: calc(100% + 15px); /* تم التعديل ليكون متجاوباً دائماً أسفل الهيدر */
     left: 0; 
     background: white;
     border-radius: 15px;
@@ -133,6 +135,7 @@ body, html {
     transition: 0.3s;
     cursor: pointer;
     color: var(--itqan-navy-bg);
+    text-decoration: none;
 }
 
 .dropdown-item:hover { background: #f8fafc; color: var(--itqan-gold-primary); }
@@ -161,3 +164,32 @@ body, html {
     border-radius: 10px;
 }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   7. التوافق مع الجوال والآيباد (Responsive Design)
+============================================================ */
+@media (max-width: 992px) {
+    .tera-layout {
+        grid-template-columns: 1fr; /* إلغاء تقسيم الشاشة */
+        grid-template-areas:
+            "header"
+            "main"
+            "footer";
+    }
+    
+    #sidebar-mount {
+        position: fixed;
+        right: -300px; /* إخفاء القائمة الجانبية افتراضياً على الجوال */
+        height: calc(100vh - 30px);
+        z-index: 2000;
+    }
+    
+    /* عند تفعيل القائمة الجانبية برمجياً على الجوال */
+    #sidebar-mount.active {
+        right: 15px;
+    }
+    
+    #header-mount {
+        padding: 0 15px;
+    }
+}
