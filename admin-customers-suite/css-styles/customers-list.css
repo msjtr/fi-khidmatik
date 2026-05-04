@@ -1,7 +1,7 @@
 /* =========================================
-   تنسيقات صفحة قائمة العملاء المطورة - Tera V12
+   تنسيقات صفحة قائمة العملاء المصلحة - Tera V12
    التحديث: أيقونات 3D + ملخص على سطرين + رقابة إدارية
-   المؤسسة: الإتقان بلس - حائل
+   المؤسسة: الإتقان بلس - حائل (مكتب أبا صالح الشمري)
 ========================================= */
 
 /* --- 1. الإعدادات العامة والخطوط --- */
@@ -12,6 +12,7 @@ body {
     padding: 30px; 
     direction: rtl; 
     color: #2D3748;
+    line-height: 1.6;
 }
 
 /* --- 2. لوحة الإحصائيات (السطرين وأيقونات 3D) --- */
@@ -36,7 +37,7 @@ body {
     align-items: center;
     gap: 20px;
     box-shadow: 0 10px 25px rgba(10, 25, 47, 0.05);
-    border-right: 6px solid #D4AF37; /* الهوية الذهبية */
+    border-right: 6px solid #D4AF37; /* الهوية الذهبية للمكتب */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -45,10 +46,12 @@ body {
     box-shadow: 0 15px 35px rgba(10, 25, 47, 0.1);
 }
 
-/* أيقونات 3D مع تأثير الظل */
+/* أيقونات 3D مع تأثير الظل المطور */
 .stat-icon {
     font-size: 45px;
     filter: drop-shadow(2px 5px 8px rgba(0,0,0,0.15));
+    min-width: 60px;
+    text-align: center;
 }
 
 .stat-content { flex: 1; }
@@ -62,7 +65,7 @@ body {
     padding-bottom: 8px;
 }
 
-/* شبكة الإحصائيات داخل البطاقة */
+/* شبكة الإحصائيات المصلحة */
 .stat-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -72,13 +75,13 @@ body {
     color: #4A5568;
 }
 
-.stat-grid b { color: #3498db; font-weight: 900; }
+.stat-grid b { color: #3498db; font-weight: 900; font-size: 1.1rem; }
 
 /* ألوان الرقابة المعتمدة للبطاقات */
-.stat-card.main { border-right-color: #D4AF37; } /* ذهبي للعام */
-.stat-card.status { border-right-color: #3498db; } /* أزرق للحالات */
-.stat-card.categories { border-right-color: #9b59b6; } /* بنفسجي للتصنيف */
-.stat-card.notes { border-right-color: #e67e22; } /* برتقالي للملاحظات */
+.stat-card.main { border-right-color: #D4AF37; }      /* ذهبي: نظرة عامة */
+.stat-card.status { border-right-color: #3498db; }    /* أزرق: حالات الحساب */
+.stat-card.categories { border-right-color: #9b59b6; } /* بنفسجي: التصنيفات */
+.stat-card.notes { border-right-color: #e67e22; }      /* برتقالي: الملاحظات السريعة */
 
 /* --- 3. شريط الفلتر والبحث المطور --- */
 .filter-bar {
@@ -98,10 +101,10 @@ body {
     flex-direction: column; 
     gap: 10px; 
     flex: 1; 
-    min-width: 220px; 
+    min-width: 200px; 
 }
 
-.filter-group.search { flex: 2; } /* تكبير حقل البحث بالمنطقة */
+.filter-group.search { flex: 2; } /* حقل البحث بالمنطقة يأخذ مساحة أكبر */
 
 .filter-group label { 
     font-size: 0.9rem; 
@@ -110,7 +113,7 @@ body {
 }
 
 .filter-group select, .filter-group input { 
-    padding: 14px; 
+    padding: 12px 15px; 
     border: 2px solid #E2E8F0; 
     border-radius: 12px; 
     font-size: 1rem;
@@ -136,7 +139,8 @@ body {
 
 .tera-table { 
     width: 100%; 
-    border-collapse: collapse; 
+    border-collapse: separate; /* ضروري لعمل Sticky بشكل صحيح */
+    border-spacing: 0;
     white-space: nowrap; 
 }
 
@@ -146,6 +150,9 @@ body {
     padding: 20px 15px; 
     text-align: center; 
     font-weight: 600; 
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .tera-table td { 
@@ -153,45 +160,48 @@ body {
     border-bottom: 1px solid #F1F5F9; 
     text-align: center;
     color: #334155; 
+    background: #FFF;
 }
 
-.tera-table tr:hover { background-color: #F8FAFC; }
+.tera-table tr:hover td { background-color: #F8FAFC; }
 
-/* تثبيت الأعمدة المهمة للرقابة */
+/* إصلاح وتثبيت الأعمدة المهمة (الاسم والإجراءات) */
 .sticky-col { 
     position: sticky; 
     right: 0; 
-    background: #FFF !important; 
-    z-index: 2; 
+    z-index: 5; 
     font-weight: 800; 
     box-shadow: -3px 0 10px rgba(0,0,0,0.05);
+    border-left: 2px solid #F1F5F9;
 }
 
 .sticky-actions { 
     position: sticky; 
     left: 0; 
-    background: #FFF !important; 
-    z-index: 2; 
+    z-index: 5; 
     box-shadow: 3px 0 10px rgba(0,0,0,0.05);
+    border-right: 2px solid #F1F5F9;
 }
 
 /* --- 5. الوشوم والأزرار الذكية --- */
 .status-tag {
     background: rgba(52, 152, 219, 0.1);
     color: #3498db;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 8px;
     font-weight: 800;
     font-size: 0.85rem;
+    display: inline-block;
 }
 
 .action-btn { 
     cursor: pointer; 
     font-size: 1.2rem;
-    padding: 8px;
+    padding: 10px;
     border-radius: 10px;
     transition: 0.2s;
-    display: inline-block;
+    background: none;
+    border: none;
 }
 
 .action-btn:hover { background: #F1F5F9; transform: scale(1.1); }
