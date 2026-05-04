@@ -1,60 +1,59 @@
-/* =========================================
-   نظام Tera V12 - ملف التنسيق الإبداعي الموحد
+/* ============================================================
+   نظام Tera V12 - ملف التنسيق الإبداعي الموحد (النسخة المصلحة)
    النمط: Bento Box UI / Apple-like SaaS + Metal Scrollbar
-   المؤسسة: الإتقان بلس - حائل
-========================================= */
+   المؤسسة: الإتقان بلس - حائل (مكتب أبا صالح الشمري)
+============================================================ */
 
-/* --- 1. باليت الألوان الملكية المتطورة --- */
 :root {
-    --itqan-navy-bg: #0A192F;      /* كحلي ليلي عميق جداً للقائمة */
-    --itqan-navy-light: #112240;   /* تأثيرات التمرير والتفعيل */
-    --itqan-gold-primary: #D4AF37; /* اللون الذهبي للهوية */
+    --itqan-navy-bg: #0A192F;      /* كحلي ليلي عميق للقائمة */
+    --itqan-navy-light: #112240;   /* تأثيرات التمرير */
+    --itqan-gold-primary: #D4AF37; /* ذهبي الهوية */
     --itqan-gold-glow: rgba(212, 175, 55, 0.4);
-    --metal-gray: #6A7B9C;          /* رصاصي معدني لشريط التمرير */
-    
-    --app-bg: #E8EEF2;              /* خلفية النظام (رمادي لؤلؤي) */
-    --card-bg: #FFFFFF;             /* خلفية الجزر العائمة */
-    
+    --metal-gray: #6A7B9C;         /* رصاصي معدني */
+    --app-bg: #E8EEF2;             /* خلفية لؤلؤية */
+    --card-bg: #FFFFFF;
     --shadow-float: 0 10px 30px rgba(10, 25, 47, 0.08);
     --shadow-glow: 0 12px 25px rgba(212, 175, 55, 0.2);
-    
-    /* ألوان الحالة المعتمدة للرقابة الإدارية */
-    --status-new: #3498db;
-    --status-active: #27ae60;
-    --status-suspended: #e67e22;
-    --status-blocked: #e74c3c;
 }
 
-/* --- الحماية الشاملة وضبط القياسات --- */
+/* --- الضبط العام والحماية من التداخل --- */
 * { box-sizing: border-box; outline: none; }
 
-/* --- 2. الإعدادات الأساسية للواجهة --- */
 body, html {
     margin: 0; padding: 0; 
     height: 100vh; width: 100%;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     background: var(--app-bg);
     direction: rtl; overflow: hidden;
 }
 
-/* --- 3. توزيع (الجزر العائمة) المحسن (Grid System) --- */
+/* --- توزيع الجزر العائمة (Grid System) المصلح --- */
 .tera-layout {
     display: grid; 
     height: 100vh; width: 100%;
     padding: 12px; 
     gap: 15px;      
     grid-template-columns: 260px 1fr;
-    grid-template-rows: 75px 1fr 40px;
+    grid-template-rows: 75px 1fr 50px; /* زيادة مساحة الفوتر */
     grid-template-areas: 
         "sidebar header"
         "sidebar main"
         "sidebar footer";
-    transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tera-layout.sidebar-collapsed { grid-template-columns: 85px 1fr; }
+/* --- 1. إصلاح الهيدر (Header) لضمان ظهور القوائم المنسدلة --- */
+#header-mount { 
+    grid-area: header; 
+    background: #FFFFFF;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: space-between; 
+    padding: 0 30px; 
+    box-shadow: var(--shadow-float);
+    position: relative;
+    z-index: 1100; /* أعلى طبقة لضمان ظهور قائمة مدير النظام فوق الجدول */
+}
 
-/* --- 4. الجزيرة الأولى: القائمة الجانبية (Sidebar) --- */
+/* --- 2. إصلاح القائمة الجانبية (Sidebar) --- */
 #sidebar-mount { 
     grid-area: sidebar; 
     background: var(--itqan-navy-bg);
@@ -63,96 +62,21 @@ body, html {
     box-shadow: var(--shadow-float);
     display: flex; flex-direction: column;
     position: relative;
-    overflow: hidden; 
-    transition: all 0.4s ease;
     z-index: 1000;
 }
 
-#sidebar-mount::before {
-    content: ''; position: absolute; top: -50px; right: -50px;
-    width: 150px; height: 150px; background: var(--itqan-gold-glow);
-    filter: blur(80px); border-radius: 50%; pointer-events: none;
-}
-
-/* الشعار وزر الطي */
-.sidebar-header {
-    display: flex; flex-direction: column; align-items: center; 
-    position: relative; margin-bottom: 25px; flex-shrink: 0;
-}
-
-.collapse-btn {
-    position: absolute; left: 15px; top: 0; 
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); 
-    border-radius: 50%; color: var(--itqan-gold-primary); 
-    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; 
-    cursor: pointer; transition: all 0.3s ease;
-}
-
-.collapse-btn:hover { 
-    background: var(--itqan-gold-primary); 
-    color: #fff;
-    box-shadow: 0 0 15px var(--itqan-gold-glow);
-}
-
-.main-logo { width: 100px; transition: 0.4s ease; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4)); }
-.brand-titles { text-align: center; margin-top: 15px; transition: 0.4s ease; }
-.brand-title-ar { color: #FFF; font-size: 1rem; font-weight: 800; display: block; letter-spacing: 0.5px; }
-.brand-title-en { color: var(--itqan-gold-primary); font-size: 0.7rem; font-family: 'Courier New', monospace; font-weight: bold; }
-
-/* حاوية التنقل والسكرول المعدني الموحد */
-.sidebar-nav {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-left: 5px; 
-}
-
-/* السكرول المعدني (Metal Scrollbar) */
-.sidebar-nav::-webkit-scrollbar { width: 6px; }
-.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-.sidebar-nav::-webkit-scrollbar-thumb { 
-    background: linear-gradient(180deg, var(--metal-gray), #3d4a63); 
-    border-radius: 10px; 
-    border: 1px solid var(--itqan-navy-bg); 
-}
-
-.nav-btn { 
-    display: flex; align-items: center; gap: 15px; width: 100%; 
-    background: transparent; border: none; 
-    color: #8892B0; padding: 14px 18px; margin-bottom: 10px; 
-    border-radius: 15px; cursor: pointer; 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: right; 
-    font-size: 0.95rem; font-weight: 600;
-}
-
-.nav-btn:hover, .nav-btn.active { 
-    color: #FFF; 
-    background: var(--itqan-navy-light); 
-    box-shadow: inset -5px 0 0 var(--itqan-gold-primary); 
-}
-
-/* --- 5. الهيدر والشاشة الرئيسية والفوتر --- */
-#header-mount { 
-    grid-area: header; 
-    background: #FFFFFF;
-    border-radius: 20px;
-    display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 30px; 
-    box-shadow: var(--shadow-float);
-    z-index: 900;
-}
-
+/* --- 3. إصلاح الشاشة الرئيسية (Main View) --- */
 #main-view { 
     grid-area: main; 
     background: var(--card-bg); 
     border-radius: 25px; 
     box-shadow: var(--shadow-float);
-    overflow: hidden; 
-    display: flex; flex-direction: column;
+    overflow: auto; /* يسمح بالتمرير الداخلي فقط */
+    position: relative;
+    z-index: 1; /* أقل طبقة لضمان بقاء الهيدر والسيدبار فوقها */
 }
 
-#tera-iframe { flex: 1; width: 100%; height: 100%; border: none; }
-
+/* --- 4. إصلاح التذليل (Footer) ومنع التداخل --- */
 #footer-mount { 
     grid-area: footer; 
     display: flex; align-items: center; justify-content: center;
@@ -160,73 +84,48 @@ body, html {
     border-radius: 15px;
     padding: 0 20px; 
     box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.03);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--metal-gray);
     font-weight: 600;
+    z-index: 900;
+    clear: both;
 }
 
-/* --- 6. لوحة الإحصائيات المطورة (Bento Box UI) --- */
+/* --- 5. لوحة الإحصائيات (السطرين وأيقونات 3D) --- */
 .dashboard-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 15px;
+    display: flex; flex-direction: column; gap: 20px; padding: 20px;
 }
 
 .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
 }
 
 .stat-card {
-    background: #fff;
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(10, 25, 47, 0.04);
+    background: #fff; padding: 20px; border-radius: 20px;
     border-right: 6px solid var(--itqan-gold-primary);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    transition: all 0.3s ease; display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
-.stat-card:hover { 
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-glow);
-}
+.stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-glow); }
 
 .stat-icon-3d {
-    font-size: 40px;
-    filter: drop-shadow(2px 5px 8px rgba(0,0,0,0.15));
+    font-size: 40px; filter: drop-shadow(2px 5px 8px rgba(0,0,0,0.15));
 }
 
-/* --- 7. استجابة الشاشة (Mobile) --- */
-@media (max-width: 1024px) {
-    .stats-row { grid-template-columns: 1fr; }
+/* --- 6. السكرول المعدني (Metal Scrollbar) --- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--app-bg); }
+::-webkit-scrollbar-thumb { 
+    background: linear-gradient(180deg, var(--metal-gray), #4a5568); 
+    border-radius: 10px;
 }
 
+/* --- استجابة الشاشة للموبايل --- */
 @media (max-width: 768px) {
     .tera-layout {
         grid-template-columns: 1fr;
         grid-template-areas: "header" "main" "footer";
     }
-
-    aside#sidebar-mount {
-        position: fixed;
-        right: -100%; 
-        top: 0; bottom: 0;
-        width: 280px;
-        z-index: 2000;
-    }
-
-    aside#sidebar-mount.active { right: 0; }
+    #sidebar-mount { display: none; } /* يمكن إضافة زر لفتحه لاحقاً */
 }
-
-/* حالة الطي لإخفاء النصوص */
-.sidebar-collapsed .brand-titles, 
-.sidebar-collapsed .nav-text { 
-    display: none; 
-}
-
-.sidebar-collapsed .main-logo { width: 50px; }
