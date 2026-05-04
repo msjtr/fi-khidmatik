@@ -4,7 +4,7 @@
  */
 
 export function initSidebarLogic() {
-    // مراقب أحداث مركزي (Centralized Event Listener) لسرعة استجابة أعلى
+    // مراقب أحداث مركزي لسرعة استجابة أعلى
     document.addEventListener('click', function(e) {
         
         const layout = document.querySelector('.tera-layout');
@@ -26,22 +26,22 @@ export function initSidebarLogic() {
                 });
                 document.querySelectorAll('.nav-btn.has-submenu').forEach(btn => btn.classList.remove('active'));
             }
-            return; // توقف هنا لتجنب تنفيذ باقي الأوامر
+            return; 
         }
 
-        // 2. منطق القوائم المنسدلة (Submenus) - مع خاصية الإغلاق التلقائي
+        // 2. منطق القوائم المنسدلة (Submenus) - مع خاصية الإغلاق التلقائي (Accordion)
         const submenuBtn = e.target.closest('.has-submenu');
         if (submenuBtn) {
             const targetId = submenuBtn.getAttribute('data-target');
             const targetSubmenu = document.getElementById(targetId);
             const arrow = submenuBtn.querySelector('.dropdown-arrow-icon');
 
-            // ذكاء النظام: توسيع القائمة الجانبية إذا كانت مطوية
+            // توسيع القائمة الجانبية تلقائياً إذا كانت مطوية عند محاولة فتح قائمة فرعية
             if (layout.classList.contains('sidebar-collapsed')) {
                 layout.classList.remove('sidebar-collapsed');
             }
 
-            // إغلاق القوائم المنسدلة الأخرى (Accordion Auto-Close)
+            // إغلاق القوائم المنسدلة الأخرى (Auto-Close)
             document.querySelectorAll('.has-submenu').forEach(btn => {
                 if (btn !== submenuBtn) {
                     btn.classList.remove('active');
@@ -74,7 +74,7 @@ export function initSidebarLogic() {
             return;
         }
 
-        // 3. منطق تلوين الزر النشط تلقائياً وإضاءة الزر الأب
+        // 3. منطق تلوين الزر النشط وإضاءة الزر الأب
         const navBtn = e.target.closest('.nav-btn:not(.has-submenu)');
         const submenuItem = e.target.closest('.submenu-item');
 
@@ -83,13 +83,13 @@ export function initSidebarLogic() {
             document.querySelectorAll('.nav-btn, .submenu-item').forEach(btn => btn.classList.remove('active'));
 
             if (navBtn) {
-                navBtn.classList.add('active'); // تفعيل مباشر للزر الفردي
+                navBtn.classList.add('active'); 
             } 
             
             if (submenuItem) {
-                submenuItem.classList.add('active'); // تفعيل الزر الفرعي
+                submenuItem.classList.add('active'); 
                 
-                // إضاءة الزر الأب (مثل إضاءة 'إعدادات النظام' إذا كنا داخله)
+                // إضاءة الزر الأب للحفاظ على سياق القائمة المفتوحة
                 const parentContainer = submenuItem.closest('.submenu-container');
                 if (parentContainer) {
                     const parentBtn = document.querySelector(`.has-submenu[data-target="${parentContainer.id}"]`);
@@ -100,21 +100,21 @@ export function initSidebarLogic() {
     });
 }
 
-// 4. دالة التنقل المنفصلة بمحرك القاموس (Routing Dictionary)
-window.teraNavigate = window.handleSidebarClick = function(moduleName) {
+/**
+ * 4. محرك التنقل المركزي (Routing Engine)
+ * يستخدم قاموساً لتحديد المسارات بدقة وسرعة
+ */
+window.teraNavigate = function(moduleName) {
     const frame = document.getElementById('tera-iframe'); 
     
-    // قاموس مسارات الصفحات المنظم
     const pages = {
         'dashboard': 'customers-list.html', 
         'products': 'products.html',
         'orders': 'orders.html',
-        
         'customers-list': 'customers-list.html',
         'add-customer': 'add-customer.html',
         'customers-report': 'customers-report.html',
         'export-import': 'export-import.html',
-        
         'add-employee': 'add-employee.html',
         'employees-log': 'employees-log.html',
         'change-credentials': 'change-credentials.html',
@@ -128,7 +128,7 @@ window.teraNavigate = window.handleSidebarClick = function(moduleName) {
     };
 
     if (frame) {
-        // تأثير بهتان أنيق أثناء تحميل الصفحة الجديدة
+        // تأثير بهتان (Fade Effect) أثناء تحميل الصفحة الجديدة للجمالية
         frame.style.transition = 'opacity 0.3s ease';
         frame.style.opacity = '0.2';
         
