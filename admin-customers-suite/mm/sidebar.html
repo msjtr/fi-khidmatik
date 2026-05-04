@@ -1,141 +1,105 @@
-/**
- * نظام Tera V12 - محرك القائمة الجانبية (Sidebar Logic) - النسخة المحسنة
- * المؤسسة: الإتقان بلس - حائل
- */
-
-export function initSidebarLogic() {
-    // مراقب أحداث مركزي (Centralized Event Listener) لسرعة استجابة أعلى
-    document.addEventListener('click', function(e) {
-        
-        const layout = document.querySelector('.tera-layout');
-        if (!layout) return;
-
-        // 1. منطق طي وتوسيع القائمة الجانبية بالكامل
-        const toggleBtn = e.target.closest('#toggle-sidebar-btn');
-        if (toggleBtn) {
-            layout.classList.toggle('sidebar-collapsed');
-            
-            // إغلاق جميع القوائم الفرعية عند الطي للترتيب
-            if (layout.classList.contains('sidebar-collapsed')) {
-                document.querySelectorAll('.submenu-container').forEach(sub => {
-                    sub.style.maxHeight = null;
-                    sub.classList.remove('open');
-                });
-                document.querySelectorAll('.has-submenu .dropdown-arrow-icon').forEach(arrow => {
-                    arrow.style.transform = 'rotate(0deg)';
-                });
-                document.querySelectorAll('.nav-btn.has-submenu').forEach(btn => btn.classList.remove('active'));
-            }
-            return; // توقف هنا لتجنب تنفيذ باقي الأوامر
-        }
-
-        // 2. منطق القوائم المنسدلة (Submenus) - مع خاصية الإغلاق التلقائي
-        const submenuBtn = e.target.closest('.has-submenu');
-        if (submenuBtn) {
-            const targetId = submenuBtn.getAttribute('data-target');
-            const targetSubmenu = document.getElementById(targetId);
-            const arrow = submenuBtn.querySelector('.dropdown-arrow-icon');
-
-            // ذكاء النظام: توسيع القائمة الجانبية إذا كانت مطوية
-            if (layout.classList.contains('sidebar-collapsed')) {
-                layout.classList.remove('sidebar-collapsed');
-            }
-
-            // إغلاق القوائم المنسدلة الأخرى (Accordion Auto-Close)
-            document.querySelectorAll('.has-submenu').forEach(btn => {
-                if (btn !== submenuBtn) {
-                    btn.classList.remove('active');
-                    const icon = btn.querySelector('.dropdown-arrow-icon');
-                    if (icon) icon.style.transform = 'rotate(0deg)';
-                }
-            });
-            document.querySelectorAll('.submenu-container').forEach(sub => {
-                if (sub.id !== targetId) {
-                    sub.style.maxHeight = null;
-                    sub.classList.remove('open');
-                }
-            });
-
-            // فتح/إغلاق القائمة المطلوبة بحركة انسيابية
-            if (targetSubmenu) {
-                const isOpen = targetSubmenu.classList.contains('open');
-                if (isOpen) {
-                    targetSubmenu.style.maxHeight = null;
-                    targetSubmenu.classList.remove('open');
-                    submenuBtn.classList.remove('active');
-                    if (arrow) arrow.style.transform = 'rotate(0deg)';
-                } else {
-                    targetSubmenu.style.maxHeight = targetSubmenu.scrollHeight + "px";
-                    targetSubmenu.classList.add('open');
-                    submenuBtn.classList.add('active');
-                    if (arrow) arrow.style.transform = 'rotate(180deg)';
-                }
-            }
-            return;
-        }
-
-        // 3. منطق تلوين الزر النشط تلقائياً وإضاءة الزر الأب
-        const navBtn = e.target.closest('.nav-btn:not(.has-submenu)');
-        const submenuItem = e.target.closest('.submenu-item');
-
-        if (navBtn || submenuItem) {
-            // إزالة التفعيل من جميع الأزرار
-            document.querySelectorAll('.nav-btn, .submenu-item').forEach(btn => btn.classList.remove('active'));
-
-            if (navBtn) {
-                navBtn.classList.add('active'); // تفعيل مباشر للزر الفردي
-            } 
-            
-            if (submenuItem) {
-                submenuItem.classList.add('active'); // تفعيل الزر الفرعي
-                
-                // إضاءة الزر الأب (مثل إضاءة 'إعدادات النظام' إذا كنا داخله)
-                const parentContainer = submenuItem.closest('.submenu-container');
-                if (parentContainer) {
-                    const parentBtn = document.querySelector(`.has-submenu[data-target="${parentContainer.id}"]`);
-                    if (parentBtn) parentBtn.classList.add('active');
-                }
-            }
-        }
-    });
-}
-
-// 4. دالة التنقل المنفصلة بمحرك القاموس (Routing Dictionary)
-window.teraNavigate = window.handleSidebarClick = function(moduleName) {
-    const frame = document.getElementById('tera-iframe'); 
+<!-- تنسيقات القائمة الجانبية المدمجة -->
+<style>
+    .sidebar-header { display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; position: relative; }
+    .collapse-btn { position: absolute; left: 0; top: 0; background: none; border: none; color: #6A7B9C; cursor: pointer; transition: 0.3s; padding: 5px; }
+    .collapse-btn:hover { color: var(--itqan-gold-primary); transform: scale(1.1); }
+    .brand-logo-container img { max-width: 75px; margin-bottom: 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+    .brand-titles { text-align: center; }
+    .brand-title-ar { font-weight: 900; font-size: 1.15rem; color: var(--itqan-gold-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .brand-title-en { font-size: 0.7rem; color: #cbd5e1; margin-top: 3px; letter-spacing: 0.5px; }
     
-    // قاموس مسارات الصفحات المنظم
-    const pages = {
-        'dashboard': 'customers-list.html', 
-        'products': 'products.html',
-        'orders': 'orders.html',
-        
-        'customers-list': 'customers-list.html',
-        'add-customer': 'add-customer.html',
-        'customers-report': 'customers-report.html',
-        'export-import': 'export-import.html',
-        
-        'add-employee': 'add-employee.html',
-        'employees-log': 'employees-log.html',
-        'change-credentials': 'change-credentials.html',
-        'employees-report': 'employees-report.html',
-        'backup': 'backup.html',
-        'store-info': 'store-info.html',
-        'clear-cache': 'clear-cache.html',
-        'shipping-settings': 'shipping-settings.html',
-        'payment-gateway': 'payment-gateway.html',
-        'ui-design': 'ui-design.html'
-    };
+    .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
+    .nav-section-title { font-size: 0.8rem; color: #6A7B9C; margin: 15px 15px 5px 15px; font-weight: bold; letter-spacing: 0.5px; }
+    .nav-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 10px 0; }
+    
+    .nav-btn { display: flex; align-items: center; width: 100%; padding: 12px 15px; background: transparent; border: none; color: #cbd5e1; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-align: right; font-family: inherit; font-size: 0.95rem; font-weight: 600; }
+    .nav-btn:hover { background: rgba(255,255,255,0.08); color: #FFF; transform: translateX(-5px); }
+    .nav-btn.active { background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--itqan-gold-primary); color: var(--itqan-gold-primary); font-weight: 800; }
+    .nav-btn svg { margin-left: 12px; }
+    .dropdown-arrow-icon { margin-left: 0 !important; margin-right: auto; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    .submenu-container { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(0,0,0,0.2); border-radius: 10px; margin-top: 5px; }
+    .submenu-inner { display: flex; flex-direction: column; padding: 8px 15px 8px 0; gap: 4px; }
+    .submenu-item { background: transparent; border: none; color: #94a3b8; padding: 10px 20px 10px 10px; text-align: right; cursor: pointer; transition: 0.3s; font-family: inherit; border-radius: 8px; font-size: 0.85rem; font-weight: 500; }
+    .submenu-item:hover, .submenu-item.active { color: #FFF; background: rgba(255,255,255,0.05); padding-right: 25px; color: var(--itqan-gold-primary); }
+</style>
 
-    if (frame) {
-        // تأثير بهتان أنيق أثناء تحميل الصفحة الجديدة
-        frame.style.transition = 'opacity 0.3s ease';
-        frame.style.opacity = '0.2';
-        
-        frame.src = pages[moduleName] || pages['dashboard'];
-        
-        frame.onload = () => { 
-            frame.style.opacity = '1'; 
-        };
-    }
-};
+<div class="sidebar-header">
+    <button class="collapse-btn" id="toggle-sidebar-btn" title="طي/توسيع القائمة">
+        <svg class="chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="brand-logo-container">
+        <!-- تأكد أن مسار الشعار صحيح لديك -->
+        <img src="../images/logo.svg" alt="الإتقان بلس" class="main-logo" onerror="this.src='https://via.placeholder.com/75x75.png?text=Logo'">
+    </div>
+    <div class="brand-titles">
+        <div class="brand-title-ar">في خدمتك من الإتقان بلس</div>
+        <div class="brand-title-en">Fi Khidmatik by Al-Itqan Plus</div>
+    </div>
+</div>
+
+<nav class="sidebar-nav" id="sidebar-nav-menu">
+    
+    <!-- القسم المعزول والمميز (الرئيسية) -->
+    <button class="nav-btn special-btn active tera-nav-link" onclick="window.teraNavigate('dashboard')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span class="nav-text">الرئيسية</span>
+    </button>
+
+    <!-- فاصل أقسام -->
+    <div class="nav-section-title">إدارة المتجر</div>
+
+    <button class="nav-btn tera-nav-link" onclick="window.teraNavigate('products')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <span class="nav-text">المنتجات</span>
+    </button>
+
+    <button class="nav-btn tera-nav-link" onclick="window.teraNavigate('orders')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span class="nav-text">الطلبات</span>
+    </button>
+
+    <!-- قائمة العملاء المنسدلة -->
+    <div class="nav-item-wrapper">
+        <button class="nav-btn has-submenu" data-target="customers-submenu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span class="nav-text">العملاء</span>
+            <svg class="dropdown-arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="submenu-container" id="customers-submenu">
+            <div class="submenu-inner">
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('customers-list')">قائمة العملاء</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('add-customer')">إضافة عميل جديد</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('customers-report')">تقرير العملاء</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('export-import')">تصدير واستيراد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- فاصل قسم الإعدادات -->
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">النظام والتحكم</div>
+
+    <!-- قائمة إعدادات النظام المنسدلة -->
+    <div class="nav-item-wrapper">
+        <button class="nav-btn has-submenu" data-target="settings-submenu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span class="nav-text">إعدادات النظام</span>
+            <svg class="dropdown-arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="submenu-container" id="settings-submenu">
+            <div class="submenu-inner">
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('add-employee')">إضافة موظف</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('employees-log')">سجل العمليات للموظفين</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('change-credentials')">كلمة المرور واسم المستخدم</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('employees-report')">تقرير عن الموظفين</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('backup')">النسخ الاحتياطي</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('store-info')">المعلومات عن المتجر</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('clear-cache')">تفريغ الذاكرة المؤقتة</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('shipping-settings')">إعدادات الشحن</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('payment-gateway')">إعدادات بوابة الدفع</button>
+                <button class="submenu-item tera-nav-link" onclick="window.teraNavigate('ui-design')">إعدادات تصميم الواجهة</button>
+            </div>
+        </div>
+    </div>
+</nav>
