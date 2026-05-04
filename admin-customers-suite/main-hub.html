@@ -61,7 +61,7 @@
                 }
             }
 
-            // بعد تحميل الهيدر، نقوم بجلب الساعة وتركيبها بداخله
+            // بعد تحميل الهيدر، نقوم بجلب الساعة (إن وجدت كملف منفصل) أو نعتمد على كود الهيدر مباشرة
             try {
                 const clockRes = await fetch('mm/clock-view.html');
                 if (clockRes.ok) {
@@ -69,22 +69,59 @@
                     if (clockMount) clockMount.innerHTML = await clockRes.text();
                 }
             } catch (e) {
-                console.error('تعذر تحميل الساعة', e);
+                console.warn('لم يتم العثور على ملف الساعة المنفصل، سيتم الاعتماد على الساعة المدمجة بالهيدر.');
             }
 
-            // إطلاق إشارة بأن الواجهة جاهزة لتركيب التفاعلات
+            // إطلاق إشارة بأن الواجهة جاهزة لتركيب التفاعلات وتشغيل الساعة
             setTimeout(() => {
                 document.dispatchEvent(new Event('TeraLayoutReady'));
                 setupSidebarInteractions(); 
-            }, 200);
+                startInternalClock(); // ⏱️ تشغيل محرك الساعة فوراً
+            }, 300);
         }
 
-        // دالة التنقل للقائمة الجانبية وفتح الصفحات في الإطار (iFrame)
+        // --- محرك الساعة الداخلي لحل مشكلة الأصفار ---
+        function startInternalClock() {
+            function updateClock() {
+                const hoursEl = document.getElementById('c-hours');
+                const minEl = document.getElementById('c-minutes');
+                const secEl = document.getElementById('c-seconds');
+                const ampmEl = document.getElementById('c-ampm');
+                const hijriEl = document.getElementById('c-hijri');
+                const gregEl = document.getElementById('c-greg');
+
+                if (!hoursEl) return;
+
+                const now = new Date();
+                let h = now.getHours();
+                let m = now.getMinutes();
+                let s = now.getSeconds();
+                let ampm = h >= 12 ? 'م' : 'ص';
+                
+                h = h % 12 || 12;
+
+                hoursEl.innerText = String(h).padStart(2, '0');
+                minEl.innerText = String(m).padStart(2, '0');
+                secEl.innerText = String(s).padStart(2, '0');
+                if(ampmEl) ampmEl.innerText = ampm;
+
+                if (hijriEl && gregEl) {
+                    let hijriFormat = new Intl.DateTimeFormat('en-GB-u-ca-islamic-umalqura', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
+                    hijriEl.innerText = hijriFormat.replace(/[a-zA-Z\sهـ]/g, '').trim();
+                    
+                    let gregFormat = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
+                    gregEl.innerText = gregFormat;
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // --- دالة التنقل للقائمة الجانبية وفتح الصفحات في الإطار (iFrame) ---
         window.teraNavigate = function(pageName) {
             const iframe = document.getElementById('tera-iframe');
             if (iframe) {
                 iframe.style.opacity = '0.3';
-                // التأكد من إضافة .html إذا لم تكن موجودة
                 const targetPage = pageName.endsWith('.html') ? pageName : `${pageName}.html`;
                 iframe.src = `pages/${targetPage}`;
                 
@@ -92,18 +129,25 @@
             }
         };
 
-        // دالة القائمة المنسدلة لمدير النظام (الهيدر)
+        // --- دالة القائمة المنسدلة لمدير النظام (الهيدر) ---
         window.toggleDropdown = function(event) {
             const dropdown = document.getElementById('user-dropdown');
             if (dropdown) dropdown.classList.toggle('active');
             if (event) event.stopPropagation();
         };
 
-        // 🛠️ محرك تفاعلات القائمة الجانبية (الألوان والقوائم المنسدلة)
+        // --- 🛠️ محرك تفاعلات القائمة الجانبية (الألوان والقوائم المنسدلة) ---
         function setupSidebarInteractions() {
             document.addEventListener('click', function(e) {
                 
-                // 1) نقل اللون للزر النشط (Active State)
+                // 1) إغلاق قائمة الهيدر المنسدلة عند النقر بالخارج
+                const userProfileWrapper = e.target.closest('.user-profile-wrapper');
+                const userDropdown = document.getElementById('user-dropdown');
+                if (!userProfileWrapper && userDropdown && userDropdown.classList.contains('active')) {
+                    userDropdown.classList.remove('active');
+                }
+
+                // 2) نقل اللون للزر النشط (Active State)
                 const clickedLink = e.target.closest('.tera-nav-link');
                 if (clickedLink) {
                     document.querySelectorAll('.tera-nav-link').forEach(btn => {
@@ -112,7 +156,7 @@
                     clickedLink.classList.add('active');
                 }
 
-                // 2) فتح وإغلاق القوائم المنسدلة للجانبية بانسيابية (Accordion)
+                // 3) فتح وإغلاق القوائم المنسدلة للجانبية بانسيابية (Accordion)
                 const submenuBtn = e.target.closest('.has-submenu');
                 if (submenuBtn) {
                     const targetId = submenuBtn.getAttribute('data-target');
@@ -131,27 +175,17 @@
                     }
                 }
 
-                // 3) زر طي القائمة الجانبية بالكامل وتوسيعها
+                // 4) زر طي القائمة الجانبية بالكامل وتوسيعها
                 const toggleBtn = e.target.closest('#toggle-sidebar-btn');
                 if (toggleBtn) {
-                    // التعديل يتناسب مع الجوال وسطح المكتب
                     const sidebar = document.getElementById('sidebar-mount');
                     const layout = document.querySelector('.tera-layout');
                     
                     if (window.innerWidth <= 992) {
-                        // إظهارها في الجوال
                         if (sidebar) sidebar.classList.toggle('mobile-active');
                     } else {
-                        // طيها في سطح المكتب
                         if (layout) layout.classList.toggle('sidebar-collapsed');
                     }
-                }
-
-                // 4) إغلاق قائمة الهيدر المنسدلة عند النقر بالخارج
-                const userProfileWrapper = e.target.closest('.user-profile-wrapper');
-                const userDropdown = document.getElementById('user-dropdown');
-                if (!userProfileWrapper && userDropdown && userDropdown.classList.contains('active')) {
-                    userDropdown.classList.remove('active');
                 }
             });
         }
