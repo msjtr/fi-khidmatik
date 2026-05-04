@@ -1,21 +1,35 @@
 <div class="header-right" style="display: flex; align-items: center; gap: 20px;">
-    <h3 style="color: var(--itqan-navy-bg); margin: 0;">لوحة التحكم - Tera V12</h3>
+    <h3 style="color: var(--itqan-navy-bg); margin: 0; font-weight: 800;">لوحة التحكم - Tera V12</h3>
     <!-- الحاوية التي سيتم وضع الساعة بداخلها -->
     <div id="clock-mount"></div>
 </div>
 
 <div class="header-left user-profile-wrapper" onclick="toggleDropdown()">
-    <div style="display: flex; align-items: center; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
         <div style="text-align: left;">
             <div style="font-weight: 800; color: var(--itqan-navy-bg);">محمد بن صالح الشمري</div>
             <div style="font-size: 0.8rem; color: #7f8c8d;">مدير النظام</div>
         </div>
-        <div style="width: 45px; height: 45px; background: var(--itqan-gold-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem;">م</div>
+        <div style="width: 45px; height: 45px; background: var(--itqan-gold-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);">م</div>
     </div>
     
-    <!-- القائمة المنسدلة -->
+    <!-- القائمة المنسدلة المكتملة بخدمات مدير النظام -->
     <div id="user-dropdown" class="dropdown-menu">
-        <a href="#" class="dropdown-item">⚙️ إعدادات الحساب</a>
-        <a href="#" class="dropdown-item" style="color: #e74c3c;">🚪 تسجيل الخروج</a>
+        <a href="#" class="dropdown-item" onclick="teraNavigate('edit-profile')">
+            <span style="font-size: 1.1rem;">📝</span> تعديل البيانات
+        </a>
+        <a href="#" class="dropdown-item" onclick="teraNavigate('contact-info')">
+            <span style="font-size: 1.1rem;">📞</span> بيانات التواصل
+        </a>
+        <a href="#" class="dropdown-item" onclick="teraNavigate('change-password')">
+            <span style="font-size: 1.1rem;">🔒</span> تغيير كلمة المرور
+        </a>
+        
+        <!-- خط فاصل تنظيمي -->
+        <div style="height: 1px; background: #e2e8f0; margin: 8px 0;"></div>
+        
+        <a href="#" class="dropdown-item" style="color: #e74c3c; font-weight: bold;">
+            <span style="font-size: 1.1rem;">🚪</span> تسجيل الخروج
+        </a>
     </div>
 </div>
