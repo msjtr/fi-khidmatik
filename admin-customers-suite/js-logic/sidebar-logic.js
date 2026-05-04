@@ -3,7 +3,6 @@
  */
 
 export function initSidebarLogic() {
-    
     // مراقب أحداث مركزي (Centralized Event Listener) لسرعة استجابة أعلى
     document.addEventListener('click', function(e) {
         
@@ -17,35 +16,59 @@ export function initSidebarLogic() {
             
             // إغلاق جميع القوائم الفرعية عند الطي للترتيب
             if (layout.classList.contains('sidebar-collapsed')) {
-                document.querySelectorAll('.submenu-container.open').forEach(sub => sub.classList.remove('open'));
-                document.querySelectorAll('.nav-btn.has-submenu.open').forEach(btn => btn.classList.remove('open'));
+                document.querySelectorAll('.submenu-container').forEach(sub => {
+                    sub.style.maxHeight = null;
+                    sub.classList.remove('open');
+                });
+                document.querySelectorAll('.has-submenu .dropdown-arrow-icon').forEach(arrow => {
+                    arrow.style.transform = 'rotate(0deg)';
+                });
+                document.querySelectorAll('.nav-btn.has-submenu').forEach(btn => btn.classList.remove('active'));
             }
             return; // توقف هنا لتجنب تنفيذ باقي الأوامر
         }
 
-        // 2. منطق القوائم المنسدلة (Submenus) - مع خاصية الإغلاق التلقائي للأخريات
+        // 2. منطق القوائم المنسدلة (Submenus) - مع خاصية الإغلاق التلقائي
         const submenuBtn = e.target.closest('.has-submenu');
         if (submenuBtn) {
             const targetId = submenuBtn.getAttribute('data-target');
             const targetSubmenu = document.getElementById(targetId);
+            const arrow = submenuBtn.querySelector('.dropdown-arrow-icon');
 
-            // ذكاء النظام: توسيع القائمة إذا كانت مطوية
+            // ذكاء النظام: توسيع القائمة الجانبية إذا كانت مطوية
             if (layout.classList.contains('sidebar-collapsed')) {
                 layout.classList.remove('sidebar-collapsed');
             }
 
             // إغلاق القوائم المنسدلة الأخرى (Accordion Auto-Close)
             document.querySelectorAll('.has-submenu').forEach(btn => {
-                if (btn !== submenuBtn) btn.classList.remove('open');
+                if (btn !== submenuBtn) {
+                    btn.classList.remove('active');
+                    const icon = btn.querySelector('.dropdown-arrow-icon');
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
             });
             document.querySelectorAll('.submenu-container').forEach(sub => {
-                if (sub.id !== targetId) sub.classList.remove('open');
+                if (sub.id !== targetId) {
+                    sub.style.maxHeight = null;
+                    sub.classList.remove('open');
+                }
             });
 
-            // فتح/إغلاق القائمة المطلوبة
+            // فتح/إغلاق القائمة المطلوبة بحركة انسيابية
             if (targetSubmenu) {
-                targetSubmenu.classList.toggle('open');
-                submenuBtn.classList.toggle('open');
+                const isOpen = targetSubmenu.classList.contains('open');
+                if (isOpen) {
+                    targetSubmenu.style.maxHeight = null;
+                    targetSubmenu.classList.remove('open');
+                    submenuBtn.classList.remove('active');
+                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                } else {
+                    targetSubmenu.style.maxHeight = targetSubmenu.scrollHeight + "px";
+                    targetSubmenu.classList.add('open');
+                    submenuBtn.classList.add('active');
+                    if (arrow) arrow.style.transform = 'rotate(180deg)';
+                }
             }
             return;
         }
@@ -80,33 +103,38 @@ export function initSidebarLogic() {
 window.teraNavigate = window.handleSidebarClick = function(moduleName) {
     const frame = document.getElementById('tera-iframe'); 
     
-    // قاموس مسارات الصفحات المنظم
+    // قاموس مسارات الصفحات المنظم (تمت إزالة مجلد pages/ ليتوافق مع هيكلتك الحالية)
     const pages = {
-        'dashboard': 'pages/customers-list.html', 
-        'products': 'pages/products.html',
-        'orders': 'pages/orders.html',
+        'dashboard': 'customers-list.html', 
+        'products': 'products.html',
+        'orders': 'orders.html',
         
-        'customers-list': 'pages/customers-list.html',
-        'add-customer': 'pages/add-customer.html',
-        'customers-report': 'pages/customers-report.html',
-        'export-import': 'pages/export-import.html',
+        'customers-list': 'customers-list.html',
+        'add-customer': 'add-customer.html',
+        'customers-report': 'customers-report.html',
+        'export-import': 'export-import.html',
         
-        'add-employee': 'pages/add-employee.html',
-        'employees-log': 'pages/employees-log.html',
-        'change-credentials': 'pages/change-credentials.html',
-        'employees-report': 'pages/employees-report.html',
-        'backup': 'pages/backup.html',
-        'store-info': 'pages/store-info.html',
-        'clear-cache': 'pages/clear-cache.html',
-        'shipping-settings': 'pages/shipping-settings.html',
-        'payment-gateway': 'pages/payment-gateway.html',
-        'ui-design': 'pages/ui-design.html'
+        'add-employee': 'add-employee.html',
+        'employees-log': 'employees-log.html',
+        'change-credentials': 'change-credentials.html',
+        'employees-report': 'employees-report.html',
+        'backup': 'backup.html',
+        'store-info': 'store-info.html',
+        'clear-cache': 'clear-cache.html',
+        'shipping-settings': 'shipping-settings.html',
+        'payment-gateway': 'payment-gateway.html',
+        'ui-design': 'ui-design.html'
     };
 
     if (frame) {
-        // تأثير بهتان أثناء التحميل
+        // تأثير بهتان أنيق أثناء تحميل الصفحة الجديدة
+        frame.style.transition = 'opacity 0.3s ease';
         frame.style.opacity = '0.2';
+        
         frame.src = pages[moduleName] || pages['dashboard'];
-        frame.onload = () => { frame.style.opacity = '1'; };
+        
+        frame.onload = () => { 
+            frame.style.opacity = '1'; 
+        };
     }
 };
