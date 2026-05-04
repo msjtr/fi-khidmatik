@@ -1,178 +1,158 @@
 /* =========================================
    تنسيقات صفحة قائمة العملاء المطورة - Tera V12
-   إضافة: لوحة الإحصائيات + نظام الفلترة المتقدم
+   التحديث: أيقونات 3D + ملخص على سطرين + رقابة إدارية
    المؤسسة: الإتقان بلس - حائل
 ========================================= */
 
-/* --- 1. الإعدادات العامة --- */
+/* --- 1. الإعدادات العامة والخطوط --- */
 body { 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    background: #E8EEF2; 
+    background: #F0F4F8; 
     margin: 0; 
-    padding: 20px; 
+    padding: 30px; 
     direction: rtl; 
     color: #2D3748;
 }
 
-.page-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 25px; 
-}
-
-.header-titles h2 { 
-    margin: 0; 
-    color: #0A192F; 
-    font-size: 1.6rem; 
-    font-weight: 800; 
-}
-
-.header-titles p { 
-    margin: 5px 0 0 0; 
-    color: #6A7B9C; 
-    font-size: 0.9rem; 
-}
-
-/* --- 2. تصميم لوحة الإحصائيات (Dashboard Bento Box) --- */
+/* --- 2. لوحة الإحصائيات (السطرين وأيقونات 3D) --- */
 .dashboard-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stats-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 15px;
-    margin-bottom: 25px;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
 }
 
 .stat-card {
     background: #FFFFFF;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(10, 25, 47, 0.05);
-    border-right: 5px solid #D4AF37; /* الهوية الأساسية الذهبية */
+    padding: 25px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 10px 25px rgba(10, 25, 47, 0.05);
+    border-right: 6px solid #D4AF37; /* الهوية الذهبية */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-card:hover { 
     transform: translateY(-5px); 
-    box-shadow: 0 8px 25px rgba(10, 25, 47, 0.1);
+    box-shadow: 0 15px 35px rgba(10, 25, 47, 0.1);
 }
 
-/* تمييز الجزر الإحصائية بالألوان المعتمدة للرقابة */
-.stat-card.main { border-right-color: #0A192F; background: #F8FAFC; } /* نظرة عامة */
-.stat-card.status { border-right-color: #27ae60; } /* حالات الحساب */
-.stat-card.categories { border-right-color: #f1c40f; } /* التصنيفات */
-.stat-card.notes { border-right-color: #e67e22; } /* الملاحظات السريعة */
+/* أيقونات 3D مع تأثير الظل */
+.stat-icon {
+    font-size: 45px;
+    filter: drop-shadow(2px 5px 8px rgba(0,0,0,0.15));
+}
 
-.stat-card h4 { 
-    margin: 0 0 15px 0; 
+.stat-content { flex: 1; }
+
+.stat-content h4 { 
+    margin: 0 0 12px 0; 
     color: #0A192F; 
-    font-size: 1rem; 
-    font-weight: 800; 
-    border-bottom: 1px solid #E2E8F0; 
-    padding-bottom: 10px; 
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-size: 1.1rem; 
+    font-weight: 800;
+    border-bottom: 2px solid #F1F5F9;
+    padding-bottom: 8px;
 }
 
-.stat-item { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 0.85rem; 
-    margin-bottom: 8px; 
+/* شبكة الإحصائيات داخل البطاقة */
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 25px;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #4A5568;
 }
 
-.stat-item span { 
-    font-weight: 800; 
-    color: #2980b9; 
-    background: rgba(41, 128, 185, 0.1);
-    padding: 2px 8px;
-    border-radius: 6px;
-}
+.stat-grid b { color: #3498db; font-weight: 900; }
 
-/* --- 3. شريط الفلتر والبحث المتقدم --- */
+/* ألوان الرقابة المعتمدة للبطاقات */
+.stat-card.main { border-right-color: #D4AF37; } /* ذهبي للعام */
+.stat-card.status { border-right-color: #3498db; } /* أزرق للحالات */
+.stat-card.categories { border-right-color: #9b59b6; } /* بنفسجي للتصنيف */
+.stat-card.notes { border-right-color: #e67e22; } /* برتقالي للملاحظات */
+
+/* --- 3. شريط الفلتر والبحث المطور --- */
 .filter-bar {
     background: #FFFFFF;
-    padding: 20px;
-    border-radius: 15px;
+    padding: 25px;
+    border-radius: 18px;
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
     align-items: flex-end;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    border: 1px solid #E2E8F0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.04);
 }
 
 .filter-group { 
     display: flex; 
     flex-direction: column; 
-    gap: 8px; 
+    gap: 10px; 
     flex: 1; 
-    min-width: 200px; 
+    min-width: 220px; 
 }
 
+.filter-group.search { flex: 2; } /* تكبير حقل البحث بالمنطقة */
+
 .filter-group label { 
-    font-size: 0.85rem; 
+    font-size: 0.9rem; 
     font-weight: 800; 
-    color: #6A7B9C; 
+    color: #64748B; 
 }
 
 .filter-group select, .filter-group input { 
-    padding: 12px; 
-    border: 1.5px solid #E2E8F0; 
-    border-radius: 10px; 
-    font-family: inherit; 
-    font-size: 0.9rem;
-    color: #0A192F;
+    padding: 14px; 
+    border: 2px solid #E2E8F0; 
+    border-radius: 12px; 
+    font-size: 1rem;
+    color: #1E293B;
     background-color: #F8FAFC;
-    transition: border-color 0.3s;
+    transition: 0.3s all;
 }
 
 .filter-group select:focus, .filter-group input:focus { 
-    border-color: #D4AF37; 
-    outline: none; 
+    border-color: #3498db; 
     background-color: #FFF;
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
 }
 
 /* --- 4. تصميم الجدول الاحترافي (الـ 18 عموداً) --- */
 .table-responsive-container {
     width: 100%; 
     overflow-x: auto; 
-    overflow-y: visible;
-    border-radius: 15px; 
-    border: 1px solid #E2E8F0; 
+    border-radius: 18px; 
     background: #FFF;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-}
-
-/* تخصيص سكرول الجدول ليناسب النمط المعدني */
-.table-responsive-container::-webkit-scrollbar { height: 8px; }
-.table-responsive-container::-webkit-scrollbar-thumb { 
-    background: #D4AF37; 
-    border-radius: 10px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 }
 
 .tera-table { 
     width: 100%; 
     border-collapse: collapse; 
     white-space: nowrap; 
-    font-size: 0.85rem; 
 }
 
 .tera-table th { 
     background: #0A192F; 
     color: #FFF; 
-    padding: 18px 15px; 
-    text-align: right; 
+    padding: 20px 15px; 
+    text-align: center; 
     font-weight: 600; 
 }
 
 .tera-table td { 
-    padding: 15px; 
-    border-bottom: 1px solid #E2E8F0; 
-    color: #2D3748; 
+    padding: 18px 15px; 
+    border-bottom: 1px solid #F1F5F9; 
+    text-align: center;
+    color: #334155; 
 }
 
 .tera-table tr:hover { background-color: #F8FAFC; }
@@ -184,7 +164,7 @@ body {
     background: #FFF !important; 
     z-index: 2; 
     font-weight: 800; 
-    box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+    box-shadow: -3px 0 10px rgba(0,0,0,0.05);
 }
 
 .sticky-actions { 
@@ -192,54 +172,33 @@ body {
     left: 0; 
     background: #FFF !important; 
     z-index: 2; 
-    text-align: center; 
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    box-shadow: 3px 0 10px rgba(0,0,0,0.05);
 }
 
-/* --- 5. الأزرار والوشوم (Badges) --- */
-.primary-btn { 
-    background: #D4AF37; 
-    color: #FFF; 
-    border: none; 
-    padding: 12px 25px; 
-    border-radius: 10px; 
-    cursor: pointer; 
-    font-weight: 800; 
-    transition: 0.3s; 
-}
-
-.primary-btn:hover { 
-    background: #112240; 
-    transform: translateY(-2px); 
-}
-
-.tag-badge {
-    padding: 4px 10px;
-    border-radius: 6px;
+/* --- 5. الوشوم والأزرار الذكية --- */
+.status-tag {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    padding: 5px 12px;
+    border-radius: 8px;
     font-weight: 800;
-    font-size: 0.75rem;
-    background: rgba(212, 175, 55, 0.1);
-    color: #D4AF37;
+    font-size: 0.85rem;
 }
 
-.action-link { 
+.action-btn { 
     cursor: pointer; 
-    font-weight: 800; 
-    padding: 5px 10px; 
-    border-radius: 6px; 
-    transition: background 0.2s; 
+    font-size: 1.2rem;
+    padding: 8px;
+    border-radius: 10px;
+    transition: 0.2s;
+    display: inline-block;
 }
 
-.edit-btn { color: #3498db; }
-.view-btn { color: #27ae60; }
-.delete-btn { color: #e74c3c; }
+.action-btn:hover { background: #F1F5F9; transform: scale(1.1); }
 
-.action-link:hover { background: #EDF2F7; }
-
-/* --- 6. استجابة الجوال --- */
-@media (max-width: 768px) {
-    .dashboard-stats { grid-template-columns: 1fr; }
-    .filter-bar { flex-direction: column; align-items: stretch; }
+/* --- 6. استجابة الشاشات --- */
+@media (max-width: 1024px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; }
     .filter-group { min-width: 100%; }
-    .page-header { flex-direction: column; text-align: center; gap: 15px; }
 }
