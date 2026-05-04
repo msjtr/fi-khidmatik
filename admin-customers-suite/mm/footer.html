@@ -4,7 +4,133 @@
         <span>© 2026 في خدمتك من الإتقان بلس - Fi Khidmatik by Al-Itqan Plus</span>
         <span class="version-badge" title="الإصدار الحالي">Fi Khidmatik V12.0.1</span>
     </div>
+<!-- تنسيقات التذليل (مدمجة لتعمل فور الاستدعاء) -->
+<style>
+    .footer-status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0 10px;
+        font-size: 0.85rem;
+        color: #6A7B9C;
+    }
+    
+    .footer-info { display: flex; align-items: center; gap: 15px; font-weight: 600; }
+    
+    .version-badge {
+        background: rgba(212, 175, 55, 0.1);
+        color: #D4AF37;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+    }
 
+    .footer-alerts { display: flex; align-items: center; justify-content: center; flex: 1; }
+    
+    .alert-msg { display: flex; align-items: center; gap: 6px; font-weight: 700; transition: color 0.3s; }
+    .alert-msg.success-msg { color: #27ae60; }
+    .alert-msg.error-msg { color: #e74c3c; }
+
+    .footer-connection { display: flex; align-items: center; gap: 8px; font-weight: 800; transition: color 0.3s; }
+    
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .status-dot.online {
+        background-color: #2ecc71;
+        box-shadow: 0 0 8px #2ecc71;
+        animation: pulse-online 2s infinite;
+    }
+    
+    .status-dot.offline {
+        background-color: #e74c3c;
+        box-shadow: 0 0 8px #e74c3c;
+    }
+
+    /* حركة النبض للنقطة الخضراء */
+    @keyframes pulse-online {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+    }
+
+    /* التوافق مع الجوال */
+    @media (max-width: 768px) {
+        .footer-status-bar { flex-direction: column-reverse; justify-content: center; gap: 8px; text-align: center; }
+        .footer-alerts { display: none; /* إخفاء قسم الوسط في الجوال لتوفير المساحة */ }
+        .footer-info { flex-direction: column; gap: 5px; }
+    }
+</style>
+
+<div class="footer-status-bar">
+    <!-- القسم الأيمن: حقوق النشر ورقم الإصدار -->
+    <div class="footer-info">
+        <span>© 2026 في خدمتك من الإتقان بلس - Fi Khidmatik by Al-Itqan Plus</span>
+        <span class="version-badge" title="الإصدار الحالي">Fi Khidmatik V12.0.1</span>
+    </div>
+
+    <!-- القسم الأوسط: إشعارات حالة النظام -->
+    <div class="footer-alerts" id="system-status-msg">
+        <span class="alert-msg success-msg" id="alert-text">
+            <svg id="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <span id="alert-message-content">جميع الأنظمة تعمل بكفاءة</span>
+        </span>
+    </div>
+
+    <!-- القسم الأيسر: حالة الاتصال مع نقطة نابضة -->
+    <div class="footer-connection" id="system-connection-status">
+        <span class="status-dot online" id="connection-dot"></span>
+        <span class="status-text" id="connection-text" style="color: #2ecc71;">متصل بخوادم النظام</span>
+    </div>
+</div>
+
+<!-- منطق تشغيل حالة الاتصال (JS) -->
+<script>
+    function updateOnlineStatus(event) {
+        const isOnline = navigator.onLine;
+        
+        const connectionDot = document.getElementById('connection-dot');
+        const connectionText = document.getElementById('connection-text');
+        
+        const alertBox = document.getElementById('alert-text');
+        const alertIcon = document.getElementById('alert-icon');
+        const alertContent = document.getElementById('alert-message-content');
+
+        if (isOnline) {
+            // حالة الاتصال جيدة
+            connectionDot.className = 'status-dot online';
+            connectionText.innerText = 'متصل بخوادم النظام';
+            connectionText.style.color = '#2ecc71';
+            
+            alertBox.className = 'alert-msg success-msg';
+            alertIcon.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>';
+            alertContent.innerText = 'جميع الأنظمة تعمل بكفاءة';
+        } else {
+            // انقطاع الاتصال بالإنترنت
+            connectionDot.className = 'status-dot offline';
+            connectionText.innerText = 'غير متصل (يوجد خلل في الشبكة)';
+            connectionText.style.color = '#e74c3c';
+            
+            alertBox.className = 'alert-msg error-msg';
+            alertIcon.innerHTML = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>';
+            alertContent.innerText = 'تنبيه: تم فقدان الاتصال بقاعدة البيانات';
+        }
+    }
+
+    // مراقبة حالة الإنترنت لحظة بلحظة
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    // التحقق فور تحميل الصفحة
+    updateOnlineStatus();
+</script>
     <!-- القسم الأوسط: إشعارات مشاكل/حالة النظام (تتغير برمجياً) -->
     <div class="footer-alerts" id="system-status-msg">
         <!-- الحالة الافتراضية السليمة -->
