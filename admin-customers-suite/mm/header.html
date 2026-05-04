@@ -4,8 +4,8 @@
     <div id="clock-mount"></div>
 </div>
 
-<div class="header-left user-profile-wrapper" onclick="toggleDropdown()">
-    <div style="display: flex; align-items: center; gap: 12px;">
+<div class="header-left user-profile-wrapper" onclick="toggleDropdown(event)">
+    <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
         <div style="text-align: left;">
             <div style="font-weight: 800; color: var(--itqan-navy-bg);">محمد بن صالح الشمري</div>
             <div style="font-size: 0.8rem; color: #7f8c8d;">مدير النظام</div>
@@ -15,20 +15,21 @@
     
     <!-- القائمة المنسدلة المكتملة بخدمات مدير النظام -->
     <div id="user-dropdown" class="dropdown-menu">
-        <a href="#" class="dropdown-item" onclick="teraNavigate('edit-profile')">
+        <a href="javascript:void(0);" class="dropdown-item" onclick="teraNavigate('edit-profile')">
             <span style="font-size: 1.1rem;">📝</span> تعديل البيانات
         </a>
-        <a href="#" class="dropdown-item" onclick="teraNavigate('contact-info')">
+        <a href="javascript:void(0);" class="dropdown-item" onclick="teraNavigate('contact-info')">
             <span style="font-size: 1.1rem;">📞</span> بيانات التواصل
         </a>
-        <a href="#" class="dropdown-item" onclick="teraNavigate('change-password')">
+        <a href="javascript:void(0);" class="dropdown-item" onclick="teraNavigate('change-password')">
             <span style="font-size: 1.1rem;">🔒</span> تغيير كلمة المرور
         </a>
         
         <!-- خط فاصل تنظيمي -->
         <div style="height: 1px; background: #e2e8f0; margin: 8px 0;"></div>
         
-        <a href="#" class="dropdown-item" style="color: #e74c3c; font-weight: bold;">
+        <!-- يمكن ربط زر تسجيل الخروج لاحقاً بدالة مسح الجلسة -->
+        <a href="javascript:void(0);" class="dropdown-item" style="color: #e74c3c; font-weight: bold;">
             <span style="font-size: 1.1rem;">🚪</span> تسجيل الخروج
         </a>
     </div>
