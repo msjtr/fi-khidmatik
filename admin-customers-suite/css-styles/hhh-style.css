@@ -26,7 +26,7 @@
 }
 
 /* --- الحماية الشاملة وضبط القياسات --- */
-* { box-sizing: border-box; }
+* { box-sizing: border-box; outline: none; }
 
 /* --- 2. الإعدادات الأساسية للواجهة --- */
 body, html {
@@ -52,7 +52,6 @@ body, html {
     transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* حالة طي القائمة الجانبية (Sidebar Collapsed) */
 .tera-layout.sidebar-collapsed { grid-template-columns: 85px 1fr; }
 
 /* --- 4. الجزيرة الأولى: القائمة الجانبية (Sidebar) --- */
@@ -66,52 +65,52 @@ body, html {
     position: relative;
     overflow: hidden; 
     transition: all 0.4s ease;
-    z-index: 100;
+    z-index: 1000;
 }
 
-/* تأثير الإضاءة الخلفية في القائمة */
 #sidebar-mount::before {
     content: ''; position: absolute; top: -50px; right: -50px;
     width: 150px; height: 150px; background: var(--itqan-gold-glow);
     filter: blur(80px); border-radius: 50%; pointer-events: none;
 }
 
-/* --- الشعار وزر الطي --- */
+/* الشعار وزر الطي */
 .sidebar-header {
     display: flex; flex-direction: column; align-items: center; 
     position: relative; margin-bottom: 20px; flex-shrink: 0;
 }
 
 .collapse-btn {
-    position: absolute; left: 15px; top: 15px; 
+    position: absolute; left: 15px; top: 0; 
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); 
     border-radius: 50%; color: var(--itqan-gold-primary); 
     width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; 
-    cursor: pointer; transition: all 0.3s ease; z-index: 10;
+    cursor: pointer; transition: all 0.3s ease;
 }
 
-.main-logo { width: 100px; transition: 0.4s ease; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
-.brand-titles { text-align: center; margin-top: 12px; overflow: hidden; white-space: nowrap; transition: 0.4s ease; }
-.brand-title-ar { color: #FFF; font-size: 0.95rem; font-weight: 800; }
-.brand-title-en { color: var(--itqan-gold-primary); font-size: 0.65rem; font-family: monospace; letter-spacing: 0.5px; margin-top: 2px; }
+.collapse-btn:hover { background: var(--itqan-gold-primary); color: #fff; }
 
-/* --- حاوية التنقل مع سكرول معدني --- */
+.main-logo { width: 90px; transition: 0.4s ease; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
+.brand-titles { text-align: center; margin-top: 12px; transition: 0.4s ease; }
+.brand-title-ar { color: #FFF; font-size: 0.95rem; font-weight: 800; display: block; }
+.brand-title-en { color: var(--itqan-gold-primary); font-size: 0.65rem; font-family: monospace; }
+
+/* حاوية التنقل والسكرول المعدني */
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 2px;
+    padding-left: 5px; /* مساحة للسكرول */
 }
 
-.sidebar-nav::-webkit-scrollbar { width: 14px; }
-.sidebar-nav::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
+.sidebar-nav::-webkit-scrollbar { width: 8px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
 .sidebar-nav::-webkit-scrollbar-thumb { 
     background: var(--metal-gray); 
     border-radius: 10px; 
-    border: 3px solid var(--itqan-navy-bg); 
+    border: 2px solid var(--itqan-navy-bg); 
 }
 
-/* --- أزرار القائمة والقوائم المنسدلة --- */
 .nav-btn { 
     display: flex; align-items: center; gap: 12px; width: 100%; 
     background: transparent; border: none; 
@@ -120,33 +119,35 @@ body, html {
     transition: all 0.3s ease; text-align: right; 
     font-size: 0.9rem; font-weight: 600;
 }
-.nav-btn.active { color: #FFF; background: var(--itqan-navy-light); box-shadow: inset -4px 0 0 var(--itqan-gold-primary); }
 
-/* --- 5. الجزيرة الثانية: الهيدر الذكي --- */
+.nav-btn:hover, .nav-btn.active { 
+    color: #FFF; 
+    background: var(--itqan-navy-light); 
+    box-shadow: inset -4px 0 0 var(--itqan-gold-primary); 
+}
+
+/* --- 5. الهيدر والشاشة الرئيسية والفوتر --- */
 #header-mount { 
     grid-area: header; 
     background: #FFFFFF;
     border-radius: 18px;
     display: flex; align-items: center; justify-content: space-between; 
     padding: 0 25px; 
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    position: relative; 
-    z-index: 999;
+    box-shadow: var(--shadow-float);
+    z-index: 900;
 }
 
-/* --- 6. الجزيرة الثالثة: شاشة العرض الرئيسية (Main) --- */
 #main-view { 
     grid-area: main; 
     background: var(--card-bg); 
     border-radius: 20px; 
     box-shadow: var(--shadow-float);
-    position: relative; overflow: hidden; 
+    overflow: hidden; 
     display: flex; flex-direction: column;
-    z-index: 10;
 }
+
 #tera-iframe { flex: 1; width: 100%; height: 100%; border: none; border-radius: 20px; }
 
-/* --- 7. الجزيرة الرابعة: شريط حالة النظام (الفوتر) --- */
 #footer-mount { 
     grid-area: footer; 
     display: flex; align-items: center; 
@@ -154,54 +155,55 @@ body, html {
     border-radius: 15px;
     padding: 0 20px; 
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    z-index: 50; 
 }
 
-/* --- 8. تنسيقات الملخص الإحصائي والرقابة (Dashboard) --- */
+/* --- 6. لوحة الإحصائيات (Dashboard Bento) --- */
 .dashboard-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
-    padding: 15px;
-    background: rgba(10, 25, 47, 0.02);
-    border-radius: 15px;
+    padding: 10px;
     margin-bottom: 20px;
 }
 
 .stat-card {
     background: #fff;
     padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    border-right: 4px solid var(--itqan-gold-primary);
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border-right: 5px solid var(--itqan-gold-primary);
+    transition: transform 0.3s;
 }
 
+.stat-card:hover { transform: translateY(-3px); }
 .stat-card.status-new { border-right-color: var(--status-new); }
 .stat-card.status-active { border-right-color: var(--status-active); }
 .stat-card.status-suspended { border-right-color: var(--status-suspended); }
 .stat-card.status-blocked { border-right-color: var(--status-blocked); }
 
-/* --- 9. تحسينات الجوال واستجابة الشاشة --- */
+/* --- 7. استجابة الشاشة (Mobile) --- */
 @media (max-width: 768px) {
     .tera-layout {
         grid-template-columns: 1fr;
-        grid-template-areas: 
-            "header"
-            "main"
-            "footer";
-        padding: 8px;
+        grid-template-areas: "header" "main" "footer";
     }
 
     aside#sidebar-mount {
         position: fixed;
         right: -100%; 
-        top: 60px;
-        bottom: 0;
-        width: 250px;
-        z-index: 9999;
-        transition: 0.3s;
+        top: 0; bottom: 0;
+        width: 280px;
+        z-index: 2000;
         background: var(--itqan-navy-bg);
     }
 
-    aside#sidebar-mount.active { right: 12px; bottom: 12px; }
+    aside#sidebar-mount.active { right: 0; }
 }
+
+/* حالة الطي لإخفاء النصوص */
+.sidebar-collapsed .brand-titles, 
+.sidebar-collapsed .nav-text { 
+    display: none; 
+}
+
+.sidebar-collapsed .main-logo { width: 45px; }
