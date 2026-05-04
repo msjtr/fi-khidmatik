@@ -1,3 +1,8 @@
+/* ============================================================
+   نظام Tera V12 - ملف التنسيق الموحد الرئيسي (hhh-style.css)
+   المؤسسة: الإتقان بلس - حائل (مكتب أبا صالح الشمري)
+============================================================ */
+
 :root {
     --itqan-navy-bg: #0A192F;
     --itqan-navy-light: #112240;
@@ -7,32 +12,184 @@
     --card-bg: #FFFFFF;
     --shadow-float: 0 10px 30px rgba(10, 25, 47, 0.08);
 }
-* { box-sizing: border-box; outline: none; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-body { height: 100vh; width: 100vw; background: var(--app-bg); direction: rtl; overflow: hidden; }
 
-/* شبكة تيرا الموحدة */
-.tera-layout {
-    display: grid; height: 100vh; width: 100vw; padding: 15px; gap: 15px;
-    grid-template-columns: 260px 1fr;
-    grid-template-rows: 75px 1fr 50px;
-    grid-template-areas: "sidebar header" "sidebar main" "sidebar footer";
+* { 
+    box-sizing: border-box; 
+    outline: none; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Segoe UI', Tahoma, sans-serif; 
 }
 
-#sidebar-mount { grid-area: sidebar; background: var(--itqan-navy-bg); border-radius: 25px; padding: 25px 15px; color: white; border-left: 2px solid var(--itqan-gold-primary); z-index: 1100; overflow-y: auto;}
-#header-mount { grid-area: header; background: #FFF; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; box-shadow: var(--shadow-float); z-index: 1000; position: relative;}
-#main-view { grid-area: main; background: #FFF; border-radius: 25px; box-shadow: var(--shadow-float); overflow: hidden; display: flex; flex-direction: column; z-index: 1;}
-#footer-mount { grid-area: footer; background: #FFF; border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 -2px 15px rgba(0,0,0,0.03); z-index: 900;}
+body { 
+    height: 100vh; 
+    width: 100vw; 
+    background: var(--app-bg); 
+    direction: rtl; 
+    overflow: hidden; /* لمنع السكرول المزدوج */
+}
 
-#tera-iframe { flex: 1; width: 100%; height: 100%; border: none; }
+/* --- شبكة تيرا الموحدة (Grid Layout) --- */
+.tera-layout {
+    display: grid; 
+    height: 100vh; 
+    width: 100vw; 
+    padding: 15px; 
+    gap: 15px;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 75px 1fr 50px;
+    grid-template-areas: 
+        "sidebar header" 
+        "sidebar main" 
+        "sidebar footer";
+}
 
-/* تنسيقات القائمة المنسدلة والساعة */
+/* --- توزيع الحاويات الأساسية --- */
+#sidebar-mount { 
+    grid-area: sidebar; 
+    background: var(--itqan-navy-bg); 
+    border-radius: 25px; 
+    padding: 25px 15px; 
+    color: white; 
+    border-left: 2px solid var(--itqan-gold-primary); 
+    z-index: 1100; 
+    overflow-y: auto;
+    transition: right 0.3s ease;
+}
+
+#header-mount { 
+    grid-area: header; 
+    background: var(--card-bg); 
+    border-radius: 20px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 25px; 
+    box-shadow: var(--shadow-float); 
+    z-index: 1000; 
+    position: relative;
+}
+
+#main-view { 
+    grid-area: main; 
+    background: var(--card-bg); 
+    border-radius: 25px; 
+    box-shadow: var(--shadow-float); 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    z-index: 1;
+}
+
+#footer-mount { 
+    grid-area: footer; 
+    background: var(--card-bg); 
+    border-radius: 15px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    box-shadow: 0 -2px 15px rgba(0,0,0,0.03); 
+    z-index: 900;
+}
+
+/* إطار العرض الداخلي */
+#tera-iframe { 
+    flex: 1; 
+    width: 100%; 
+    height: 100%; 
+    border: none; 
+}
+
+/* --- تنسيقات القائمة المنسدلة والساعة (للمدير) --- */
 .user-profile-wrapper { position: relative; cursor: pointer; }
-.dropdown-menu { position: absolute; top: 120%; left: 0; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); min-width: 220px; display: none; z-index: 1200; border: 1px solid #eee; }
-.dropdown-menu.active { display: block !important; }
-.dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px; color: var(--itqan-navy-bg); text-decoration: none; border-radius: 10px; }
-.dropdown-item:hover { background: #f8fafc; color: var(--itqan-gold-primary); }
-.session-clock { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 15px; border-radius: 12px; font-weight: bold; color: var(--itqan-navy-bg); }
 
-/* القائمة الجانبية الروابط */
-.sidebar-link { display: flex; align-items: center; gap: 10px; padding: 12px 15px; color: #cbd5e1; text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; }
-.sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.1); color: #fff; border-right: 4px solid var(--itqan-gold-primary); }
+.dropdown-menu { 
+    position: absolute; 
+    top: calc(100% + 15px); /* حساب المسافة برمجياً لمنع التداخل */
+    left: 0; 
+    background: white; 
+    border-radius: 15px; 
+    padding: 10px; 
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2); 
+    min-width: 220px; 
+    display: none; 
+    z-index: 1200; 
+    border: 1px solid #eee; 
+}
+
+.dropdown-menu.active { display: block !important; }
+
+.dropdown-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 12px; 
+    color: var(--itqan-navy-bg); 
+    text-decoration: none; 
+    border-radius: 10px; 
+    transition: background 0.3s, color 0.3s;
+}
+
+.dropdown-item:hover { 
+    background: #f8fafc; 
+    color: var(--itqan-gold-primary); 
+}
+
+.session-clock { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    background: #f1f5f9; 
+    padding: 8px 15px; 
+    border-radius: 12px; 
+    font-weight: bold; 
+    color: var(--itqan-navy-bg); 
+}
+
+/* --- القائمة الجانبية (روابط النظام) --- */
+.sidebar-link { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 12px 15px; 
+    color: #cbd5e1; 
+    text-decoration: none; 
+    border-radius: 10px; 
+    margin-bottom: 5px; 
+    transition: 0.3s; 
+}
+
+.sidebar-link:hover, .sidebar-link.active { 
+    background: rgba(255,255,255,0.1); 
+    color: #fff; 
+    border-right: 4px solid var(--itqan-gold-primary); 
+}
+
+/* ============================================================
+   التوافق مع الجوال والآيباد (Responsive Design) المفقود
+============================================================ */
+@media (max-width: 992px) {
+    .tera-layout {
+        grid-template-columns: 1fr; /* إلغاء عمود القائمة الجانبية */
+        grid-template-areas: 
+            "header" 
+            "main" 
+            "footer";
+    }
+    
+    #sidebar-mount {
+        position: fixed;
+        right: -300px; /* إخفاء القائمة الجانبية في الجوال */
+        height: calc(100vh - 30px);
+        width: 260px;
+        z-index: 2000;
+        box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+    }
+    
+    /* الكلاس الذي سيتفعل برمجياً عند الضغط على زر القائمة في الجوال */
+    #sidebar-mount.mobile-active {
+        right: 15px; 
+    }
+    
+    #header-mount { padding: 0 15px; }
+}
