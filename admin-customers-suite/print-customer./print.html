@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>معاينة وطباعة ملف العميل | الإتقان بلس</title>
+    <!-- مكتبة تحويل HTML إلى PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- مكتبة توليد الباركود QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- ملف التنسيق -->
+    <link rel="stylesheet" href="print.css">
+</head>
+<body>
 
+    <!-- 🌟 شريط التحكم (لن يظهر في الطباعة) -->
+    <div class="control-panel no-print">
+        <div class="controls-right">
+            <button class="btn btn-close" onclick="window.close()">✖ إغلاق المعاينة</button>
+        </div>
+        <div class="controls-left">
+            <button class="btn btn-print" id="btn-print">🖨 طباعة مباشرة</button>
+            <button class="btn btn-pdf" id="btn-pdf">📥 تصدير PDF</button>
+        </div>
+    </div>
+
+    <!-- 🌟 حاوية ورقة الـ A4 -->
+    <div class="a4-page" id="document-content">
+        
+        <!-- العلامة المائية -->
+        <div class="watermark" id="watermark-text"></div>
+
+        <!-- الترويسة (عربي / إنجليزي) -->
+        <div class="doc-header no-break">
+            <div class="header-ar">
+                <h2>مؤسسة الإتقان بلس</h2>
+                <p>نظام إدارة العملاء (Tera V12)</p>
+            </div>
+            <div class="header-logo">
+                <img src="/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg" alt="Logo">
+            </div>
+            <div class="header-en" dir="ltr">
+                <h2>Al-Itqan Plus Est.</h2>
+                <p>Customer Management (Tera V12)</p>
+            </div>
+        </div>
+
+        <div class="doc-title no-break">
+            <h3>ملف بيانات العميل | Customer Profile</h3>
+        </div>
+
+        <!-- شبكة البيانات -->
+        <div class="data-section no-break">
+            
+            <!-- الصف الأول -->
+            <div class="data-row">
+                <div class="data-box">
+                    <span class="label">اسم العميل <br><small>Customer Name</small></span>
+                    <strong class="value" id="c-name">...</strong>
+                </div>
+                <div class="data-box">
+                    <span class="label">رقم الجوال <br><small>Phone Number</small></span>
+                    <strong class="value" id="c-phone" dir="ltr">...</strong>
+                </div>
+            </div>
+
+            <!-- الصف الثاني -->
+            <div class="data-row">
+                <div class="data-box">
+                    <span class="label">البريد الإلكتروني <br><small>Email Address</small></span>
+                    <strong class="value" id="c-email">...</strong>
+                </div>
+                <div class="data-box">
+                    <span class="label">حالة الحساب <br><small>Account Status</small></span>
+                    <strong class="value" id="c-status">...</strong>
+                </div>
+            </div>
+
+            <!-- الصف الثالث -->
+            <div class="data-row">
+                <div class="data-box" style="flex: 2;">
+                    <span class="label">العنوان الوطني والمنطقة <br><small>National Address & Region</small></span>
+                    <strong class="value" id="c-address">...</strong>
+                </div>
+                <div class="data-box">
+                    <span class="label">التصنيف <br><small>Category</small></span>
+                    <strong class="value" id="c-category">...</strong>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- الملاحظات التفصيلية -->
+        <div class="notes-section no-break">
+            <span class="label">الملاحظات التفصيلية <br><small>Detailed Notes</small></span>
+            <div class="notes-content" id="c-notes">...</div>
+        </div>
+
+        <!-- التذييل ونظام التحقق والـ QR Code -->
+        <div class="doc-footer no-break">
+            <div class="footer-info">
+                <p><strong>تاريخ الإصدار / Date:</strong> <span id="print-date"></span></p>
+                <p><strong>الموظف / Employee:</strong> <span id="print-user"></span></p>
+                <p><strong>كود التحقق / Verification Code:</strong> <span id="verify-code" style="color:#e74c3c; font-weight:bold; letter-spacing: 2px;"></span></p>
+                <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 5px;">* هذه الوثيقة مستخرجة آلياً، ويمكن التحقق من صحتها عبر مسح الرمز.</p>
+            </div>
+            <div class="footer-qr" id="qr-code"></div>
+        </div>
+
+    </div>
+
+    <script type="module" src="print.js"></script>
+</body>
+</html>
