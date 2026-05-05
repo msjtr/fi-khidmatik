@@ -297,8 +297,8 @@ window.viewCustomerDetails = (id) => {
 
 // 🌟 الدالة المخصصة للطباعة والتي تفتح الصفحة المستقلة 🌟
 window.printCustomer = (id) => {
-    // الرجوع خطوة من pages إلى المجلد الرئيسي ثم للطباعة
-    const printPageUrl = `../admin-customers-suite/print-customer/print.html?id=${id}`;
+    // المسار الصحيح والمختصر (يمنع تكرار اسم المجلد في GitHub Pages)
+    const printPageUrl = `../print-customer/print.html?id=${id}`;
     window.open(printPageUrl, '_blank');
 };
 
