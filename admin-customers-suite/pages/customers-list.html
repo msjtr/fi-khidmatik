@@ -4,9 +4,46 @@
     <meta charset="UTF-8">
     <title>إدارة العملاء - في خدمتك من الإتقان بلس</title>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    
-    <!-- ✅ تم التعديل هنا: المسار الصحيح 100% بناءً على هيكلة مشروعك -->
     <link rel="stylesheet" href="../css-styles/customers-list.css">
+    
+    <!-- 🌟 التنسيقات المضافة خصيصاً لأزرار الإجراءات والخط الفاصل 🌟 -->
+    <style>
+        .actions-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .action-link {
+            background: none;
+            border: none;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 4px 6px;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        .action-link.view { color: #3498db; }
+        .action-link.edit { color: #f39c12; }
+        .action-link.print { color: #2ecc71; }
+        .action-link.delete { color: #e74c3c; }
+        .action-link:hover {
+            transform: translateY(-2px);
+            text-decoration: underline;
+        }
+        .action-divider {
+            width: 2px;
+            height: 14px;
+            background-color: #cbd5e1;
+            border-radius: 2px;
+            display: inline-block;
+        }
+        th.sticky-actions, td.sticky-actions {
+            min-width: 240px !important;
+            background: #f8fafc !important;
+        }
+    </style>
 </head>
 <body>
 
