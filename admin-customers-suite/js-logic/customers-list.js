@@ -245,7 +245,7 @@ document.getElementById('edit-customer-form').onsubmit = async (e) => {
     }
 };
 
-// 🌟 دالة العرض الشامل (تحاكي ترتيب محتوى صفحة الطباعة) 🌟
+// 🌟 دالة العرض الشامل 🌟
 window.viewCustomerDetails = (id) => {
     const c = customersDataList.find(i => i.id === id);
     const body = document.getElementById('view-details-body');
@@ -297,8 +297,8 @@ window.viewCustomerDetails = (id) => {
 
 // 🌟 الدالة المخصصة للطباعة والتي تفتح الصفحة المستقلة 🌟
 window.printCustomer = (id) => {
-    // فتح صفحة الطباعة المستقلة مع تمرير رقم العميل في الرابط
-    const printPageUrl = `/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
+    // تم التعديل إلى مسار نسبي لحل مشكلة 404 (الرجوع خطوة من pages إلى المجلد الرئيسي ثم للطباعة)
+    const printPageUrl = `../admin-customers-suite/print-customer/print.html?id=${id}`;
     window.open(printPageUrl, '_blank');
 };
 
