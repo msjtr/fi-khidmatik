@@ -106,8 +106,8 @@ window.filterCustomers = () => {
                (categoryVal === '' || c.customerCategory === categoryVal) &&
                (noteVal === '' || c.quickNote === noteVal) &&
                (regionVal === '' || 
-                    (c.city && c.city.toLowerCase().includes(regionVal)) || 
-                    (c.district && c.district.toLowerCase().includes(regionVal)));
+                   (c.city && c.city.toLowerCase().includes(regionVal)) || 
+                   (c.district && c.district.toLowerCase().includes(regionVal)));
     });
 
     renderTable(filtered);
@@ -115,7 +115,7 @@ window.filterCustomers = () => {
 };
 
 /**
- * 4. رسم الجدول بالـ 18 عموداً وسجل العمليات
+ * 4. رسم الجدول بالـ 18 عموداً وإضافة أزرار الإجراءات النصية الجديدة مع الطباعة
  */
 function renderTable(data) {
     const tbody = document.getElementById('customers-tbody');
@@ -142,9 +142,15 @@ function renderTable(data) {
             <td>${c.customerCategory || 'عادي'}</td>
             <td>${c.quickNote || '-'}</td>
             <td class="sticky-actions">
-                <span class="action-btn" title="تعديل" onclick="openEditModal('${c.id}')">⚙️</span>
-                <span class="action-btn" title="عرض" onclick="viewCustomerDetails('${c.id}')">👁️</span>
-                <span class="action-btn" title="حذف" onclick="deleteCustomer('${c.id}')">🗑️</span>
+                <div class="actions-wrapper">
+                    <button class="action-link view" title="عرض التفاصيل" onclick="viewCustomerDetails('${c.id}')">عرض</button>
+                    <span class="action-divider"></span>
+                    <button class="action-link edit" title="تعديل البيانات" onclick="openEditModal('${c.id}')">تعديل</button>
+                    <span class="action-divider"></span>
+                    <button class="action-link print" title="طباعة العميل" onclick="printCustomer('${c.id}')">طباعة</button>
+                    <span class="action-divider"></span>
+                    <button class="action-link delete" title="حذف العميل" onclick="deleteCustomer('${c.id}')">حذف</button>
+                </div>
             </td>
         `;
         tbody.appendChild(row);
@@ -154,7 +160,7 @@ function renderTable(data) {
 document.addEventListener('DOMContentLoaded', loadCustomers);
 
 /* ==============================================================
-   5. دوال التحكم بالعملاء (تعديل، حفظ، عرض، حذف) والمرفقات
+   5. دوال التحكم بالعملاء (تعديل، حفظ، عرض، حذف، طباعة)
 ============================================================== */
 
 window.closeEditModal = () => document.getElementById('edit-customer-modal').classList.remove('active');
@@ -183,7 +189,7 @@ window.openEditModal = (id) => {
     
     quill.root.innerHTML = c.detailedNotes || '';
     
-    renderFilesLog(c.attachments || [], id); // تحميل سجل المرفقات
+    renderFilesLog(c.attachments || [], id);
     document.getElementById('edit-customer-modal').classList.add('active');
 };
 
@@ -249,6 +255,64 @@ window.viewCustomerDetails = (id) => {
         </div>
     `;
     document.getElementById('view-customer-modal').classList.add('active');
+};
+
+// 🌟 الدالة الجديدة المخصصة للطباعة السريعة 🌟
+window.printCustomer = (id) => {
+    const c = customersDataList.find(i => i.id === id);
+    if (!c) return;
+    
+    // فتح نافذة جديدة وتجهيزها بستايل الإتقان بلس للطباعة
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.write(`
+        <html dir="rtl" lang="ar">
+        <head>
+            <title>طباعة بيانات العميل - ${c.name}</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 40px; color: #0A192F; }
+                .header { border-bottom: 3px solid #D4AF37; padding-bottom: 15px; margin-bottom: 30px; text-align: center; }
+                h1 { margin: 0; font-size: 24px; }
+                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+                .info-item { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+                .info-item strong { display: block; margin-bottom: 5px; color: #6A7B9C; font-size: 0.9rem; }
+                .notes-section { background: #fff; padding: 20px; border: 1px solid #cbd5e1; border-radius: 8px; }
+                .footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #94a3b8; border-top: 1px solid #eee; padding-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>بيانات العميل: ${c.name || 'غير محدد'}</h1>
+                <p>مستخرج من نظام إدارة الإتقان بلس (Tera V12)</p>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item"><strong>رقم الجوال:</strong> <span dir="ltr">${c.countryCode || ''} ${c.phone || '-'}</span></div>
+                <div class="info-item"><strong>البريد الإلكتروني:</strong> ${c.email || '-'}</div>
+                <div class="info-item"><strong>الدولة / المدينة:</strong> ${c.country || '-'} - ${c.city || '-'}</div>
+                <div class="info-item"><strong>الحي / الشارع:</strong> ${c.district || '-'} - ${c.street || '-'}</div>
+                <div class="info-item"><strong>التصنيف:</strong> ${c.customerCategory || '-'}</div>
+                <div class="info-item"><strong>حالة الحساب:</strong> ${c.accountStatus || '-'}</div>
+            </div>
+
+            <div class="notes-section">
+                <h3 style="margin-top:0; color:#D4AF37;">الملاحظات التفصيلية للموظف:</h3>
+                <div>${c.detailedNotes || 'لا توجد ملاحظات مفصلة مسجلة لهذا العميل.'}</div>
+            </div>
+
+            <div class="footer">
+                تمت الطباعة بواسطة: ${currentEmployee} | تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}
+            </div>
+
+            <script>
+                // أمر الطباعة التلقائي بمجرد فتح النافذة
+                window.onload = function() { 
+                    setTimeout(() => { window.print(); window.close(); }, 500);
+                }
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
 };
 
 // دالة الحذف
@@ -318,7 +382,7 @@ function renderFilesLog(files, id) {
             <td>${new Date(f.addedAt).toLocaleDateString('ar-SA')}</td>
             <td>${f.deletedAt ? new Date(f.deletedAt).toLocaleDateString('ar-SA') : '-'}</td>
             <td>
-                ${f.status === 'active' ? `<button type="button" class="action-btn" style="color:#e74c3c; font-size:1.1rem;" onclick="deleteAttachment('${id}', '${f.fileId}')" title="حذف">🗑️</button>` : 'محذوف'}
+                ${f.status === 'active' ? `<button type="button" class="action-btn" style="color:#e74c3c; font-size:1.1rem; background:none; border:none; cursor:pointer;" onclick="deleteAttachment('${id}', '${f.fileId}')" title="حذف">🗑️</button>` : 'محذوف'}
             </td>
         </tr>
     `).join('') || '<tr><td colspan="5" style="text-align:center; padding:15px;">لا يوجد مرفقات مسجلة لهذا العميل</td></tr>';
