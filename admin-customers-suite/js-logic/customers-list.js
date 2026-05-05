@@ -297,7 +297,7 @@ window.viewCustomerDetails = (id) => {
 
 // 🌟 الدالة المخصصة للطباعة والتي تفتح الصفحة المستقلة 🌟
 window.printCustomer = (id) => {
-    // تم التعديل إلى مسار نسبي لحل مشكلة 404 (الرجوع خطوة من pages إلى المجلد الرئيسي ثم للطباعة)
+    // الرجوع خطوة من pages إلى المجلد الرئيسي ثم للطباعة
     const printPageUrl = `../admin-customers-suite/print-customer/print.html?id=${id}`;
     window.open(printPageUrl, '_blank');
 };
