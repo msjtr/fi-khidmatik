@@ -1,9 +1,24 @@
 // 1. استيراد مكتبات Firebase Firestore
 import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-// 2. الحل الصحيح بناءً على مسار المجلد الحالي:
-// نخرج من مجلد (print-customer.) لنصل إلى مجلد (js) الذي يحتوي على firebase.js
+// 2. مسار قاعدة البيانات
 import { db } from '../js/firebase.js'; 
+
+// 🌟 إضافة أيقونة التبويبة (Favicon) برمجياً لتجنب خطأ 404
+const setFavicon = () => {
+    const icon = document.createElement('link');
+    icon.rel = 'icon';
+    icon.type = 'image/svg+xml';
+    icon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
+    document.head.appendChild(icon);
+
+    const shortcutIcon = document.createElement('link');
+    shortcutIcon.rel = 'shortcut icon';
+    shortcutIcon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
+    document.head.appendChild(shortcutIcon);
+};
+setFavicon(); // تشغيل الدالة فوراً
+// 🌟 --------------------------------------------------
 
 const currentEmployee = "محمد بن صالح الشمري";
 
