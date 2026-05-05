@@ -53,36 +53,54 @@ async function loadCustomerData() {
             const now = new Date();
             const vCode = generateVerificationCode(customerId);
             
+            // دالة آمنة لتعبئة النصوص
             const safeSetText = (id, value) => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = value || '-';
             };
 
+            // 1. المعلومات الشخصية
             safeSetText('c-name', c.name);
-            safeSetText('c-phone', `${c.countryCode || ''} ${c.phone || ''}`);
+            safeSetText('c-countryCode', c.countryCode);
+            safeSetText('c-phone', c.phone);
             safeSetText('c-email', c.email);
+            
+            // 2. العنوان
+            safeSetText('c-country', c.country);
+            safeSetText('c-city', c.city);
+            safeSetText('c-district', c.district);
+            safeSetText('c-street', c.street);
+            safeSetText('c-buildingNo', c.buildingNo);
+            safeSetText('c-additionalNo', c.additionalNo);
+            safeSetText('c-postalCode', c.postalCode);
+            safeSetText('c-poBox', c.poBox);
+
+            // 3. حول العميل
+            const joinDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString('ar-SA') : '-';
+            safeSetText('c-joinDate', joinDate);
             safeSetText('c-status', c.accountStatus);
             safeSetText('c-category', c.customerCategory);
-            
-            const fullAddress = `${c.country || ''} - ${c.city || ''} (${c.district || '-'} / الشارع: ${c.street || '-'})`;
-            safeSetText('c-address', fullAddress);
+            safeSetText('c-quickNote', c.quickNote);
 
+            // 4. الملاحظات العامة
             const notesEl = document.getElementById('c-notes');
-            if (notesEl) notesEl.innerHTML = c.detailedNotes || '<i>لا توجد ملاحظات.</i>';
+            if (notesEl) notesEl.innerHTML = c.detailedNotes || '<i>لا توجد ملاحظات عامة مسجلة.</i>';
             
-            safeSetText('print-date', now.toLocaleString('ar-SA'));
+            // 5. التذييل والتوثيق
+            // ملاحظة: التاريخ والوقت يتم تعبئتهم بواسطة سكريبت داخل HTML، هنا نضيف فقط بيانات التوثيق
             safeSetText('print-user', currentEmployee);
             safeSetText('verify-code', vCode);
 
             const watermarkEl = document.getElementById('watermark-text');
             if (watermarkEl) watermarkEl.innerText = `Printed by: ${currentEmployee} | ${now.toLocaleDateString('en-US')}`;
 
+            // 6. توليد الـ QR Code
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
                 qrContainer.innerHTML = ""; 
                 new QRCode(qrContainer, {
                     text: `Verify: ${vCode} | ID: ${customerId}`,
-                    width: 80, height: 80,
+                    width: 75, height: 75,
                     colorDark: "#0A192F", colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.M
                 });
@@ -108,7 +126,7 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     pdfBtn.disabled = true;
 
     const opt = {
-        margin: [10, 10],
+        margin: [5, 5],
         filename: `Profile_${customerNameForFile.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 0.98 }, 
         html2canvas: { scale: 2, useCORS: true }, 
