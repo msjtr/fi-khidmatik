@@ -1,13 +1,14 @@
+// 1. استيراد المكتبات (تم تثبيت الإصدار 12.12.1 لضمان التوافق مع ملف firebase.js الخاص بك)
 import { collection, getDocs, doc, updateDoc, deleteDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 import { db, storage } from '../js/firebase.js';
 
-const currentEmployee = "محمد بن صالح الشمري"; // الموظف المسؤول للرقابة الإدارية
+const currentEmployee = "محمد بن صالح الشمري"; 
 let customersDataList = [];
 let quill;
 
 /**
- * تهيئة محرر Quill بتنسيقات Word المتقدمة ودعم الاتجاه العربي
+ * تهيئة محرر Quill بتنسيقات متقدمة ودعم الاتجاه العربي
  */
 function initQuill() {
     if (!quill) { 
@@ -28,10 +29,9 @@ function initQuill() {
 }
 
 /**
- * 1. تحميل البيانات وتحديث الملخص الإحصائي المطور (Dashboard)
+ * 1. تحميل البيانات وتحديث لوحة الإحصائيات (Dashboard)
  */
 async function loadCustomers() {
-    const tbody = document.getElementById('customers-tbody');
     try {
         const querySnapshot = await getDocs(query(collection(db, "customers"), orderBy("createdAt", "desc")));
         customersDataList = [];
@@ -45,11 +45,13 @@ async function loadCustomers() {
         updateDashboard(customersDataList);
         renderTable(customersDataList);
         
-    } catch (e) { console.error("خطأ في مزامنة بيانات القاعدة:", e); }
+    } catch (e) { 
+        console.error("خطأ في مزامنة بيانات القاعدة:", e); 
+    }
 }
 
 /**
- * 2. تحديث لوحة الإحصائيات (Dashboard) مقسمة على السطرين
+ * 2. تحديث لوحة الإحصائيات (Dashboard)
  */
 function updateDashboard(data) {
     const now = new Date();
@@ -75,25 +77,23 @@ function updateDashboard(data) {
         needFollow: data.filter(c => c.quickNote === 'حاجة لمتابعة').length
     };
 
-    document.getElementById('stat-total').innerText = stats.total;
-    document.getElementById('stat-complete').innerText = stats.completeAddress;
-    document.getElementById('stat-month').innerText = stats.thisMonth;
-    document.getElementById('count-new').innerText = stats.new;
-    document.getElementById('count-active').innerText = stats.active;
-    document.getElementById('count-suspended').innerText = stats.suspended;
-    document.getElementById('count-blocked').innerText = stats.blocked;
-    document.getElementById('count-vip').innerText = stats.vip;
-    document.getElementById('count-premium').innerText = stats.premium;
-    document.getElementById('count-normal').innerText = stats.normal;
-    document.getElementById('count-potential').innerText = stats.potential;
-    document.getElementById('count-quickResp').innerText = stats.quickResp;
-    document.getElementById('count-lateResp').innerText = stats.lateResp;
-    document.getElementById('count-highOrders').innerText = stats.highOrders;
-    document.getElementById('count-needFollow').innerText = stats.needFollow;
+    // تعبئة الأرقام في الواجهة
+    const elements = {
+        'stat-total': stats.total, 'stat-complete': stats.completeAddress, 'stat-month': stats.thisMonth,
+        'count-new': stats.new, 'count-active': stats.active, 'count-suspended': stats.suspended,
+        'count-blocked': stats.blocked, 'count-vip': stats.vip, 'count-premium': stats.premium,
+        'count-normal': stats.normal, 'count-potential': stats.potential, 'count-quickResp': stats.quickResp,
+        'count-lateResp': stats.lateResp, 'count-highOrders': stats.highOrders, 'count-needFollow': stats.needFollow
+    };
+
+    Object.keys(elements).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = elements[id];
+    });
 }
 
 /**
- * 3. نظام الفلترة المتقدم والبحث الذكي بالمنطقة
+ * 3. نظام الفلترة المتقدم والبحث الذكي
  */
 window.filterCustomers = () => {
     const statusVal = document.getElementById('filter-status').value;
@@ -115,10 +115,11 @@ window.filterCustomers = () => {
 };
 
 /**
- * 4. رسم الجدول بالتنسيق الصحيح المستقل للرقم والمفتاح
+ * 4. رسم الجدول بالتنسيق الصحيح
  */
 function renderTable(data) {
     const tbody = document.getElementById('customers-tbody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     data.forEach((c, index) => {
@@ -128,16 +129,8 @@ function renderTable(data) {
                 <span style="color:#6A7B9C; font-weight:bold; margin-left:8px;">${index + 1} -</span>
                 <strong>${c.name || '-'}</strong>
             </td>
-            <td>
-                <span dir="ltr" style="display:inline-block; font-weight:bold; color:#2D3748;">
-                    ${c.phone || '-'}
-                </span>
-            </td>
-            <td>
-                <span dir="ltr" style="display:inline-block; font-weight:bold; color:#6A7B9C;">
-                    ${c.countryCode || '-'}
-                </span>
-            </td>
+            <td><span dir="ltr" style="font-weight:bold; color:#2D3748;">${c.phone || '-'}</span></td>
+            <td><span dir="ltr" style="font-weight:bold; color:#6A7B9C;">${c.countryCode || '-'}</span></td>
             <td>${c.email || '-'}</td>
             <td>${c.country || '-'}</td>
             <td>${c.city || '-'}</td>
@@ -153,13 +146,13 @@ function renderTable(data) {
             <td>${c.quickNote || '-'}</td>
             <td class="sticky-actions">
                 <div class="actions-wrapper">
-                    <button class="action-link view" title="عرض التفاصيل" onclick="viewCustomerDetails('${c.id}')">عرض</button>
+                    <button class="action-link view" onclick="viewCustomerDetails('${c.id}')">عرض</button>
                     <span class="action-divider"></span>
-                    <button class="action-link edit" title="تعديل البيانات" onclick="openEditModal('${c.id}')">تعديل</button>
+                    <button class="action-link edit" onclick="openEditModal('${c.id}')">تعديل</button>
                     <span class="action-divider"></span>
-                    <button class="action-link print" title="طباعة العميل" onclick="printCustomer('${c.id}')">طباعة</button>
+                    <button class="action-link print" onclick="printCustomer('${c.id}')">طباعة</button>
                     <span class="action-divider"></span>
-                    <button class="action-link delete" title="حذف العميل" onclick="deleteCustomer('${c.id}')">حذف</button>
+                    <button class="action-link delete" onclick="deleteCustomer('${c.id}')">حذف</button>
                 </div>
             </td>
         `;
@@ -170,40 +163,32 @@ function renderTable(data) {
 document.addEventListener('DOMContentLoaded', loadCustomers);
 
 /* ==============================================================
-   5. دوال التحكم بالعملاء (تعديل، حفظ، عرض، حذف، طباعة)
+   5. دوال التحكم بالعملاء
 ============================================================== */
 
 window.closeEditModal = () => document.getElementById('edit-customer-modal').classList.remove('active');
 
-// دالة فتح التعديل وتعبئة كافة الحقول
 window.openEditModal = (id) => {
     const c = customersDataList.find(i => i.id === id);
     initQuill();
     
+    const fields = [
+        'name', 'phone', 'countryCode', 'email', 'country', 'city', 'district', 
+        'street', 'buildingNo', 'additionalNo', 'postalCode', 'poBox', 
+        'accountStatus', 'customerCategory', 'quickNote'
+    ];
+
     document.getElementById('edit-doc-id').value = id;
-    document.getElementById('edit-name').value = c.name || '';
-    document.getElementById('edit-phone').value = c.phone || '';
-    document.getElementById('edit-countryCode').value = c.countryCode || '';
-    document.getElementById('edit-email').value = c.email || '';
-    document.getElementById('edit-country').value = c.country || '';
-    document.getElementById('edit-city').value = c.city || '';
-    document.getElementById('edit-district').value = c.district || '';
-    document.getElementById('edit-street').value = c.street || '';
-    document.getElementById('edit-buildingNo').value = c.buildingNo || '';
-    document.getElementById('edit-additionalNo').value = c.additionalNo || '';
-    document.getElementById('edit-postalCode').value = c.postalCode || '';
-    document.getElementById('edit-poBox').value = c.poBox || '';
-    document.getElementById('edit-accountStatus').value = c.accountStatus || 'جديد';
-    document.getElementById('edit-customerCategory').value = c.customerCategory || 'عادي';
-    document.getElementById('edit-quickNote').value = c.quickNote || 'سريع التجاوب';
+    fields.forEach(field => {
+        const el = document.getElementById(`edit-${field}`);
+        if (el) el.value = c[field] || (field === 'accountStatus' ? 'جديد' : (field === 'customerCategory' ? 'عادي' : ''));
+    });
     
     quill.root.innerHTML = c.detailedNotes || '';
-    
     renderFilesLog(c.attachments || [], id);
     document.getElementById('edit-customer-modal').classList.add('active');
 };
 
-// دالة حفظ التعديلات
 document.getElementById('edit-customer-form').onsubmit = async (e) => {
     e.preventDefault();
     const id = document.getElementById('edit-doc-id').value;
@@ -213,119 +198,59 @@ document.getElementById('edit-customer-form').onsubmit = async (e) => {
     btn.disabled = true;
 
     try {
-        await updateDoc(doc(db, "customers", id), {
-            name: document.getElementById('edit-name').value,
-            phone: document.getElementById('edit-phone').value,
-            countryCode: document.getElementById('edit-countryCode').value,
-            email: document.getElementById('edit-email').value,
-            country: document.getElementById('edit-country').value,
-            city: document.getElementById('edit-city').value,
-            district: document.getElementById('edit-district').value,
-            street: document.getElementById('edit-street').value,
-            buildingNo: document.getElementById('edit-buildingNo').value,
-            additionalNo: document.getElementById('edit-additionalNo').value,
-            postalCode: document.getElementById('edit-postalCode').value,
-            poBox: document.getElementById('edit-poBox').value,
-            accountStatus: document.getElementById('edit-accountStatus').value,
-            customerCategory: document.getElementById('edit-customerCategory').value,
-            quickNote: document.getElementById('edit-quickNote').value,
+        const updateData = {
             detailedNotes: quill.root.innerHTML,
             updatedAt: new Date().toISOString(),
             updatedBy: currentEmployee
+        };
+
+        const fields = [
+            'name', 'phone', 'countryCode', 'email', 'country', 'city', 'district', 
+            'street', 'buildingNo', 'additionalNo', 'postalCode', 'poBox', 
+            'accountStatus', 'customerCategory', 'quickNote'
+        ];
+
+        fields.forEach(field => {
+            updateData[field] = document.getElementById(`edit-${field}`).value;
         });
+
+        await updateDoc(doc(db, "customers", id), updateData);
         alert("تم تحديث بيانات العميل بنجاح");
         window.closeEditModal();
         loadCustomers();
     } catch(err) {
         console.error(err);
-        alert("حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.");
+        alert("حدث خطأ أثناء الحفظ.");
     } finally {
         btn.innerText = "حفظ كافة التعديلات"; 
         btn.disabled = false;
     }
 };
 
-// 🌟 دالة العرض الشامل 🌟
-window.viewCustomerDetails = (id) => {
-    const c = customersDataList.find(i => i.id === id);
-    const body = document.getElementById('view-details-body');
-    
-    body.innerHTML = `
-        <div style="padding: 10px; color: #0A192F;">
-            <!-- ترويسة العرض -->
-            <div style="border-bottom: 2px solid #D4AF37; padding-bottom: 10px; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #0A192F;">ملف العميل: ${c.name || '-'}</h2>
-                <span style="font-size: 0.85rem; color: #6A7B9C;">تاريخ التسجيل: ${c.createdAt ? new Date(c.createdAt).toLocaleDateString('ar-SA') : '-'}</span>
-            </div>
-
-            <!-- شبكة البيانات (نفس ترتيب الطباعة) -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">رقم الجوال:</strong>
-                    <span dir="ltr" style="font-weight: bold; color: #2D3748;">${c.countryCode || ''} ${c.phone || '-'}</span>
-                </div>
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">البريد الإلكتروني:</strong>
-                    <span style="font-weight: bold; color: #2D3748;">${c.email || '-'}</span>
-                </div>
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">العنوان الوطني:</strong>
-                    <span style="font-weight: bold; color: #2D3748;">${c.country || ''} - ${c.city || ''} <br> (${c.district || '-'} - شارع: ${c.street || '-'})</span>
-                </div>
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">معلومات إضافية:</strong>
-                    <span style="font-weight: bold; color: #2D3748;">رقم المبنى: ${c.buildingNo || '-'} | الرمز البريدي: ${c.postalCode || '-'}</span>
-                </div>
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; grid-column: span 2;">
-                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">الحالة والتصنيف:</strong>
-                    <span style="background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 4px 10px; border-radius: 6px; font-weight: bold; margin-left: 10px;">${c.accountStatus || '-'}</span>
-                    <span style="font-weight: bold; color: #D4AF37;">( تصنيف العميل: ${c.customerCategory || '-'} )</span>
-                </div>
-            </div>
-
-            <!-- قسم الملاحظات التفصيلية -->
-            <div style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px;">
-                <h4 style="margin-top: 0; color: #D4AF37; border-bottom: 1px solid #eee; padding-bottom: 10px;">الملاحظات التفصيلية للموظف:</h4>
-                <div style="line-height: 1.6; color: #2D3748;">
-                    ${c.detailedNotes && c.detailedNotes.trim() !== '' ? c.detailedNotes : '<i>لا توجد ملاحظات مفصلة مسجلة.</i>'}
-                </div>
-            </div>
-        </div>
-    `;
-    document.getElementById('view-customer-modal').classList.add('active');
-};
-
-// 🌟 الحل القاطع لدالة الطباعة (توجيه مباشر وصريح) 🌟
+/**
+ * 🌟 نظام الطباعة الذكي
+ */
 window.printCustomer = (id) => {
-    // 1. نتحقق ما إذا كنا على سيرفر GitHub
     const isGitHub = window.location.hostname.includes("github.io");
+    const printPageUrl = isGitHub 
+        ? `https://msjtr.github.io/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`
+        : `/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
     
-    let printPageUrl = "";
-    if (isGitHub) {
-        // المسار المباشر لـ GitHub (مضمون 100% ولن يكرر المجلدات)
-        printPageUrl = `https://msjtr.github.io/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
-    } else {
-        // المسار للسيرفر المحلي (جهازك)
-        printPageUrl = `/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
-    }
-    
-    // فتح الصفحة
     window.open(printPageUrl, '_blank');
 };
 
-// دالة الحذف
 window.deleteCustomer = async (id) => {
-    if(confirm("هل أنت متأكد من حذف هذا العميل نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.")) {
+    if(confirm("هل أنت متأكد من حذف هذا العميل نهائياً؟")) {
         try {
             await deleteDoc(doc(db, "customers", id));
-            alert("تم حذف العميل بنجاح من النظام");
+            alert("تم حذف العميل بنجاح");
             loadCustomers();
-        } catch (e) { console.error(e); alert("خطأ في عملية الحذف"); }
+        } catch (e) { alert("خطأ في عملية الحذف"); }
     }
 };
 
 /* ==============================================================
-   6. نظام رفع وإدارة المرفقات (سجل رقابي)
+   6. إدارة المرفقات
 ============================================================== */
 
 document.getElementById('upload-btn').onclick = async () => {
@@ -334,7 +259,7 @@ document.getElementById('upload-btn').onclick = async () => {
     const nameInput = document.getElementById('new-file-name');
     const uploadBtn = document.getElementById('upload-btn');
 
-    if(!fileInput.files[0] || !nameInput.value) return alert("الرجاء إدخال اسم الملف واختياره أولاً.");
+    if(!fileInput.files[0] || !nameInput.value) return alert("الرجاء إدخال اسم الملف واختياره.");
 
     uploadBtn.innerText = "جاري الرفع..."; 
     uploadBtn.disabled = true;
@@ -352,20 +277,14 @@ document.getElementById('upload-btn').onclick = async () => {
             fileUrl: url, 
             addedBy: currentEmployee, 
             addedAt: new Date().toISOString(), 
-            status: 'active', 
-            deletedAt: null 
+            status: 'active' 
         };
 
-        const updated = [...oldAttachments, newEntry];
-        await updateDoc(doc(db, "customers", id), { attachments: updated });
-        renderFilesLog(updated, id);
-        alert("تم رفع المرفق وتوثيقه في السجل بنجاح");
-        
+        await updateDoc(doc(db, "customers", id), { attachments: [...oldAttachments, newEntry] });
+        renderFilesLog([...oldAttachments, newEntry], id);
+        alert("تم الرفع بنجاح");
         nameInput.value = ''; fileInput.value = '';
-    } catch(e) { 
-        alert("فشل الرفع، تأكد من الاتصال بالإنترنت."); 
-        console.error(e); 
-    } finally { 
+    } catch(e) { alert("فشل الرفع."); } finally {
         uploadBtn.innerText = "رفع المرفق"; 
         uploadBtn.disabled = false; 
     }
@@ -373,6 +292,7 @@ document.getElementById('upload-btn').onclick = async () => {
 
 function renderFilesLog(files, id) {
     const list = document.getElementById('files-log-list');
+    if (!list) return;
     list.innerHTML = files.map(f => `
         <tr style="${f.status === 'deleted' ? 'background:#fff1f0; color:#e74c3c;' : ''}">
             <td>${f.status === 'active' ? `<a href="${f.fileUrl}" target="_blank" style="color:#3498db;">${f.fileName}</a>` : `<s style="color:#e74c3c;">${f.fileName}</s>`}</td>
@@ -380,14 +300,14 @@ function renderFilesLog(files, id) {
             <td>${new Date(f.addedAt).toLocaleDateString('ar-SA')}</td>
             <td>${f.deletedAt ? new Date(f.deletedAt).toLocaleDateString('ar-SA') : '-'}</td>
             <td>
-                ${f.status === 'active' ? `<button type="button" class="action-btn" style="color:#e74c3c; font-size:1.1rem; background:none; border:none; cursor:pointer;" onclick="deleteAttachment('${id}', '${f.fileId}')" title="حذف">🗑️</button>` : 'محذوف'}
+                ${f.status === 'active' ? `<button type="button" class="action-btn" onclick="deleteAttachment('${id}', '${f.fileId}')">🗑️</button>` : 'محذوف'}
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="5" style="text-align:center; padding:15px;">لا يوجد مرفقات مسجلة لهذا العميل</td></tr>';
+    `).join('') || '<tr><td colspan="5" style="text-align:center;">لا يوجد مرفقات</td></tr>';
 }
 
 window.deleteAttachment = async (customerId, fId) => {
-    if(!confirm("هل تريد حذف المرفق من السجل؟ (سيتم تعليمه كمحذوف للرقابة الإدارية ولن يُحذف نهائياً)")) return;
+    if(!confirm("هل تريد حذف المرفق؟")) return;
     try {
         const cDoc = await getDoc(doc(db, "customers", customerId));
         const list = cDoc.data().attachments || [];
