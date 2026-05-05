@@ -87,7 +87,6 @@ async function loadCustomerData() {
             if (notesEl) notesEl.innerHTML = c.detailedNotes || '<i>لا توجد ملاحظات عامة مسجلة.</i>';
             
             // 5. التذييل والتوثيق
-            // ملاحظة: التاريخ والوقت يتم تعبئتهم بواسطة سكريبت داخل HTML، هنا نضيف فقط بيانات التوثيق
             safeSetText('print-user', currentEmployee);
             safeSetText('verify-code', vCode);
 
@@ -117,28 +116,42 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
+// 🌟 التعديل الجذري لحل مشاكل الـ PDF 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const element = document.getElementById('document-content');
     const pdfBtn = document.getElementById('btn-pdf');
     if (!element || !pdfBtn) return;
 
-    pdfBtn.innerText = "جاري التصدير...";
+    pdfBtn.innerText = "جاري التصدير (عالي الدقة)...";
     pdfBtn.disabled = true;
 
+    // إعدادات تصدير احترافية
     const opt = {
-        margin: [5, 5],
+        margin: [15, 10, 15, 10], // هوامش متناسقة تمنع القص
         filename: `Profile_${customerNameForFile.replace(/\s+/g, '_')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 }, 
-        html2canvas: { scale: 2, useCORS: true }, 
+        image: { type: 'jpeg', quality: 1.0 }, // دقة الصورة 100%
+        html2canvas: { 
+            scale: 4, // دقة تصوير 4K لنصوص حادة
+            useCORS: true, 
+            letterRendering: true, // 🌟 يمنع تفكك الحروف العربية
+            scrollY: 0,
+            logging: false
+        }, 
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
         await logPrintAction('PDF Export');
-        await html2pdf().set(opt).from(element).save();
+        
+        // تأخير بسيط لضمان اكتمال تحميل الخطوط وتنسيقات CSS قبل التصوير
+        setTimeout(async () => {
+            await html2pdf().set(opt).from(element).save();
+            pdfBtn.innerText = "📥 تصدير PDF";
+            pdfBtn.disabled = false;
+        }, 500);
+
     } catch (err) {
         console.error("خطأ PDF:", err);
-    } finally {
         pdfBtn.innerText = "📥 تصدير PDF";
         pdfBtn.disabled = false;
     }
