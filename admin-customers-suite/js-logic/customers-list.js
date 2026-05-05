@@ -245,82 +245,61 @@ document.getElementById('edit-customer-form').onsubmit = async (e) => {
     }
 };
 
-// دالة العرض الشامل
+// 🌟 دالة العرض الشامل (تحاكي ترتيب محتوى صفحة الطباعة) 🌟
 window.viewCustomerDetails = (id) => {
     const c = customersDataList.find(i => i.id === id);
     const body = document.getElementById('view-details-body');
+    
     body.innerHTML = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
-            <p><strong>الاسم:</strong> ${c.name || '-'}</p>
-            <p><strong>الجوال:</strong> <span dir="ltr">${c.countryCode || ''} ${c.phone || '-'}</span></p>
-            <p><strong>البريد:</strong> ${c.email || '-'}</p>
-            <p><strong>العنوان:</strong> ${c.city || '-'} - ${c.district || '-'}</p>
-            <p><strong>الحالة:</strong> <span class="status-tag">${c.accountStatus || '-'}</span></p>
-            <p><strong>التصنيف:</strong> ${c.customerCategory || '-'}</p>
-        </div>
-        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-        <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-top:10px;">
-            <strong>الملاحظات التفصيلية:</strong><br><br>
-            ${c.detailedNotes || 'لا توجد ملاحظات مسجلة.'}
+        <div style="padding: 10px; color: #0A192F;">
+            <!-- ترويسة العرض -->
+            <div style="border-bottom: 2px solid #D4AF37; padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #0A192F;">ملف العميل: ${c.name || '-'}</h2>
+                <span style="font-size: 0.85rem; color: #6A7B9C;">تاريخ التسجيل: ${c.createdAt ? new Date(c.createdAt).toLocaleDateString('ar-SA') : '-'}</span>
+            </div>
+
+            <!-- شبكة البيانات (نفس ترتيب الطباعة) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">رقم الجوال:</strong>
+                    <span dir="ltr" style="font-weight: bold; color: #2D3748;">${c.countryCode || ''} ${c.phone || '-'}</span>
+                </div>
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">البريد الإلكتروني:</strong>
+                    <span style="font-weight: bold; color: #2D3748;">${c.email || '-'}</span>
+                </div>
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">العنوان الوطني:</strong>
+                    <span style="font-weight: bold; color: #2D3748;">${c.country || ''} - ${c.city || ''} <br> (${c.district || '-'} - شارع: ${c.street || '-'})</span>
+                </div>
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">معلومات إضافية:</strong>
+                    <span style="font-weight: bold; color: #2D3748;">رقم المبنى: ${c.buildingNo || '-'} | الرمز البريدي: ${c.postalCode || '-'}</span>
+                </div>
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; grid-column: span 2;">
+                    <strong style="color: #6A7B9C; font-size: 0.85rem; display: block; margin-bottom: 5px;">الحالة والتصنيف:</strong>
+                    <span style="background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 4px 10px; border-radius: 6px; font-weight: bold; margin-left: 10px;">${c.accountStatus || '-'}</span>
+                    <span style="font-weight: bold; color: #D4AF37;">( تصنيف العميل: ${c.customerCategory || '-'} )</span>
+                </div>
+            </div>
+
+            <!-- قسم الملاحظات التفصيلية -->
+            <div style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                <h4 style="margin-top: 0; color: #D4AF37; border-bottom: 1px solid #eee; padding-bottom: 10px;">الملاحظات التفصيلية للموظف:</h4>
+                <div style="line-height: 1.6; color: #2D3748;">
+                    ${c.detailedNotes && c.detailedNotes.trim() !== '' ? c.detailedNotes : '<i>لا توجد ملاحظات مفصلة مسجلة.</i>'}
+                </div>
+            </div>
         </div>
     `;
     document.getElementById('view-customer-modal').classList.add('active');
 };
 
-// الدالة المخصصة للطباعة السريعة
+// 🌟 الدالة المخصصة للطباعة والتي تفتح الصفحة المستقلة 🌟
 window.printCustomer = (id) => {
-    const c = customersDataList.find(i => i.id === id);
-    if (!c) return;
-    
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    printWindow.document.write(`
-        <html dir="rtl" lang="ar">
-        <head>
-            <title>طباعة بيانات العميل - ${c.name}</title>
-            <style>
-                body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 40px; color: #0A192F; }
-                .header { border-bottom: 3px solid #D4AF37; padding-bottom: 15px; margin-bottom: 30px; text-align: center; }
-                h1 { margin: 0; font-size: 24px; }
-                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-                .info-item { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
-                .info-item strong { display: block; margin-bottom: 5px; color: #6A7B9C; font-size: 0.9rem; }
-                .notes-section { background: #fff; padding: 20px; border: 1px solid #cbd5e1; border-radius: 8px; }
-                .footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #94a3b8; border-top: 1px solid #eee; padding-top: 20px; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>بيانات العميل: ${c.name || 'غير محدد'}</h1>
-                <p>مستخرج من نظام إدارة الإتقان بلس (Tera V12)</p>
-            </div>
-            
-            <div class="info-grid">
-                <div class="info-item"><strong>رقم الجوال:</strong> <span dir="ltr">${c.countryCode || ''} ${c.phone || '-'}</span></div>
-                <div class="info-item"><strong>البريد الإلكتروني:</strong> ${c.email || '-'}</div>
-                <div class="info-item"><strong>الدولة / المدينة:</strong> ${c.country || '-'} - ${c.city || '-'}</div>
-                <div class="info-item"><strong>الحي / الشارع:</strong> ${c.district || '-'} - ${c.street || '-'}</div>
-                <div class="info-item"><strong>التصنيف:</strong> ${c.customerCategory || '-'}</div>
-                <div class="info-item"><strong>حالة الحساب:</strong> ${c.accountStatus || '-'}</div>
-            </div>
-
-            <div class="notes-section">
-                <h3 style="margin-top:0; color:#D4AF37;">الملاحظات التفصيلية للموظف:</h3>
-                <div>${c.detailedNotes || 'لا توجد ملاحظات مفصلة مسجلة لهذا العميل.'}</div>
-            </div>
-
-            <div class="footer">
-                تمت الطباعة بواسطة: ${currentEmployee} | تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}
-            </div>
-
-            <script>
-                window.onload = function() { 
-                    setTimeout(() => { window.print(); window.close(); }, 500);
-                }
-            </script>
-        </body>
-        </html>
-    `);
-    printWindow.document.close();
+    // فتح صفحة الطباعة المستقلة مع تمرير رقم العميل في الرابط
+    const printPageUrl = `/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
+    window.open(printPageUrl, '_blank');
 };
 
 // دالة الحذف
