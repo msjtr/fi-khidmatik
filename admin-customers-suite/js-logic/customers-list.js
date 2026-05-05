@@ -295,10 +295,21 @@ window.viewCustomerDetails = (id) => {
     document.getElementById('view-customer-modal').classList.add('active');
 };
 
-// 🌟 الدالة المخصصة للطباعة والتي تفتح الصفحة المستقلة 🌟
+// 🌟 الحل القاطع لدالة الطباعة (توجيه مباشر وصريح) 🌟
 window.printCustomer = (id) => {
-    // المسار الصحيح والمختصر (يمنع تكرار اسم المجلد في GitHub Pages)
-    const printPageUrl = `../print-customer/print.html?id=${id}`;
+    // 1. نتحقق ما إذا كنا على سيرفر GitHub
+    const isGitHub = window.location.hostname.includes("github.io");
+    
+    let printPageUrl = "";
+    if (isGitHub) {
+        // المسار المباشر لـ GitHub (مضمون 100% ولن يكرر المجلدات)
+        printPageUrl = `https://msjtr.github.io/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
+    } else {
+        // المسار للسيرفر المحلي (جهازك)
+        printPageUrl = `/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
+    }
+    
+    // فتح الصفحة
     window.open(printPageUrl, '_blank');
 };
 
