@@ -57,10 +57,32 @@ body {
 .tera-table td { padding: 15px; border-bottom: 1px solid #F1F5F9; text-align: center; background: #FFF; }
 .tera-table tr:hover td { background-color: #F8FAFC; }
 
-/* إصلاح تداخل الأعمدة المثبتة مع الترويسة العلوية */
-.sticky-col { position: sticky; right: 0; z-index: 5; font-weight: 800; box-shadow: -3px 0 10px rgba(0,0,0,0.05); }
-.sticky-actions { position: sticky; left: 0; z-index: 5; box-shadow: 3px 0 10px rgba(0,0,0,0.05); min-width: 260px !important; background: #f8fafc !important; }
-th.sticky-col, th.sticky-actions { z-index: 15; background: #0A192F !important; } /* أهم سطر لمنع اختلاط زوايا الجدول أثناء التمرير */
+/* =========================================
+   إصلاح تداخل وتوحيد ألوان الأعمدة المثبتة
+========================================= */
+.sticky-col { 
+    position: sticky; right: 0; z-index: 5; font-weight: 800; 
+    box-shadow: -3px 0 10px rgba(0,0,0,0.05); 
+    background-color: #FFF; 
+}
+.sticky-actions { 
+    position: sticky; left: 0; z-index: 5; 
+    box-shadow: 3px 0 10px rgba(0,0,0,0.05); 
+    min-width: 260px !important; 
+    background-color: #FFF; 
+}
+
+/* توحيد اللون عند تمرير الماوس (Hover) ليصبح الصف قطعة واحدة */
+.tera-table tr:hover td.sticky-col, 
+.tera-table tr:hover td.sticky-actions { 
+    background-color: #F8FAFC !important; 
+}
+
+/* الترويسة العلوية تبقى باللون الكحلي دائمًا */
+th.sticky-col, th.sticky-actions { 
+    z-index: 15; 
+    background-color: #0A192F !important; 
+}
 
 .status-tag { background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 6px 14px; border-radius: 8px; font-weight: 800; }
 
