@@ -1,11 +1,12 @@
-// 1. استخدام استيراد موحد لضمان عدم تعارض النسخ
+// 1. استيراد مكتبات Firebase Firestore بإصدار ثابت
 import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-// استخدام مسار نسبي مرن للخروج من المجلد الذي ينتهي بنقطة
-import { db } from '../../js/firebase.js'; 
+
+// 2. استخدام المسار المطلق لضمان الوصول لملف الإعدادات من أي مجلد فرعي في المشروع
+import { db } from '/Fi-Khidmatik-by-Al-Itqan-Plus/js/firebase.js'; 
 
 const currentEmployee = "محمد بن صالح الشمري";
 
-// 1. استخراج ID العميل من الرابط بدقة
+// استخراج ID العميل من الرابط
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
@@ -25,7 +26,7 @@ function generateVerificationCode(id) {
 }
 
 /**
- * 2. جلب بيانات العميل من Firebase
+ * جلب بيانات العميل من Firebase
  */
 async function loadCustomerData() {
     if (!customerId) {
@@ -34,9 +35,8 @@ async function loadCustomerData() {
     }
 
     try {
-        // التأكد من أن db تم استيراده بنجاح
         if (!db) {
-            throw new Error("قاعدة البيانات غير متصلة، تحقق من ملف firebase.js");
+            throw new Error("قاعدة البيانات غير متصلة");
         }
 
         const docRef = doc(db, "customers", customerId);
@@ -48,7 +48,6 @@ async function loadCustomerData() {
             const now = new Date();
             const vCode = generateVerificationCode(customerId);
             
-            // دالة آمنة لتعبئة النصوص لمنع توقف الكود
             const safeSetText = (id, value) => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = value || '-';
@@ -88,16 +87,15 @@ async function loadCustomerData() {
             }
 
         } else {
-            alert("تنبيه: لم يتم العثور على بيانات لهذا العميل في قاعدة البيانات.");
+            alert("تنبيه: لم يتم العثور على بيانات العميل.");
         }
     } catch (e) { 
         console.error("خطأ تقني في جلب البيانات:", e);
-        // التحقق من الخطأ في المتصفح سيعطينا تفاصيل أدق
     }
 }
 
 /**
- * 3. نظام الأرشفة الرقابي
+ * نظام الأرشفة الرقابي
  */
 async function logPrintAction(actionType) {
     try {
@@ -116,7 +114,7 @@ async function logPrintAction(actionType) {
     }
 }
 
-// 4. أزرار التحكم
+// أزرار التحكم
 document.getElementById('btn-print')?.addEventListener('click', async () => {
     await logPrintAction('Print');
     window.print();
@@ -149,5 +147,5 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     }
 });
 
-// 5. بدء التشغيل
+// بدء التشغيل
 document.addEventListener('DOMContentLoaded', loadCustomerData);
