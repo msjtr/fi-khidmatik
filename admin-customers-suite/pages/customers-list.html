@@ -65,11 +65,11 @@
         <!-- 2. شريط البحث والفلترة -->
         <div class="filter-bar">
             <div class="filter-group search">
-                <label>🔍 بحث بالمنطقة/المدينة:</label>
-                <input type="text" id="filter-region" placeholder="حائل، النقرة، الربوة..." onkeyup="filterCustomers()">
+                <label>🔍 بحث بالمنطقة:</label>
+                <input type="text" id="filter-region" placeholder="حائل، الرياض، النقرة..." onkeyup="filterCustomers()">
             </div>
             <div class="filter-group">
-                <label>تصفية بالحالة:</label>
+                <label>تصفية بحالة الحساب:</label>
                 <select id="filter-status" onchange="filterCustomers()">
                     <option value="">الكل</option>
                     <option value="جديد">جديد</option>
@@ -107,19 +107,20 @@
                     <tr>
                         <th class="sticky-col">م - اسم العميل</th>
                         <th>رقم الجوال</th>
-                        <th>البريد</th>
+                        <th>رمز مفتاح الدولة</th>
+                        <th>البريد الإلكتروني</th>
                         <th>الدولة</th>
-                        <th>المدينة</th>
+                        <th>المنطقة</th>
                         <th>الحي</th>
                         <th>الشارع</th>
-                        <th>المبنى</th>
-                        <th>الإضافي</th>
+                        <th>رقم المبنى</th>
+                        <th>الرقم الاضافي</th>
                         <th>الرمز البريدي</th>
                         <th>صندوق البريد</th>
-                        <th>تاريخ الإضافة</th>
-                        <th>الحالة</th>
+                        <th>تاريخ الانضمام</th>
+                        <th>حالة الحساب</th>
                         <th>التصنيف</th>
-                        <th>ملاحظة سريعة</th>
+                        <th>ملاحظات سريعة</th>
                         <th class="sticky-actions">الإجراءات</th>
                     </tr>
                 </thead>
@@ -137,21 +138,29 @@
             </div>
             <form id="edit-customer-form">
                 <input type="hidden" id="edit-doc-id">
+                
                 <div class="form-grid">
-                    <div class="input-group"><label>الاسم</label><input type="text" id="edit-name"></div>
-                    <div class="input-group"><label>الجوال</label><input type="text" id="edit-phone"></div>
-                    <div class="input-group"><label>مفتاح الدولة</label><input type="text" id="edit-countryCode"></div>
-                    <div class="input-group"><label>البريد</label><input type="email" id="edit-email"></div>
+                    <!-- البيانات الأساسية -->
+                    <div class="input-group"><label>اسم العميل</label><input type="text" id="edit-name"></div>
+                    <div class="input-group"><label>رقم الجوال</label><input type="text" id="edit-phone"></div>
+                    <div class="input-group"><label>رمز مفتاح الدولة</label><input type="text" id="edit-countryCode"></div>
+                    <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="edit-email"></div>
+
+                    <!-- قطاع العنوان -->
+                    <h4 style="grid-column: 1 / -1; margin: 15px 0 5px; color: #2D3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">العنوان</h4>
                     <div class="input-group"><label>الدولة</label><input type="text" id="edit-country"></div>
-                    <div class="input-group"><label>المدينة</label><input type="text" id="edit-city"></div>
+                    <div class="input-group"><label>المنطقة</label><input type="text" id="edit-city"></div>
                     <div class="input-group"><label>الحي</label><input type="text" id="edit-district"></div>
                     <div class="input-group"><label>الشارع</label><input type="text" id="edit-street"></div>
                     <div class="input-group"><label>رقم المبنى</label><input type="text" id="edit-buildingNo"></div>
-                    <div class="input-group"><label>الرقم الإضافي</label><input type="text" id="edit-additionalNo"></div>
+                    <div class="input-group"><label>الرقم الاضافي</label><input type="text" id="edit-additionalNo"></div>
                     <div class="input-group"><label>الرمز البريدي</label><input type="text" id="edit-postalCode"></div>
                     <div class="input-group"><label>صندوق البريد</label><input type="text" id="edit-poBox"></div>
+
+                    <!-- قطاع حول العميل -->
+                    <h4 style="grid-column: 1 / -1; margin: 15px 0 5px; color: #2D3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">حول العميل</h4>
                     <div class="input-group">
-                        <label>الحالة</label>
+                        <label>حالة الحساب</label>
                         <select id="edit-accountStatus">
                             <option value="جديد">جديد</option>
                             <option value="نشط">نشط</option>
@@ -169,7 +178,7 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label>ملاحظة سريعة</label>
+                        <label>ملاحظات سريعة</label>
                         <select id="edit-quickNote">
                             <option value="سريع التجاوب">سريع التجاوب</option>
                             <option value="يتأخر في الرد">يتأخر في الرد</option>
@@ -179,13 +188,13 @@
                     </div>
                 </div>
 
-                <div class="editor-container">
-                    <label>الملاحظات التفصيلية (Word Style)</label>
+                <div class="editor-container" style="margin-top: 15px;">
+                    <label style="font-weight: bold; color: #2D3748; margin-bottom: 8px; display: block;">ملاحظات عامة</label>
                     <div id="editor"></div>
                 </div>
 
                 <!-- إدارة المرفقات -->
-                <div class="attachments-section">
+                <div class="attachments-section" style="margin-top: 25px;">
                     <h4>📎 سجل المرفقات الإداري</h4>
                     <div class="upload-controls">
                         <input type="text" id="new-file-name" placeholder="اسم الملف">
