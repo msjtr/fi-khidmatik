@@ -1,4 +1,5 @@
-import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+// تم تصحيح إصدار الفايربيس هنا إلى 10.12.0 بدلاً من 12.12.1 الوهمي
+import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // المسار الصحيح للعودة مجلدين للخلف ثم الدخول لمجلد js
 import { db } from '../../js/firebase.js'; 
 
