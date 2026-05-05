@@ -1,15 +1,15 @@
 import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-// المسار الصحيح للعودة مجلدين للخلف ثم الدخول لمجلد js
+// المسار الدقيق للرجوع خطوتين للخلف (خارج print-customer ثم خارج admin-customers-suite) للوصول لـ js
 import { db } from '../../js/firebase.js'; 
 
 const currentEmployee = "محمد بن صالح الشمري";
 
-// 1. استخراج ID العميل من الرابط (الذي تم إرساله من زر الطباعة في جدول العملاء)
+// 1. استخراج ID العميل من الرابط
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
 
-// دالة توليد كود تحقق سريع (لزيادة الموثوقية)
+// دالة توليد كود تحقق سريع
 function generateVerificationCode(id) {
     const raw = id + Date.now().toString() + "TeraV12Secret";
     let hash = 0;
@@ -21,7 +21,7 @@ function generateVerificationCode(id) {
     return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
 }
 
-// 2. جلب بيانات العميل من Firebase وتهيئتها في الصفحة
+// 2. جلب بيانات العميل من Firebase
 async function loadCustomerData() {
     if (!customerId) {
         alert("خطأ: لم يتم تمرير رقم العميل. الرجاء فتح الصفحة من قائمة العملاء.");
@@ -90,7 +90,7 @@ async function logPrintAction(actionType) {
     } catch (e) { console.error("فشل تسجيل العملية:", e); }
 }
 
-// 4. تفعيل أزرار الطباعة والتصدير في شريط التحكم
+// 4. تفعيل أزرار الطباعة والتصدير
 document.getElementById('btn-print').addEventListener('click', async () => {
     await logPrintAction('Print');
     window.print();
