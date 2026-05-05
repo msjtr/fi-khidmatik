@@ -233,7 +233,7 @@ document.getElementById('edit-customer-form').onsubmit = async (e) => {
 window.printCustomer = (id) => {
     const isGitHub = window.location.hostname.includes("github.io");
     const printPageUrl = isGitHub 
-        ? `https://msjtr.github.io/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`
+        ? `https://msjtr.github.io/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer./print.html?id=${id}`
         : `/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/print-customer/print.html?id=${id}`;
     
     window.open(printPageUrl, '_blank');
