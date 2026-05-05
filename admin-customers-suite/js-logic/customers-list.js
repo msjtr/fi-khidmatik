@@ -115,7 +115,7 @@ window.filterCustomers = () => {
 };
 
 /**
- * 4. رسم الجدول بالـ 18 عموداً وإضافة أزرار الإجراءات النصية الجديدة مع الطباعة
+ * 4. رسم الجدول بالتنسيق الصحيح المستقل للرقم والمفتاح
  */
 function renderTable(data) {
     const tbody = document.getElementById('customers-tbody');
@@ -124,10 +124,20 @@ function renderTable(data) {
     data.forEach((c, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${index + 1}</td>
-            <td class="sticky-col"><strong>${c.name || '-'}</strong></td>
-            <td>${c.phone || '-'}</td>
-            <td>${c.countryCode || '-'}</td>
+            <td class="sticky-col">
+                <span style="color:#6A7B9C; font-weight:bold; margin-left:8px;">${index + 1} -</span>
+                <strong>${c.name || '-'}</strong>
+            </td>
+            <td>
+                <span dir="ltr" style="display:inline-block; font-weight:bold; color:#2D3748;">
+                    ${c.phone || '-'}
+                </span>
+            </td>
+            <td>
+                <span dir="ltr" style="display:inline-block; font-weight:bold; color:#6A7B9C;">
+                    ${c.countryCode || '-'}
+                </span>
+            </td>
             <td>${c.email || '-'}</td>
             <td>${c.country || '-'}</td>
             <td>${c.city || '-'}</td>
@@ -257,12 +267,11 @@ window.viewCustomerDetails = (id) => {
     document.getElementById('view-customer-modal').classList.add('active');
 };
 
-// 🌟 الدالة الجديدة المخصصة للطباعة السريعة 🌟
+// الدالة المخصصة للطباعة السريعة
 window.printCustomer = (id) => {
     const c = customersDataList.find(i => i.id === id);
     if (!c) return;
     
-    // فتح نافذة جديدة وتجهيزها بستايل الإتقان بلس للطباعة
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     printWindow.document.write(`
         <html dir="rtl" lang="ar">
@@ -304,7 +313,6 @@ window.printCustomer = (id) => {
             </div>
 
             <script>
-                // أمر الطباعة التلقائي بمجرد فتح النافذة
                 window.onload = function() { 
                     setTimeout(() => { window.print(); window.close(); }, 500);
                 }
@@ -393,7 +401,6 @@ window.deleteAttachment = async (customerId, fId) => {
     try {
         const cDoc = await getDoc(doc(db, "customers", customerId));
         const list = cDoc.data().attachments || [];
-        // تحديث حالة الملف إلى محذوف ليبقى في السجل
         const updated = list.map(f => f.fileId === fId ? { ...f, status: 'deleted', deletedAt: new Date().toISOString() } : f);
         await updateDoc(doc(db, "customers", customerId), { attachments: updated });
         renderFilesLog(updated, customerId);
