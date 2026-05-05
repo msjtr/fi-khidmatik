@@ -59,10 +59,47 @@ body {
 
 /* إصلاح تداخل الأعمدة المثبتة مع الترويسة العلوية */
 .sticky-col { position: sticky; right: 0; z-index: 5; font-weight: 800; box-shadow: -3px 0 10px rgba(0,0,0,0.05); }
-.sticky-actions { position: sticky; left: 0; z-index: 5; box-shadow: 3px 0 10px rgba(0,0,0,0.05); }
-th.sticky-col, th.sticky-actions { z-index: 15; } /* أهم سطر لمنع اختلاط زوايا الجدول أثناء التمرير */
+.sticky-actions { position: sticky; left: 0; z-index: 5; box-shadow: 3px 0 10px rgba(0,0,0,0.05); min-width: 260px !important; background: #f8fafc !important; }
+th.sticky-col, th.sticky-actions { z-index: 15; background: #0A192F !important; } /* أهم سطر لمنع اختلاط زوايا الجدول أثناء التمرير */
 
 .status-tag { background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 6px 14px; border-radius: 8px; font-weight: 800; }
+
+/* =========================================
+   🌟 تنسيقات الإجراءات النصية الجديدة 🌟
+========================================= */
+.actions-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.action-link {
+    background: none;
+    border: none;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+.action-link.view { color: #3498db; }
+.action-link.edit { color: #f39c12; }
+.action-link.print { color: #2ecc71; }
+.action-link.delete { color: #e74c3c; }
+.action-link:hover {
+    transform: translateY(-2px);
+    text-decoration: underline;
+}
+.action-divider {
+    width: 2px;
+    height: 14px;
+    background-color: #cbd5e1;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+/* زر المرفقات في نافذة التعديل */
 .action-btn { cursor: pointer; font-size: 1.2rem; padding: 8px; border-radius: 8px; border: none; background: transparent; transition: 0.2s; }
 .action-btn:hover { background: #E2E8F0; transform: scale(1.1); }
 
