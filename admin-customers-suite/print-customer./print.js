@@ -1,26 +1,42 @@
 import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { db } from '../js/firebase.js'; 
 
-const setFavicon = () => {
-    const icon = document.createElement('link');
-    icon.rel = 'icon'; icon.type = 'image/svg+xml'; icon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
-    document.head.appendChild(icon);
-};
-setFavicon();
-
 const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
 
-// 🌟 قواميس الترجمة الديناميكية 🌟
-const translations = {
-    status: { 'جديد': 'New', 'نشط': 'Active', 'موقوف': 'Suspended', 'محظور': 'Blocked' },
-    category: { 'عادي': 'Normal', 'VIP': 'VIP', 'مميز': 'Premium', 'محتمل': 'Potential' },
-    notes: { 'سريع التجاوب': 'Responsive', 'يتأخر في الرد': 'Slow Reply', 'كثير الطلبات': 'Many Orders', 'حاجة لمتابعة': 'Needs Follow-up' }
+// 🌟 القاموس الذكي للترجمة الفورية 🌟
+const dict = {
+    'المملكة العربية السعودية': 'Saudi Arabia', 'السعودية': 'Saudi Arabia',
+    'حائل': 'Hail', 'الرياض': 'Riyadh', 'النقرة': 'Al Naqra', 'سعد المشاط': 'Saad Al Mashat',
+    'نشط': 'Active', 'جديد': 'New', 'موقوف': 'Suspended', 'محظور': 'Blocked',
+    'عادي': 'Normal', 'VIP': 'VIP', 'مميز': 'Premium', 'محتمل': 'Potential',
+    'سريع التجاوب': 'Responsive', 'يتأخر في الرد': 'Slow Reply', 'كثير الطلبات': 'Many Orders', 'حاجة لمتابعة': 'Needs Followup'
 };
 
-// 🌟 دالة التحويل للأرقام الإنجليزية 🌟
+const arMap = {'ا':'a','أ':'a','إ':'e','آ':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ى':'a','ة':'a','ؤ':'o','ئ':'e'};
+
+// دالة تحويل وتحليل النص (عربي | إنجليزي)
+function translateData(text) {
+    if (!text || text === '-' || text.trim() === '') return '-';
+    let cleanText = text.trim();
+    if (dict[cleanText]) return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${dict[cleanText]}</span>`;
+    
+    // تحويل الأسماء إلى إنجليزي في حال عدم وجودها في القاموس
+    let words = cleanText.split(' ');
+    let enWords = words.map(w => {
+        if (dict[w]) return dict[w];
+        if (w.startsWith('ال')) w = w.replace('ال', 'Al ');
+        let res = '';
+        for(let i=0; i<w.length; i++) res += arMap[w[i]] || w[i];
+        return res.charAt(0).toUpperCase() + res.slice(1);
+    });
+    let enText = enWords.join(' ');
+    return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${enText}</span>`;
+}
+
+// دالة تحويل أي أرقام شرقية إلى إنجليزية
 function toEnglishNumbers(str) {
     if(!str) return '';
     const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -28,20 +44,26 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// 🌟 دالة إعداد التاريخ والوقت 🌟
-function setupDateTime() {
+// دالة توليد التاريخ بالصيغة المطلوبة
+function setupDates() {
     const now = new Date();
-    // هجري: الشهر نص، الأيام والسنوات إنجليزية
-    let hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(now);
-    hijri = toEnglishNumbers(hijri); 
-    // ميلادي: أرقام إنجليزية فقط
-    let greg = new Intl.DateTimeFormat('en-GB').format(now);
-    greg = toEnglishNumbers(greg);
-    document.getElementById('print-date').innerText = `${hijri} هـ / ${greg}`;
+    
+    // ميلادي: DD-MM-YYYY
+    const dG = String(now.getDate()).padStart(2, '0');
+    const mG = String(now.getMonth() + 1).padStart(2, '0');
+    const yG = now.getFullYear();
+    const gregStr = `${dG}-${mG}-${yG}`;
 
-    // الوقت
-    let timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    document.getElementById('print-time').innerText = toEnglishNumbers(timeStr);
+    // هجري: YYYY-MM-DD
+    const hijriFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    const hParts = hijriFormatter.formatToParts(now);
+    const hY = hParts.find(p => p.type === 'year').value;
+    const hM = hParts.find(p => p.type === 'month').value;
+    const hD = hParts.find(p => p.type === 'day').value;
+    const hijriStr = `${hY}-${hM}-${hD}`;
+
+    document.getElementById('print-date').innerText = toEnglishNumbers(`${hijriStr} هـ / ${gregStr} م`);
+    document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US'));
 }
 
 function generateVerificationCode(id) {
@@ -55,7 +77,7 @@ function generateVerificationCode(id) {
 }
 
 async function loadCustomerData() {
-    setupDateTime();
+    setupDates();
     if (!customerId) return;
     try {
         const docRef = doc(db, "customers", customerId);
@@ -66,72 +88,59 @@ async function loadCustomerData() {
             customerNameForFile = c.name || "Client";
             const vCode = generateVerificationCode(customerId);
             
-            const safeSetText = (id, value) => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = toEnglishNumbers(value) || '-';
-            };
-
-            // البيانات المباشرة (الاسم والعنوان لا تترجم تلقائياً بدون API)
-            safeSetText('c-name', c.name);
-            safeSetText('c-countryCode', c.countryCode);
-            safeSetText('c-phone', c.phone);
+            // تعبئة البيانات المترجمة
+            document.getElementById('c-name').innerHTML = translateData(c.name);
+            document.getElementById('c-countryCode').innerText = toEnglishNumbers(c.countryCode || '-');
+            document.getElementById('c-phone').innerText = toEnglishNumbers(c.phone || '-');
             document.getElementById('c-email').innerText = c.email || '-'; 
             
-            safeSetText('c-country', c.country);
-            safeSetText('c-city', c.city);
-            safeSetText('c-district', c.district);
-            safeSetText('c-street', c.street);
-            safeSetText('c-buildingNo', c.buildingNo);
-            safeSetText('c-additionalNo', c.additionalNo);
-            safeSetText('c-postalCode', c.postalCode);
-            safeSetText('c-poBox', c.poBox);
+            document.getElementById('c-country').innerHTML = translateData(c.country);
+            document.getElementById('c-city').innerHTML = translateData(c.city);
+            document.getElementById('c-district').innerHTML = translateData(c.district);
+            document.getElementById('c-street').innerHTML = translateData(c.street);
+            
+            document.getElementById('c-buildingNo').innerText = toEnglishNumbers(c.buildingNo || '-');
+            document.getElementById('c-additionalNo').innerText = toEnglishNumbers(c.additionalNo || '-');
+            document.getElementById('c-postalCode').innerText = toEnglishNumbers(c.postalCode || '-');
+            document.getElementById('c-poBox').innerText = toEnglishNumbers(c.poBox || '-');
 
             let joinDateStr = '-';
             if(c.createdAt) {
-                let d = new Date(c.createdAt).toLocaleDateString('en-GB');
-                joinDateStr = toEnglishNumbers(d);
+                let d = new Date(c.createdAt);
+                const dJ = String(d.getDate()).padStart(2, '0');
+                const mJ = String(d.getMonth() + 1).padStart(2, '0');
+                const yJ = d.getFullYear();
+                joinDateStr = `${dJ}-${mJ}-${yJ}`;
             }
-            safeSetText('c-joinDate', joinDateStr);
+            document.getElementById('c-joinDate').innerText = toEnglishNumbers(joinDateStr);
 
-            // 🌟 تطبيق الترجمة المزدوجة (عربي | إنجليزي) 🌟
-            const statusEn = translations.status[c.accountStatus] || '';
-            const catEn = translations.category[c.customerCategory] || '';
-            const noteEn = translations.notes[c.quickNote] || '';
-            
-            document.getElementById('c-status').innerText = c.accountStatus ? `${c.accountStatus} | ${statusEn}` : '-';
-            document.getElementById('c-category').innerText = c.customerCategory ? `${c.customerCategory} | ${catEn}` : '-';
-            document.getElementById('c-quickNote').innerText = c.quickNote ? `${c.quickNote} | ${noteEn}` : '-';
+            document.getElementById('c-status').innerHTML = translateData(c.accountStatus);
+            document.getElementById('c-category').innerHTML = translateData(c.customerCategory);
+            document.getElementById('c-quickNote').innerHTML = translateData(c.quickNote);
 
-            const notesEl = document.getElementById('c-notes');
-            if (notesEl) notesEl.innerHTML = toEnglishNumbers(c.detailedNotes) || '<i>لا توجد ملاحظات عامة.</i>';
+            document.getElementById('c-notes').innerHTML = toEnglishNumbers(c.detailedNotes) || '<i>لا توجد ملاحظات عامة.</i>';
             
+            // ضبط العلامة المائية بشكل متكرر لحماية المستند
             const watermarkEl = document.getElementById('watermark-text');
             if (watermarkEl) {
-                watermarkEl.innerHTML = `<div style="font-size: 1.8rem; color: #94a3b8; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
-                                         <div style="font-size: 3rem; color: #0A192F;">${currentEmployee}</div>`;
+                watermarkEl.innerHTML = `<div style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
+                                         <div style="font-size: 2.5rem; color: #94a3b8;">${currentEmployee}</div>`;
             }
 
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
-                qrContainer.innerHTML = ""; 
-                new QRCode(qrContainer, {
-                    text: `Verify: ${vCode} | ID: ${customerId}`,
-                    width: 75, height: 75,
-                    colorDark: "#0A192F", colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
-                });
+                new QRCode(qrContainer, { text: `Verify: ${vCode} | ID: ${customerId}`, width: 75, height: 75, colorDark: "#0A192F", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
             document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
         }
-    } catch (e) { console.error("Error:", e); }
+    } catch (e) {}
 }
 
 document.getElementById('btn-print')?.addEventListener('click', async () => {
-    await logPrintAction('Print');
     window.print();
 });
 
-// 🌟 الحل الجذري للـ PDF (يمنع الصفحات الفارغة ويضبط الجودة) 🌟
+// 🌟 التصدير المثالي لملف PDF يمنع الفراغات والقص 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const element = document.getElementById('document-content');
     const pdfBtn = document.getElementById('btn-pdf');
@@ -141,43 +150,29 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     pdfBtn.disabled = true;
 
     const opt = {
-        margin: [10, 10, 10, 10], // هوامش متساوية
+        margin: [15, 10, 15, 10], // هوامش حقيقية (أعلى، يمين، أسفل، يسار)
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { 
-            scale: 2, // 👈 تم تقليله لـ 2 لمنع خطأ الصفحات الفارغة مع الحفاظ على دقة ممتازة
+            scale: 2, // زوم يضمن عدم القص
             useCORS: true, 
             letterRendering: true,
-            scrollY: 0
+            windowWidth: 1000 // فرض مقاس شاشة لإجبار الجدول على التنسيق
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' } // 👈 يمنع تقطيع العناصر
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // منع القص بقوة CSS والمكتبة
     };
 
     try {
-        await logPrintAction('PDF Export');
         setTimeout(async () => {
             await html2pdf().set(opt).from(element).save();
             pdfBtn.innerText = "📥 تصدير PDF";
             pdfBtn.disabled = false;
-        }, 500);
+        }, 800);
     } catch (err) {
-        console.error("PDF Error:", err);
         pdfBtn.innerText = "📥 تصدير PDF";
         pdfBtn.disabled = false;
     }
 });
-
-async function logPrintAction(actionType) {
-    try {
-        await addDoc(collection(db, "print_logs"), {
-            user_name: currentEmployee,
-            client_id: customerId,
-            action_type: actionType,
-            date: toEnglishNumbers(new Date().toISOString().split('T')[0]),
-            timestamp: new Date().getTime()
-        });
-    } catch (e) {}
-}
 
 document.addEventListener('DOMContentLoaded', loadCustomerData);
