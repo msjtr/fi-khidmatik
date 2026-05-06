@@ -1,30 +1,30 @@
-/* 🌟 إجبار المتصفح على تصدير الألوان بدقة عالية جداً 🌟 */
-* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+/* 🌟 إجبار طباعة الألوان بدقة ومنع التلاعب 🌟 */
+* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; color: #000 !important; }
 
-body { background: #525659; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 20px 0; direction: rtl; }
+body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 20px 0; direction: rtl; }
 
 .control-panel {
-    background: #000; color: white; padding: 15px 30px; position: fixed; top: 0; left: 0; width: 100%;
+    background: #000 !important; color: white !important; padding: 15px 30px; position: fixed; top: 0; left: 0; width: 100%;
     display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
-.btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.3s; margin: 0 5px; color: #fff; }
-.btn-print { background: #3498db; }
-.btn-pdf { background: #e74c3c; }
-.btn-close { background: transparent; border: 1px solid #fff; }
+.btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.3s; margin: 0 5px; color: #fff !important; }
+.btn-print { background: #3498db !important; }
+.btn-pdf { background: #e74c3c !important; }
+.btn-close { background: transparent !important; border: 1px solid #fff; }
 .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-/* الصفحة الرئيسية المضغوطة */
+/* الصفحة الرئيسية الصلبة */
 .a4-page {
-    background: #ffffff; width: 210mm; min-height: 297mm; overflow: hidden;
-    margin: 60px auto 20px auto; padding: 10mm 5mm; 
+    background: white !important; width: 210mm; height: 297mm; overflow: hidden;
+    margin: 60px auto 20px auto; padding: 10mm; 
     box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative;
 }
 
 .no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
 
-.doc-header-custom { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0f172a; padding-bottom: 5px; margin-bottom: 15px; position: relative; z-index: 2; }
+.doc-header-custom { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px; position: relative; z-index: 2; }
 .header-right-custom { display: flex; align-items: center; gap: 10px; }
-.header-right-custom img { width: 55px; height: auto; }
+.header-right-custom img { width: 50px; height: auto; }
 .header-right-custom h2 { margin: 0; font-size: 1.15rem; font-weight: 900; color: #0f172a; }
 .header-left-custom { text-align: left; font-size: 0.85rem; font-weight: 900; color: #000; }
 .header-left-custom p { margin: 2px 0; }
@@ -38,9 +38,8 @@ body { background: #525659; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; 
     min-width: 50%; font-size: 1.1rem; font-weight: 900; border: 2px solid #047857;
 }
 
-.date-time-pill { display: inline-block; background: #f8fafc; padding: 5px 15px; border-radius: 20px; margin-top: 10px; font-size: 0.85rem; font-weight: 900; border: 1px solid #94a3b8; color: #000; }
+.date-time-pill { display: inline-block; background: #f8fafc !important; padding: 5px 15px; border-radius: 20px; margin-top: 10px; font-size: 0.85rem; font-weight: 900; border: 1px solid #94a3b8; color: #000; }
 
-/* 🌟 ألوان حادة للجدول لضمان الوضوح في الـ PDF 🌟 */
 .print-table { width: 100% !important; border-collapse: collapse; margin-bottom: 10px; table-layout: auto !important; position: relative; z-index: 2; border: 2px solid #0f172a; }
 .print-table th, .print-table td { border: 1px solid #475569; padding: 6px 8px; font-size: 13px; vertical-align: middle; }
 .print-table th { background-color: #cbd5e1 !important; color: #000 !important; font-weight: 900; text-align: center; font-size: 14px; padding: 8px; border-bottom: 2px solid #0f172a; }
@@ -57,9 +56,11 @@ body { background: #525659; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; 
 .final-note { text-align: center; font-size: 0.85rem; color: #000; margin-top: 5px; font-weight: 900; }
 .ltr-text { direction: ltr; display: inline-block; font-weight: 900; }
 
+/* 🌟 إعدادات الطباعة الصارمة لإجبار المتصفح على صفحة واحدة مثالية 🌟 */
 @media print {
     @page { size: A4 portrait; margin: 0; }
     body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; }
     .no-print { display: none !important; }
-    .a4-page { margin: 0 !important; padding: 10mm !important; box-shadow: none !important; width: 100% !important; border: none !important; }
+    /* إجبار الصفحة لتكون A4 دقيقة وتقليم أي محتوى يحاول تجاوزها */
+    .a4-page { margin: 0 !important; padding: 10mm !important; box-shadow: none !important; width: 100% !important; height: 297mm !important; border: none !important; overflow: hidden !important; page-break-after: avoid !important; page-break-before: avoid !important; }
 }
