@@ -13,17 +13,15 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// 🌟 ضبط التاريخ بدقة عالية (إجبار الاتجاه لمنع اختلاط الهاء والميم) 🌟
+// 🌟 الإصلاح النهائي لمشكلة التاريخ (عزل الأرقام عن الحروف تماماً) 🌟
 function setupDates() {
     const now = new Date();
     
-    // ميلادي
     const dG = String(now.getDate()).padStart(2, '0');
     const mG = String(now.getMonth() + 1).padStart(2, '0');
     const yG = now.getFullYear();
     const gregStr = `${dG}-${mG}-${yG}`;
 
-    // هجري
     const hijriFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
@@ -31,8 +29,8 @@ function setupDates() {
     const hD = hParts.find(p => p.type === 'day').value;
     const hijriStr = `${hD}-${hM}-${hY}`;
 
-    // العزل بواسطة HTML لضمان بقاء (هـ) و (م) في موضعهم الصحيح بعد السنة
-    const finalDate = `<span style="display:inline-block; direction:ltr;">${toEnglishNumbers(hijriStr)}</span> هـ / <span style="display:inline-block; direction:ltr;">${toEnglishNumbers(gregStr)}</span> م`;
+    // استخدام dir="ltr" داخل الأرقام يمنع المتصفح من قلب الميم والهاء
+    const finalDate = `<span dir="ltr" style="display:inline-block;">${toEnglishNumbers(hijriStr)}</span> هـ &nbsp;|&nbsp; <span dir="ltr" style="display:inline-block;">${toEnglishNumbers(gregStr)}</span> م`;
     
     document.getElementById('print-date').innerHTML = finalDate;
     document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', { hour12: false }));
@@ -65,7 +63,7 @@ function translateData(text) {
     }
     return `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <span style="flex: 1; text-align: right;" dir="rtl">${cleanText}</span> 
-                <span style="color:#94a3b8; margin:0 10px;">|</span> 
+                <span style="color:#64748b; margin:0 10px;">|</span> 
                 <span style="flex: 1; text-align: left;" dir="ltr">${enText}</span>
             </div>`;
 }
@@ -144,7 +142,7 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
-// 🌟 زر التحميل المباشر للـ PDF عبر المكتبة (مع رفع الجودة للحد الأقصى) 🌟
+// 🌟 الحل الجذري لمشكلة قص المحتوى (إزالة الهوامش مؤقتاً أثناء الالتقاط) 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     await logAction('PDF Export');
     const element = document.getElementById('document-content');
@@ -152,12 +150,16 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     btn.innerText = "جاري التحميل...";
     btn.disabled = true;
 
-    // تم وضع الهوامش صفرية لكي يعتمد على مسافات التصميم الداخلي، وتم رفع الجودة إلى 4 (4K Resolution)
+    // الخدعة التي تمنع قص الـ PDF: إزالة مسافات العرض مؤقتاً
+    const originalMargin = element.style.margin;
+    element.style.margin = '0';
+    element.style.boxShadow = 'none';
+
     const opt = {
-        margin: [0, 0, 0, 0], 
+        margin: [5, 5, 5, 5], // هوامش داخلية آمنة في الـ PDF تضمن عدم القص
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
-        html2canvas: { scale: 4, useCORS: true, logging: false },
+        html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // دقة 4K عالية جداً
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -166,6 +168,9 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     } catch (err) {
         console.error(err);
     } finally {
+        // إعادة التنسيق للشاشة
+        element.style.margin = originalMargin;
+        element.style.boxShadow = '';
         btn.innerText = "📥 تحميل PDF مباشر";
         btn.disabled = false;
     }
