@@ -1,3 +1,6 @@
+/* =========================================
+   نظام طباعة Tera V12 - النهائي
+========================================= */
 * { box-sizing: border-box; }
 
 body {
@@ -22,11 +25,17 @@ body {
 .btn-close { background: transparent; color: #cbd5e1; border: 1px solid #cbd5e1; }
 .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-/* --- تصميم ورقة A4 (هوامش آمنة) --- */
+/* --- تصميم ورقة A4 (هوامش آمنة ومضادة للقص) --- */
 .a4-page {
-    background: white; width: 210mm; min-height: 297mm;
-    margin: 80px auto 20px auto; padding: 10mm; /* هوامش ثابتة */
-    box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; color: #0A192F;
+    background: white; 
+    width: 210mm; /* عرض ثابت لا يتغير */
+    min-height: 297mm;
+    margin: 80px auto 20px auto; 
+    padding: 10mm; /* الهوامش الداخلية للورقة */
+    box-shadow: 0 0 20px rgba(0,0,0,0.3); 
+    position: relative; 
+    color: #0A192F;
+    overflow: hidden; /* يمنع أي عنصر من تخطي الورقة */
 }
 
 .watermark-container {
@@ -62,23 +71,29 @@ body {
 }
 .date-time-pill .divider { margin: 0 10px; color: #94a3b8; font-weight: normal; }
 
-/* --- الجدول (مضاد للانكسار ومقاسات دقيقة) --- */
+/* --- الجدول المضاد للانكسار والقص --- */
 .print-table {
-    width: 100% !important; max-width: 100% !important;
-    border-collapse: collapse; margin-bottom: 20px;
-    table-layout: fixed !important; /* يجبر المتصفح على احترام المقاسات */
+    width: 100% !important; 
+    max-width: 100% !important;
+    border-collapse: collapse; 
+    margin-bottom: 20px;
+    table-layout: fixed !important; /* يجبر المتصفح على احترام 25-50-25 */
     position: relative; z-index: 2; border: 2px solid #cbd5e1;
 }
 .print-table th, .print-table td {
-    border: 1px solid #cbd5e1; padding: 10px !important; font-size: 13px; vertical-align: middle; 
-    word-wrap: break-word !important; white-space: normal !important; /* هذا يمنع قص النصوص الطويلة! */
+    border: 1px solid #cbd5e1; 
+    padding: 10px !important; 
+    font-size: 13px; 
+    vertical-align: middle; 
+    word-wrap: break-word !important; 
+    white-space: normal !important;
 }
 .print-table th { 
     background-color: #f8fafc !important; color: #0A192F !important; 
     font-weight: 900; text-align: center; font-size: 14px; 
 }
 
-/* توزيع مساحات الأعمدة بدقة 25% | 50% | 25% */
+/* توزيع مساحات الأعمدة بدقة */
 .print-table td.ar-label { 
     background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: right !important; 
 }
@@ -106,12 +121,17 @@ body {
    🖨️ إعدادات الطباعة الصارمة (A4)
 ========================================= */
 @media print {
-    @page { size: A4 portrait; margin: 10mm; }
+    @page { size: A4 portrait; margin: 0; } /* إلغاء هوامش المتصفح الافتراضية، الورقة ستتولى الهوامش */
     body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
     .no-print { display: none !important; }
     .a4-page {
-        margin: 0 !important; padding: 0 !important; box-shadow: none !important;
-        width: 100% !important; max-width: 100% !important; border: none !important; overflow: visible !important;
+        margin: 0 !important; 
+        padding: 10mm !important; /* هوامش الطباعة الثابتة */
+        box-shadow: none !important;
+        width: 100% !important; 
+        max-width: 210mm !important; 
+        border: none !important; 
+        overflow: hidden !important;
     }
     .print-table { table-layout: fixed !important; width: 100% !important; border: 2px solid #cbd5e1 !important; }
     .print-table th, .print-table td { border: 1px solid #cbd5e1 !important; }
