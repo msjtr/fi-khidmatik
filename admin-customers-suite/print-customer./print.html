@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>معاينة وطباعة ملف العميل | الإتقان بلس</title>
+    <title>ملف بيانات العميل | الإتقان بلس</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="print.css">
@@ -23,7 +23,7 @@
     <!-- 🌟 حاوية ورقة الـ A4 -->
     <div class="a4-page" id="document-content">
         
-        <!-- العلامة المائية الاحترافية -->
+        <!-- العلامة المائية -->
         <div class="watermark" id="watermark-text"></div>
 
         <!-- الترويسة المخصصة -->
@@ -38,113 +38,112 @@
             </div>
         </div>
 
-        <!-- العنوان والتاريخ والوقت -->
+        <!-- العنوان والتاريخ والوقت (متطابق مع صورتك) -->
         <div class="doc-title-custom no-break">
-            <h3>ملف بيانات العميل | Customer Profile</h3>
-            <div class="date-time-row">
-                <span><strong>التاريخ:</strong> <span id="print-date"></span></span>
+            <h3 class="black-title">Customer Profile | ملف بيانات العميل</h3>
+            <div class="date-time-pill">
+                <span><strong>التاريخ:</strong> <span id="print-date" dir="rtl"></span></span>
                 <span class="divider">|</span>
-                <span><strong>الوقت:</strong> <span id="print-time"></span></span>
+                <span><strong>الوقت:</strong> <span id="print-time" dir="ltr"></span></span>
             </div>
         </div>
 
-        <!-- شبكة البيانات (جدول 6 أعمدة) -->
-        <table class="print-table no-break">
-            <tr><th colspan="6">المعلومات الشخصية | Personal Information</th></tr>
-            <tr>
-                <td class="ar-label" colspan="2">اسم العميل</td>
-                <td class="data-cell" colspan="2" id="c-name"></td>
-                <td class="en-label" colspan="2">Customer Name</td>
+        <!-- شبكة البيانات (جدول 3 أعمدة متطابق مع صورتك) -->
+        <table class="print-table">
+            <tr class="no-break"><th colspan="3">Personal Information | المعلومات الشخصية</th></tr>
+            <tr class="no-break">
+                <td class="ar-label">اسم العميل</td>
+                <td class="data-cell" id="c-name"></td>
+                <td class="en-label">Customer Name</td>
             </tr>
-            <tr>
-                <td class="ar-label" colspan="2">رمز مفتاح الدولة</td>
-                <td class="data-cell" colspan="2" id="c-countryCode" dir="ltr"></td>
-                <td class="en-label" colspan="2">Country Code</td>
+            <tr class="no-break">
+                <td class="ar-label">رمز مفتاح الدولة</td>
+                <td class="data-cell" id="c-countryCode" dir="ltr"></td>
+                <td class="en-label">Country Code</td>
             </tr>
-            <tr>
-                <td class="ar-label" colspan="2">رقم الجوال</td>
-                <td class="data-cell" colspan="2" id="c-phone" dir="ltr"></td>
-                <td class="en-label" colspan="2">Phone Number</td>
+            <tr class="no-break">
+                <td class="ar-label">رقم الجوال</td>
+                <td class="data-cell" id="c-phone" dir="ltr"></td>
+                <td class="en-label">Phone Number</td>
             </tr>
-            <tr>
-                <td class="ar-label" colspan="2">البريد الإلكتروني</td>
-                <td class="data-cell" colspan="2" id="c-email"></td>
-                <td class="en-label" colspan="2">Email Address</td>
-            </tr>
-
-            <tr><th colspan="6">العنوان | Address</th></tr>
-            <tr>
-                <td class="ar-label" colspan="2">الدولة</td>
-                <td class="data-cell" colspan="2" id="c-country"></td>
-                <td class="en-label" colspan="2">Country</td>
-            </tr>
-            <tr>
-                <td class="ar-label" colspan="2">المنطقة</td>
-                <td class="data-cell" colspan="2" id="c-city"></td>
-                <td class="en-label" colspan="2">Region</td>
-            </tr>
-            <tr>
-                <td class="ar-label" colspan="2">الحي</td>
-                <td class="data-cell" colspan="2" id="c-district"></td>
-                <td class="en-label" colspan="2">District</td>
-            </tr>
-            <tr>
-                <td class="ar-label" colspan="2">الشارع</td>
-                <td class="data-cell" colspan="2" id="c-street"></td>
-                <td class="en-label" colspan="2">Street</td>
-            </tr>
-            <tr>
-                <td class="ar-label" colspan="2">رقم المبنى</td>
-                <td class="data-cell" colspan="2" id="c-buildingNo"></td>
-                <td class="en-label" colspan="2">Building Number</td>
-            </tr>
-            <tr>
-                <td class="ar-label" colspan="2">الرقم الاضافي</td>
-                <td class="data-cell" colspan="2" id="c-additionalNo"></td>
-                <td class="en-label" colspan="2">Additional Number</td>
-            </tr>
-            <tr>
-                <td class="ar-label" colspan="2">الرمز البريدي</td>
-                <td class="data-cell" colspan="2" id="c-postalCode"></td>
-                <td class="en-label" colspan="2">Postal Code</td>
-            </tr>
-            <tr>
-                <td class="ar-label" colspan="2">صندوق البريد</td>
-                <td class="data-cell" colspan="2" id="c-poBox"></td>
-                <td class="en-label" colspan="2">P.O. Box</td>
+            <tr class="no-break">
+                <td class="ar-label">البريد الإلكتروني</td>
+                <td class="data-cell" id="c-email" dir="ltr"></td>
+                <td class="en-label">Email Address</td>
             </tr>
 
-            <tr><th colspan="6">حول العميل | About Customer</th></tr>
-            <tr>
-                <td class="ar-label" colspan="2">تاريخ الانضمام</td>
-                <td class="data-cell" colspan="2" id="c-joinDate" dir="ltr"></td>
-                <td class="en-label" colspan="2">Join Date</td>
+            <tr class="no-break"><th colspan="3">Address | العنوان</th></tr>
+            <tr class="no-break">
+                <td class="ar-label">الدولة</td>
+                <td class="data-cell" id="c-country"></td>
+                <td class="en-label">Country</td>
             </tr>
-            <tr>
-                <td class="ar-label" colspan="2">حالة الحساب</td>
-                <td class="data-cell" colspan="2" id="c-status"></td>
-                <td class="en-label" colspan="2">Account Status</td>
+            <tr class="no-break">
+                <td class="ar-label">المنطقة</td>
+                <td class="data-cell" id="c-city"></td>
+                <td class="en-label">Region</td>
             </tr>
-            <tr>
-                <td class="ar-label" colspan="2">التصنيف</td>
-                <td class="data-cell" colspan="2" id="c-category"></td>
-                <td class="en-label" colspan="2">Category</td>
+            <tr class="no-break">
+                <td class="ar-label">الحي</td>
+                <td class="data-cell" id="c-district"></td>
+                <td class="en-label">District</td>
             </tr>
-            <tr>
-                <td class="ar-label" colspan="2">ملاحظات سريعة</td>
-                <td class="data-cell" colspan="2" id="c-quickNote"></td>
-                <td class="en-label" colspan="2">Quick Notes</td>
+            <tr class="no-break">
+                <td class="ar-label">الشارع</td>
+                <td class="data-cell" id="c-street"></td>
+                <td class="en-label">Street</td>
+            </tr>
+            <tr class="no-break">
+                <td class="ar-label">رقم المبنى</td>
+                <td class="data-cell" id="c-buildingNo"></td>
+                <td class="en-label">Building Number</td>
+            </tr>
+            <tr class="no-break">
+                <td class="ar-label">الرقم الاضافي</td>
+                <td class="data-cell" id="c-additionalNo"></td>
+                <td class="en-label">Additional Number</td>
+            </tr>
+            <tr class="no-break">
+                <td class="ar-label">الرمز البريدي</td>
+                <td class="data-cell" id="c-postalCode"></td>
+                <td class="en-label">Postal Code</td>
+            </tr>
+            <tr class="no-break">
+                <td class="ar-label">صندوق البريد</td>
+                <td class="data-cell" id="c-poBox"></td>
+                <td class="en-label">P.O. Box</td>
             </tr>
 
-            <tr><th colspan="6">ملاحظات عامة | General Notes</th></tr>
-            <tr>
-                <td colspan="6" id="c-notes"></td>
+            <tr class="no-break"><th colspan="3">About Customer | حول العميل</th></tr>
+            <tr class="no-break">
+                <td class="ar-label">تاريخ الانضمام</td>
+                <td class="data-cell" id="c-joinDate" dir="ltr"></td>
+                <td class="en-label">Join Date</td>
+            </tr>
+            <tr class="no-break">
+                <td class="ar-label">حالة الحساب</td>
+                <td class="data-cell" id="c-status"></td>
+                <td class="en-label">Account Status</td>
+            </tr>
+            <tr class="no-break">
+                <td class="ar-label">التصنيف</td>
+                <td class="data-cell" id="c-category"></td>
+                <td class="en-label">Category</td>
+            </tr>
+            <tr class="no-break">
+                <td class="ar-label">ملاحظات سريعة</td>
+                <td class="data-cell" id="c-quickNote"></td>
+                <td class="en-label">Quick Notes</td>
+            </tr>
+
+            <tr class="no-break"><th colspan="3">General Notes | ملاحظات عامة</th></tr>
+            <tr class="no-break">
+                <td colspan="3" id="c-notes"></td>
             </tr>
         </table>
 
         <!-- التذييل المحدث -->
         <div class="doc-footer no-break">
-            
             <div class="footer-contact">
                 <div class="contact-row">
                     <span>📞 الهاتف: <span dir="ltr" class="ltr-text">+966 534051317</span></span>
@@ -156,7 +155,7 @@
                 </div>
             </div>
 
-            <div class="verification-section">
+            <div class="verification-section no-break">
                 <div>
                     <h4 style="margin: 0 0 5px 0; color: #0A192F;">كود التحقق من الوثيقة</h4>
                     <p style="margin: 0; font-size: 0.9rem;"><strong>Verification Code:</strong> <span id="verify-code" style="color:#e74c3c; font-weight:bold; letter-spacing: 1px;"></span></p>
@@ -165,31 +164,13 @@
                 <div class="footer-qr" id="qr-code"></div>
             </div>
 
-            <div class="final-note">
+            <div class="final-note no-break">
                 هذه المعلومات صادرة من منصة في خدمتك من الإتقان بلس
             </div>
-            
         </div>
 
     </div>
 
     <script type="module" src="print.js"></script>
-    <script>
-        // تعبئة الوقت والتاريخ
-        document.addEventListener('DOMContentLoaded', () => {
-            const now = new Date();
-            const dateEl = document.getElementById('print-date');
-            const timeEl = document.getElementById('print-time');
-            
-            if(dateEl) {
-                const hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {day: 'numeric', month: 'long', year: 'numeric'}).format(now);
-                const greg = now.toLocaleDateString('en-GB');
-                dateEl.innerText = `${hijri} / ${greg}`;
-            }
-            if(timeEl) {
-                timeEl.innerText = now.toLocaleTimeString('ar-SA');
-            }
-        });
-    </script>
 </body>
 </html>
