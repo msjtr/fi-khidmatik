@@ -1,6 +1,3 @@
-/* =========================================
-   نظام طباعة Tera V12
-========================================= */
 * { box-sizing: border-box; }
 
 body {
@@ -25,10 +22,10 @@ body {
 .btn-close { background: transparent; color: #cbd5e1; border: 1px solid #cbd5e1; }
 .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-/* --- تصميم ورقة A4 --- */
+/* --- تصميم ورقة A4 (هوامش آمنة) --- */
 .a4-page {
     background: white; width: 210mm; min-height: 297mm;
-    margin: 80px auto 20px auto; padding: 15mm 10mm;
+    margin: 80px auto 20px auto; padding: 15mm 12mm;
     box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; color: #0A192F;
 }
 
@@ -65,30 +62,31 @@ body {
 }
 .date-time-pill .divider { margin: 0 10px; color: #94a3b8; font-weight: normal; }
 
-/* --- الجدول المطور (تم استرجاع الحدود/Borders) --- */
+/* --- الجدول (المساحات المضبوطة) --- */
 .print-table {
     width: 100% !important; max-width: 100% !important;
     border-collapse: collapse; margin-bottom: 20px;
     table-layout: auto !important; position: relative; z-index: 2;
-    border: 2px solid #cbd5e1; /* إطار خارجي للجدول */
+    border: 2px solid #cbd5e1;
 }
 .print-table th, .print-table td {
-    border: 1px solid #cbd5e1; /* خطوط فاصلة بين الخلايا */
-    padding: 8px 10px !important; font-size: 13px; vertical-align: middle; 
+    border: 1px solid #cbd5e1; padding: 8px 10px !important; font-size: 13px; vertical-align: middle; 
     word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: normal !important;
 }
 .print-table th { 
     background-color: #f8fafc !important; color: #0A192F !important; 
     font-weight: 900; text-align: center; font-size: 14px; padding: 10px !important; 
 }
+/* الأعمدة الجانبية تأخذ 15% فقط (على قدر المحتوى) */
 .print-table td.ar-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: right !important; 
-}
-.print-table td.data-cell { 
-    width: 50% !important; font-weight: bold; color: #2D3748; text-align: center !important; 
+    background-color: #f1f5f9 !important; font-weight: bold; width: 15% !important; text-align: right !important; white-space: nowrap;
 }
 .print-table td.en-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: left !important; direction: ltr !important; 
+    background-color: #f1f5f9 !important; font-weight: bold; width: 15% !important; text-align: left !important; direction: ltr !important; white-space: nowrap;
+}
+/* المنتصف يأخذ أكبر مساحة (70%) */
+.print-table td.data-cell { 
+    width: 70% !important; font-weight: bold; color: #2D3748; text-align: center !important; 
 }
 .print-table tr, .print-table th, .print-table td { page-break-inside: avoid !important; break-inside: avoid !important; }
 
@@ -104,7 +102,7 @@ body {
 .final-note { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 15px; font-weight: bold; }
 
 /* =========================================
-   🖨️ إعدادات الطباعة الفعلية الصارمة 
+   🖨️ إعدادات الطباعة الصارمة (A4)
 ========================================= */
 @media print {
     @page { size: A4 portrait; margin: 10mm; }
