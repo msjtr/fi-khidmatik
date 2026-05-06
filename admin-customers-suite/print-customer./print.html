@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>ملف بيانات العميل | الإتقان بلس</title>
-    <!-- تم إزالة مكتبة html2pdf المسببة للمشكلة نهائياً -->
+    <!-- تم إزالة مكتبة html2pdf لضمان أعلى دقة عبر محرك المتصفح النقي -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
-    <!-- 🌟 خدعة إجبار المتصفح على قراءة التنسيق الجديد 🌟 -->
-    <link rel="stylesheet" href="print.css?v=100">
+    <!-- إجبار المتصفح على قراءة أحدث نسخة من التنسيق -->
+    <link rel="stylesheet" href="print.css?v=102">
 </head>
 <body>
 
-    <!-- شريط التحكم -->
+    <!-- شريط التحكم (مخفي عند الطباعة) -->
     <div class="control-panel no-print">
         <div class="controls-right">
             <button class="btn btn-close" onclick="window.close()">✖ إغلاق المعاينة</button>
@@ -25,12 +25,12 @@
     <!-- حاوية ورقة الـ A4 -->
     <div class="a4-page" id="document-content">
         
-        <!-- العلامة المائية -->
+        <!-- العلامة المائية المخصصة (تُحقن عبر JS) -->
         <div class="watermark-container">
             <div id="watermark-text" class="watermark"></div>
         </div>
 
-        <!-- الترويسة -->
+        <!-- ترويسة المستند الرسمية -->
         <div class="doc-header-custom no-break">
             <div class="header-right-custom">
                 <img src="../../images/logo.svg" alt="Logo" onerror="this.style.display='none'">
@@ -42,10 +42,12 @@
             </div>
         </div>
 
-        <!-- العنوان والتاريخ والوقت -->
+        <!-- قسم العنوان والتوقيت (تصميم الإطار البيضاوي) -->
         <div class="doc-title-custom no-break">
             <h3 class="black-title">
-                <span dir="rtl">ملف بيانات العميل</span> <span style="color:#cbd5e1; margin:0 10px;">|</span> <span dir="ltr">Customer Profile</span>
+                <span dir="rtl">ملف بيانات العميل</span>
+                <span style="color:#cbd5e1; margin:0 10px;">|</span>
+                <span dir="ltr">Customer Profile</span>
             </h3>
             <div class="date-time-pill">
                 <span><strong>التاريخ:</strong> <span id="print-date" dir="ltr"></span></span>
@@ -54,162 +56,177 @@
             </div>
         </div>
 
-        <!-- شبكة البيانات (العربي يمين والإنجليزي يسار) -->
-        <table class="print-table" dir="rtl">
+        <!-- جدول البيانات المطور (3 أعمدة: عربي | بيانات | إنجليزي) -->
+        <table class="print-table">
             <thead>
                 <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">المعلومات الشخصية</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">Personal Information</span>
+                    <th colspan="3" class="section-title">
+                        <span dir="rtl">المعلومات الشخصية</span> 
+                        <span style="color:#94a3b8; margin:0 10px;">|</span> 
+                        <span dir="ltr">Personal Information</span>
                     </th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">اسم العميل</td>
-                    <td class="data-cell" id="c-name" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Customer Name</td>
+                    <td class="data-cell" id="c-name"></td>
+                    <td class="en-label">Customer Name</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">رمز مفتاح الدولة</td>
-                    <td class="data-cell" id="c-countryCode" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Country Code</td>
+                    <td class="data-cell" id="c-countryCode"></td>
+                    <td class="en-label">Country Code</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">رقم الجوال</td>
-                    <td class="data-cell" id="c-phone" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Phone Number</td>
+                    <td class="data-cell" id="c-phone"></td>
+                    <td class="en-label">Phone Number</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">البريد الإلكتروني</td>
-                    <td class="data-cell" id="c-email" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Email Address</td>
+                    <td class="data-cell" id="c-email" style="font-family: monospace;"></td>
+                    <td class="en-label">Email Address</td>
                 </tr>
             </tbody>
 
             <thead>
                 <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">العنوان</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">Address</span>
+                    <th colspan="3" class="section-title">
+                        <span dir="rtl">العنوان</span> 
+                        <span style="color:#94a3b8; margin:0 10px;">|</span> 
+                        <span dir="ltr">Address</span>
                     </th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">الدولة</td>
-                    <td class="data-cell" id="c-country" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Country</td>
+                    <td class="data-cell" id="c-country"></td>
+                    <td class="en-label">Country</td>
                 </tr>
                 <tr class="no-break">
-                    <td class="ar-label">المنطقة</td>
-                    <td class="data-cell" id="c-city" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Region</td>
+                    <td class="ar-label">المنطقة / المدينة</td>
+                    <td class="data-cell" id="c-city"></td>
+                    <td class="en-label">Region / City</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الحي</td>
-                    <td class="data-cell" id="c-district" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">District</td>
+                    <td class="data-cell" id="c-district"></td>
+                    <td class="en-label">District</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الشارع</td>
-                    <td class="data-cell" id="c-street" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Street</td>
+                    <td class="data-cell" id="c-street"></td>
+                    <td class="en-label">Street</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">رقم المبنى</td>
-                    <td class="data-cell" id="c-buildingNo" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Building Number</td>
+                    <td class="data-cell" id="c-buildingNo"></td>
+                    <td class="en-label">Building Number</td>
                 </tr>
                 <tr class="no-break">
-                    <td class="ar-label">الرقم الاضافي</td>
-                    <td class="data-cell" id="c-additionalNo" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Additional Number</td>
+                    <td class="ar-label">الرقم الإضافي</td>
+                    <td class="data-cell" id="c-additionalNo"></td>
+                    <td class="en-label">Additional Number</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الرمز البريدي</td>
-                    <td class="data-cell" id="c-postalCode" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Postal Code</td>
+                    <td class="data-cell" id="c-postalCode"></td>
+                    <td class="en-label">Postal Code</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">صندوق البريد</td>
-                    <td class="data-cell" id="c-poBox" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">P.O. Box</td>
+                    <td class="data-cell" id="c-poBox"></td>
+                    <td class="en-label">P.O. Box</td>
                 </tr>
             </tbody>
 
             <thead>
                 <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">حول العميل</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">About Customer</span>
+                    <th colspan="3" class="section-title">
+                        <span dir="rtl">حول العميل</span> 
+                        <span style="color:#94a3b8; margin:0 10px;">|</span> 
+                        <span dir="ltr">About Customer</span>
                     </th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">تاريخ الانضمام</td>
-                    <td class="data-cell" id="c-joinDate" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Join Date</td>
+                    <td class="data-cell" id="c-joinDate"></td>
+                    <td class="en-label">Join Date</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">حالة الحساب</td>
-                    <td class="data-cell" id="c-status" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Account Status</td>
+                    <td class="data-cell" id="c-status"></td>
+                    <td class="en-label">Account Status</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">التصنيف</td>
-                    <td class="data-cell" id="c-category" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Category</td>
+                    <td class="data-cell" id="c-category"></td>
+                    <td class="en-label">Category</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">ملاحظات سريعة</td>
-                    <td class="data-cell" id="c-quickNote" dir="ltr"></td>
-                    <td class="en-label" dir="ltr">Quick Notes</td>
+                    <td class="data-cell" id="c-quickNote"></td>
+                    <td class="en-label">Quick Notes</td>
                 </tr>
             </tbody>
 
             <thead>
                 <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">ملاحظات عامة</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">General Notes</span>
+                    <th colspan="3" class="section-title">
+                        <span dir="rtl">ملاحظات عامة</span> 
+                        <span style="color:#94a3b8; margin:0 10px;">|</span> 
+                        <span dir="ltr">General Notes</span>
                     </th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
-                    <td colspan="3" id="c-notes" style="text-align: right; padding: 15px;"></td>
+                    <td colspan="3" id="c-notes" style="padding: 20px; text-align: justify; line-height: 1.8;"></td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- التذييل -->
+        <!-- التذييل (الفوتر) مع أيقونات 3D ومعلومات التواصل -->
         <div class="doc-footer no-break">
             <div class="footer-contact">
                 <div class="contact-row">
                     <span>📞 الهاتف: <span dir="ltr" class="ltr-text">+966 534051317</span></span>
+                    <span class="spacer"></span>
                     <span>💬 الواتس اب: <span dir="ltr" class="ltr-text">+966 545312021</span></span>
                 </div>
                 <div class="contact-row">
-                    <span>📧 البريد الإلكتروني: info@fi-khidmatik.com</span>
-                    <span>🌐 الموقع الإلكتروني: www.khidmatik.com</span>
+                    <span>📧 البريد: info@fi-khidmatik.com</span>
+                    <span class="spacer"></span>
+                    <span>🌐 الموقع: www.khidmatik.com</span>
                 </div>
             </div>
 
+            <!-- قسم التحقق والباركود -->
             <div class="verification-section no-break">
-                <div>
-                    <h4 style="margin: 0 0 5px 0; color: #0A192F;">كود التحقق من الوثيقة</h4>
-                    <p style="margin: 0; font-size: 0.9rem;"><strong>Verification Code:</strong> <span id="verify-code" style="color:#e74c3c; font-weight:bold; letter-spacing: 1px;"></span></p>
-                    <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px;">* هذه الوثيقة مستخرجة آلياً، ويمكن التحقق من صحتها عبر مسح الرمز.</p>
+                <div class="v-info">
+                    <h4 style="margin: 0 0 5px 0; color: #0A192F;">🛡️ كود التحقق من الوثيقة</h4>
+                    <p style="margin: 0; font-size: 0.95rem;">
+                        <strong>Verification Code:</strong> 
+                        <span id="verify-code" style="color:#e74c3c; font-weight:bold; letter-spacing: 1px;"></span>
+                    </p>
+                    <p style="font-size: 0.75rem; color: #64748b; margin-top: 8px;">
+                        * هذه الوثيقة مستخرجة آلياً، ويمكن التحقق من صحتها عبر مسح الرمز.
+                    </p>
                 </div>
-                <div class="footer-qr" id="qr-code"></div>
+                <div class="v-qr" id="qr-code"></div>
             </div>
 
             <div class="final-note no-break">
-                هذه المعلومات صادرة من منصة في خدمتك من الإتقان بلس
+                هذه المعلومات صادرة رسمياً من منصة في خدمتك - الإتقان بلس
             </div>
         </div>
-
     </div>
 
-    <!-- 🌟 خدعة إجبار المتصفح على قراءة السكربت الجديد 🌟 -->
-    <script type="module" src="print.js?v=100"></script>
+    <!-- إجبار المتصفح على قراءة أحدث نسخة من السكربت -->
+    <script type="module" src="print.js?v=102"></script>
 </body>
 </html>
