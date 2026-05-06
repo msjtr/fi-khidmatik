@@ -16,22 +16,26 @@ const dict = {
 
 const arMap = {'ا':'a','أ':'a','إ':'e','آ':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ى':'a','ة':'a','ؤ':'o','ئ':'e'};
 
-// 🌟 ترتيب: عربي يمين | إنجليزي يسار 🌟
+// ترتيب الترجمة (عربي يمين | إنجليزي يسار) في الخلية الوسطى
 function translateData(text) {
     if (!text || text === '-' || text.trim() === '') return '-';
     let cleanText = text.trim();
-    if (dict[cleanText]) return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${dict[cleanText]}</span>`;
     
-    let words = cleanText.split(' ');
-    let enWords = words.map(w => {
-        if (dict[w]) return dict[w];
-        if (w.startsWith('ال')) w = w.replace('ال', 'Al ');
-        let res = '';
-        for(let i=0; i<w.length; i++) res += arMap[w[i]] || w[i];
-        return res.charAt(0).toUpperCase() + res.slice(1);
-    });
-    let enText = enWords.join(' ');
-    return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${enText}</span>`;
+    let enText = dict[cleanText];
+    if (!enText) {
+        let words = cleanText.split(' ');
+        let enWords = words.map(w => {
+            if (dict[w]) return dict[w];
+            if (w.startsWith('ال')) w = w.replace('ال', 'Al ');
+            let res = '';
+            for(let i=0; i<w.length; i++) res += arMap[w[i]] || w[i];
+            return res.charAt(0).toUpperCase() + res.slice(1);
+        });
+        enText = enWords.join(' ');
+    }
+    
+    // إخراج العربي يمين والإنجليزي يسار باستخدام الاتجاهات
+    return `<span dir="rtl">${cleanText}</span> <span style="color:#94a3b8; margin:0 8px;">|</span> <span dir="ltr">${enText}</span>`;
 }
 
 function toEnglishNumbers(str) {
@@ -41,16 +45,15 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
+// توليد التاريخ بالصيغة: 1447-05-19 هـ / 06-05-2026 م
 function setupDates() {
     const now = new Date();
     
-    // ميلادي
     const dG = String(now.getDate()).padStart(2, '0');
     const mG = String(now.getMonth() + 1).padStart(2, '0');
     const yG = now.getFullYear();
     const gregStr = `${dG}-${mG}-${yG}`;
 
-    // هجري
     const hijriFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
@@ -59,7 +62,7 @@ function setupDates() {
     const hijriStr = `${hY}-${hM}-${hD}`;
 
     document.getElementById('print-date').innerText = toEnglishNumbers(`${hijriStr} هـ / ${gregStr} م`);
-    document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US'));
+    document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', { hour12: false }));
 }
 
 function generateVerificationCode(id) {
@@ -134,7 +137,7 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
-// 🌟 التصدير المثالي: يعالج التقطيع والفراغات 🌟
+// 🌟 تصدير PDF مع إلغاء الأوامر التي تشوه اللغة العربية 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const element = document.getElementById('document-content');
     const pdfBtn = document.getElementById('btn-pdf');
@@ -144,14 +147,13 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     pdfBtn.disabled = true;
 
     const opt = {
-        margin: [10, 10, 10, 10], // هوامش آمنة 10 ملم من كل الجهات لمنع القص
+        margin: 10, // هوامش متساوية 10mm من جميع الجهات تمنع ظهور صفحات فارغة
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { 
-            scale: 3, // دقة ممتازة وواضحة جداً
+            scale: 2, // دقة ممتازة وآمنة
             useCORS: true, 
-            letterRendering: false, // 🚨 هذا الأمر الأهم: يمنع تقطيع وانعكاس الحروف العربية! 🚨
-            scrollY: 0
+            // 🚨 تم إزالة letterRendering لأنها السبب الأول في تكسير اللغة العربية في المكتبة!
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
@@ -161,7 +163,7 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
             await html2pdf().set(opt).from(element).save();
             pdfBtn.innerText = "📥 تصدير PDF";
             pdfBtn.disabled = false;
-        }, 800);
+        }, 500);
     } catch (err) {
         pdfBtn.innerText = "📥 تصدير PDF";
         pdfBtn.disabled = false;
