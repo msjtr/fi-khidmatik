@@ -50,7 +50,6 @@ async function loadCustomerData() {
         if (docSnap.exists()) {
             const c = docSnap.data();
             customerNameForFile = c.name || "Client";
-            const now = new Date();
             const vCode = generateVerificationCode(customerId);
             
             // دالة آمنة لتعبئة النصوص
@@ -87,11 +86,14 @@ async function loadCustomerData() {
             if (notesEl) notesEl.innerHTML = c.detailedNotes || '<i>لا توجد ملاحظات عامة مسجلة.</i>';
             
             // 5. التذييل والتوثيق
-            safeSetText('print-user', currentEmployee);
             safeSetText('verify-code', vCode);
 
+            // 🌟 تحديث العلامة المائية بشكل احترافي 🌟
             const watermarkEl = document.getElementById('watermark-text');
-            if (watermarkEl) watermarkEl.innerText = `Printed by: ${currentEmployee} | ${now.toLocaleDateString('en-US')}`;
+            if (watermarkEl) {
+                watermarkEl.innerHTML = `<div style="font-size: 1.8rem; color: #94a3b8; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
+                                         <div style="font-size: 3rem; color: #0A192F;">${currentEmployee}</div>`;
+            }
 
             // 6. توليد الـ QR Code
             const qrContainer = document.getElementById("qr-code");
@@ -133,7 +135,7 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
         html2canvas: { 
             scale: 4, // دقة تصوير 4K لنصوص حادة
             useCORS: true, 
-            letterRendering: true, // 🌟 يمنع تفكك الحروف العربية
+            letterRendering: true, // يمنع تفكك الحروف العربية
             scrollY: 0,
             logging: false
         }, 
