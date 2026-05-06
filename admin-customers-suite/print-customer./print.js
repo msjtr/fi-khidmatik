@@ -5,6 +5,16 @@ const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
+let isDataLoaded = false; // 🌟 علم للتأكد من تحميل البيانات
+
+const setFavicon = () => {
+    const icon = document.createElement('link');
+    icon.rel = 'icon';
+    icon.type = 'image/svg+xml';
+    icon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
+    document.head.appendChild(icon);
+};
+setFavicon();
 
 function toEnglishNumbers(str) {
     if(!str) return '';
@@ -13,27 +23,21 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// 🌟 ضبط التاريخ: اليوم-الشهر-السنة بدون هـ وم 🌟
 function setupDates() {
     const now = new Date();
-    
-    // ميلادي (المطلوب: اليوم-الشهر-السنة)
     const dG = String(now.getDate()).padStart(2, '0');
     const mG = String(now.getMonth() + 1).padStart(2, '0');
     const yG = now.getFullYear();
-    const gregStrRaw = `${dG}-${mG}-${yG}`; // اليوم ثم الشهر ثم السنة
+    const gregStrRaw = `${dG}-${mG}-${yG}`;
 
-    // هجري (المطلوب: اليوم-الشهر-السنة)
     const hijriFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
     const hM = hParts.find(p => p.type === 'month').value;
     const hD = hParts.find(p => p.type === 'day').value;
-    const hijriStrRaw = `${hD}-${hM}-${hY}`; // اليوم ثم الشهر ثم السنة
+    const hijriStrRaw = `${hD}-${hM}-${hY}`;
 
-    // دمج التاريخين بدون رموز
     const finalDateRaw = toEnglishNumbers(hijriStrRaw) + ' / ' + toEnglishNumbers(gregStrRaw);
-    
     document.getElementById('print-date-raw').innerText = finalDateRaw;
     document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', { hour12: false }));
 }
@@ -112,12 +116,14 @@ async function loadCustomerData() {
                                          <div style="font-size: 2.5rem; color: #000; opacity: 0.1;">${currentEmployee}</div>`;
             }
 
+            const vCode = generateVerificationCode(customerId);
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
                 qrContainer.innerHTML = "";
                 new QRCode(qrContainer, { text: `Verify: ${customerId}`, width: 65, height: 65, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
-            document.getElementById('verify-code').innerText = toEnglishNumbers(generateVerificationCode(customerId));
+            document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
+            isDataLoaded = true; // 🌟 اكتمل التحميل
         }
     } catch (e) { console.error(e); }
 }
@@ -143,37 +149,55 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
-// 🌟 تصدير PDF مع ضبط نهائي للهوامش والجودة 🌟
+// 🌟 تصدير PDF مع نظام "الانتظار الذكي" لضمان التحميل السليم 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
-    await logAction('PDF Export');
-    const element = document.getElementById('document-content');
     const btn = document.getElementById('btn-pdf');
-    btn.innerText = "جاري التحميل...";
+    const element = document.getElementById('document-content');
+
+    // 1. تغيير حالة الزر للتنبيه
+    btn.innerText = "جاري تحضير الصفحة...";
     btn.disabled = true;
 
-    // الخدعة التي تمنع قص الـ PDF: إزالة المسافات الخارجية التي تخدع المكتبة مؤقتاً
+    // 2. التحقق من جاهزية البيانات (إذا لم تكن جاهزة انتظر قليلاً)
+    if (!isDataLoaded) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    // 3. انتظار إضافي لضمان رسم الباركود والخطوط (مهم جداً للتحميل السليم)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await logAction('PDF Export');
+
     const originalMargin = element.style.margin;
     const originalHeight = element.style.height;
     element.style.margin = '0';
-    element.style.height = 'auto'; // يسمح للمكتبة بقراءة المحتوى كاملاً لمنع قص الفوتر
+    element.style.height = 'auto'; 
     element.style.maxHeight = 'none';
 
-    // تم وضع الهوامش صفرية لكي يعتمد على مسافات التصميم الداخلي، وتم رفع الجودة إلى 4 (4K Resolution)
-    // 🌟 ضبط الهوامش في PDF: [علوي، أيمن، سفلي، أيسر] لضمان عدم قص الفوتر 🌟
     const opt = {
-        margin: [5, 5, 5, 5], // هوامش داخلية آمنة تضمن عدم قص المحتوى عند الأطراف
+        margin: [5, 5, 5, 5], 
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
-        html2canvas: { scale: 4, useCORS: true, letterRendering: true, windowWidth: 800 }, // دقة عالية، ونافذة افتراضية ضيقة لضغط المحتوى
+        html2canvas: { 
+            scale: 4, 
+            useCORS: true, 
+            letterRendering: true, 
+            windowWidth: 800,
+            onclone: (clonedDoc) => {
+                // التأكد من تحميل العناصر في النسخة المستنسخة للـ PDF
+                return new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }, 
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
+        btn.innerText = "جاري تحميل الملف...";
         await html2pdf().set(opt).from(element).save();
     } catch (err) {
         console.error(err);
+        alert("حدث خطأ أثناء التحميل، يرجى المحاولة مرة أخرى.");
     } finally {
-        // إعادة التنسيق للشكل الطبيعي للشاشة
         element.style.margin = originalMargin;
         element.style.height = originalHeight;
         element.style.maxHeight = '';
