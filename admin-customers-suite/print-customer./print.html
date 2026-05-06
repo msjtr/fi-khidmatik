@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>ملف بيانات العميل | الإتقان بلس</title>
-    <!-- تم تحديث المكتبة لنسخة مستقرة تدعم اللغة العربية بشكل أفضل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="print.css">
 </head>
 <body>
 
-    <!-- شريط التحكم -->
     <div class="control-panel no-print">
         <div class="controls-right">
             <button class="btn btn-close" onclick="window.close()">✖ إغلاق المعاينة</button>
@@ -21,14 +19,13 @@
         </div>
     </div>
 
-    <!-- حاوية ورقة الـ A4 -->
+    <!-- الحاوية الأساسية للطباعة -->
     <div class="a4-page" id="document-content">
         
         <div class="watermark-container">
             <div id="watermark-text" class="watermark"></div>
         </div>
 
-        <!-- الترويسة -->
         <div class="doc-header-custom no-break">
             <div class="header-right-custom">
                 <img src="../../images/logo.svg" alt="Logo" onerror="this.style.display='none'">
@@ -40,26 +37,19 @@
             </div>
         </div>
 
-        <!-- العنوان والتاريخ والوقت -->
         <div class="doc-title-custom no-break">
-            <h3 class="black-title">
-                <span dir="rtl">ملف بيانات العميل</span> <span style="color:#cbd5e1; margin:0 10px;">|</span> <span dir="ltr">Customer Profile</span>
-            </h3>
+            <h3 class="black-title">ملف بيانات العميل | Customer Profile</h3>
             <div class="date-time-pill">
-                <span><strong>التاريخ:</strong> <span id="print-date" dir="ltr" class="ltr-text"></span></span>
+                <span><strong>التاريخ:</strong> <span id="print-date"></span></span>
                 <span class="divider">|</span>
-                <span><strong>الوقت:</strong> <span id="print-time" dir="ltr" class="ltr-text"></span></span>
+                <span><strong>الوقت:</strong> <span id="print-time" dir="ltr"></span></span>
             </div>
         </div>
 
-        <!-- الجدول (تم ضبط المساحات: 25% يمين، 50% وسط، 25% يسار) -->
+        <!-- الجدول (تم إزالة الأوسمة المتداخلة لحل مشكلة الـ PDF) -->
         <table class="print-table">
             <thead>
-                <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">المعلومات الشخصية</span> <span style="color:#94a3b8; margin:0 10px;">|</span> <span dir="ltr">Personal Information</span>
-                    </th>
-                </tr>
+                <tr class="no-break"><th colspan="3">المعلومات الشخصية | Personal Information</th></tr>
             </thead>
             <tbody>
                 <tr class="no-break">
@@ -85,11 +75,7 @@
             </tbody>
 
             <thead>
-                <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">العنوان</span> <span style="color:#94a3b8; margin:0 10px;">|</span> <span dir="ltr">Address</span>
-                    </th>
-                </tr>
+                <tr class="no-break"><th colspan="3">العنوان | Address</th></tr>
             </thead>
             <tbody>
                 <tr class="no-break">
@@ -135,11 +121,7 @@
             </tbody>
 
             <thead>
-                <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">حول العميل</span> <span style="color:#94a3b8; margin:0 10px;">|</span> <span dir="ltr">About Customer</span>
-                    </th>
-                </tr>
+                <tr class="no-break"><th colspan="3">حول العميل | About Customer</th></tr>
             </thead>
             <tbody>
                 <tr class="no-break">
@@ -165,11 +147,7 @@
             </tbody>
 
             <thead>
-                <tr class="no-break">
-                    <th colspan="3">
-                        <span dir="rtl">ملاحظات عامة</span> <span style="color:#94a3b8; margin:0 10px;">|</span> <span dir="ltr">General Notes</span>
-                    </th>
-                </tr>
+                <tr class="no-break"><th colspan="3">ملاحظات عامة | General Notes</th></tr>
             </thead>
             <tbody>
                 <tr class="no-break">
