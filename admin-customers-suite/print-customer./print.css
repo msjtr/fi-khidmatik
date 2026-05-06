@@ -1,15 +1,14 @@
 /* =========================================
-   نظام طباعة Tera V12 - النهائي
+   نظام طباعة Tera V12 - الإصدار الاحترافي النهائي
 ========================================= */
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
 
 body {
     background-color: #525659; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
     margin: 0; padding: 20px 0; direction: rtl;
-    -webkit-print-color-adjust: exact !important; 
-    print-color-adjust: exact !important;
 }
 
+/* --- شريط التحكم (لا يظهر في الطباعة) --- */
 .control-panel {
     background: #0A192F; color: white; padding: 15px 30px;
     position: fixed; top: 0; left: 0; width: 100%;
@@ -25,19 +24,14 @@ body {
 .btn-close { background: transparent; color: #cbd5e1; border: 1px solid #cbd5e1; }
 .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-/* --- تصميم ورقة A4 (هوامش آمنة ومضادة للقص) --- */
+/* --- تصميم ورقة A4 --- */
 .a4-page {
-    background: white; 
-    width: 210mm; /* عرض ثابت لا يتغير */
-    min-height: 297mm;
-    margin: 80px auto 20px auto; 
-    padding: 10mm; /* الهوامش الداخلية للورقة */
-    box-shadow: 0 0 20px rgba(0,0,0,0.3); 
-    position: relative; 
-    color: #0A192F;
-    overflow: hidden; /* يمنع أي عنصر من تخطي الورقة */
+    background: white; width: 210mm; min-height: 296mm; /* تقليل 1 ملم لمنع الصفحة الفارغة */
+    margin: 80px auto 20px auto; padding: 15mm 12mm;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; color: #0A192F;
 }
 
+/* العلامة المائية */
 .watermark-container {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0;
@@ -48,102 +42,86 @@ body {
 
 .no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
 
-/* --- الترويسة والعنوان --- */
+/* الترويسة */
 .doc-header-custom {
     display: flex; justify-content: space-between; align-items: center;
     border-bottom: 2px solid #0A192F; padding-bottom: 10px; margin-bottom: 15px; position: relative; z-index: 2;
 }
 .header-right-custom { display: flex; align-items: center; gap: 15px; }
-.header-right-custom img { width: 60px; max-width: 60px; }
-.header-right-custom h2 { margin: 0; color: #0A192F; font-size: 1.1rem; font-weight: 900; line-height: 1.3; }
-.header-left-custom { text-align: left; font-size: 0.85rem; font-weight: bold; color: #475569; line-height: 1.4; }
+.header-right-custom img { width: 65px; height: auto; }
+.header-right-custom h2 { margin: 0; color: #0A192F; font-size: 1.2rem; font-weight: 900; }
+
+.header-left-custom { text-align: left; font-size: 0.85rem; font-weight: bold; color: #475569; }
 .header-left-custom p { margin: 2px 0; }
 
+/* العناوين */
 .doc-title-custom { text-align: center; margin-bottom: 20px; position: relative; z-index: 2; }
 .black-title {
     margin: 0 auto; color: #fff; background: #0A192F; 
-    padding: 8px 20px; border-radius: 4px; display: inline-block; 
-    min-width: 50%; font-size: 1.1rem; font-weight: bold;
+    padding: 10px 25px; border-radius: 5px; display: inline-block; 
+    min-width: 55%; font-size: 1.15rem; font-weight: bold;
 }
 .date-time-pill {
     display: inline-block; background: #f1f5f9; padding: 6px 20px; border-radius: 20px;
-    margin-top: 10px; font-size: 0.9rem; font-weight: bold; color: #334155; border: 1px solid #cbd5e1;
+    margin-top: 12px; font-size: 0.9rem; font-weight: bold; color: #334155; border: 1px solid #cbd5e1;
 }
-.date-time-pill .divider { margin: 0 10px; color: #94a3b8; font-weight: normal; }
 
-/* --- الجدول المضاد للانكسار والقص (محدث ليأخذ حجم المحتوى) --- */
+/* --- 🌟 الجدول الاحترافي (ضبط الأعمدة على حد المحتوى) 🌟 --- */
 .print-table {
-    width: 100% !important; 
-    max-width: 100% !important;
-    border-collapse: collapse; 
-    margin-bottom: 20px;
-    table-layout: auto !important; /* 🌟 التغيير هنا: يسمح للأعمدة بالتمدد والانكماش حسب المحتوى */
-    position: relative; z-index: 2; border: 2px solid #cbd5e1;
+    width: 100% !important; border-collapse: collapse; margin-bottom: 20px;
+    table-layout: auto !important; position: relative; z-index: 2; border: 2px solid #cbd5e1;
 }
 .print-table th, .print-table td {
-    border: 1px solid #cbd5e1; 
-    padding: 8px 10px !important; /* تقليل الحشو قليلاً للحصول على مساحة أفضل */
-    font-size: 13px; 
-    vertical-align: middle; 
-    word-wrap: break-word !important; 
-    white-space: normal !important;
+    border: 1px solid #cbd5e1; padding: 10px 12px; font-size: 13.5px; vertical-align: middle;
 }
-.print-table th { 
-    background-color: #f8fafc !important; color: #0A192F !important; 
-    font-weight: 900; text-align: center; font-size: 14px; 
+.print-table th { background-color: #f8fafc !important; color: #0A192F !important; font-weight: 900; text-align: center; font-size: 14.5px; }
+
+/* العناوين العربية (يمين) */
+.print-table td.ar-label {
+    background-color: #f1f5f9 !important; font-weight: bold;
+    width: 1% !important; /* إجبار العمود على الانكماش */
+    white-space: nowrap !important; /* منع انكسار النص */
+    text-align: right !important; color: #0A192F;
 }
 
-/* 🌟 توزيع مساحات الأعمدة بدقة على حد المحتوى 🌟 */
-.print-table td.ar-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; 
-    width: 1% !important; /* 👈 هذه الحيلة تجبر العمود على أخذ أقل مساحة ممكنة (على حد المحتوى) */
-    white-space: nowrap !important; /* يمنع انكسار عنوان الخلية (مثل "اسم العميل") إلى سطرين */
-    text-align: right !important; 
-}
-.print-table td.en-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; 
-    width: 1% !important; /* 👈 نفس الحيلة للعمود الإنجليزي */
-    white-space: nowrap !important;
-    text-align: left !important; direction: ltr !important; 
-}
-.print-table td.data-cell { 
-    width: auto !important; /* 👈 عمود البيانات (الوسط) يأخذ كل المساحة المتبقية */
-    font-weight: bold; color: #2D3748; text-align: center !important; 
+/* العناوين الإنجليزية (يسار) */
+.print-table td.en-label {
+    background-color: #f1f5f9 !important; font-weight: bold;
+    width: 1% !important; /* إجبار العمود على الانكماش */
+    white-space: nowrap !important; /* منع انكسار النص */
+    text-align: left !important; direction: ltr !important; color: #0A192F;
 }
 
-.print-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+/* عمود البيانات (المنتصف) */
+.print-table td.data-cell {
+    width: auto !important; /* يتوسع ليأخذ باقي المساحة */
+    font-weight: bold; color: #2D3748; text-align: center !important;
+}
 
-/* --- التذييل --- */
-.doc-footer { margin-top: 20px; padding-top: 15px; border-top: 2px solid #0A192F; position: relative; z-index: 2; }
+/* الملاحظات العامة */
+#c-notes { border: 1px solid #cbd5e1; padding: 15px; background: #fff; line-height: 1.6; text-align: right; }
+
+/* التذييل */
+.doc-footer { margin-top: 25px; padding-top: 15px; border-top: 2px solid #0A192F; position: relative; z-index: 2; }
 .footer-contact { 
-    display: flex; flex-direction: column; gap: 8px; background: #f8fafc !important; padding: 12px; 
-    border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; font-weight: bold; color: #0A192F;
+    display: flex; flex-direction: column; gap: 10px; background: #f8fafc !important; padding: 15px; 
+    border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; font-weight: bold;
 }
 .contact-row { display: flex; justify-content: space-around; width: 100%; }
-.ltr-text { display: inline-block; direction: ltr; unicode-bidi: embed; }
-.verification-section { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
-.final-note { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 15px; font-weight: bold; }
+.verification-section { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 12px; }
+.final-note { text-align: center; font-size: 0.9rem; color: #64748b; margin-top: 15px; font-weight: bold; }
 
 /* =========================================
    🖨️ إعدادات الطباعة الصارمة (A4)
 ========================================= */
 @media print {
-    @page { size: A4 portrait; margin: 0; } /* إلغاء هوامش المتصفح الافتراضية، الورقة ستتولى الهوامش */
-    body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    @page { size: A4 portrait; margin: 0; }
+    body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; }
     .no-print { display: none !important; }
     .a4-page {
-        margin: 0 !important; 
-        padding: 10mm !important; /* هوامش الطباعة الثابتة */
-        box-shadow: none !important;
-        width: 100% !important; 
-        max-width: 210mm !important; 
-        border: none !important; 
-        overflow: hidden !important;
+        margin: 0 !important; padding: 12mm 10mm !important; /* هوامش حقيقية للطابعة */
+        box-shadow: none !important; width: 100% !important; max-width: 210mm !important; border: none !important;
     }
-    .print-table { table-layout: auto !important; width: 100% !important; border: 2px solid #cbd5e1 !important; }
+    .print-table { border: 2px solid #cbd5e1 !important; }
     .print-table th, .print-table td { border: 1px solid #cbd5e1 !important; }
-    .print-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-    .print-table th, .print-table td.ar-label, .print-table td.en-label, .black-title, .date-time-pill, .footer-contact {
-        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-    }
 }
