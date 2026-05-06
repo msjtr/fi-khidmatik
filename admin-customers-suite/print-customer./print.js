@@ -5,6 +5,9 @@ const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 
+// متغير لحفظ اسم العميل لاستخدامه في اسم ملف الـ PDF
+let customerNameForFile = "Client";
+
 // القاموس الذكي للترجمة
 const dict = {
     'المملكة العربية السعودية': 'Saudi Arabia', 'السعودية': 'Saudi Arabia',
@@ -46,7 +49,7 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// 🌟 ضبط التاريخ والوقت بالصيغة الدقيقة المطلوبة 🌟
+// 🌟 ضبط التاريخ والوقت بالصيغة الدقيقة (19-11-1447 هـ / 06-05-2026 م) 🌟
 function setupDates() {
     const now = new Date();
     
@@ -56,15 +59,16 @@ function setupDates() {
     const yG = now.getFullYear();
     const gregStr = `${dG}-${mG}-${yG}`;
 
-    // هجري: YYYY-MM-DD
+    // هجري: DD-MM-YYYY
     const hijriFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
     const hM = hParts.find(p => p.type === 'month').value;
     const hD = hParts.find(p => p.type === 'day').value;
-    const hijriStr = `${hY}-${hM}-${hD}`;
+    const hijriStr = `${hD}-${hM}-${hY}`; // ترتيب: يوم - شهر - سنة
 
-    document.getElementById('print-date').innerText = toEnglishNumbers(`${hijriStr} هـ / ${gregStr} م`);
+    const finalDate = toEnglishNumbers(hijriStr) + ' هـ / ' + toEnglishNumbers(gregStr) + ' م';
+    document.getElementById('print-date').innerText = finalDate;
     document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', {hour12: true}));
 }
 
@@ -84,6 +88,7 @@ async function loadCustomerData() {
 
         if (docSnap.exists()) {
             const c = docSnap.data();
+            customerNameForFile = c.name || "Client"; // تعيين الاسم لملف الـ PDF
             const vCode = generateVerificationCode(customerId);
             
             // 🌟 تعبئة البيانات بالترجمة 🌟
@@ -143,11 +148,34 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
-// 🌟 زر التصدير إلى PDF المباشر 🌟
+// 🌟 زر التحميل المباشر للـ PDF (يتطلب وجود مكتبة html2pdf في ملف HTML) 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     await logAction('PDF Export');
-    alert('للحصول على ملف PDF عالي الدقة (بدون تقطع في الحروف):\n\n1. من شاشة الطباعة القادمة، اختر "حفظ بتنسيق PDF" من قائمة الوجهة.\n2. تأكد من تفعيل "رسومات الخلفية" في الإعدادات الإضافية لظهور الألوان.');
-    window.print();
+    const element = document.getElementById('document-content');
+    const btn = document.getElementById('btn-pdf');
+    
+    // تغيير نص الزر أثناء التحميل
+    btn.innerText = "جاري التحميل...";
+    btn.disabled = true;
+
+    // إعدادات التصدير
+    const opt = {
+        margin: [5, 5, 5, 5],
+        filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 1.0 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+        await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+        console.error("خطأ أثناء التصدير: ", err);
+    } finally {
+        // إعادة الزر لحالته الأصلية
+        btn.innerText = "📥 تحميل PDF مباشر";
+        btn.disabled = false;
+    }
 });
 
 document.addEventListener('DOMContentLoaded', loadCustomerData);
