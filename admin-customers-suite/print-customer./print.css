@@ -71,18 +71,18 @@ body {
 }
 .date-time-pill .divider { margin: 0 10px; color: #94a3b8; font-weight: normal; }
 
-/* --- الجدول المضاد للانكسار والقص --- */
+/* --- الجدول المضاد للانكسار والقص (محدث ليأخذ حجم المحتوى) --- */
 .print-table {
     width: 100% !important; 
     max-width: 100% !important;
     border-collapse: collapse; 
     margin-bottom: 20px;
-    table-layout: fixed !important; /* يجبر المتصفح على احترام 25-50-25 */
+    table-layout: auto !important; /* 🌟 التغيير هنا: يسمح للأعمدة بالتمدد والانكماش حسب المحتوى */
     position: relative; z-index: 2; border: 2px solid #cbd5e1;
 }
 .print-table th, .print-table td {
     border: 1px solid #cbd5e1; 
-    padding: 10px !important; 
+    padding: 8px 10px !important; /* تقليل الحشو قليلاً للحصول على مساحة أفضل */
     font-size: 13px; 
     vertical-align: middle; 
     word-wrap: break-word !important; 
@@ -93,15 +93,22 @@ body {
     font-weight: 900; text-align: center; font-size: 14px; 
 }
 
-/* توزيع مساحات الأعمدة بدقة */
+/* 🌟 توزيع مساحات الأعمدة بدقة على حد المحتوى 🌟 */
 .print-table td.ar-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: right !important; 
+    background-color: #f1f5f9 !important; font-weight: bold; 
+    width: 1% !important; /* 👈 هذه الحيلة تجبر العمود على أخذ أقل مساحة ممكنة (على حد المحتوى) */
+    white-space: nowrap !important; /* يمنع انكسار عنوان الخلية (مثل "اسم العميل") إلى سطرين */
+    text-align: right !important; 
 }
 .print-table td.en-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: left !important; direction: ltr !important; 
+    background-color: #f1f5f9 !important; font-weight: bold; 
+    width: 1% !important; /* 👈 نفس الحيلة للعمود الإنجليزي */
+    white-space: nowrap !important;
+    text-align: left !important; direction: ltr !important; 
 }
 .print-table td.data-cell { 
-    width: 50% !important; font-weight: bold; color: #2D3748; text-align: center !important; 
+    width: auto !important; /* 👈 عمود البيانات (الوسط) يأخذ كل المساحة المتبقية */
+    font-weight: bold; color: #2D3748; text-align: center !important; 
 }
 
 .print-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
@@ -133,7 +140,7 @@ body {
         border: none !important; 
         overflow: hidden !important;
     }
-    .print-table { table-layout: fixed !important; width: 100% !important; border: 2px solid #cbd5e1 !important; }
+    .print-table { table-layout: auto !important; width: 100% !important; border: 2px solid #cbd5e1 !important; }
     .print-table th, .print-table td { border: 1px solid #cbd5e1 !important; }
     .print-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
     .print-table th, .print-table td.ar-label, .print-table td.en-label, .black-title, .date-time-pill, .footer-contact {
