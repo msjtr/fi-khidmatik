@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>ملف بيانات العميل | الإتقان بلس</title>
+    <!-- تم تحديث المكتبة لنسخة مستقرة تدعم اللغة العربية بشكل أفضل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="print.css">
@@ -45,13 +46,13 @@
                 <span dir="rtl">ملف بيانات العميل</span> <span style="color:#cbd5e1; margin:0 10px;">|</span> <span dir="ltr">Customer Profile</span>
             </h3>
             <div class="date-time-pill">
-                <span><strong>التاريخ:</strong> <span id="print-date" dir="rtl"></span></span>
+                <span><strong>التاريخ:</strong> <span id="print-date" dir="ltr" class="ltr-text"></span></span>
                 <span class="divider">|</span>
-                <span><strong>الوقت:</strong> <span id="print-time" dir="ltr"></span></span>
+                <span><strong>الوقت:</strong> <span id="print-time" dir="ltr" class="ltr-text"></span></span>
             </div>
         </div>
 
-        <!-- الجدول: أعمدة الأطراف على قدر النص، والمنتصف هو الأكبر -->
+        <!-- الجدول (تم ضبط المساحات: 25% يمين، 50% وسط، 25% يسار) -->
         <table class="print-table">
             <thead>
                 <tr class="no-break">
@@ -63,7 +64,7 @@
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">اسم العميل</td>
-                    <td class="data-cell" id="c-name" dir="rtl"></td>
+                    <td class="data-cell" id="c-name"></td>
                     <td class="en-label">Customer Name</td>
                 </tr>
                 <tr class="no-break">
@@ -93,22 +94,22 @@
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">الدولة</td>
-                    <td class="data-cell" id="c-country" dir="rtl"></td>
+                    <td class="data-cell" id="c-country"></td>
                     <td class="en-label">Country</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">المنطقة</td>
-                    <td class="data-cell" id="c-city" dir="rtl"></td>
+                    <td class="data-cell" id="c-city"></td>
                     <td class="en-label">Region</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الحي</td>
-                    <td class="data-cell" id="c-district" dir="rtl"></td>
+                    <td class="data-cell" id="c-district"></td>
                     <td class="en-label">District</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الشارع</td>
-                    <td class="data-cell" id="c-street" dir="rtl"></td>
+                    <td class="data-cell" id="c-street"></td>
                     <td class="en-label">Street</td>
                 </tr>
                 <tr class="no-break">
@@ -148,17 +149,17 @@
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">حالة الحساب</td>
-                    <td class="data-cell" id="c-status" dir="rtl"></td>
+                    <td class="data-cell" id="c-status"></td>
                     <td class="en-label">Account Status</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">التصنيف</td>
-                    <td class="data-cell" id="c-category" dir="rtl"></td>
+                    <td class="data-cell" id="c-category"></td>
                     <td class="en-label">Category</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">ملاحظات سريعة</td>
-                    <td class="data-cell" id="c-quickNote" dir="rtl"></td>
+                    <td class="data-cell" id="c-quickNote"></td>
                     <td class="en-label">Quick Notes</td>
                 </tr>
             </tbody>
