@@ -13,26 +13,28 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// 🌟 الإصلاح القاطع للتاريخ باستخدام BDO 🌟
+// 🌟 ضبط التاريخ: اليوم-الشهر-السنة بدون هـ وم 🌟
 function setupDates() {
     const now = new Date();
     
+    // ميلادي (المطلوب: اليوم-الشهر-السنة)
     const dG = String(now.getDate()).padStart(2, '0');
     const mG = String(now.getMonth() + 1).padStart(2, '0');
     const yG = now.getFullYear();
-    const gregStr = `${dG}-${mG}-${yG}`;
+    const gregStrRaw = `${dG}-${mG}-${yG}`; // اليوم ثم الشهر ثم السنة
 
+    // هجري (المطلوب: اليوم-الشهر-السنة)
     const hijriFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
     const hM = hParts.find(p => p.type === 'month').value;
     const hD = hParts.find(p => p.type === 'day').value;
-    const hijriStr = `${hD}-${hM}-${hY}`;
+    const hijriStrRaw = `${hD}-${hM}-${hY}`; // اليوم ثم الشهر ثم السنة
 
-    // الـ BDO يُجبر الرقم على أن يكون قطعة واحدة من اليسار لليمين، ثم تتبعه الهاء والميم بشكل صحيح 100%
-    const finalDate = `<bdo dir="ltr">${toEnglishNumbers(hijriStr)}</bdo> هـ / <bdo dir="ltr">${toEnglishNumbers(gregStr)}</bdo> م`;
+    // دمج التاريخين بدون رموز
+    const finalDateRaw = toEnglishNumbers(hijriStrRaw) + ' / ' + toEnglishNumbers(gregStrRaw);
     
-    document.getElementById('print-date').innerHTML = finalDate;
+    document.getElementById('print-date-raw').innerText = finalDateRaw;
     document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', { hour12: false }));
 }
 
@@ -110,13 +112,12 @@ async function loadCustomerData() {
                                          <div style="font-size: 2.5rem; color: #000; opacity: 0.1;">${currentEmployee}</div>`;
             }
 
-            const vCode = generateVerificationCode(customerId);
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
                 qrContainer.innerHTML = "";
                 new QRCode(qrContainer, { text: `Verify: ${customerId}`, width: 65, height: 65, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
-            document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
+            document.getElementById('verify-code').innerText = toEnglishNumbers(generateVerificationCode(customerId));
         }
     } catch (e) { console.error(e); }
 }
@@ -142,7 +143,7 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
-// 🌟 الحل القاطع لمشكلة قص الفوتر وصفحات الـ PDF 🌟
+// 🌟 تصدير PDF مع ضبط نهائي للهوامش والجودة 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     await logAction('PDF Export');
     const element = document.getElementById('document-content');
@@ -150,19 +151,20 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     btn.innerText = "جاري التحميل...";
     btn.disabled = true;
 
-    // الخدعة التي تمنع قص الـ PDF: إزالة المسافات التي تخدع المكتبة مؤقتاً
+    // الخدعة التي تمنع قص الـ PDF: إزالة المسافات الخارجية التي تخدع المكتبة مؤقتاً
     const originalMargin = element.style.margin;
     const originalHeight = element.style.height;
     element.style.margin = '0';
-    element.style.height = 'auto'; // يسمح للمكتبة بقراءة المحتوى كاملاً
+    element.style.height = 'auto'; // يسمح للمكتبة بقراءة المحتوى كاملاً لمنع قص الفوتر
     element.style.maxHeight = 'none';
 
-    // تم إعطاء الهوامش للمكتبة نفسها لتجنب أي قص
+    // تم وضع الهوامش صفرية لكي يعتمد على مسافات التصميم الداخلي، وتم رفع الجودة إلى 4 (4K Resolution)
+    // 🌟 ضبط الهوامش في PDF: [علوي، أيمن، سفلي، أيسر] لضمان عدم قص الفوتر 🌟
     const opt = {
-        margin: [5, 5, 5, 5], 
+        margin: [5, 5, 5, 5], // هوامش داخلية آمنة تضمن عدم قص المحتوى عند الأطراف
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
-        html2canvas: { scale: 4, useCORS: true, letterRendering: true, windowWidth: 800 },
+        html2canvas: { scale: 4, useCORS: true, letterRendering: true, windowWidth: 800 }, // دقة عالية، ونافذة افتراضية ضيقة لضغط المحتوى
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -171,7 +173,7 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     } catch (err) {
         console.error(err);
     } finally {
-        // إعادة التنسيق للشكل الطبيعي
+        // إعادة التنسيق للشكل الطبيعي للشاشة
         element.style.margin = originalMargin;
         element.style.height = originalHeight;
         element.style.maxHeight = '';
