@@ -5,8 +5,7 @@
     <title>ملف بيانات العميل | الإتقان بلس</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <link rel="stylesheet" href="print.css?v=108">
+    <link rel="stylesheet" href="print.css?v=210">
 </head>
 <body>
 
@@ -15,7 +14,7 @@
             <button class="btn btn-close" onclick="window.close()">✖ إغلاق المعاينة</button>
         </div>
         <div class="controls-left">
-            <button class="btn btn-print" id="btn-print">🖨 طباعة (أفضل دقة)</button>
+            <button class="btn btn-print" id="btn-print">🖨 طباعة مباشرة</button>
             <button class="btn btn-pdf" id="btn-pdf">📥 تحميل PDF مباشر</button>
         </div>
     </div>
@@ -44,7 +43,7 @@
                 <span dir="ltr">Customer Profile</span>
             </h3>
             <div class="date-time-pill">
-                <span><strong>التاريخ:</strong> <span id="print-date" dir="rtl"></span></span>
+                <span><strong>التاريخ:</strong> <span id="print-date"></span></span>
                 <span class="divider">|</span>
                 <span><strong>الوقت:</strong> <span id="print-time" dir="ltr"></span></span>
             </div>
@@ -106,7 +105,7 @@
             </thead>
             <tbody>
                 <tr class="no-break">
-                    <td colspan="3" id="c-notes" style="padding: 15px; text-align: justify; line-height: 1.6;"></td>
+                    <td colspan="3" id="c-notes" style="padding: 10px; text-align: justify; line-height: 1.5;"></td>
                 </tr>
             </tbody>
         </table>
@@ -127,12 +126,12 @@
 
             <div class="verification-section no-break">
                 <div class="v-info">
-                    <h4 style="margin: 0 0 5px 0; color: #0A192F;">🛡️ كود التحقق من الوثيقة</h4>
-                    <p style="margin: 0; font-size: 0.95rem;">
+                    <h4 style="margin: 0 0 4px 0; color: #0A192F;">🛡️ كود التحقق من الوثيقة</h4>
+                    <p style="margin: 0; font-size: 0.9rem;">
                         <strong>Verification Code:</strong> 
                         <span id="verify-code" style="color:#e74c3c; font-weight:bold; letter-spacing: 1px;"></span>
                     </p>
-                    <p style="font-size: 0.75rem; color: #64748b; margin-top: 8px;">
+                    <p style="font-size: 0.7rem; color: #64748b; margin-top: 5px;">
                         * هذه الوثيقة مستخرجة آلياً، ويمكن التحقق من صحتها عبر مسح الرمز.
                     </p>
                 </div>
@@ -140,11 +139,11 @@
             </div>
 
             <div class="final-note no-break">
-                هذه المعلومات صادرة رسمياً من منصة في خدمتك - من الإتقان بلس
+                هذه المعلومات صادرة رسمياً من منصة في خدمتك - الإتقان بلس
             </div>
         </div>
     </div>
 
-    <script type="module" src="print.js?v=108"></script>
+    <script type="module" src="print.js?v=210"></script>
 </body>
 </html>
