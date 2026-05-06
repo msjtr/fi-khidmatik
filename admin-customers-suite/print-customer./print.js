@@ -1,6 +1,16 @@
 import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { db } from '../js/firebase.js'; 
 
+// 🌟 إصلاح أيقونة تبويبة الصفحة (Favicon)
+const setFavicon = () => {
+    const icon = document.createElement('link');
+    icon.rel = 'icon';
+    icon.type = 'image/svg+xml';
+    icon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg'; // مسار الجذر المباشر
+    document.head.appendChild(icon);
+};
+setFavicon();
+
 const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
@@ -16,7 +26,7 @@ const dict = {
 
 const arMap = {'ا':'a','أ':'a','إ':'e','آ':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ى':'a','ة':'a','ؤ':'o','ئ':'e'};
 
-// ترتيب الترجمة (عربي يمين | إنجليزي يسار) في الخلية الوسطى
+// 🌟 الإصلاح الجذري لمشكلة الترتيب (عربي يمين | إنجليزي يسار) باستخدام Flexbox 🌟
 function translateData(text) {
     if (!text || text === '-' || text.trim() === '') return '-';
     let cleanText = text.trim();
@@ -34,8 +44,12 @@ function translateData(text) {
         enText = enWords.join(' ');
     }
     
-    // إخراج العربي يمين والإنجليزي يسار باستخدام الاتجاهات
-    return `<span dir="rtl">${cleanText}</span> <span style="color:#94a3b8; margin:0 8px;">|</span> <span dir="ltr">${enText}</span>`;
+    // إخراج الخلية كـ Flexbox لتثبيت العربي يمين والإنجليزي يسار دون مشاكل التداخل
+    return `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span style="flex: 1; text-align: right;" dir="rtl">${cleanText}</span> 
+                <span style="color:#94a3b8; margin:0 15px;">|</span> 
+                <span style="flex: 1; text-align: left;" dir="ltr">${enText}</span>
+            </div>`;
 }
 
 function toEnglishNumbers(str) {
