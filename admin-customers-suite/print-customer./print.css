@@ -25,7 +25,7 @@ body {
 /* --- تصميم ورقة A4 (هوامش آمنة) --- */
 .a4-page {
     background: white; width: 210mm; min-height: 297mm;
-    margin: 80px auto 20px auto; padding: 15mm 12mm;
+    margin: 80px auto 20px auto; padding: 10mm; /* هوامش ثابتة */
     box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; color: #0A192F;
 }
 
@@ -62,33 +62,34 @@ body {
 }
 .date-time-pill .divider { margin: 0 10px; color: #94a3b8; font-weight: normal; }
 
-/* --- الجدول (المساحات المضبوطة) --- */
+/* --- الجدول (مضاد للانكسار ومقاسات دقيقة) --- */
 .print-table {
     width: 100% !important; max-width: 100% !important;
     border-collapse: collapse; margin-bottom: 20px;
-    table-layout: auto !important; position: relative; z-index: 2;
-    border: 2px solid #cbd5e1;
+    table-layout: fixed !important; /* يجبر المتصفح على احترام المقاسات */
+    position: relative; z-index: 2; border: 2px solid #cbd5e1;
 }
 .print-table th, .print-table td {
-    border: 1px solid #cbd5e1; padding: 8px 10px !important; font-size: 13px; vertical-align: middle; 
-    word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: normal !important;
+    border: 1px solid #cbd5e1; padding: 10px !important; font-size: 13px; vertical-align: middle; 
+    word-wrap: break-word !important; white-space: normal !important; /* هذا يمنع قص النصوص الطويلة! */
 }
 .print-table th { 
     background-color: #f8fafc !important; color: #0A192F !important; 
-    font-weight: 900; text-align: center; font-size: 14px; padding: 10px !important; 
+    font-weight: 900; text-align: center; font-size: 14px; 
 }
-/* الأعمدة الجانبية تأخذ 15% فقط (على قدر المحتوى) */
+
+/* توزيع مساحات الأعمدة بدقة 25% | 50% | 25% */
 .print-table td.ar-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; width: 15% !important; text-align: right !important; white-space: nowrap;
+    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: right !important; 
 }
 .print-table td.en-label { 
-    background-color: #f1f5f9 !important; font-weight: bold; width: 15% !important; text-align: left !important; direction: ltr !important; white-space: nowrap;
+    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: left !important; direction: ltr !important; 
 }
-/* المنتصف يأخذ أكبر مساحة (70%) */
 .print-table td.data-cell { 
-    width: 70% !important; font-weight: bold; color: #2D3748; text-align: center !important; 
+    width: 50% !important; font-weight: bold; color: #2D3748; text-align: center !important; 
 }
-.print-table tr, .print-table th, .print-table td { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+.print-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
 
 /* --- التذييل --- */
 .doc-footer { margin-top: 20px; padding-top: 15px; border-top: 2px solid #0A192F; position: relative; z-index: 2; }
@@ -112,7 +113,7 @@ body {
         margin: 0 !important; padding: 0 !important; box-shadow: none !important;
         width: 100% !important; max-width: 100% !important; border: none !important; overflow: visible !important;
     }
-    .print-table { table-layout: auto !important; width: 100% !important; border: 2px solid #cbd5e1 !important; }
+    .print-table { table-layout: fixed !important; width: 100% !important; border: 2px solid #cbd5e1 !important; }
     .print-table th, .print-table td { border: 1px solid #cbd5e1 !important; }
     .print-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
     .print-table th, .print-table td.ar-label, .print-table td.en-label, .black-title, .date-time-pill, .footer-contact {
