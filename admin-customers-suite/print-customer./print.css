@@ -1,127 +1,44 @@
-/* =========================================
-   نظام طباعة Tera V12 - الإصدار الاحترافي النهائي
-========================================= */
-* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; }
+body { background: #525659; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; direction: rtl; }
 
-body {
-    background-color: #525659; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-    margin: 0; padding: 20px 0; direction: rtl;
-}
+.control-panel { background: #0A192F; padding: 15px; position: fixed; top: 0; width: 100%; z-index: 100; text-align: center; }
+.btn { padding: 8px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; border: none; margin: 0 5px; }
+.btn-print { background: #3498db; color: #fff; }
 
-/* --- شريط التحكم (لا يظهر في الطباعة) --- */
-.control-panel {
-    background: #0A192F; color: white; padding: 15px 30px;
-    position: fixed; top: 0; left: 0; width: 100%;
-    display: flex; justify-content: space-between; align-items: center;
-    z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-.btn {
-    padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold;
-    cursor: pointer; font-size: 1rem; transition: 0.3s;
-}
-.btn-print { background: #3498db; color: #fff; margin-left: 10px; }
-.btn-pdf { background: #e74c3c; color: #fff; }
-.btn-close { background: transparent; color: #cbd5e1; border: 1px solid #cbd5e1; }
-.btn:hover { opacity: 0.8; transform: translateY(-2px); }
-
-/* --- تصميم ورقة A4 --- */
 .a4-page {
-    background: white; width: 210mm; min-height: 296mm; /* تقليل 1 ملم لمنع الصفحة الفارغة */
-    margin: 80px auto 20px auto; padding: 15mm 12mm;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; color: #0A192F;
+    background: white; width: 210mm; height: 296mm; /* إجبار الطول على صفحة واحدة */
+    margin: 60px auto; padding: 10mm 15mm; position: relative; overflow: hidden;
 }
 
-/* العلامة المائية */
-.watermark-container {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0;
-}
-.watermark {
-    transform: rotate(-35deg); opacity: 0.05; font-weight: 900; text-align: center; line-height: 1.4; color: #000;
-}
+.watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); opacity: 0.05; font-size: 40pt; font-weight: 900; z-index: 0; white-space: nowrap; pointer-events: none; }
 
-.no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+.doc-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0A192F; padding-bottom: 5px; margin-bottom: 10px; }
+.h-right img { width: 50px; vertical-align: middle; }
+.h-right h2 { display: inline-block; font-size: 14pt; margin-right: 10px; color: #0A192F; }
+.h-left p { margin: 0; font-size: 9pt; font-weight: bold; color: #666; }
 
-/* الترويسة */
-.doc-header-custom {
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 2px solid #0A192F; padding-bottom: 10px; margin-bottom: 15px; position: relative; z-index: 2;
-}
-.header-right-custom { display: flex; align-items: center; gap: 15px; }
-.header-right-custom img { width: 65px; height: auto; }
-.header-right-custom h2 { margin: 0; color: #0A192F; font-size: 1.2rem; font-weight: 900; }
+.doc-title { text-align: center; margin-bottom: 10px; }
+.main-title { background: #1a1a1a; color: #fff; padding: 8px; border-radius: 4px; display: inline-block; min-width: 60%; font-size: 13pt; margin: 0; }
+.info-bar { background: #e0f2fe; padding: 5px; border-radius: 15px; margin-top: 8px; font-size: 9pt; font-weight: bold; border: 1px solid #bae6fd; }
 
-.header-left-custom { text-align: left; font-size: 0.85rem; font-weight: bold; color: #475569; }
-.header-left-custom p { margin: 2px 0; }
+.compact-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
+.compact-table th { background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px; font-size: 11pt; color: #0A192F; }
+.compact-table td { border: 1px solid #cbd5e1; padding: 5px 10px; font-size: 10pt; vertical-align: middle; }
+.lbl-ar { background: #f1f5f9; width: 20%; font-weight: bold; }
+.lbl-en { background: #f1f5f9; width: 20%; font-weight: bold; text-align: left; direction: ltr; }
+.val { width: 60%; text-align: center; font-weight: bold; color: #334155; }
 
-/* العناوين */
-.doc-title-custom { text-align: center; margin-bottom: 20px; position: relative; z-index: 2; }
-.black-title {
-    margin: 0 auto; color: #fff; background: #0A192F; 
-    padding: 10px 25px; border-radius: 5px; display: inline-block; 
-    min-width: 55%; font-size: 1.15rem; font-weight: bold;
-}
-.date-time-pill {
-    display: inline-block; background: #f1f5f9; padding: 6px 20px; border-radius: 20px;
-    margin-top: 12px; font-size: 0.9rem; font-weight: bold; color: #334155; border: 1px solid #cbd5e1;
-}
+.notes-box { border: 1px solid #cbd5e1; padding: 10px; min-height: 60px; font-size: 10pt; margin-bottom: 10px; background: #fff; }
 
-/* --- 🌟 الجدول الاحترافي (ضبط الأعمدة على حد المحتوى) 🌟 --- */
-.print-table {
-    width: 100% !important; border-collapse: collapse; margin-bottom: 20px;
-    table-layout: auto !important; position: relative; z-index: 2; border: 2px solid #cbd5e1;
-}
-.print-table th, .print-table td {
-    border: 1px solid #cbd5e1; padding: 10px 12px; font-size: 13.5px; vertical-align: middle;
-}
-.print-table th { background-color: #f8fafc !important; color: #0A192F !important; font-weight: 900; text-align: center; font-size: 14.5px; }
+.doc-footer { border-top: 2px solid #0A192F; padding-top: 10px; }
+.contacts { display: flex; justify-content: space-around; background: #f8fafc; padding: 8px; border-radius: 5px; font-size: 9pt; font-weight: bold; margin-bottom: 10px; direction: ltr; }
+.verify-zone { display: flex; justify-content: space-between; align-items: center; }
+.v-text p { margin: 0; font-size: 11pt; font-weight: bold; }
+.red { color: #e74c3c; letter-spacing: 1px; }
 
-/* العناوين العربية (يمين) */
-.print-table td.ar-label {
-    background-color: #f1f5f9 !important; font-weight: bold;
-    width: 1% !important; /* إجبار العمود على الانكماش */
-    white-space: nowrap !important; /* منع انكسار النص */
-    text-align: right !important; color: #0A192F;
-}
-
-/* العناوين الإنجليزية (يسار) */
-.print-table td.en-label {
-    background-color: #f1f5f9 !important; font-weight: bold;
-    width: 1% !important; /* إجبار العمود على الانكماش */
-    white-space: nowrap !important; /* منع انكسار النص */
-    text-align: left !important; direction: ltr !important; color: #0A192F;
-}
-
-/* عمود البيانات (المنتصف) */
-.print-table td.data-cell {
-    width: auto !important; /* يتوسع ليأخذ باقي المساحة */
-    font-weight: bold; color: #2D3748; text-align: center !important;
-}
-
-/* الملاحظات العامة */
-#c-notes { border: 1px solid #cbd5e1; padding: 15px; background: #fff; line-height: 1.6; text-align: right; }
-
-/* التذييل */
-.doc-footer { margin-top: 25px; padding-top: 15px; border-top: 2px solid #0A192F; position: relative; z-index: 2; }
-.footer-contact { 
-    display: flex; flex-direction: column; gap: 10px; background: #f8fafc !important; padding: 15px; 
-    border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; font-weight: bold;
-}
-.contact-row { display: flex; justify-content: space-around; width: 100%; }
-.verification-section { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 12px; }
-.final-note { text-align: center; font-size: 0.9rem; color: #64748b; margin-top: 15px; font-weight: bold; }
-
-/* =========================================
-   🖨️ إعدادات الطباعة الصارمة (A4)
-========================================= */
 @media print {
     @page { size: A4 portrait; margin: 0; }
-    body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; }
-    .no-print { display: none !important; }
-    .a4-page {
-        margin: 0 !important; padding: 12mm 10mm !important; /* هوامش حقيقية للطابعة */
-        box-shadow: none !important; width: 100% !important; max-width: 210mm !important; border: none !important;
-    }
-    .print-table { border: 2px solid #cbd5e1 !important; }
-    .print-table th, .print-table td { border: 1px solid #cbd5e1 !important; }
+    body { background: white; }
+    .no-print { display: none; }
+    .a4-page { margin: 0; border: none; box-shadow: none; height: 100vh; }
 }
