@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>ملف بيانات العميل | الإتقان بلس</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- تم إزالة مكتبة html2pdf المسببة للمشكلة نهائياً -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="print.css">
+    
+    <!-- 🌟 خدعة إجبار المتصفح على قراءة التنسيق الجديد 🌟 -->
+    <link rel="stylesheet" href="print.css?v=100">
 </head>
 <body>
 
@@ -20,135 +22,156 @@
         </div>
     </div>
 
-    <!-- الحاوية الأساسية للطباعة -->
+    <!-- حاوية ورقة الـ A4 -->
     <div class="a4-page" id="document-content">
         
+        <!-- العلامة المائية -->
         <div class="watermark-container">
             <div id="watermark-text" class="watermark"></div>
         </div>
 
+        <!-- الترويسة -->
         <div class="doc-header-custom no-break">
             <div class="header-right-custom">
                 <img src="../../images/logo.svg" alt="Logo" onerror="this.style.display='none'">
                 <h2>منصة في خدمتك<br>من الإتقان بلس</h2>
             </div>
             <div class="header-left-custom" dir="rtl">
-                <p>رقم شهادة العمل الحر: <span dir="ltr">FL-765735204</span></p>
-                <p>الرقم الضريبي: <span dir="ltr">312495447600003</span></p>
+                <p>رقم شهادة العمل الحر: FL-765735204</p>
+                <p>الرقم الضريبي: 312495447600003</p>
             </div>
         </div>
 
+        <!-- العنوان والتاريخ والوقت -->
         <div class="doc-title-custom no-break">
-            <h3 class="black-title">ملف بيانات العميل | Customer Profile</h3>
+            <h3 class="black-title">
+                <span dir="rtl">ملف بيانات العميل</span> <span style="color:#cbd5e1; margin:0 10px;">|</span> <span dir="ltr">Customer Profile</span>
+            </h3>
             <div class="date-time-pill">
-                <span><strong>التاريخ:</strong> <span id="print-date"></span></span>
+                <span><strong>التاريخ:</strong> <span id="print-date" dir="ltr"></span></span>
                 <span class="divider">|</span>
                 <span><strong>الوقت:</strong> <span id="print-time" dir="ltr"></span></span>
             </div>
         </div>
 
-        <!-- الجدول (تم إزالة الأوسمة المتداخلة لحل مشكلة الـ PDF) -->
-        <table class="print-table">
+        <!-- شبكة البيانات (العربي يمين والإنجليزي يسار) -->
+        <table class="print-table" dir="rtl">
             <thead>
-                <tr class="no-break"><th colspan="3">المعلومات الشخصية | Personal Information</th></tr>
+                <tr class="no-break">
+                    <th colspan="3">
+                        <span dir="rtl">المعلومات الشخصية</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">Personal Information</span>
+                    </th>
+                </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">اسم العميل</td>
-                    <td class="data-cell" id="c-name"></td>
-                    <td class="en-label">Customer Name</td>
+                    <td class="data-cell" id="c-name" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">Customer Name</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">رمز مفتاح الدولة</td>
                     <td class="data-cell" id="c-countryCode" dir="ltr"></td>
-                    <td class="en-label">Country Code</td>
+                    <td class="en-label" dir="ltr">Country Code</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">رقم الجوال</td>
                     <td class="data-cell" id="c-phone" dir="ltr"></td>
-                    <td class="en-label">Phone Number</td>
+                    <td class="en-label" dir="ltr">Phone Number</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">البريد الإلكتروني</td>
                     <td class="data-cell" id="c-email" dir="ltr"></td>
-                    <td class="en-label">Email Address</td>
+                    <td class="en-label" dir="ltr">Email Address</td>
                 </tr>
             </tbody>
 
             <thead>
-                <tr class="no-break"><th colspan="3">العنوان | Address</th></tr>
+                <tr class="no-break">
+                    <th colspan="3">
+                        <span dir="rtl">العنوان</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">Address</span>
+                    </th>
+                </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">الدولة</td>
-                    <td class="data-cell" id="c-country"></td>
-                    <td class="en-label">Country</td>
+                    <td class="data-cell" id="c-country" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">Country</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">المنطقة</td>
-                    <td class="data-cell" id="c-city"></td>
-                    <td class="en-label">Region</td>
+                    <td class="data-cell" id="c-city" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">Region</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الحي</td>
-                    <td class="data-cell" id="c-district"></td>
-                    <td class="en-label">District</td>
+                    <td class="data-cell" id="c-district" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">District</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الشارع</td>
-                    <td class="data-cell" id="c-street"></td>
-                    <td class="en-label">Street</td>
+                    <td class="data-cell" id="c-street" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">Street</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">رقم المبنى</td>
                     <td class="data-cell" id="c-buildingNo" dir="ltr"></td>
-                    <td class="en-label">Building Number</td>
+                    <td class="en-label" dir="ltr">Building Number</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الرقم الاضافي</td>
                     <td class="data-cell" id="c-additionalNo" dir="ltr"></td>
-                    <td class="en-label">Additional Number</td>
+                    <td class="en-label" dir="ltr">Additional Number</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">الرمز البريدي</td>
                     <td class="data-cell" id="c-postalCode" dir="ltr"></td>
-                    <td class="en-label">Postal Code</td>
+                    <td class="en-label" dir="ltr">Postal Code</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">صندوق البريد</td>
                     <td class="data-cell" id="c-poBox" dir="ltr"></td>
-                    <td class="en-label">P.O. Box</td>
+                    <td class="en-label" dir="ltr">P.O. Box</td>
                 </tr>
             </tbody>
 
             <thead>
-                <tr class="no-break"><th colspan="3">حول العميل | About Customer</th></tr>
+                <tr class="no-break">
+                    <th colspan="3">
+                        <span dir="rtl">حول العميل</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">About Customer</span>
+                    </th>
+                </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
                     <td class="ar-label">تاريخ الانضمام</td>
                     <td class="data-cell" id="c-joinDate" dir="ltr"></td>
-                    <td class="en-label">Join Date</td>
+                    <td class="en-label" dir="ltr">Join Date</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">حالة الحساب</td>
-                    <td class="data-cell" id="c-status"></td>
-                    <td class="en-label">Account Status</td>
+                    <td class="data-cell" id="c-status" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">Account Status</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">التصنيف</td>
-                    <td class="data-cell" id="c-category"></td>
-                    <td class="en-label">Category</td>
+                    <td class="data-cell" id="c-category" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">Category</td>
                 </tr>
                 <tr class="no-break">
                     <td class="ar-label">ملاحظات سريعة</td>
-                    <td class="data-cell" id="c-quickNote"></td>
-                    <td class="en-label">Quick Notes</td>
+                    <td class="data-cell" id="c-quickNote" dir="ltr"></td>
+                    <td class="en-label" dir="ltr">Quick Notes</td>
                 </tr>
             </tbody>
 
             <thead>
-                <tr class="no-break"><th colspan="3">ملاحظات عامة | General Notes</th></tr>
+                <tr class="no-break">
+                    <th colspan="3">
+                        <span dir="rtl">ملاحظات عامة</span> <span style="color:#64748b; margin:0 10px;">|</span> <span dir="ltr">General Notes</span>
+                    </th>
+                </tr>
             </thead>
             <tbody>
                 <tr class="no-break">
@@ -186,6 +209,7 @@
 
     </div>
 
-    <script type="module" src="print.js"></script>
+    <!-- 🌟 خدعة إجبار المتصفح على قراءة السكربت الجديد 🌟 -->
+    <script type="module" src="print.js?v=100"></script>
 </body>
 </html>
