@@ -1,59 +1,65 @@
-* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
-body { background: #525659; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 20px 0; direction: rtl; }
+/* 🌟 إجبار كل النصوص على اللون الأسود القاتم لحل بهتان הـ PDF 🌟 */
+* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; color: #000 !important; }
+
+body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 20px 0; direction: rtl; }
 
 .control-panel {
-    background: #0A192F; color: white; padding: 15px 30px; position: fixed; top: 0; left: 0; width: 100%;
+    background: #000 !important; color: white !important; padding: 15px 30px; position: fixed; top: 0; left: 0; width: 100%;
     display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
-.btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.3s; margin: 0 5px; }
-.btn-print { background: #3498db; color: #fff; }
-.btn-pdf { background: #e74c3c; color: #fff; }
-.btn-close { background: transparent; color: #cbd5e1; border: 1px solid #cbd5e1; }
+.btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.3s; margin: 0 5px; color: #fff !important; }
+.btn-print { background: #3498db !important; }
+.btn-pdf { background: #e74c3c !important; }
+.btn-close { background: transparent !important; border: 1px solid #fff; }
 .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-/* إجبار الورقة على مقاسات صارمة لمنع الصفحات الإضافية */
+/* الصفحة الرئيسية */
 .a4-page {
-    background: white; width: 210mm; min-height: 297mm; 
-    margin: 60px auto 20px auto; padding: 10mm; 
-    box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; color: #000; /* تم تغيير اللون لأسود قاتم لمنع البهتان */
+    background: white !important; width: 210mm; height: 297mm; overflow: hidden;
+    margin: 60px auto 20px auto; padding: 8mm 10mm; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative;
 }
 
 .watermark-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0; }
-.watermark { transform: rotate(-35deg); opacity: 0.05; font-weight: 900; text-align: center; line-height: 1.4; color: #000; }
+.watermark { transform: rotate(-35deg); opacity: 0.03; font-weight: 900; text-align: center; line-height: 1.4; color: #000 !important; }
 
 .no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
 
-.doc-header-custom { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0A192F; padding-bottom: 5px; margin-bottom: 10px; position: relative; z-index: 2; }
+/* الترويسات والخطوط الفاصلة */
+.doc-header-custom { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; position: relative; z-index: 2; }
 .header-right-custom { display: flex; align-items: center; gap: 10px; }
 .header-right-custom img { width: 50px; height: auto; }
-.header-right-custom h2 { margin: 0; color: #0A192F; font-size: 1.1rem; font-weight: 900; }
-.header-left-custom { text-align: left; font-size: 0.85rem; font-weight: bold; color: #000; }
+.header-right-custom h2 { margin: 0; font-size: 1.05rem; font-weight: 900; }
+.header-left-custom { text-align: left; font-size: 0.8rem; font-weight: bold; }
 .header-left-custom p { margin: 2px 0; }
 
 .doc-title-custom { text-align: center; margin-bottom: 10px; position: relative; z-index: 2; }
-.black-title { margin: 0 auto; color: #fff; background: #0A192F; padding: 6px 20px; border-radius: 5px; display: inline-block; min-width: 50%; font-size: 1.05rem; font-weight: bold; }
-.date-time-pill { display: inline-block; background: #f1f5f9; padding: 4px 15px; border-radius: 20px; margin-top: 8px; font-size: 0.85rem; font-weight: bold; color: #000; border: 1px solid #94a3b8; }
+.black-title { margin: 0 auto; color: #fff !important; background: #000 !important; padding: 6px 20px; border-radius: 5px; display: inline-block; min-width: 50%; font-size: 1rem; font-weight: bold; }
+.date-time-pill { display: inline-block; background: #f1f5f9 !important; padding: 4px 15px; border-radius: 20px; margin-top: 8px; font-size: 0.8rem; font-weight: bold; border: 1px solid #000; }
 
-/* 🌟 ألوان داكنة للجدول لضمان وضوح فائق في הـ PDF 🌟 */
-.print-table { width: 100% !important; border-collapse: collapse; margin-bottom: 8px; table-layout: auto !important; position: relative; z-index: 2; border: 2px solid #0A192F; }
-.print-table th, .print-table td { border: 1px solid #64748b; padding: 5px 8px; font-size: 12.5px; vertical-align: middle; }
-.print-table th { background-color: #e2e8f0 !important; color: #000 !important; font-weight: 900; text-align: center; font-size: 13px; padding: 6px; }
-.print-table td.ar-label { background-color: #f1f5f9 !important; font-weight: bold; width: 1% !important; white-space: nowrap !important; text-align: right !important; color: #000; }
-.print-table td.en-label { background-color: #f1f5f9 !important; font-weight: bold; width: 1% !important; white-space: nowrap !important; text-align: left !important; direction: ltr !important; color: #000; }
-.print-table td.data-cell { width: auto !important; font-weight: 900; color: #000; text-align: center !important; }
+/* الجدول: ألوان حادة للخطوط والخلفيات */
+.print-table { width: 100% !important; border-collapse: collapse; margin-bottom: 8px; table-layout: auto !important; position: relative; z-index: 2; border: 2px solid #000; }
+.print-table th, .print-table td { border: 1px solid #000; padding: 5px 8px; font-size: 12.5px; vertical-align: middle; }
+.print-table th { background-color: #d1d5db !important; font-weight: 900; text-align: center; font-size: 13px; padding: 6px; }
+.print-table td.ar-label { background-color: #f8fafc !important; font-weight: bold; width: 1% !important; white-space: nowrap !important; text-align: right !important; }
+.print-table td.en-label { background-color: #f8fafc !important; font-weight: bold; width: 1% !important; white-space: nowrap !important; text-align: left !important; direction: ltr !important; }
+.print-table td.data-cell { width: auto !important; font-weight: 900; text-align: center !important; }
 
-#c-notes { padding: 6px; font-size: 12.5px; line-height: 1.4; min-height: 30px; font-weight: bold; color: #000; }
+#c-notes { padding: 6px; font-size: 12.5px; line-height: 1.4; min-height: 30px; font-weight: 900; }
 
-.doc-footer { margin-top: 8px; padding-top: 8px; border-top: 2px solid #0A192F; position: relative; z-index: 2; }
-.footer-contact { display: flex; flex-direction: column; gap: 6px; background: #f1f5f9 !important; padding: 8px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 0.9rem; font-weight: bold; color: #000; }
+.doc-footer { margin-top: 8px; padding-top: 8px; border-top: 2px solid #000; position: relative; z-index: 2; }
+.footer-contact { display: flex; flex-direction: column; gap: 6px; background: #f8fafc !important; padding: 8px; border: 1px solid #000; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
 .contact-row { display: flex; justify-content: space-around; width: 100%; }
-.verification-section { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px dashed #64748b; padding-top: 8px; }
-.final-note { text-align: center; font-size: 0.85rem; color: #000; margin-top: 5px; font-weight: bold; }
+.verification-section { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px dashed #000; padding-top: 8px; }
+.final-note { text-align: center; font-size: 0.8rem; margin-top: 5px; font-weight: bold; }
 .ltr-text { direction: ltr; display: inline-block; }
 
+/* إعدادات المطبعة (إزالة التنسيق الافتراضي للمتصفح) */
 @media print {
     @page { size: A4 portrait; margin: 0; }
     body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; }
     .no-print { display: none !important; }
-    .a4-page { margin: 0 !important; padding: 10mm !important; box-shadow: none !important; width: 100% !important; border: none !important; }
+    .a4-page { margin: 0 !important; padding: 8mm 10mm !important; box-shadow: none !important; width: 100% !important; border: none !important; height: 297mm !important; }
+    .print-table { border: 2px solid #000 !important; }
+    .print-table th, .print-table td { border: 1px solid #000 !important; }
 }
