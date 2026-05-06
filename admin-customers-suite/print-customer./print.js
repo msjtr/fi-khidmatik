@@ -6,7 +6,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
 
-// 🌟 القاموس الذكي للترجمة الفورية 🌟
 const dict = {
     'المملكة العربية السعودية': 'Saudi Arabia', 'السعودية': 'Saudi Arabia',
     'حائل': 'Hail', 'الرياض': 'Riyadh', 'النقرة': 'Al Naqra', 'سعد المشاط': 'Saad Al Mashat',
@@ -17,13 +16,12 @@ const dict = {
 
 const arMap = {'ا':'a','أ':'a','إ':'e','آ':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ى':'a','ة':'a','ؤ':'o','ئ':'e'};
 
-// دالة تحويل وتحليل النص (عربي | إنجليزي)
+// 🌟 ترتيب: عربي يمين | إنجليزي يسار 🌟
 function translateData(text) {
     if (!text || text === '-' || text.trim() === '') return '-';
     let cleanText = text.trim();
     if (dict[cleanText]) return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${dict[cleanText]}</span>`;
     
-    // تحويل الأسماء إلى إنجليزي في حال عدم وجودها في القاموس
     let words = cleanText.split(' ');
     let enWords = words.map(w => {
         if (dict[w]) return dict[w];
@@ -36,7 +34,6 @@ function translateData(text) {
     return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${enText}</span>`;
 }
 
-// دالة تحويل أي أرقام شرقية إلى إنجليزية
 function toEnglishNumbers(str) {
     if(!str) return '';
     const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -44,17 +41,16 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// دالة توليد التاريخ بالصيغة المطلوبة
 function setupDates() {
     const now = new Date();
     
-    // ميلادي: DD-MM-YYYY
+    // ميلادي
     const dG = String(now.getDate()).padStart(2, '0');
     const mG = String(now.getMonth() + 1).padStart(2, '0');
     const yG = now.getFullYear();
     const gregStr = `${dG}-${mG}-${yG}`;
 
-    // هجري: YYYY-MM-DD
+    // هجري
     const hijriFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
@@ -88,7 +84,6 @@ async function loadCustomerData() {
             customerNameForFile = c.name || "Client";
             const vCode = generateVerificationCode(customerId);
             
-            // تعبئة البيانات المترجمة
             document.getElementById('c-name').innerHTML = translateData(c.name);
             document.getElementById('c-countryCode').innerText = toEnglishNumbers(c.countryCode || '-');
             document.getElementById('c-phone').innerText = toEnglishNumbers(c.phone || '-');
@@ -120,7 +115,6 @@ async function loadCustomerData() {
 
             document.getElementById('c-notes').innerHTML = toEnglishNumbers(c.detailedNotes) || '<i>لا توجد ملاحظات عامة.</i>';
             
-            // ضبط العلامة المائية بشكل متكرر لحماية المستند
             const watermarkEl = document.getElementById('watermark-text');
             if (watermarkEl) {
                 watermarkEl.innerHTML = `<div style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
@@ -140,7 +134,7 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
-// 🌟 التصدير المثالي لملف PDF يمنع الفراغات والقص 🌟
+// 🌟 التصدير المثالي: يعالج التقطيع والفراغات 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const element = document.getElementById('document-content');
     const pdfBtn = document.getElementById('btn-pdf');
@@ -150,17 +144,16 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     pdfBtn.disabled = true;
 
     const opt = {
-        margin: [15, 10, 15, 10], // هوامش حقيقية (أعلى، يمين، أسفل، يسار)
+        margin: [10, 10, 10, 10], // هوامش آمنة 10 ملم من كل الجهات لمنع القص
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { 
-            scale: 2, // زوم يضمن عدم القص
+            scale: 3, // دقة ممتازة وواضحة جداً
             useCORS: true, 
-            letterRendering: true,
-            windowWidth: 1000 // فرض مقاس شاشة لإجبار الجدول على التنسيق
+            letterRendering: false, // 🚨 هذا الأمر الأهم: يمنع تقطيع وانعكاس الحروف العربية! 🚨
+            scrollY: 0
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // منع القص بقوة CSS والمكتبة
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
