@@ -1,178 +1,123 @@
-import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-import { db } from '../js/firebase.js'; 
+/* =========================================
+   نظام طباعة Tera V12
+========================================= */
+* { box-sizing: border-box; }
 
-const currentEmployee = "محمد بن صالح الشمري";
-const urlParams = new URLSearchParams(window.location.search);
-const customerId = urlParams.get('id');
-let customerNameForFile = "Client";
-
-// 🌟 القاموس الذكي للترجمة الفورية 🌟
-const dict = {
-    'المملكة العربية السعودية': 'Saudi Arabia', 'السعودية': 'Saudi Arabia',
-    'حائل': 'Hail', 'الرياض': 'Riyadh', 'النقرة': 'Al Naqra', 'سعد المشاط': 'Saad Al Mashat',
-    'نشط': 'Active', 'جديد': 'New', 'موقوف': 'Suspended', 'محظور': 'Blocked',
-    'عادي': 'Normal', 'VIP': 'VIP', 'مميز': 'Premium', 'محتمل': 'Potential',
-    'سريع التجاوب': 'Responsive', 'يتأخر في الرد': 'Slow Reply', 'كثير الطلبات': 'Many Orders', 'حاجة لمتابعة': 'Needs Followup'
-};
-
-const arMap = {'ا':'a','أ':'a','إ':'e','آ':'a','ب':'b','ت':'t','ث':'th','ج':'j','ح':'h','خ':'kh','د':'d','ذ':'dh','ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z','ع':'a','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n','ه':'h','و':'w','ي':'y','ى':'a','ة':'a','ؤ':'o','ئ':'e'};
-
-// دالة تحويل وتحليل النص (عربي | إنجليزي)
-function translateData(text) {
-    if (!text || text === '-' || text.trim() === '') return '-';
-    let cleanText = text.trim();
-    if (dict[cleanText]) return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${dict[cleanText]}</span>`;
-    
-    // تحويل الأسماء إلى إنجليزي في حال عدم وجودها في القاموس
-    let words = cleanText.split(' ');
-    let enWords = words.map(w => {
-        if (dict[w]) return dict[w];
-        if (w.startsWith('ال')) w = w.replace('ال', 'Al ');
-        let res = '';
-        for(let i=0; i<w.length; i++) res += arMap[w[i]] || w[i];
-        return res.charAt(0).toUpperCase() + res.slice(1);
-    });
-    let enText = enWords.join(' ');
-    return `<span dir="rtl">${cleanText}</span> <span style="color:#a0aec0; margin:0 8px;">|</span> <span dir="ltr">${enText}</span>`;
+body {
+    background-color: #525659; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    margin: 0; padding: 20px 0; direction: rtl;
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important;
 }
 
-// دالة تحويل أي أرقام شرقية إلى إنجليزية
-function toEnglishNumbers(str) {
-    if(!str) return '';
-    const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
+.control-panel {
+    background: #0A192F; color: white; padding: 15px 30px;
+    position: fixed; top: 0; left: 0; width: 100%;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.btn {
+    padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold;
+    cursor: pointer; font-size: 1rem; transition: 0.3s;
+}
+.btn-print { background: #3498db; color: #fff; margin-left: 10px; }
+.btn-pdf { background: #e74c3c; color: #fff; }
+.btn-close { background: transparent; color: #cbd5e1; border: 1px solid #cbd5e1; }
+.btn:hover { opacity: 0.8; transform: translateY(-2px); }
+
+/* --- تصميم ورقة A4 --- */
+.a4-page {
+    background: white; width: 210mm; min-height: 297mm;
+    margin: 80px auto 20px auto; padding: 15mm 10mm;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; color: #0A192F;
 }
 
-// دالة توليد التاريخ بالصيغة المطلوبة
-function setupDates() {
-    const now = new Date();
-    
-    // ميلادي: DD-MM-YYYY
-    const dG = String(now.getDate()).padStart(2, '0');
-    const mG = String(now.getMonth() + 1).padStart(2, '0');
-    const yG = now.getFullYear();
-    const gregStr = `${dG}-${mG}-${yG}`;
-
-    // هجري: YYYY-MM-DD
-    const hijriFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    const hParts = hijriFormatter.formatToParts(now);
-    const hY = hParts.find(p => p.type === 'year').value;
-    const hM = hParts.find(p => p.type === 'month').value;
-    const hD = hParts.find(p => p.type === 'day').value;
-    const hijriStr = `${hY}-${hM}-${hD}`;
-
-    document.getElementById('print-date').innerText = toEnglishNumbers(`${hijriStr} هـ / ${gregStr} م`);
-    document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US'));
+.watermark-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0;
+}
+.watermark {
+    transform: rotate(-35deg); opacity: 0.05; font-weight: 900; text-align: center; line-height: 1.4; color: #000;
 }
 
-function generateVerificationCode(id) {
-    const raw = id + Date.now().toString() + "TeraSecret";
-    let hash = 0;
-    for (let i = 0; i < raw.length; i++) {
-        hash = ((hash << 5) - hash) + raw.charCodeAt(i);
-        hash = hash & hash; 
+.no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+/* --- الترويسة والعنوان --- */
+.doc-header-custom {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid #0A192F; padding-bottom: 10px; margin-bottom: 15px; position: relative; z-index: 2;
+}
+.header-right-custom { display: flex; align-items: center; gap: 15px; }
+.header-right-custom img { width: 60px; max-width: 60px; }
+.header-right-custom h2 { margin: 0; color: #0A192F; font-size: 1.1rem; font-weight: 900; line-height: 1.3; }
+.header-left-custom { text-align: left; font-size: 0.85rem; font-weight: bold; color: #475569; line-height: 1.4; }
+.header-left-custom p { margin: 2px 0; }
+
+.doc-title-custom { text-align: center; margin-bottom: 20px; position: relative; z-index: 2; }
+.black-title {
+    margin: 0 auto; color: #fff; background: #0A192F; 
+    padding: 8px 20px; border-radius: 4px; display: inline-block; 
+    min-width: 50%; font-size: 1.1rem; font-weight: bold;
+}
+.date-time-pill {
+    display: inline-block; background: #f1f5f9; padding: 6px 20px; border-radius: 20px;
+    margin-top: 10px; font-size: 0.9rem; font-weight: bold; color: #334155; border: 1px solid #cbd5e1;
+}
+.date-time-pill .divider { margin: 0 10px; color: #94a3b8; font-weight: normal; }
+
+/* --- الجدول المطور (تم استرجاع الحدود/Borders) --- */
+.print-table {
+    width: 100% !important; max-width: 100% !important;
+    border-collapse: collapse; margin-bottom: 20px;
+    table-layout: auto !important; position: relative; z-index: 2;
+    border: 2px solid #cbd5e1; /* إطار خارجي للجدول */
+}
+.print-table th, .print-table td {
+    border: 1px solid #cbd5e1; /* خطوط فاصلة بين الخلايا */
+    padding: 8px 10px !important; font-size: 13px; vertical-align: middle; 
+    word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: normal !important;
+}
+.print-table th { 
+    background-color: #f8fafc !important; color: #0A192F !important; 
+    font-weight: 900; text-align: center; font-size: 14px; padding: 10px !important; 
+}
+.print-table td.ar-label { 
+    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: right !important; 
+}
+.print-table td.data-cell { 
+    width: 50% !important; font-weight: bold; color: #2D3748; text-align: center !important; 
+}
+.print-table td.en-label { 
+    background-color: #f1f5f9 !important; font-weight: bold; width: 25% !important; text-align: left !important; direction: ltr !important; 
+}
+.print-table tr, .print-table th, .print-table td { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+/* --- التذييل --- */
+.doc-footer { margin-top: 20px; padding-top: 15px; border-top: 2px solid #0A192F; position: relative; z-index: 2; }
+.footer-contact { 
+    display: flex; flex-direction: column; gap: 8px; background: #f8fafc !important; padding: 12px; 
+    border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; font-weight: bold; color: #0A192F;
+}
+.contact-row { display: flex; justify-content: space-around; width: 100%; }
+.ltr-text { display: inline-block; direction: ltr; unicode-bidi: embed; }
+.verification-section { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+.final-note { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 15px; font-weight: bold; }
+
+/* =========================================
+   🖨️ إعدادات الطباعة الفعلية الصارمة 
+========================================= */
+@media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    .no-print { display: none !important; }
+    .a4-page {
+        margin: 0 !important; padding: 0 !important; box-shadow: none !important;
+        width: 100% !important; max-width: 100% !important; border: none !important; overflow: visible !important;
     }
-    return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
-}
-
-async function loadCustomerData() {
-    setupDates();
-    if (!customerId) return;
-    try {
-        const docRef = doc(db, "customers", customerId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const c = docSnap.data();
-            customerNameForFile = c.name || "Client";
-            const vCode = generateVerificationCode(customerId);
-            
-            // تعبئة البيانات المترجمة
-            document.getElementById('c-name').innerHTML = translateData(c.name);
-            document.getElementById('c-countryCode').innerText = toEnglishNumbers(c.countryCode || '-');
-            document.getElementById('c-phone').innerText = toEnglishNumbers(c.phone || '-');
-            document.getElementById('c-email').innerText = c.email || '-'; 
-            
-            document.getElementById('c-country').innerHTML = translateData(c.country);
-            document.getElementById('c-city').innerHTML = translateData(c.city);
-            document.getElementById('c-district').innerHTML = translateData(c.district);
-            document.getElementById('c-street').innerHTML = translateData(c.street);
-            
-            document.getElementById('c-buildingNo').innerText = toEnglishNumbers(c.buildingNo || '-');
-            document.getElementById('c-additionalNo').innerText = toEnglishNumbers(c.additionalNo || '-');
-            document.getElementById('c-postalCode').innerText = toEnglishNumbers(c.postalCode || '-');
-            document.getElementById('c-poBox').innerText = toEnglishNumbers(c.poBox || '-');
-
-            let joinDateStr = '-';
-            if(c.createdAt) {
-                let d = new Date(c.createdAt);
-                const dJ = String(d.getDate()).padStart(2, '0');
-                const mJ = String(d.getMonth() + 1).padStart(2, '0');
-                const yJ = d.getFullYear();
-                joinDateStr = `${dJ}-${mJ}-${yJ}`;
-            }
-            document.getElementById('c-joinDate').innerText = toEnglishNumbers(joinDateStr);
-
-            document.getElementById('c-status').innerHTML = translateData(c.accountStatus);
-            document.getElementById('c-category').innerHTML = translateData(c.customerCategory);
-            document.getElementById('c-quickNote').innerHTML = translateData(c.quickNote);
-
-            document.getElementById('c-notes').innerHTML = toEnglishNumbers(c.detailedNotes) || '<i>لا توجد ملاحظات عامة.</i>';
-            
-            // ضبط العلامة المائية بشكل متكرر لحماية المستند
-            const watermarkEl = document.getElementById('watermark-text');
-            if (watermarkEl) {
-                watermarkEl.innerHTML = `<div style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
-                                         <div style="font-size: 2.5rem; color: #94a3b8;">${currentEmployee}</div>`;
-            }
-
-            const qrContainer = document.getElementById("qr-code");
-            if (qrContainer && typeof QRCode !== 'undefined') {
-                new QRCode(qrContainer, { text: `Verify: ${vCode} | ID: ${customerId}`, width: 75, height: 75, colorDark: "#0A192F", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
-            }
-            document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
-        }
-    } catch (e) {}
-}
-
-document.getElementById('btn-print')?.addEventListener('click', async () => {
-    window.print();
-});
-
-// 🌟 التصدير المثالي لملف PDF يمنع الفراغات والقص 🌟
-document.getElementById('btn-pdf')?.addEventListener('click', async () => {
-    const element = document.getElementById('document-content');
-    const pdfBtn = document.getElementById('btn-pdf');
-    if (!element || !pdfBtn) return;
-
-    pdfBtn.innerText = "جاري التصدير (جودة عالية)...";
-    pdfBtn.disabled = true;
-
-    const opt = {
-        margin: [15, 10, 15, 10], // هوامش حقيقية (أعلى، يمين، أسفل، يسار)
-        filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
-        image: { type: 'jpeg', quality: 1.0 },
-        html2canvas: { 
-            scale: 2, // زوم يضمن عدم القص
-            useCORS: true, 
-            letterRendering: true,
-            windowWidth: 1000 // فرض مقاس شاشة لإجبار الجدول على التنسيق
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // منع القص بقوة CSS والمكتبة
-    };
-
-    try {
-        setTimeout(async () => {
-            await html2pdf().set(opt).from(element).save();
-            pdfBtn.innerText = "📥 تصدير PDF";
-            pdfBtn.disabled = false;
-        }, 800);
-    } catch (err) {
-        pdfBtn.innerText = "📥 تصدير PDF";
-        pdfBtn.disabled = false;
+    .print-table { table-layout: auto !important; width: 100% !important; border: 2px solid #cbd5e1 !important; }
+    .print-table th, .print-table td { border: 1px solid #cbd5e1 !important; }
+    .print-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+    .print-table th, .print-table td.ar-label, .print-table td.en-label, .black-title, .date-time-pill, .footer-contact {
+        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
     }
-});
-
-document.addEventListener('DOMContentLoaded', loadCustomerData);
+}
