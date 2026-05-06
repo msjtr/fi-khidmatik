@@ -13,7 +13,7 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// 🌟 الإصلاح النهائي لمشكلة التاريخ (عزل الأرقام عن الحروف تماماً) 🌟
+// 🌟 الإصلاح القاطع للتاريخ باستخدام BDO 🌟
 function setupDates() {
     const now = new Date();
     
@@ -29,8 +29,8 @@ function setupDates() {
     const hD = hParts.find(p => p.type === 'day').value;
     const hijriStr = `${hD}-${hM}-${hY}`;
 
-    // استخدام dir="ltr" داخل الأرقام يمنع المتصفح من قلب الميم والهاء
-    const finalDate = `<span dir="ltr" style="display:inline-block;">${toEnglishNumbers(hijriStr)}</span> هـ &nbsp;|&nbsp; <span dir="ltr" style="display:inline-block;">${toEnglishNumbers(gregStr)}</span> م`;
+    // الـ BDO يُجبر الرقم على أن يكون قطعة واحدة من اليسار لليمين، ثم تتبعه الهاء والميم بشكل صحيح 100%
+    const finalDate = `<bdo dir="ltr">${toEnglishNumbers(hijriStr)}</bdo> هـ / <bdo dir="ltr">${toEnglishNumbers(gregStr)}</bdo> م`;
     
     document.getElementById('print-date').innerHTML = finalDate;
     document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', { hour12: false }));
@@ -62,9 +62,9 @@ function translateData(text) {
         enText = enWords.join(' ');
     }
     return `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span style="flex: 1; text-align: right;" dir="rtl">${cleanText}</span> 
-                <span style="color:#64748b; margin:0 10px;">|</span> 
-                <span style="flex: 1; text-align: left;" dir="ltr">${enText}</span>
+                <span style="flex: 1; text-align: right; color:#000;" dir="rtl">${cleanText}</span> 
+                <span style="color:#000; margin:0 10px;">|</span> 
+                <span style="flex: 1; text-align: left; color:#000;" dir="ltr">${enText}</span>
             </div>`;
 }
 
@@ -106,15 +106,15 @@ async function loadCustomerData() {
             
             const watermarkEl = document.getElementById('watermark-text');
             if (watermarkEl) {
-                watermarkEl.innerHTML = `<div style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
-                                         <div style="font-size: 2.5rem; color: #94a3b8;">${currentEmployee}</div>`;
+                watermarkEl.innerHTML = `<div style="font-size: 1.5rem; color: #000; opacity: 0.1; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
+                                         <div style="font-size: 2.5rem; color: #000; opacity: 0.1;">${currentEmployee}</div>`;
             }
 
             const vCode = generateVerificationCode(customerId);
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
                 qrContainer.innerHTML = "";
-                new QRCode(qrContainer, { text: `Verify: ${customerId}`, width: 65, height: 65, colorDark: "#0A192F", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+                new QRCode(qrContainer, { text: `Verify: ${customerId}`, width: 65, height: 65, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
             document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
         }
@@ -142,7 +142,7 @@ document.getElementById('btn-print')?.addEventListener('click', async () => {
     window.print();
 });
 
-// 🌟 الحل الجذري لمشكلة قص المحتوى (إزالة الهوامش مؤقتاً أثناء الالتقاط) 🌟
+// 🌟 الحل القاطع لمشكلة قص الفوتر وصفحات الـ PDF 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     await logAction('PDF Export');
     const element = document.getElementById('document-content');
@@ -150,16 +150,19 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     btn.innerText = "جاري التحميل...";
     btn.disabled = true;
 
-    // الخدعة التي تمنع قص الـ PDF: إزالة مسافات العرض مؤقتاً
+    // الخدعة التي تمنع قص الـ PDF: إزالة المسافات التي تخدع المكتبة مؤقتاً
     const originalMargin = element.style.margin;
+    const originalHeight = element.style.height;
     element.style.margin = '0';
-    element.style.boxShadow = 'none';
+    element.style.height = 'auto'; // يسمح للمكتبة بقراءة المحتوى كاملاً
+    element.style.maxHeight = 'none';
 
+    // تم إعطاء الهوامش للمكتبة نفسها لتجنب أي قص
     const opt = {
-        margin: [5, 5, 5, 5], // هوامش داخلية آمنة في الـ PDF تضمن عدم القص
+        margin: [5, 5, 5, 5], 
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 },
-        html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // دقة 4K عالية جداً
+        html2canvas: { scale: 4, useCORS: true, letterRendering: true, windowWidth: 800 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -168,9 +171,10 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     } catch (err) {
         console.error(err);
     } finally {
-        // إعادة التنسيق للشاشة
+        // إعادة التنسيق للشكل الطبيعي
         element.style.margin = originalMargin;
-        element.style.boxShadow = '';
+        element.style.height = originalHeight;
+        element.style.maxHeight = '';
         btn.innerText = "📥 تحميل PDF مباشر";
         btn.disabled = false;
     }
