@@ -5,16 +5,6 @@ const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
-let isDataLoaded = false; // 🌟 علم للتأكد من تحميل البيانات
-
-const setFavicon = () => {
-    const icon = document.createElement('link');
-    icon.rel = 'icon';
-    icon.type = 'image/svg+xml';
-    icon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
-    document.head.appendChild(icon);
-};
-setFavicon();
 
 function toEnglishNumbers(str) {
     if(!str) return '';
@@ -23,6 +13,7 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
+// 🌟 إعداد التاريخ بالشكل الرقمي الصافي
 function setupDates() {
     const now = new Date();
     const dG = String(now.getDate()).padStart(2, '0');
@@ -37,8 +28,9 @@ function setupDates() {
     const hD = hParts.find(p => p.type === 'day').value;
     const hijriStrRaw = `${hD}-${hM}-${hY}`;
 
-    const finalDateRaw = toEnglishNumbers(hijriStrRaw) + ' / ' + toEnglishNumbers(gregStrRaw);
-    document.getElementById('print-date-raw').innerText = finalDateRaw;
+    const finalDateRaw = `<span style="font-family: Arial;">${toEnglishNumbers(hijriStrRaw)}</span> / <span style="font-family: Arial;">${toEnglishNumbers(gregStrRaw)}</span>`;
+    
+    document.getElementById('print-date-raw').innerHTML = finalDateRaw;
     document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', { hour12: false }));
 }
 
@@ -68,9 +60,9 @@ function translateData(text) {
         enText = enWords.join(' ');
     }
     return `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span style="flex: 1; text-align: right; color:#000;" dir="rtl">${cleanText}</span> 
-                <span style="color:#000; margin:0 10px;">|</span> 
-                <span style="flex: 1; text-align: left; color:#000;" dir="ltr">${enText}</span>
+                <span style="flex: 1; text-align: right; font-weight: 900; color: #000;" dir="rtl">${cleanText}</span> 
+                <span style="color: #64748b; margin: 0 10px;">|</span> 
+                <span style="flex: 1; text-align: left; font-weight: 900; color: #000;" dir="ltr">${enText}</span>
             </div>`;
 }
 
@@ -110,12 +102,6 @@ async function loadCustomerData() {
             document.getElementById('c-quickNote').innerHTML = translateData(c.quickNote);
             document.getElementById('c-notes').innerHTML = toEnglishNumbers(c.detailedNotes) || '-';
             
-            const watermarkEl = document.getElementById('watermark-text');
-            if (watermarkEl) {
-                watermarkEl.innerHTML = `<div style="font-size: 1.5rem; color: #000; opacity: 0.1; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
-                                         <div style="font-size: 2.5rem; color: #000; opacity: 0.1;">${currentEmployee}</div>`;
-            }
-
             const vCode = generateVerificationCode(customerId);
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
@@ -123,7 +109,6 @@ async function loadCustomerData() {
                 new QRCode(qrContainer, { text: `Verify: ${customerId}`, width: 65, height: 65, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
             document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
-            isDataLoaded = true; // 🌟 اكتمل التحميل
         }
     } catch (e) { console.error(e); }
 }
@@ -135,75 +120,47 @@ function generateVerificationCode(id) {
     return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
 }
 
-async function logAction(type) {
-    try {
-        await addDoc(collection(db, "print_logs"), {
-            user_name: currentEmployee, client_id: customerId, action_type: type,
-            date: new Date().toISOString().split('T')[0], timestamp: new Date().getTime()
-        });
-    } catch (e) {}
-}
-
-document.getElementById('btn-print')?.addEventListener('click', async () => {
-    await logAction('Print');
+document.getElementById('btn-print')?.addEventListener('click', () => {
     window.print();
 });
 
-// 🌟 تصدير PDF مع نظام "الانتظار الذكي" لضمان التحميل السليم 🌟
+// 🌟 زر التحميل المباشر للـ PDF 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
-    const btn = document.getElementById('btn-pdf');
     const element = document.getElementById('document-content');
-
-    // 1. تغيير حالة الزر للتنبيه
-    btn.innerText = "جاري تحضير الصفحة...";
+    const btn = document.getElementById('btn-pdf');
+    btn.innerText = "جاري تحضير الملف...";
     btn.disabled = true;
 
-    // 2. التحقق من جاهزية البيانات (إذا لم تكن جاهزة انتظر قليلاً)
-    if (!isDataLoaded) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-
-    // 3. انتظار إضافي لضمان رسم الباركود والخطوط (مهم جداً للتحميل السليم)
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    await logAction('PDF Export');
-
+    // إزالة الهوامش الخارجية لمنع القص
     const originalMargin = element.style.margin;
     const originalHeight = element.style.height;
     element.style.margin = '0';
     element.style.height = 'auto'; 
     element.style.maxHeight = 'none';
 
+    // 🌟 إعدادات الـ PDF (جودة 4K + ضغط 85% لحجم أقل من 2MB + هوامش يمين/يسار 15mm) 🌟
     const opt = {
-        margin: [5, 5, 5, 5], 
+        margin: [10, 15, 10, 15], // [أعلى، يمين، أسفل، يسار]
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
-        image: { type: 'jpeg', quality: 1.0 },
-        html2canvas: { 
-            scale: 4, 
-            useCORS: true, 
-            letterRendering: true, 
-            windowWidth: 800,
-            onclone: (clonedDoc) => {
-                // التأكد من تحميل العناصر في النسخة المستنسخة للـ PDF
-                return new Promise(resolve => setTimeout(resolve, 500));
-            }
-        }, 
+        image: { type: 'jpeg', quality: 0.85 }, // 0.85 تضغط الحجم بشكل ممتاز وتحافظ على جودة 4K
+        html2canvas: { scale: 4, useCORS: true, logging: false }, // Scale 4 لدقة 4K
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    try {
-        btn.innerText = "جاري تحميل الملف...";
-        await html2pdf().set(opt).from(element).save();
-    } catch (err) {
-        console.error(err);
-        alert("حدث خطأ أثناء التحميل، يرجى المحاولة مرة أخرى.");
-    } finally {
-        element.style.margin = originalMargin;
-        element.style.height = originalHeight;
-        element.style.maxHeight = '';
-        btn.innerText = "📥 تحميل PDF مباشر";
-        btn.disabled = false;
-    }
+    // 🌟 انتظار 1.5 ثانية لتحضير الألوان والخطوط بالكامل 🌟
+    setTimeout(async () => {
+        try {
+            await html2pdf().set(opt).from(element).save();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            element.style.margin = originalMargin;
+            element.style.height = originalHeight;
+            element.style.maxHeight = '';
+            btn.innerText = "📥 تحميل PDF مباشر";
+            btn.disabled = false;
+        }
+    }, 1500); // 1500 ملي ثانية (ثانية ونصف)
 });
 
 document.addEventListener('DOMContentLoaded', loadCustomerData);
