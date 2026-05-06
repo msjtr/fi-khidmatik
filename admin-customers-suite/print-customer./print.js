@@ -1,48 +1,62 @@
-// 1. استيراد مكتبات Firebase Firestore
 import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
-// 2. مسار قاعدة البيانات
 import { db } from '../js/firebase.js'; 
 
-// 🌟 إضافة أيقونة التبويبة (Favicon) برمجياً لتجنب خطأ 404
 const setFavicon = () => {
     const icon = document.createElement('link');
-    icon.rel = 'icon';
-    icon.type = 'image/svg+xml';
-    icon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
+    icon.rel = 'icon'; icon.type = 'image/svg+xml'; icon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
     document.head.appendChild(icon);
-
-    const shortcutIcon = document.createElement('link');
-    shortcutIcon.rel = 'shortcut icon';
-    shortcutIcon.href = '/Fi-Khidmatik-by-Al-Itqan-Plus/images/logo.svg';
-    document.head.appendChild(shortcutIcon);
 };
-setFavicon(); // تشغيل الدالة فوراً
-// 🌟 --------------------------------------------------
+setFavicon();
 
 const currentEmployee = "محمد بن صالح الشمري";
-
-// استخراج ID العميل من الرابط
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
 
-// دالة توليد كود تحقق سريع
+// 🌟 قواميس الترجمة الديناميكية 🌟
+const translations = {
+    status: { 'جديد': 'New', 'نشط': 'Active', 'موقوف': 'Suspended', 'محظور': 'Blocked' },
+    category: { 'عادي': 'Normal', 'VIP': 'VIP', 'مميز': 'Premium', 'محتمل': 'Potential' },
+    notes: { 'سريع التجاوب': 'Responsive', 'يتأخر في الرد': 'Slow Reply', 'كثير الطلبات': 'Many Orders', 'حاجة لمتابعة': 'Needs Follow-up' }
+};
+
+// 🌟 دالة التحويل للأرقام الإنجليزية 🌟
+function toEnglishNumbers(str) {
+    if(!str) return '';
+    const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
+}
+
+// 🌟 دالة إعداد التاريخ والوقت 🌟
+function setupDateTime() {
+    const now = new Date();
+    // هجري: الشهر نص، الأيام والسنوات إنجليزية
+    let hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(now);
+    hijri = toEnglishNumbers(hijri); 
+    // ميلادي: أرقام إنجليزية فقط
+    let greg = new Intl.DateTimeFormat('en-GB').format(now);
+    greg = toEnglishNumbers(greg);
+    document.getElementById('print-date').innerText = `${hijri} هـ / ${greg}`;
+
+    // الوقت
+    let timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    document.getElementById('print-time').innerText = toEnglishNumbers(timeStr);
+}
+
 function generateVerificationCode(id) {
-    const raw = id + Date.now().toString() + "TeraV12Secret";
+    const raw = id + Date.now().toString() + "TeraSecret";
     let hash = 0;
     for (let i = 0; i < raw.length; i++) {
-        const char = raw.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
+        hash = ((hash << 5) - hash) + raw.charCodeAt(i);
         hash = hash & hash; 
     }
     return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
 }
 
-// جلب بيانات العميل من Firebase
 async function loadCustomerData() {
+    setupDateTime();
     if (!customerId) return;
-
     try {
         const docRef = doc(db, "customers", customerId);
         const docSnap = await getDoc(docRef);
@@ -52,19 +66,17 @@ async function loadCustomerData() {
             customerNameForFile = c.name || "Client";
             const vCode = generateVerificationCode(customerId);
             
-            // دالة آمنة لتعبئة النصوص
             const safeSetText = (id, value) => {
                 const el = document.getElementById(id);
-                if (el) el.innerText = value || '-';
+                if (el) el.innerText = toEnglishNumbers(value) || '-';
             };
 
-            // 1. المعلومات الشخصية
+            // البيانات المباشرة (الاسم والعنوان لا تترجم تلقائياً بدون API)
             safeSetText('c-name', c.name);
             safeSetText('c-countryCode', c.countryCode);
             safeSetText('c-phone', c.phone);
-            safeSetText('c-email', c.email);
+            document.getElementById('c-email').innerText = c.email || '-'; 
             
-            // 2. العنوان
             safeSetText('c-country', c.country);
             safeSetText('c-city', c.city);
             safeSetText('c-district', c.district);
@@ -74,28 +86,31 @@ async function loadCustomerData() {
             safeSetText('c-postalCode', c.postalCode);
             safeSetText('c-poBox', c.poBox);
 
-            // 3. حول العميل
-            const joinDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString('ar-SA') : '-';
-            safeSetText('c-joinDate', joinDate);
-            safeSetText('c-status', c.accountStatus);
-            safeSetText('c-category', c.customerCategory);
-            safeSetText('c-quickNote', c.quickNote);
+            let joinDateStr = '-';
+            if(c.createdAt) {
+                let d = new Date(c.createdAt).toLocaleDateString('en-GB');
+                joinDateStr = toEnglishNumbers(d);
+            }
+            safeSetText('c-joinDate', joinDateStr);
 
-            // 4. الملاحظات العامة
-            const notesEl = document.getElementById('c-notes');
-            if (notesEl) notesEl.innerHTML = c.detailedNotes || '<i>لا توجد ملاحظات عامة مسجلة.</i>';
+            // 🌟 تطبيق الترجمة المزدوجة (عربي | إنجليزي) 🌟
+            const statusEn = translations.status[c.accountStatus] || '';
+            const catEn = translations.category[c.customerCategory] || '';
+            const noteEn = translations.notes[c.quickNote] || '';
             
-            // 5. التذييل والتوثيق
-            safeSetText('verify-code', vCode);
+            document.getElementById('c-status').innerText = c.accountStatus ? `${c.accountStatus} | ${statusEn}` : '-';
+            document.getElementById('c-category').innerText = c.customerCategory ? `${c.customerCategory} | ${catEn}` : '-';
+            document.getElementById('c-quickNote').innerText = c.quickNote ? `${c.quickNote} | ${noteEn}` : '-';
 
-            // 🌟 تحديث العلامة المائية بشكل احترافي 🌟
+            const notesEl = document.getElementById('c-notes');
+            if (notesEl) notesEl.innerHTML = toEnglishNumbers(c.detailedNotes) || '<i>لا توجد ملاحظات عامة.</i>';
+            
             const watermarkEl = document.getElementById('watermark-text');
             if (watermarkEl) {
                 watermarkEl.innerHTML = `<div style="font-size: 1.8rem; color: #94a3b8; margin-bottom: 5px;">طُبع بواسطة | Printed By</div>
                                          <div style="font-size: 3rem; color: #0A192F;">${currentEmployee}</div>`;
             }
 
-            // 6. توليد الـ QR Code
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
                 qrContainer.innerHTML = ""; 
@@ -106,69 +121,60 @@ async function loadCustomerData() {
                     correctLevel: QRCode.CorrectLevel.M
                 });
             }
+            document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
         }
-    } catch (e) { 
-        console.error("خطأ في جلب البيانات:", e);
-    }
+    } catch (e) { console.error("Error:", e); }
 }
 
-// أزرار التحكم
 document.getElementById('btn-print')?.addEventListener('click', async () => {
     await logPrintAction('Print');
     window.print();
 });
 
-// 🌟 التعديل الجذري لحل مشاكل الـ PDF 🌟
+// 🌟 الحل الجذري للـ PDF (يمنع الصفحات الفارغة ويضبط الجودة) 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const element = document.getElementById('document-content');
     const pdfBtn = document.getElementById('btn-pdf');
     if (!element || !pdfBtn) return;
 
-    pdfBtn.innerText = "جاري التصدير (عالي الدقة)...";
+    pdfBtn.innerText = "جاري التصدير (جودة عالية)...";
     pdfBtn.disabled = true;
 
-    // إعدادات تصدير احترافية
     const opt = {
-        margin: [15, 10, 15, 10], // هوامش متناسقة تمنع القص
-        filename: `Profile_${customerNameForFile.replace(/\s+/g, '_')}.pdf`,
-        image: { type: 'jpeg', quality: 1.0 }, // دقة الصورة 100%
+        margin: [10, 10, 10, 10], // هوامش متساوية
+        filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { 
-            scale: 4, // دقة تصوير 4K لنصوص حادة
+            scale: 2, // 👈 تم تقليله لـ 2 لمنع خطأ الصفحات الفارغة مع الحفاظ على دقة ممتازة
             useCORS: true, 
-            letterRendering: true, // يمنع تفكك الحروف العربية
-            scrollY: 0,
-            logging: false
-        }, 
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            letterRendering: true,
+            scrollY: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: 'avoid-all' } // 👈 يمنع تقطيع العناصر
     };
 
     try {
         await logPrintAction('PDF Export');
-        
-        // تأخير بسيط لضمان اكتمال تحميل الخطوط وتنسيقات CSS قبل التصوير
         setTimeout(async () => {
             await html2pdf().set(opt).from(element).save();
             pdfBtn.innerText = "📥 تصدير PDF";
             pdfBtn.disabled = false;
         }, 500);
-
     } catch (err) {
-        console.error("خطأ PDF:", err);
+        console.error("PDF Error:", err);
         pdfBtn.innerText = "📥 تصدير PDF";
         pdfBtn.disabled = false;
     }
 });
 
-// سجل الأرشفة
 async function logPrintAction(actionType) {
     try {
         await addDoc(collection(db, "print_logs"), {
             user_name: currentEmployee,
             client_id: customerId,
-            client_name: customerNameForFile,
             action_type: actionType,
-            date: new Date().toISOString().split('T')[0],
-            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+            date: toEnglishNumbers(new Date().toISOString().split('T')[0]),
             timestamp: new Date().getTime()
         });
     } catch (e) {}
