@@ -1,4 +1,4 @@
-/* 🌟 إجبار كل النصوص على اللون الأسود القاتم لحل بهتان הـ PDF 🌟 */
+/* 🌟 إجبار كل النصوص على اللون الأسود القاتم لحل بهتان الـ PDF 🌟 */
 * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; color: #000 !important; }
 
 body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 20px 0; direction: rtl; }
@@ -13,10 +13,10 @@ body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, s
 .btn-close { background: transparent !important; border: 1px solid #fff; }
 .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-/* الصفحة الرئيسية */
+/* الصفحة الرئيسية المضغوطة لمنع الصفحات الإضافية */
 .a4-page {
     background: white !important; width: 210mm; height: 297mm; overflow: hidden;
-    margin: 60px auto 20px auto; padding: 8mm 10mm; 
+    margin: 60px auto 20px auto; padding: 10mm 15mm; /* تم تقليل الحشو لضمان عدم الوصول لنهاية الورقة والقص */
     box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative;
 }
 
@@ -34,7 +34,14 @@ body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, s
 .header-left-custom p { margin: 2px 0; }
 
 .doc-title-custom { text-align: center; margin-bottom: 10px; position: relative; z-index: 2; }
-.black-title { margin: 0 auto; color: #fff !important; background: #000 !important; padding: 6px 20px; border-radius: 5px; display: inline-block; min-width: 50%; font-size: 1rem; font-weight: bold; }
+
+/* 🌟 تعديل خلفية الكبسولة "ملف العميل" إلى أخضر فاتح والنص أسود 🌟 */
+.black-title {
+    margin: 0 auto; color: #000 !important; background: #d1fae5 !important; /* أخضر فاتح (Mint) */
+    padding: 6px 20px; border-radius: 5px; display: inline-block; 
+    min-width: 50%; font-size: 1rem; font-weight: bold; border: 1px solid #065f46;
+}
+
 .date-time-pill { display: inline-block; background: #f1f5f9 !important; padding: 4px 15px; border-radius: 20px; margin-top: 8px; font-size: 0.8rem; font-weight: bold; border: 1px solid #000; }
 
 /* الجدول: ألوان حادة للخطوط والخلفيات */
@@ -59,7 +66,5 @@ body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, s
     @page { size: A4 portrait; margin: 0; }
     body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; }
     .no-print { display: none !important; }
-    .a4-page { margin: 0 !important; padding: 8mm 10mm !important; box-shadow: none !important; width: 100% !important; border: none !important; height: 297mm !important; }
-    .print-table { border: 2px solid #000 !important; }
-    .print-table th, .print-table td { border: 1px solid #000 !important; }
+    .a4-page { margin: 0 !important; padding: 10mm !important; box-shadow: none !important; width: 100% !important; border: none !important; height: 297mm !important; }
 }
