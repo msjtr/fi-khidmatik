@@ -1,3 +1,4 @@
+/* 🌟 إجبار كل النصوص على اللون الأسود القاتم لحل بهتان הـ PDF 🌟 */
 * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; color: #000 !important; }
 
 body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 20px 0; direction: rtl; }
@@ -12,12 +13,17 @@ body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, s
 .btn-close { background: transparent !important; border: 1px solid #fff; }
 .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-/* 🌟 إعداد الصفحة مع هامش سفلي مريح 🌟 */
+/* 🌟 إعداد الصفحة: صفحة واحدة صارمة + هوامش جانبية 15mm 🌟 */
 .a4-page {
-    background: white !important; width: 210mm; min-height: 297mm; overflow: hidden;
+    background: white !important; 
+    width: 210mm; 
+    height: 297mm; /* إجبار الارتفاع لصفحة واحدة */
+    max-height: 297mm; 
+    overflow: hidden; /* يمنع ظهور صفحة ثانية نهائياً */
     margin: 60px auto 20px auto; 
-    padding: 10mm 10mm 15mm 10mm; /* تم إضافة 15mm في الأسفل كمنطقة أمان */
-    box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative;
+    padding: 10mm 15mm 15mm 15mm; /* [أعلى 10، يمين 15، أسفل 15، يسار 15] */
+    box-shadow: 0 0 20px rgba(0,0,0,0.3); 
+    position: relative;
 }
 
 .no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
@@ -51,7 +57,7 @@ body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, s
 
 .doc-footer { 
     margin-top: 10px; padding-top: 10px; border-top: 3px solid #0f172a; position: relative; z-index: 2; 
-    margin-bottom: 5px; /* إبعاد الفوتر قليلاً عن حافة الورقة السفلية */
+    margin-bottom: 5px;
 }
 .footer-contact { display: flex; flex-direction: column; gap: 8px; background: #f8fafc !important; padding: 10px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 0.9rem; font-weight: 900; color: #000; }
 .contact-row { display: flex; justify-content: space-around; width: 100%; }
@@ -59,9 +65,19 @@ body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, s
 .final-note { text-align: center; font-size: 0.85rem; color: #000; margin-top: 5px; font-weight: 900; }
 .ltr-text { direction: ltr; display: inline-block; font-weight: 900; }
 
+/* 🌟 إعدادات الطباعة الصارمة (صفحة واحدة وهوامش دقيقة) 🌟 */
 @media print {
     @page { size: A4 portrait; margin: 0; }
     body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; }
     .no-print { display: none !important; }
-    .a4-page { margin: 0 !important; padding: 10mm 10mm 15mm 10mm !important; box-shadow: none !important; width: 100% !important; border: none !important; }
+    .a4-page { 
+        margin: 0 !important; 
+        padding: 10mm 15mm 15mm 15mm !important; 
+        box-shadow: none !important; 
+        width: 100% !important; 
+        height: 297mm !important; 
+        max-height: 297mm !important; 
+        border: none !important; 
+        overflow: hidden !important; 
+    }
 }
