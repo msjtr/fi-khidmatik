@@ -135,22 +135,32 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     btn.innerText = "جاري المعالجة السحابية (دقة 4K)...";
     btn.disabled = true;
 
-    // الحصول على نسخة كاملة من كود الصفحة الحالي
-    const htmlContent = document.documentElement.outerHTML;
-
     try {
-        // 🚨 تم تصحيح الرابط هنا ليتصل بسيرفرك المعتمد 🚨
+        // 🌟 الحل الجذري: أخذ نسخة من الصفحة وتنظيفها قبل إرسالها للسيرفر 🌟
+        const clonedDoc = document.documentElement.cloneNode(true);
+        
+        // 1. إزالة الأزرار العلوية حتى لا تظهر في الـ PDF
+        const panel = clonedDoc.querySelector('.control-panel');
+        if (panel) panel.remove();
+
+        // 2. إزالة كل السكربتات لمنع السيرفر من إعادة الاتصال بقاعدة البيانات ومسح الـ HTML
+        const scripts = clonedDoc.querySelectorAll('script');
+        scripts.forEach(script => script.remove());
+
+        // الآن الكود أصبح نقياً وجاهزاً للطباعة فوراً
+        const finalHtmlContent = clonedDoc.outerHTML;
+
+        // 🔗 الرابط السحابي المعتمد
         const vercelApiUrl = 'https://fi-khidmatik-by-al-itqan-plus.vercel.app/api/generate-pdf'; 
 
         // إرسال الطلب للسيرفر السحابي
         const response = await fetch(vercelApiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ html: htmlContent })
+            body: JSON.stringify({ html: finalHtmlContent })
         });
 
         if (response.ok) {
-            // استقبال ملف الـ PDF كبيانات ثنائية وتنزيله
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
