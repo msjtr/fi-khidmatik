@@ -1,7 +1,11 @@
-/* 🌟 إجبار كل النصوص على اللون الأسود القاتم لحل بهتان הـ PDF 🌟 */
+/* 🌟 استدعاء خط عربي رسمي من جوجل لتعريف سيرفر Vercel السحابي على اللغة العربية 🌟 */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+
+/* 🌟 إجبار كل النصوص على اللون الأسود القاتم لحل بهتان الـ PDF 🌟 */
 * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; color: #000 !important; }
 
-body { background: #525659 !important; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 20px 0; direction: rtl; }
+/* 🌟 تغيير الخط إلى Cairo لضمان عدم تقطع الحروف 🌟 */
+body { background: #525659 !important; font-family: 'Cairo', sans-serif !important; margin: 0; padding: 20px 0; direction: rtl; }
 
 .control-panel {
     background: #000 !important; color: white !important; padding: 15px 30px; position: fixed; top: 0; left: 0; width: 100%;
