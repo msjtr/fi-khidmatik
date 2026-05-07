@@ -6,10 +6,63 @@
     <title>ملف بيانات العميل | الإتقان بلس</title>
     
     <link rel="icon" type="image/svg+xml" href="https://fi-khidmatik-by-al-itqan-plus.vercel.app/images/logo.svg">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
-    <link rel="stylesheet" href="https://fi-khidmatik-by-al-itqan-plus.vercel.app/print.css?v=1100">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; color: #000 !important; }
+
+        body { background: #525659 !important; font-family: 'Cairo', Tahoma, Arial, sans-serif !important; margin: 0; padding: 20px 0; direction: rtl; }
+
+        .control-panel { background: #000 !important; color: white !important; padding: 15px 30px; position: fixed; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.3s; margin: 0 5px; color: #fff !important; }
+        .btn-print { background: #3498db !important; }
+        .btn-pdf { background: #e74c3c !important; }
+        .btn-close { background: transparent !important; border: 1px solid #fff; }
+        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        .a4-page { background: white !important; width: 210mm; height: 297mm; max-height: 297mm; overflow: hidden; margin: 60px auto 20px auto; padding: 10mm 15mm 15mm 15mm; box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; }
+        .no-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+        .doc-header-custom { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px; position: relative; z-index: 2; }
+        .header-right-custom { display: flex; align-items: center; gap: 10px; }
+        .header-right-custom img { width: 50px; height: auto; }
+        .header-right-custom h2 { margin: 0; font-size: 1.15rem; font-weight: 900; color: #0f172a; }
+        .header-left-custom { text-align: left; font-size: 0.85rem; font-weight: 900; color: #000; }
+        .header-left-custom p { margin: 2px 0; }
+
+        .doc-title-custom { text-align: center; margin-bottom: 15px; position: relative; z-index: 2; }
+        .black-title { margin: 0 auto; color: #022c22 !important; background: #d1fae5 !important; padding: 8px 20px; border-radius: 5px; display: inline-block; min-width: 50%; font-size: 1.1rem; font-weight: 900; border: 2px solid #047857; }
+        .date-time-pill { display: inline-block; background: #f8fafc !important; padding: 5px 15px; border-radius: 20px; margin-top: 10px; font-size: 0.85rem; font-weight: 900; border: 1px solid #94a3b8; color: #000; }
+
+        .print-table { width: 100% !important; border-collapse: collapse; margin-bottom: 10px; table-layout: auto !important; position: relative; z-index: 2; border: 2px solid #0f172a; }
+        .print-table th, .print-table td { border: 1px solid #475569; padding: 6px 8px; font-size: 13px; vertical-align: middle; }
+        .print-table th { background-color: #cbd5e1 !important; color: #000 !important; font-weight: 900; text-align: center; font-size: 14px; padding: 8px; border-bottom: 2px solid #0f172a; }
+        .print-table td.ar-label { background-color: #f1f5f9 !important; font-weight: 900; width: 1% !important; white-space: nowrap !important; text-align: right !important; color: #000; }
+        .print-table td.en-label { background-color: #f1f5f9 !important; font-weight: 900; width: 1% !important; white-space: nowrap !important; text-align: left !important; direction: ltr !important; color: #000; }
+        .print-table td.data-cell { width: auto !important; font-weight: 900; text-align: center !important; color: #000; }
+
+        #c-notes { padding: 10px; font-size: 13px; line-height: 1.5; min-height: 35px; font-weight: 900; color: #000; }
+
+        .doc-footer { margin-top: 10px; padding-top: 10px; border-top: 3px solid #0f172a; position: relative; z-index: 2; margin-bottom: 5px; }
+        .footer-contact { display: flex; flex-direction: column; gap: 8px; background: #f8fafc !important; padding: 10px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 0.9rem; font-weight: 900; color: #000; }
+        .contact-row { display: flex; justify-content: space-around; width: 100%; }
+        .verification-section { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #475569; padding-top: 10px; }
+        .final-note { text-align: center; font-size: 0.85rem; color: #000; margin-top: 5px; font-weight: 900; }
+        .ltr-text { direction: ltr; display: inline-block; font-weight: 900; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body, html { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+            .no-print { display: none !important; }
+            .a4-page { margin: 0 !important; padding: 10mm 15mm 15mm 15mm !important; box-shadow: none !important; width: 100% !important; height: 297mm !important; max-height: 297mm !important; border: none !important; overflow: hidden !important; }
+        }
+    </style>
 </head>
 <body>
 
@@ -58,4 +111,59 @@
                 </tr>
             </thead>
             <tbody>
-                <tr class="no-break"><td class="ar-label">اسم العميل</td><td class="data-cell" id="c-name"></td><td class="en
+                <tr class="no-break"><td class="ar-label">اسم العميل</td><td class="data-cell" id="c-name"></td><td class="en-label">Customer Name</td></tr>
+                <tr class="no-break"><td class="ar-label">رمز مفتاح الدولة</td><td class="data-cell" id="c-countryCode"></td><td class="en-label">Country Code</td></tr>
+                <tr class="no-break"><td class="ar-label">رقم الجوال</td><td class="data-cell" id="c-phone"></td><td class="en-label">Phone Number</td></tr>
+                <tr class="no-break"><td class="ar-label">البريد الإلكتروني</td><td class="data-cell" id="c-email" style="font-family: monospace;"></td><td class="en-label">Email Address</td></tr>
+            </tbody>
+
+            <thead>
+                <tr class="no-break">
+                    <th colspan="3">
+                        <span dir="rtl">العنوان</span> <span style="margin:0 10px;">|</span> <span dir="ltr">Address</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="no-break"><td class="ar-label">الدولة</td><td class="data-cell" id="c-country"></td><td class="en-label">Country</td></tr>
+                <tr class="no-break"><td class="ar-label">المنطقة / المدينة</td><td class="data-cell" id="c-city"></td><td class="en-label">Region / City</td></tr>
+                <tr class="no-break"><td class="ar-label">الحي</td><td class="data-cell" id="c-district"></td><td class="en-label">District</td></tr>
+                <tr class="no-break"><td class="ar-label">الشارع</td><td class="data-cell" id="c-street"></td><td class="en-label">Street</td></tr>
+                <tr class="no-break"><td class="ar-label">رقم المبنى</td><td class="data-cell" id="c-buildingNo"></td><td class="en-label">Building Number</td></tr>
+                <tr class="no-break"><td class="ar-label">الرقم الإضافي</td><td class="data-cell" id="c-additionalNo"></td><td class="en-label">Additional Number</td></tr>
+                <tr class="no-break"><td class="ar-label">الرمز البريدي</td><td class="data-cell" id="c-postalCode"></td><td class="en-label">Postal Code</td></tr>
+                <tr class="no-break"><td class="ar-label">صندوق البريد</td><td class="data-cell" id="c-poBox"></td><td class="en-label">P.O. Box</td></tr>
+            </tbody>
+
+            <thead>
+                <tr class="no-break">
+                    <th colspan="3">
+                        <span dir="rtl">حول العميل</span> <span style="margin:0 10px;">|</span> <span dir="ltr">About Customer</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="no-break"><td class="ar-label">تاريخ الانضمام</td><td class="data-cell" id="c-joinDate"></td><td class="en-label">Join Date</td></tr>
+                <tr class="no-break"><td class="ar-label">حالة الحساب</td><td class="data-cell" id="c-status"></td><td class="en-label">Account Status</td></tr>
+                <tr class="no-break"><td class="ar-label">التصنيف</td><td class="data-cell" id="c-category"></td><td class="en-label">Category</td></tr>
+                <tr class="no-break"><td class="ar-label">ملاحظات سريعة</td><td class="data-cell" id="c-quickNote"></td><td class="en-label">Quick Notes</td></tr>
+            </tbody>
+
+            <thead>
+                <tr class="no-break">
+                    <th colspan="3">
+                        <span dir="rtl">ملاحظات عامة</span> <span style="margin:0 10px;">|</span> <span dir="ltr">General Notes</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="no-break">
+                    <td colspan="3" id="c-notes" style="padding: 10px; text-align: justify; line-height: 1.5;"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="doc-footer no-break">
+            <div class="footer-contact">
+                <div class="contact-row">
+                    <span>📞 الهاتف
