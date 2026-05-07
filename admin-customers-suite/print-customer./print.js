@@ -129,51 +129,46 @@ document.getElementById('btn-print')?.addEventListener('click', () => {
     window.print();
 });
 
-// 🌟 زر تحميل PDF (أمر انتظار 3 ثوانٍ وضبط الهوامش) 🌟
+// 🌟 التصدير السحابي الاحترافي عبر سيرفر Vercel الخاص بك 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
-    const element = document.getElementById('document-content');
     const btn = document.getElementById('btn-pdf');
-    
-    btn.innerText = "جاري التحضير (يرجى الانتظار)...";
+    btn.innerText = "جاري المعالجة السحابية (دقة 4K)...";
     btn.disabled = true;
 
-    // إزالة القيود مؤقتاً لتجنب أي قص للفوتر
-    const originalMargin = element.style.margin;
-    const originalHeight = element.style.height;
-    const originalMaxHeight = element.style.maxHeight;
-    const originalOverflow = element.style.overflow;
-    
-    element.style.margin = '0';
-    element.style.height = 'auto'; 
-    element.style.maxHeight = 'none';
-    element.style.overflow = 'visible';
+    // الحصول على نسخة كاملة من كود الصفحة الحالي
+    const htmlContent = document.documentElement.outerHTML;
 
-    // 🌟 إعدادات الـ PDF مع الهوامش: [أعلى 10، يمين 15، أسفل 15، يسار 15] 🌟
-    const opt = {
-        margin: [10, 15, 15, 15], 
-        filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
-        image: { type: 'jpeg', quality: 1.0 }, 
-        html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // دقة 4K كاملة
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    try {
+        // 🔗 الرابط السحابي الخاص بمشروعك على Vercel
+        const vercelApiUrl = 'https://fi-khidmatik-nvam-r5xfkq6st-mmsjtr1411ms-projects.vercel.app/api/generate-pdf'; 
 
-    // 🌟 أمر الانتظار (3 ثوانٍ) لضمان اكتمال تلوين وتحميل الصورة بدقة 4K بالكامل 🌟
-    setTimeout(async () => {
-        try {
-            await html2pdf().set(opt).from(element).save();
-        } catch (err) {
-            console.error("PDF Export Error:", err);
-        } finally {
-            // إعادة التنسيق للشكل الطبيعي
-            element.style.margin = originalMargin;
-            element.style.height = originalHeight;
-            element.style.maxHeight = originalMaxHeight;
-            element.style.overflow = originalOverflow;
-            
-            btn.innerText = "📥 تحميل PDF مباشر";
-            btn.disabled = false;
+        // إرسال الطلب للسيرفر السحابي
+        const response = await fetch(vercelApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ html: htmlContent })
+        });
+
+        if (response.ok) {
+            // استقبال ملف الـ PDF كبيانات ثنائية وتنزيله
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            const errorText = await response.text();
+            alert("حدث خطأ في السيرفر السحابي: " + errorText);
         }
-    }, 3000); // 3000ms = 3 ثوانٍ انتظار
+    } catch (err) {
+        console.error("Fetch error:", err);
+        alert("فشل الاتصال! تأكد من أن السيرفر السحابي يعمل.");
+    } finally {
+        btn.innerText = "📥 تحميل PDF مباشر";
+        btn.disabled = false;
+    }
 });
 
 document.addEventListener('DOMContentLoaded', loadCustomerData);
