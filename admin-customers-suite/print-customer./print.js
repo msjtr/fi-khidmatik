@@ -6,6 +6,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
 let customerNameForFile = "Client";
 
+// دالة تحويل الأرقام للإنجليزي
 function toEnglishNumbers(str) {
     if(!str) return '';
     const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -13,13 +14,17 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
+// دالة إعداد التواريخ (اليوم-الشهر-السنة) بدون نصوص زائدة
 function setupDates() {
     const now = new Date();
+    
+    // ميلادي
     const dG = String(now.getDate()).padStart(2, '0');
     const mG = String(now.getMonth() + 1).padStart(2, '0');
     const yG = now.getFullYear();
     const gregStrRaw = `${dG}-${mG}-${yG}`;
 
+    // هجري
     const hijriFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
@@ -27,7 +32,7 @@ function setupDates() {
     const hD = hParts.find(p => p.type === 'day').value;
     const hijriStrRaw = `${hD}-${hM}-${hY}`;
 
-    // إجبار الأرقام على التنسيق الإنجليزي من اليسار لليمين
+    // إجبار الأرقام على التنسيق الإنجليزي من اليسار لليمين باستخدام bdo
     const finalDateRaw = `<bdo dir="ltr">${toEnglishNumbers(hijriStrRaw)}</bdo> / <bdo dir="ltr">${toEnglishNumbers(gregStrRaw)}</bdo>`;
     
     document.getElementById('print-date-raw').innerHTML = finalDateRaw;
@@ -124,12 +129,12 @@ document.getElementById('btn-print')?.addEventListener('click', () => {
     window.print();
 });
 
-// 🌟 زر تحميل PDF (مع أمر انتظار 4K وضبط الهوامش) 🌟
+// 🌟 زر تحميل PDF (أمر انتظار 3 ثوانٍ وضبط الهوامش) 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const element = document.getElementById('document-content');
     const btn = document.getElementById('btn-pdf');
     
-    btn.innerText = "جاري التحضير (دقة 4K)...";
+    btn.innerText = "جاري التحضير (يرجى الانتظار)...";
     btn.disabled = true;
 
     // إزالة القيود مؤقتاً لتجنب أي قص للفوتر
@@ -143,16 +148,16 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     element.style.maxHeight = 'none';
     element.style.overflow = 'visible';
 
-    // 🌟 إعدادات الـ PDF (هامش سفلي آمن 20mm لمنع التصاق الفوتر)
+    // 🌟 إعدادات الـ PDF مع الهوامش: [أعلى 10، يمين 15، أسفل 15، يسار 15] 🌟
     const opt = {
-        margin: [10, 10, 20, 10], // [أعلى، يمين، أسفل، يسار]
+        margin: [10, 15, 15, 15], 
         filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg', quality: 1.0 }, 
         html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // دقة 4K كاملة
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // 🌟 أمر الانتظار (ثانيتين) حتى تكتمل تحميل الألوان والخطوط والـ 4K بالكامل 🌟
+    // 🌟 أمر الانتظار (3 ثوانٍ) لضمان اكتمال تلوين وتحميل الصورة بدقة 4K بالكامل 🌟
     setTimeout(async () => {
         try {
             await html2pdf().set(opt).from(element).save();
@@ -168,7 +173,7 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
             btn.innerText = "📥 تحميل PDF مباشر";
             btn.disabled = false;
         }
-    }, 2000); // 2000ms = ثانيتين انتظار
+    }, 3000); // 3000ms = 3 ثوانٍ انتظار
 });
 
 document.addEventListener('DOMContentLoaded', loadCustomerData);
