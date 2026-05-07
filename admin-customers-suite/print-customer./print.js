@@ -4,6 +4,7 @@ import { db } from '../js/firebase.js';
 const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
 const customerId = urlParams.get('id');
+let customerNameForFile = "Client";
 
 function toEnglishNumbers(str) {
     if(!str) return '';
@@ -26,9 +27,10 @@ function setupDates() {
     const hD = hParts.find(p => p.type === 'day').value;
     const hijriStrRaw = `${hD}-${hM}-${hY}`;
 
-    const finalDateRaw = toEnglishNumbers(hijriStrRaw) + ' / ' + toEnglishNumbers(gregStrRaw);
+    // إجبار الأرقام على التنسيق الإنجليزي من اليسار لليمين
+    const finalDateRaw = `<bdo dir="ltr">${toEnglishNumbers(hijriStrRaw)}</bdo> / <bdo dir="ltr">${toEnglishNumbers(gregStrRaw)}</bdo>`;
     
-    document.getElementById('print-date-raw').innerText = finalDateRaw;
+    document.getElementById('print-date-raw').innerHTML = finalDateRaw;
     document.getElementById('print-time').innerText = toEnglishNumbers(now.toLocaleTimeString('en-US', { hour12: false }));
 }
 
@@ -73,6 +75,7 @@ async function loadCustomerData() {
 
         if (docSnap.exists()) {
             const c = docSnap.data();
+            customerNameForFile = c.name || "Client";
             
             document.getElementById('c-name').innerHTML = translateData(c.name);
             document.getElementById('c-countryCode').innerText = toEnglishNumbers(c.countryCode || '+966');
@@ -103,7 +106,6 @@ async function loadCustomerData() {
             const qrContainer = document.getElementById("qr-code");
             if (qrContainer && typeof QRCode !== 'undefined') {
                 qrContainer.innerHTML = "";
-                // توليد باركود واضح بالأسود الصافي
                 new QRCode(qrContainer, { text: `Verify: ${customerId}`, width: 65, height: 65, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
             document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
@@ -118,29 +120,55 @@ function generateVerificationCode(id) {
     return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
 }
 
-async function logAction(type) {
-    try {
-        await addDoc(collection(db, "print_logs"), {
-            user_name: currentEmployee, client_id: customerId, action_type: type,
-            date: new Date().toISOString().split('T')[0], timestamp: new Date().getTime()
-        });
-    } catch (e) {}
-}
-
-document.getElementById('btn-print')?.addEventListener('click', async () => {
-    await logAction('Print');
+document.getElementById('btn-print')?.addEventListener('click', () => {
     window.print();
 });
 
-// 🌟 الحل الاحترافي: الاعتماد على محرك المتصفح للحصول على PDF مثالي 🌟
+// 🌟 زر تحميل PDF (مع أمر انتظار 4K وضبط الهوامش) 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
-    await logAction('PDF Export');
-    alert('للحصول على ملف PDF عالي الدقة (ألوان كاملة، بدون قص، وباركود سليم):\n\n1. ستفتح نافذة الطباعة الآن.\n2. من خيار "الوجهة" (Destination)، اختر "حفظ بتنسيق PDF".\n3. تأكد من تفعيل "رسومات الخلفية" (Background Graphics) لظهور الألوان.');
+    const element = document.getElementById('document-content');
+    const btn = document.getElementById('btn-pdf');
     
-    // تأخير بسيط لإعطاء المستخدم وقتاً لقراءة الرسالة
-    setTimeout(() => {
-        window.print();
-    }, 500);
+    btn.innerText = "جاري التحضير (دقة 4K)...";
+    btn.disabled = true;
+
+    // إزالة القيود مؤقتاً لتجنب أي قص للفوتر
+    const originalMargin = element.style.margin;
+    const originalHeight = element.style.height;
+    const originalMaxHeight = element.style.maxHeight;
+    const originalOverflow = element.style.overflow;
+    
+    element.style.margin = '0';
+    element.style.height = 'auto'; 
+    element.style.maxHeight = 'none';
+    element.style.overflow = 'visible';
+
+    // 🌟 إعدادات الـ PDF (هامش سفلي آمن 20mm لمنع التصاق الفوتر)
+    const opt = {
+        margin: [10, 10, 20, 10], // [أعلى، يمين، أسفل، يسار]
+        filename: `Profile_${toEnglishNumbers(customerNameForFile).replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 1.0 }, 
+        html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // دقة 4K كاملة
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // 🌟 أمر الانتظار (ثانيتين) حتى تكتمل تحميل الألوان والخطوط والـ 4K بالكامل 🌟
+    setTimeout(async () => {
+        try {
+            await html2pdf().set(opt).from(element).save();
+        } catch (err) {
+            console.error("PDF Export Error:", err);
+        } finally {
+            // إعادة التنسيق للشكل الطبيعي
+            element.style.margin = originalMargin;
+            element.style.height = originalHeight;
+            element.style.maxHeight = originalMaxHeight;
+            element.style.overflow = originalOverflow;
+            
+            btn.innerText = "📥 تحميل PDF مباشر";
+            btn.disabled = false;
+        }
+    }, 2000); // 2000ms = ثانيتين انتظار
 });
 
 document.addEventListener('DOMContentLoaded', loadCustomerData);
