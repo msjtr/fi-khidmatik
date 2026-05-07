@@ -139,8 +139,8 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const htmlContent = document.documentElement.outerHTML;
 
     try {
-        // 🔗 الرابط السحابي الخاص بمشروعك على Vercel
-        const vercelApiUrl = 'https://fi-khidmatik-nvam-r5xfkq6st-mmsjtr1411ms-projects.vercel.app/api/generate-pdf'; 
+        // 🚨 تم تصحيح الرابط هنا ليتصل بسيرفرك المعتمد 🚨
+        const vercelApiUrl = 'https://fi-khidmatik-by-al-itqan-plus.vercel.app/api/generate-pdf'; 
 
         // إرسال الطلب للسيرفر السحابي
         const response = await fetch(vercelApiUrl, {
