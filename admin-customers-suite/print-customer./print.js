@@ -1,6 +1,6 @@
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-// 🚨 تم تصحيح المسار هنا ليعود خطوتين للخلف بناءً على مسار مجلدك الجديد 🚨
-import { db } from '../../js/firebase.js'; 
+import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+// 🚨 تم ضبط المسار الصحيح 100% بناءً على هيكلة ملفاتك 🚨
+import { db } from '../js/firebase.js'; 
 
 const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
