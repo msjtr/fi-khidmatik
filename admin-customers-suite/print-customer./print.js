@@ -14,17 +14,14 @@ function toEnglishNumbers(str) {
     return str.toString().replace(/[٠-٩]/g, w => englishNumbers[arabicNumbers.indexOf(w)]);
 }
 
-// دالة إعداد التواريخ (اليوم-الشهر-السنة) بدون نصوص زائدة
+// دالة إعداد التواريخ
 function setupDates() {
     const now = new Date();
-    
-    // ميلادي
     const dG = String(now.getDate()).padStart(2, '0');
     const mG = String(now.getMonth() + 1).padStart(2, '0');
     const yG = now.getFullYear();
     const gregStrRaw = `${dG}-${mG}-${yG}`;
 
-    // هجري
     const hijriFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const hParts = hijriFormatter.formatToParts(now);
     const hY = hParts.find(p => p.type === 'year').value;
@@ -32,7 +29,6 @@ function setupDates() {
     const hD = hParts.find(p => p.type === 'day').value;
     const hijriStrRaw = `${hD}-${hM}-${hY}`;
 
-    // إجبار الأرقام على التنسيق الإنجليزي من اليسار لليمين باستخدام bdo
     const finalDateRaw = `<bdo dir="ltr">${toEnglishNumbers(hijriStrRaw)}</bdo> / <bdo dir="ltr">${toEnglishNumbers(gregStrRaw)}</bdo>`;
     
     document.getElementById('print-date-raw').innerHTML = finalDateRaw;
@@ -73,7 +69,10 @@ function translateData(text) {
 
 async function loadCustomerData() {
     setupDates();
-    if (!customerId) return;
+    if (!customerId) {
+        console.error("لا يوجد ID للعميل في الرابط!");
+        return;
+    }
     try {
         const docRef = doc(db, "customers", customerId);
         const docSnap = await getDoc(docRef);
@@ -114,8 +113,10 @@ async function loadCustomerData() {
                 new QRCode(qrContainer, { text: `Verify: ${customerId}`, width: 65, height: 65, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
             document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
+        } else {
+            console.error("لم يتم العثور على بيانات العميل في قاعدة البيانات!");
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("خطأ في جلب البيانات:", e); }
 }
 
 function generateVerificationCode(id) {
@@ -129,31 +130,23 @@ document.getElementById('btn-print')?.addEventListener('click', () => {
     window.print();
 });
 
-// 🌟 التصدير السحابي الاحترافي عبر سيرفر Vercel الخاص بك 🌟
+// 🌟 التصدير السحابي عبر Vercel 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-pdf');
     btn.innerText = "جاري المعالجة السحابية (دقة 4K)...";
     btn.disabled = true;
 
     try {
-        // 🌟 الحل الجذري: أخذ نسخة من الصفحة وتنظيفها قبل إرسالها للسيرفر 🌟
+        // أخذ نسخة نظيفة من الصفحة وإزالة الأزرار والسكربتات
         const clonedDoc = document.documentElement.cloneNode(true);
-        
-        // 1. إزالة الأزرار العلوية حتى لا تظهر في الـ PDF
         const panel = clonedDoc.querySelector('.control-panel');
         if (panel) panel.remove();
-
-        // 2. إزالة كل السكربتات لمنع السيرفر من إعادة الاتصال بقاعدة البيانات ومسح الـ HTML
         const scripts = clonedDoc.querySelectorAll('script');
         scripts.forEach(script => script.remove());
 
-        // الآن الكود أصبح نقياً وجاهزاً للطباعة فوراً
         const finalHtmlContent = clonedDoc.outerHTML;
-
-        // 🔗 الرابط السحابي المعتمد
         const vercelApiUrl = 'https://fi-khidmatik-by-al-itqan-plus.vercel.app/api/generate-pdf'; 
 
-        // إرسال الطلب للسيرفر السحابي
         const response = await fetch(vercelApiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
