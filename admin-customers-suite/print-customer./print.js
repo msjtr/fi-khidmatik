@@ -1,7 +1,4 @@
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
-// 🌟 الحل السحري: رابط مباشر ومطلق لملف الفايربيز لتجنب أي ضياع في المسارات بسبب النقطة 🌟
-import { db, storage } from '../js/firebase.js';
+let doc, getDoc, db; // متغيرات لتخزين دوال قاعدة البيانات
 
 const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
@@ -70,11 +67,6 @@ function translateData(text) {
 }
 
 async function loadCustomerData() {
-    setupDates();
-    if (!customerId) {
-        console.error("لا يوجد ID للعميل في الرابط!");
-        return;
-    }
     try {
         const docRef = doc(db, "customers", customerId);
         const docSnap = await getDoc(docRef);
@@ -116,9 +108,11 @@ async function loadCustomerData() {
             }
             document.getElementById('verify-code').innerText = toEnglishNumbers(vCode);
         } else {
-            console.error("لم يتم العثور على بيانات العميل في قاعدة البيانات!");
+            alert("تنبيه: هذا العميل غير موجود في قاعدة البيانات!");
         }
-    } catch (e) { console.error("خطأ في جلب البيانات:", e); }
+    } catch (e) { 
+        alert("حدث خطأ أثناء جلب بيانات العميل: " + e.message);
+    }
 }
 
 function generateVerificationCode(id) {
@@ -128,19 +122,16 @@ function generateVerificationCode(id) {
     return Math.abs(hash).toString(16).toUpperCase().substring(0, 8);
 }
 
-document.getElementById('btn-print')?.addEventListener('click', () => {
-    window.print();
-});
+document.getElementById('btn-print')?.addEventListener('click', () => { window.print(); });
 
-// 🌟 التصدير السحابي عبر Vercel (منظف وجاهز) 🌟
+// 🌟 التصدير السحابي عبر Vercel 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-pdf');
-    btn.innerText = "جاري المعالجة السحابية (دقة 4K)...";
+    btn.innerText = "جاري المعالجة السحابية...";
     btn.disabled = true;
 
     try {
         const clonedDoc = document.documentElement.cloneNode(true);
-        
         const panel = clonedDoc.querySelector('.control-panel');
         if (panel) panel.remove();
         
@@ -165,16 +156,42 @@ document.getElementById('btn-pdf')?.addEventListener('click', async () => {
             a.click();
             window.URL.revokeObjectURL(url);
         } else {
-            const errorText = await response.text();
-            alert("حدث خطأ في السيرفر السحابي: " + errorText);
+            alert("حدث خطأ في السيرفر السحابي.");
         }
     } catch (err) {
-        console.error("Fetch error:", err);
-        alert("فشل الاتصال! تأكد من أن السيرفر السحابي يعمل.");
+        alert("فشل الاتصال بالسيرفر السحابي.");
     } finally {
         btn.innerText = "📥 تحميل PDF مباشر";
         btn.disabled = false;
     }
 });
 
-document.addEventListener('DOMContentLoaded', loadCustomerData);
+// 🌟 دالة التشغيل الذكية (لكشف الأخطاء وعرضها) 🌟
+async function startApp() {
+    setupDates(); // تشغيل التاريخ والوقت فوراً لنتأكد أن الكود يقرأ
+    
+    if (!customerId) {
+        alert("لا يوجد رقم ID في الرابط. يرجى فتح الصفحة بشكل صحيح.");
+        return;
+    }
+
+    try {
+        // 1. تحميل مكتبات فايربيز بشكل آمن
+        const firestore = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        doc = firestore.doc;
+        getDoc = firestore.getDoc;
+
+        // 2. تحميل ملف الإعدادات الخاص بك (المسار المباشر لحل المشكلة نهائياً)
+        const myFirebase = await import('https://msjtr.github.io/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/js/firebase.js');
+        db = myFirebase.db;
+
+        // 3. إذا وصلنا هنا، يعني الاتصال نجح 100%! نجلب البيانات الآن
+        await loadCustomerData();
+    } catch (err) {
+        // إذا كان هناك أي عطل، سيظهر لك هنا مباشرة!
+        alert("عذراً! فشل الاتصال بقاعدة البيانات. السبب:\n" + err.message);
+    }
+}
+
+// بدء التشغيل عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', startApp);
