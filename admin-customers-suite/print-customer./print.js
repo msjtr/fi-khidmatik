@@ -1,6 +1,7 @@
-import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-// 🚨 تم ضبط المسار الصحيح 100% بناءً على هيكلة ملفاتك 🚨
-import { db } from '../js/firebase.js'; 
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+// 🌟 الحل السحري: رابط مباشر ومطلق لملف الفايربيز لتجنب أي ضياع في المسارات بسبب النقطة 🌟
+import { db } from 'https://msjtr.github.io/Fi-Khidmatik-by-Al-Itqan-Plus/admin-customers-suite/js/firebase.js'; 
 
 const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
