@@ -1,5 +1,6 @@
-import { doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-import { db } from '../js/firebase.js'; 
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+// 🚨 تم تصحيح المسار هنا ليعود خطوتين للخلف بناءً على مسار مجلدك الجديد 🚨
+import { db } from '../../js/firebase.js'; 
 
 const currentEmployee = "محمد بن صالح الشمري";
 const urlParams = new URLSearchParams(window.location.search);
@@ -130,17 +131,18 @@ document.getElementById('btn-print')?.addEventListener('click', () => {
     window.print();
 });
 
-// 🌟 التصدير السحابي عبر Vercel 🌟
+// 🌟 التصدير السحابي عبر Vercel (منظف وجاهز) 🌟
 document.getElementById('btn-pdf')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-pdf');
     btn.innerText = "جاري المعالجة السحابية (دقة 4K)...";
     btn.disabled = true;
 
     try {
-        // أخذ نسخة نظيفة من الصفحة وإزالة الأزرار والسكربتات
         const clonedDoc = document.documentElement.cloneNode(true);
+        
         const panel = clonedDoc.querySelector('.control-panel');
         if (panel) panel.remove();
+        
         const scripts = clonedDoc.querySelectorAll('script');
         scripts.forEach(script => script.remove());
 
